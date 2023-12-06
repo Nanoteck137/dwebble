@@ -4,9 +4,7 @@ use std::{
     process::{Command, ExitStatus},
 };
 
-use crate::{
-    ffprobe, AlbumMetadata, ArtistMetadata, TrackMetadata,
-};
+use crate::{ffprobe, AlbumMetadata, ArtistMetadata, TrackMetadata};
 
 #[derive(Default, Debug)]
 pub struct EncodeMetadata<'a> {
@@ -18,72 +16,21 @@ pub struct EncodeMetadata<'a> {
 }
 
 #[derive(Debug)]
-pub struct Artist {
-    id: String,
-    name: String,
-}
-
-impl Artist {
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-}
-
-#[derive(Debug)]
-pub struct Track {
-    track_num: usize,
-    name: String,
-    artist: usize,
-
-    quality_version: String,
-    mobile_version: String,
-}
-
-impl Track {
-    pub fn track_num(&self) -> usize {
-        self.track_num
-    }
-
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn artist(&self) -> usize {
-        self.artist
-    }
-}
-
-#[derive(Debug)]
 pub struct Album {
     path: PathBuf,
 
-    id: String,
-    name: String,
-
-    tracks: Vec<Track>,
+    metadata: AlbumMetadata,
 }
 
 impl Album {
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn tracks(&self) -> &Vec<Track> {
-        &self.tracks
+    pub fn metadata(&self) -> &AlbumMetadata {
+        &self.metadata
     }
 }
 
 pub struct Collection {
     base: PathBuf,
-    artists: Vec<Artist>,
+    artists: Vec<ArtistMetadata>,
     albums: Vec<Album>,
 }
 
@@ -113,13 +60,7 @@ impl Collection {
         if let Ok(s) = std::fs::read_to_string(artists_path) {
             let artists = serde_json::from_str::<Vec<ArtistMetadata>>(&s)
                 .context("Failed to parse 'artists.json'")?;
-
-            self.artists.try_reserve(artists.len())?;
-            self.artists
-                .extend(artists.into_iter().map(|artist| Artist {
-                    id: artist.id,
-                    name: artist.name,
-                }));
+            self.artists = artists;
         }
 
         Ok(())
@@ -143,34 +84,10 @@ impl Collection {
 
             let s = std::fs::read_to_string(album_json)?;
             let metadata = serde_json::from_str::<AlbumMetadata>(&s)?;
-            println!("Metadata: {:#?}", metadata);
-
-            let tracks: Vec<Track> = metadata
-                    .tracks
-                    .into_iter()
-                    .map(|track| -> Result<Track> {
-                        Ok(Track {
-                            track_num: track.track_num,
-                            name: track.name,
-                            artist: self
-                                .get_artist_by_id(&track.artist_id)
-                                .with_context(|| {
-                                    format!(
-                                        "No artist with id: {} (collection might be corrupted)",
-                                        track.artist_id
-                                    )
-                                })?,
-                            quality_version: track.quality_version,
-                            mobile_version: track.mobile_version,
-                        })
-                    })
-                    .collect::<Result<_, _>>()?;
 
             self.albums.push(Album {
                 path: entry,
-                id: metadata.id,
-                name: metadata.name,
-                tracks,
+                metadata
             });
         }
 
@@ -195,38 +112,28 @@ impl Collection {
         let new_id = cuid2::CuidConstructor::new().with_length(18);
 
         let index = self.artists.len();
-        self.artists.push(Artist {
+        self.artists.push(ArtistMetadata {
             id: new_id.create_id(),
             name: name.to_string(),
+            // TODO(patrik): Add picture
+            picture: "".to_string(),
         });
 
         index
     }
 
-    fn get_artist_by_name(&self, name: &str) -> Option<&Artist> {
-        None
-    }
-
-    fn get_artist_by_id(&self, id: &str) -> Option<usize> {
-        self.artists
-            .iter()
-            .enumerate()
-            .find(|(index, artist)| artist.id == id)
-            .map(|(index, _)| index)
+    pub fn artist_by_id(&self, id: &str) -> Option<&ArtistMetadata> {
+        self.artists.iter().find(|artist| artist.id == id)
     }
 
     pub fn get_album_by_name(&self, name: &str) -> Option<()> {
         self.albums
             .iter()
-            .find(|album| album.name == name)
+            .find(|album| album.metadata.name == name)
             .map(|_| ())
     }
 
-    fn get_album_by_name_mut(&mut self, name: &str) -> Option<&mut Album> {
-        self.albums.iter_mut().find(|album| album.name == name)
-    }
-
-    pub fn artist_by_index(&self, artist: usize) -> &Artist {
+    pub fn artist_by_index(&self, artist: usize) -> &ArtistMetadata {
         &self.artists[artist]
     }
 
@@ -248,7 +155,7 @@ impl Collection {
         Ok((id, path))
     }
 
-    pub fn add_album(&mut self, name: String) -> Option<usize> {
+    pub fn add_album(&mut self, artist_id: &str, name: &str) -> Option<usize> {
         if self.get_album_by_name(&name).is_some() {
             return None;
         }
@@ -262,9 +169,13 @@ impl Collection {
         let index = self.albums.len();
         self.albums.push(Album {
             path,
-            id,
-            name,
-            tracks: Vec::new(),
+            metadata: AlbumMetadata {
+                id,
+                name: name.to_string(),
+                artist_id: Some(artist_id.to_string()),
+                cover_art: "".to_string(),
+                tracks: Vec::new(),
+            },
         });
 
         Some(index)
@@ -303,7 +214,8 @@ impl Collection {
                 let mut out = output.clone();
                 out.push("full");
                 std::fs::create_dir_all(&out)?;
-                let quality_version = format!("{}.flac", encode_metadata.track);
+                let quality_version =
+                    format!("{}.flac", encode_metadata.track);
                 out.push(quality_version.as_str());
 
                 // TODO(patrik): Temp
@@ -323,12 +235,12 @@ impl Collection {
                 // println!("Mp3 Status: {:?}", status);
 
                 let album = &mut self.albums[album_index];
-                album.tracks.push(Track {
+                album.metadata.tracks.push(TrackMetadata {
                     track_num: encode_metadata.track,
                     name: encode_metadata.title.to_string(),
-                    artist: encode_metadata.artist,
+                    artist_id: self.artists[encode_metadata.artist].id.clone(),
                     quality_version,
-                    mobile_version
+                    mobile_version,
                 });
 
                 Ok(())
@@ -337,36 +249,12 @@ impl Collection {
         }
     }
 
-    // fn load_artists(&mut self) {}
-    // fn save_artists(&mut self) {}
-    //
-    // fn load_albums(&mut self) {}
-    // fn add_album(&mut self) {}
-
     pub fn save_to_disk(self) -> Result<()> {
         for album in self.albums {
-            let metadata = AlbumMetadata {
-                id: album.id,
-                name: album.name,
-                artist_id: None,
-                cover_art: "".to_string(),
-                tracks: album
-                    .tracks
-                    .into_iter()
-                    .map(|track| TrackMetadata {
-                        track_num: track.track_num,
-                        name: track.name,
-                        artist_id: self.artists[track.artist].id.clone(),
-                        quality_version: track.quality_version,
-                        mobile_version: track.mobile_version,
-                    })
-                    .collect(),
-            };
-
             let mut metadata_path = album.path;
             metadata_path.push("album.json");
 
-            let s = serde_json::to_string_pretty(&metadata)?;
+            let s = serde_json::to_string_pretty(&album.metadata)?;
             std::fs::write(metadata_path, s)?;
         }
 
