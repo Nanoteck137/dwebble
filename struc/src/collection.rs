@@ -87,7 +87,7 @@ impl Collection {
 
             self.albums.push(Album {
                 path: entry,
-                metadata
+                metadata,
             });
         }
 

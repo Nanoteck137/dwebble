@@ -217,9 +217,7 @@ fn main() -> anyhow::Result<()> {
                         collection.artist_by_id(&track.artist_id).unwrap();
                     println!(
                         "  {:2} - {} - {}",
-                        track.track_num,
-                        artist.name,
-                        track.name
+                        track.track_num, artist.name, track.name
                     );
                 }
             }
@@ -237,12 +235,14 @@ fn main() -> anyhow::Result<()> {
             let def = toml::from_str::<AlbumDef>(&s)?;
             println!("Def: {:#?}", def);
 
-            let album_artist_index = collection.get_or_insert_artist(&def.artist);
+            let album_artist_index =
+                collection.get_or_insert_artist(&def.artist);
             let album_artist = collection.artist_by_index(album_artist_index);
             // TODO(patrik): Remove clone?
             let album_artist = album_artist.id.clone();
 
-            if let Some(album) = collection.add_album(&album_artist, &def.name) {
+            if let Some(album) = collection.add_album(&album_artist, &def.name)
+            {
                 println!("Album: {:#?}", album);
                 for track in def.tracks {
                     let mut path = path.clone();
