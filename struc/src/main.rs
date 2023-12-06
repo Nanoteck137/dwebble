@@ -8,7 +8,7 @@ use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use walkdir::DirEntry;
 
-use crate::collection::Collection;
+use crate::collection::{Collection, EncodeMetadata};
 
 mod collection;
 
@@ -162,8 +162,9 @@ struct TrackMetadata {
     track_num: usize,
     name: String,
     artist_id: String,
-    full: String,
-    mobile: String,
+
+    quality_version: String,
+    mobile_version: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -198,15 +199,6 @@ struct AlbumDef {
     name: String,
     artist: String,
     tracks: Vec<TrackDef>,
-}
-
-#[derive(Default, Debug)]
-struct EncodeMetadata<'a> {
-    track: usize,
-    title: &'a str,
-    album: &'a str,
-    album_artist: usize,
-    artist: usize,
 }
 
 fn main() -> anyhow::Result<()> {

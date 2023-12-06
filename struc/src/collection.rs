@@ -5,8 +5,17 @@ use std::{
 };
 
 use crate::{
-    ffprobe, AlbumMetadata, ArtistMetadata, EncodeMetadata, TrackMetadata,
+    ffprobe, AlbumMetadata, ArtistMetadata, TrackMetadata,
 };
+
+#[derive(Default, Debug)]
+pub struct EncodeMetadata<'a> {
+    pub track: usize,
+    pub title: &'a str,
+    pub album: &'a str,
+    pub album_artist: usize,
+    pub artist: usize,
+}
 
 #[derive(Debug)]
 pub struct Artist {
@@ -29,6 +38,9 @@ pub struct Track {
     track_num: usize,
     name: String,
     artist: usize,
+
+    quality_version: String,
+    mobile_version: String,
 }
 
 impl Track {
@@ -148,6 +160,8 @@ impl Collection {
                                         track.artist_id
                                     )
                                 })?,
+                            quality_version: track.quality_version,
+                            mobile_version: track.mobile_version,
                         })
                     })
                     .collect::<Result<_, _>>()?;
@@ -289,7 +303,8 @@ impl Collection {
                 let mut out = output.clone();
                 out.push("full");
                 std::fs::create_dir_all(&out)?;
-                out.push(format!("{}.flac", encode_metadata.track));
+                let quality_version = format!("{}.flac", encode_metadata.track);
+                out.push(quality_version.as_str());
 
                 // TODO(patrik): Temp
                 // let status =
@@ -299,7 +314,8 @@ impl Collection {
                 let mut out = output.clone();
                 out.push("mobile");
                 std::fs::create_dir_all(&out)?;
-                out.push(format!("{}.mp3", encode_metadata.track));
+                let mobile_version = format!("{}.mp3", encode_metadata.track);
+                out.push(mobile_version.as_str());
 
                 // TODO(patrik): Temp
                 // let status =
@@ -311,6 +327,8 @@ impl Collection {
                     track_num: encode_metadata.track,
                     name: encode_metadata.title.to_string(),
                     artist: encode_metadata.artist,
+                    quality_version,
+                    mobile_version
                 });
 
                 Ok(())
@@ -339,8 +357,8 @@ impl Collection {
                         track_num: track.track_num,
                         name: track.name,
                         artist_id: self.artists[track.artist].id.clone(),
-                        full: "".to_string(),
-                        mobile: "".to_string(),
+                        quality_version: track.quality_version,
+                        mobile_version: track.mobile_version,
                     })
                     .collect(),
             };
