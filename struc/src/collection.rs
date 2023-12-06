@@ -4,7 +4,10 @@ use std::{
     process::{Command, ExitStatus},
 };
 
-use crate::{ffprobe, AlbumMetadata, ArtistMetadata, TrackMetadata};
+use crate::{
+    ffprobe,
+    metadata::{AlbumMetadata, ArtistMetadata, TrackMetadata},
+};
 
 #[derive(Default, Debug)]
 pub struct EncodeMetadata<'a> {

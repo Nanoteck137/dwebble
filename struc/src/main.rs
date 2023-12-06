@@ -10,6 +10,7 @@ use walkdir::DirEntry;
 
 use crate::collection::{Collection, EncodeMetadata};
 
+mod metadata;
 mod collection;
 
 // TODO(patrik):
@@ -158,36 +159,6 @@ where
         .context("Failed to convert format object to FormatMetadata")?;
 
     Ok(metadata)
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct TrackMetadata {
-    #[serde(rename = "trackNum")]
-    track_num: usize,
-    name: String,
-    artist_id: String,
-
-    quality_version: String,
-    mobile_version: String,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct AlbumMetadata {
-    id: String,
-    name: String,
-    #[serde(rename = "artistId")]
-    artist_id: Option<String>,
-    #[serde(rename = "coverArt")]
-    cover_art: String,
-
-    tracks: Vec<TrackMetadata>,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct ArtistMetadata {
-    id: String,
-    name: String,
-    picture: String,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
