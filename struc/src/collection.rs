@@ -9,16 +9,26 @@ use crate::{
 };
 
 #[derive(Debug)]
-struct Artist {
+pub struct Artist {
     id: String,
     name: String,
+}
+
+impl Artist {
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 #[derive(Debug)]
 pub struct Track {
     track_num: usize,
     name: String,
-    artist_index: usize,
+    artist: usize,
 }
 
 impl Track {
@@ -31,7 +41,7 @@ impl Track {
     }
 
     pub fn artist(&self) -> usize {
-        self.artist_index
+        self.artist
     }
 }
 
@@ -130,7 +140,7 @@ impl Collection {
                         Ok(Track {
                             track_num: track.track_num,
                             name: track.name,
-                            artist_index: self
+                            artist: self
                                 .get_artist_by_id(&track.artist_id)
                                 .with_context(|| {
                                     format!(
@@ -144,7 +154,7 @@ impl Collection {
 
             self.albums.push(Album {
                 path: entry,
-                id: "".to_string(), //metadata.id,
+                id: metadata.id,
                 name: metadata.name,
                 tracks,
             });
@@ -159,6 +169,15 @@ impl Collection {
 
     // TODO(patrik): Check if artist already exists
     pub fn get_or_insert_artist(&mut self, name: &str) -> usize {
+        if let Some((index, _)) = self
+            .artists
+            .iter()
+            .enumerate()
+            .find(|(_, artist)| artist.name == name)
+        {
+            return index;
+        }
+
         let new_id = cuid2::CuidConstructor::new().with_length(18);
 
         let index = self.artists.len();
@@ -191,6 +210,10 @@ impl Collection {
 
     fn get_album_by_name_mut(&mut self, name: &str) -> Option<&mut Album> {
         self.albums.iter_mut().find(|album| album.name == name)
+    }
+
+    pub fn artist_by_index(&self, artist: usize) -> &Artist {
+        &self.artists[artist]
     }
 
     fn generate_new_album(&self) -> Result<(String, PathBuf)> {
@@ -268,24 +291,26 @@ impl Collection {
                 std::fs::create_dir_all(&out)?;
                 out.push(format!("{}.flac", encode_metadata.track));
 
-                let status =
-                    self.encode_flac(file_path, out, &encode_metadata)?;
-                println!("Flac Status: {:?}", status);
+                // TODO(patrik): Temp
+                // let status =
+                //     self.encode_flac(file_path, out, &encode_metadata)?;
+                // println!("Flac Status: {:?}", status);
 
                 let mut out = output.clone();
                 out.push("mobile");
                 std::fs::create_dir_all(&out)?;
                 out.push(format!("{}.mp3", encode_metadata.track));
 
-                let status =
-                    self.encode_mp3(file_path, out, &encode_metadata)?;
-                println!("Mp3 Status: {:?}", status);
+                // TODO(patrik): Temp
+                // let status =
+                //     self.encode_mp3(file_path, out, &encode_metadata)?;
+                // println!("Mp3 Status: {:?}", status);
 
                 let album = &mut self.albums[album_index];
                 album.tracks.push(Track {
                     track_num: encode_metadata.track,
                     name: encode_metadata.title.to_string(),
-                    artist_index: 0,
+                    artist: encode_metadata.artist,
                 });
 
                 Ok(())
@@ -303,6 +328,7 @@ impl Collection {
     pub fn save_to_disk(self) -> Result<()> {
         for album in self.albums {
             let metadata = AlbumMetadata {
+                id: album.id,
                 name: album.name,
                 artist_id: None,
                 cover_art: "".to_string(),
@@ -312,7 +338,7 @@ impl Collection {
                     .map(|track| TrackMetadata {
                         track_num: track.track_num,
                         name: track.name,
-                        artist_id: self.artists[track.artist_index].id.clone(),
+                        artist_id: self.artists[track.artist].id.clone(),
                         full: "".to_string(),
                         mobile: "".to_string(),
                     })
@@ -326,14 +352,18 @@ impl Collection {
             std::fs::write(metadata_path, s)?;
         }
 
-        let artists = self.artists.into_iter().map(|artist| ArtistMetadata {
-            id: artist.id,
-            name: artist.name,
-            picture: "".to_string(),
-        }).collect::<Vec<_>>();
+        let artists = self
+            .artists
+            .into_iter()
+            .map(|artist| ArtistMetadata {
+                id: artist.id,
+                name: artist.name,
+                picture: "".to_string(),
+            })
+            .collect::<Vec<_>>();
 
         let mut artist_metadata_path = self.base;
-        artist_metadata_path.push("artists.json"); 
+        artist_metadata_path.push("artists.json");
 
         let s = serde_json::to_string_pretty(&artists)?;
         std::fs::write(artist_metadata_path, s)?;
@@ -371,6 +401,11 @@ impl Collection {
         command
             .arg("-metadata")
             .arg(format!("album={}", metadata.album));
+
+        command.arg("-metadata").arg(format!(
+            "album_artist={}",
+            self.artists[metadata.album_artist].name
+        ));
 
         command
             .arg("-metadata")
@@ -419,6 +454,11 @@ impl Collection {
         command
             .arg("-metadata")
             .arg(format!("album={}", metadata.album));
+
+        command.arg("-metadata").arg(format!(
+            "album_artist={}",
+            self.artists[metadata.album_artist].name
+        ));
 
         command
             .arg("-metadata")

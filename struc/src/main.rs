@@ -168,6 +168,7 @@ struct TrackMetadata {
 
 #[derive(Serialize, Deserialize, Debug)]
 struct AlbumMetadata {
+    id: String,
     name: String,
     #[serde(rename = "artistId")]
     artist_id: Option<String>,
@@ -189,6 +190,7 @@ struct TrackDef {
     num: usize,
     name: String,
     filename: String,
+    artist: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -203,6 +205,7 @@ struct EncodeMetadata<'a> {
     track: usize,
     title: &'a str,
     album: &'a str,
+    album_artist: usize,
     artist: usize,
 }
 
@@ -217,10 +220,16 @@ fn main() -> anyhow::Result<()> {
             for album in collection.albums() {
                 println!("{}: {}", album.id(), album.name());
                 for track in album.tracks() {
-                    println!("  {:2} - {}", track.track_num(), track.name());
+                    let artist = collection.artist_by_index(track.artist());
+                    println!(
+                        "  {:2} - {} - {}",
+                        track.track_num(),
+                        artist.name(),
+                        track.name()
+                    );
                 }
             }
-        },
+        }
 
         ArgCommand::Import { path } => {
             let mut def_toml_path = path.clone();
@@ -234,19 +243,21 @@ fn main() -> anyhow::Result<()> {
             let def = toml::from_str::<AlbumDef>(&s)?;
             println!("Def: {:#?}", def);
 
-            if collection.get_album_by_name(&def.name).is_none() {
-                let album = collection.add_album(def.name.clone()).unwrap();
+            if let Some(album) = collection.add_album(def.name.clone()) {
                 println!("Album: {:#?}", album);
                 for track in def.tracks {
                     let mut path = path.clone();
                     path.push(track.filename);
 
-                    let artist = collection.get_or_insert_artist(&def.artist);
+                    let artist = track.artist.as_ref().unwrap_or(&def.artist);
+                    let artist = collection.get_or_insert_artist(&artist);
 
                     let encode_metadata = EncodeMetadata {
                         track: track.num,
                         title: &track.name,
                         album: &def.name,
+                        album_artist: collection
+                            .get_or_insert_artist(&def.artist),
                         artist,
                     };
 
@@ -256,7 +267,7 @@ fn main() -> anyhow::Result<()> {
                 }
             } else {
                 // What to do here?
-                panic!("Album already exists");
+                bail!("Album '{}' already exists", def.name);
             }
 
             // Check if the album exists
