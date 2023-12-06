@@ -1,5 +1,4 @@
 use std::{
-    fmt::Debug,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -8,6 +7,12 @@ use anyhow::{bail, Context};
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
 use walkdir::DirEntry;
+
+use crate::collection::Collection;
+
+mod collection;
+
+// const TARGET_MOBILE_BIT_RATE: usize = 192000;
 
 // File Structure:
 //   - artists.json
@@ -47,7 +52,7 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum ArgCommand {
-    List { path: PathBuf },
+    List {},
     Import { path: PathBuf },
 }
 
@@ -60,7 +65,15 @@ fn is_hidden(entry: &DirEntry) -> bool {
 }
 
 #[derive(Deserialize, Debug)]
-struct Metadata {
+struct FormatMetadata {
+    format_name: String,
+    bit_rate: String,
+
+    tags: Option<TagsMetadata>,
+}
+
+#[derive(Deserialize, Debug)]
+struct TagsMetadata {
     #[serde(alias = "TITLE")]
     title: String,
     #[serde(alias = "ARTIST")]
@@ -71,7 +84,7 @@ struct Metadata {
     disc: Option<String>,
 }
 
-impl Metadata {
+impl TagsMetadata {
     fn track(&self) -> Option<usize> {
         let track = if let Some((left, _right)) =
             self.track.as_ref()?.split_once("/")
@@ -105,13 +118,13 @@ impl Metadata {
     }
 }
 
-fn ffprobe<P>(path: P) -> anyhow::Result<Metadata>
+fn ffprobe<P>(path: P) -> anyhow::Result<FormatMetadata>
 where
     P: AsRef<Path>,
 {
     let path = path.as_ref();
 
-    // ffprobe -print_format json -v quiet -show_format -show_streams test.mp3
+    // fwav fprobe -print_format json -v quiet -show_format -show_streams test.mp3
 
     let output = Command::new("ffprobe")
         .arg("-print_format")
@@ -121,7 +134,7 @@ where
         .arg("-show_format")
         .arg(path)
         .output()
-        .context("Failed to run ffprobe")?;
+        .context("Failed to run ffprobe 'Is ffprobe installed?'")?;
 
     if !output.status.success() {
         bail!("ffprobe error: {:?}", path);
@@ -135,10 +148,10 @@ where
     let format = data
         .get("format")
         .context("No format object in ffprobe data")?;
-    let tags = format.get("tags").context("No tags object in format")?;
+    // let tags = format.get("tags").context("No tags object in format")?;
 
-    let metadata = serde_json::from_value::<Metadata>(tags.clone())
-        .context("Failed to convert tags object to Metadata")?;
+    let metadata = serde_json::from_value::<FormatMetadata>(format.clone())
+        .context("Failed to convert format object to FormatMetadata")?;
 
     Ok(metadata)
 }
@@ -148,6 +161,7 @@ struct TrackMetadata {
     #[serde(rename = "trackNum")]
     track_num: usize,
     name: String,
+    artist_id: String,
     full: String,
     mobile: String,
 }
@@ -156,7 +170,7 @@ struct TrackMetadata {
 struct AlbumMetadata {
     name: String,
     #[serde(rename = "artistId")]
-    artist_id: String,
+    artist_id: Option<String>,
     #[serde(rename = "coverArt")]
     cover_art: String,
 
@@ -164,7 +178,7 @@ struct AlbumMetadata {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct Artist {
+struct ArtistMetadata {
     id: String,
     name: String,
     picture: String,
@@ -184,70 +198,30 @@ struct AlbumDef {
     tracks: Vec<TrackDef>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct ConfigFile {
-    collection: PathBuf,
+#[derive(Default, Debug)]
+struct EncodeMetadata<'a> {
+    track: usize,
+    title: &'a str,
+    album: &'a str,
+    artist: usize,
 }
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     println!("Args: {:#?}", args);
 
-    let config_path = PathBuf::from("config.toml");
-    let mut base_path = config_path.clone();
-    base_path.pop();
-
-    println!("Loading: {:?}", config_path);
-    println!("BasePath: {:?}", base_path);
-
-    let s = std::fs::read_to_string(config_path)?;
-    let config = toml::from_str::<ConfigFile>(&s)?;
-
-    println!("Config: {:#?}", config);
-
-    let mut collection_path = base_path.clone();
-    collection_path.push(config.collection);
-    println!("Collection Path: {:?}", collection_path);
-
-    struct Artist;
-    struct Track;
-    struct Album;
-
-    struct Collection {
-        base: PathBuf
-    }
-
-    impl Collection {
-        fn new<P>(path: P) -> Self
-            where P: AsRef<Path>
-        {
-            let path = path.as_ref().to_path_buf();
-            Collection { base: path }
-        }
-
-        fn get_artist_by_name(&self, name: &str) -> Option<Artist> { None }
-        fn get_artist_by_id(&self, id: &str) -> Option<Artist> { None }
-
-        fn get_album_by_name(&self, name: &str) -> Option<Album> {
-            None
-        }
-
-        fn add_album(&mut self, name: String) /* -> &mut Album */ {
-        }
-
-        // fn load_artists(&mut self) {}
-        // fn save_artists(&mut self) {}
-        //
-        // fn load_albums(&mut self) {}
-        // fn add_album(&mut self) {}
-
-        fn save_to_disk(self) {}
-    }
-
-    let mut collection = Collection::new(args.collection);
+    let mut collection = Collection::new(args.collection)?;
 
     match args.command {
-        ArgCommand::List { path: _ } => todo!(),
+        ArgCommand::List {} => {
+            for album in collection.albums() {
+                println!("{}: {}", album.id(), album.name());
+                for track in album.tracks() {
+                    println!("  {:2} - {}", track.track_num(), track.name());
+                }
+            }
+        },
+
         ArgCommand::Import { path } => {
             let mut def_toml_path = path.clone();
             def_toml_path.push("def.toml");
@@ -261,10 +235,24 @@ fn main() -> anyhow::Result<()> {
             println!("Def: {:#?}", def);
 
             if collection.get_album_by_name(&def.name).is_none() {
-                // process_tracks();
-                let album = collection.add_album(def.name);
+                let album = collection.add_album(def.name.clone()).unwrap();
+                println!("Album: {:#?}", album);
                 for track in def.tracks {
-                    // album.add_track();
+                    let mut path = path.clone();
+                    path.push(track.filename);
+
+                    let artist = collection.get_or_insert_artist(&def.artist);
+
+                    let encode_metadata = EncodeMetadata {
+                        track: track.num,
+                        title: &track.name,
+                        album: &def.name,
+                        artist,
+                    };
+
+                    collection
+                        .process_track(album, path, encode_metadata)
+                        .unwrap();
                 }
             } else {
                 // What to do here?
@@ -274,7 +262,7 @@ fn main() -> anyhow::Result<()> {
             // Check if the album exists
             // Process all the tracks
 
-            collection.save_to_disk();
+            collection.save_to_disk().expect("Failed save to disk");
         }
     }
 
