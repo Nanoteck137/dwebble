@@ -77,7 +77,6 @@ impl Collection {
         for entry in album_path.read_dir()? {
             let entry = entry?;
             let entry = entry.path();
-            println!("Entry: {:?}", entry);
 
             let mut album_json = entry.clone();
             album_json.push("album.json");

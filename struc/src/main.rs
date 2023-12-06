@@ -12,6 +12,10 @@ use crate::collection::{Collection, EncodeMetadata};
 
 mod collection;
 
+// TODO(patrik):
+//   - Feat: Check collection for corruption
+//   - Feat: Repair corruption
+
 // const TARGET_MOBILE_BIT_RATE: usize = 192000;
 
 // File Structure:
@@ -271,7 +275,7 @@ fn main() -> anyhow::Result<()> {
             // Check if the album exists
             // Process all the tracks
 
-            collection.save_to_disk().expect("Failed save to disk");
+            collection.save_to_disk().context("Failed save to disk")?;
         }
     }
 
