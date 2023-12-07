@@ -50,8 +50,8 @@ impl Collection {
             albums: Vec::new(),
         };
 
-        collection.load_artists()?;
-        collection.load_albums()?;
+        collection.load_artists().context("Failed to load artists")?;
+        collection.load_albums().context("Failed to load albums")?;
 
         Ok(collection)
     }
@@ -84,7 +84,7 @@ impl Collection {
             let mut album_json = entry.clone();
             album_json.push("album.json");
 
-            let s = std::fs::read_to_string(album_json)?;
+            let s = std::fs::read_to_string(album_json).context("Failed to load album.json")?;
             let metadata = serde_json::from_str::<AlbumMetadata>(&s)?;
 
             self.albums.push(Album {
@@ -247,7 +247,42 @@ impl Collection {
 
                 Ok(())
             }
-            name => Err(anyhow::anyhow!("Unsupported format '{}'", name)),
+
+            _ => {
+                let mut out = output.clone();
+                out.push("full");
+                std::fs::create_dir_all(&out)?;
+                out.push(encode_metadata.track.to_string());
+                out.set_extension(file_path.extension().unwrap());
+
+                // TODO(patrik): Temp
+                let status =
+                    self.encode(file_path, out, true, &encode_metadata)?;
+                println!("Flac Status: {:?}", status);
+
+                let mut out = output.clone();
+                out.push("mobile");
+                std::fs::create_dir_all(&out)?;
+                let mobile_version = format!("{}.mp3", encode_metadata.track);
+                out.push(mobile_version.as_str());
+
+                // // TODO(patrik): Temp
+                let status =
+                    self.encode_mp3(file_path, out, &encode_metadata)?;
+                println!("Mp3 Status: {:?}", status);
+
+                let album = &mut self.albums[album_index];
+                album.metadata.tracks.push(TrackMetadata {
+                    track_num: encode_metadata.track,
+                    name: encode_metadata.title.to_string(),
+                    artist_id: self.artists[encode_metadata.artist].id.clone(),
+                    quality_version: "".to_string(),
+                    mobile_version: "".to_string(),
+                });
+
+                Ok(())
+
+            },
         }
     }
 
@@ -279,10 +314,11 @@ impl Collection {
         Ok(())
     }
 
-    fn encode_flac<I, O>(
+    fn encode<I, O>(
         &self,
         input: I,
         output: O,
+        use_copy: bool,
         metadata: &EncodeMetadata,
     ) -> Result<ExitStatus>
     where
@@ -292,15 +328,17 @@ impl Collection {
         let input = input.as_ref();
         let output = output.as_ref();
 
-        let ext = output
-            .extension()
-            .context("Failed to get extention")?
-            .to_str()
-            .context("Failed to convert extention to str")?;
-        assert_eq!(ext, "flac");
+        // let ext = output
+        //     .extension()
+        //     .context("Failed to get extention")?
+        //     .to_str()
+        //     .context("Failed to convert extention to str")?;
+        // assert_eq!(ext, "flac");
 
         let mut command = Command::new("ffmpeg");
         command.arg("-y").arg("-i").arg(input);
+
+        command.arg("-map_metadata").arg("-1");
 
         command
             .arg("-metadata")
@@ -322,6 +360,12 @@ impl Collection {
         command
             .arg("-metadata")
             .arg(format!("track={}", metadata.track));
+
+        command.arg("-map").arg("0:a");
+
+        if use_copy {
+            command.arg("-c").arg("copy");
+        }
 
         command.arg(output);
 
