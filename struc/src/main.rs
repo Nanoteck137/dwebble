@@ -374,7 +374,11 @@ fn create_config_for_album(
     let album_name = if album_names.len() > 1 {
         let mut items = album_names.into_iter().collect::<Vec<_>>();
         items.sort();
+        if !items.contains(&gussed_album_name) {
+            items.push(gussed_album_name);
+        }
         items.push("Custom Name");
+
         let selection = Select::with_theme(&ColorfulTheme::default())
             .with_prompt("Select Album Name")
             .items(&items)
@@ -410,6 +414,9 @@ fn create_config_for_album(
     let album_artist = if album_artist_names.len() > 1 {
         let mut items = album_artist_names.into_iter().collect::<Vec<_>>();
         items.sort();
+        if !items.contains(&gussed_album_artist) {
+            items.push(gussed_album_artist);
+        }
         items.push("Various Artists");
         items.push("Custom Name");
         let selection = Select::with_theme(&ColorfulTheme::default())
