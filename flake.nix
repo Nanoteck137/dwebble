@@ -28,6 +28,7 @@
             nodejs_20
             openssl
             pkg-config
+            ffmpeg
             
             (rustVersion.override { extensions = [ "rust-src" ]; }) 
           ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
