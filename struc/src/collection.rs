@@ -221,9 +221,9 @@ impl Collection {
                 out.push(quality_version.as_str());
 
                 // TODO(patrik): Temp
-                // let status =
-                //     self.encode_flac(file_path, out, &encode_metadata)?;
-                // println!("Flac Status: {:?}", status);
+                let status =
+                    self.encode(file_path, out, false, &encode_metadata)?;
+                println!("Flac Status: {:?}", status);
 
                 let mut out = output.clone();
                 out.push("mobile");
@@ -232,9 +232,9 @@ impl Collection {
                 out.push(mobile_version.as_str());
 
                 // TODO(patrik): Temp
-                // let status =
-                //     self.encode_mp3(file_path, out, &encode_metadata)?;
-                // println!("Mp3 Status: {:?}", status);
+                let status =
+                    self.encode_mp3(file_path, out, &encode_metadata)?;
+                println!("Mp3 Status: {:?}", status);
 
                 let album = &mut self.albums[album_index];
                 album.metadata.tracks.push(TrackMetadata {
