@@ -9,7 +9,6 @@ use clap::{Parser, Subcommand};
 use dialoguer::{theme::ColorfulTheme, Input, Select};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
-use walkdir::DirEntry;
 
 use crate::collection::{Collection, EncodeMetadata};
 
@@ -221,14 +220,14 @@ where
 {
     let mut collection = Collection::new(collection_path)?;
 
-    let mut def_toml_path = path.clone();
-    def_toml_path.push("def.toml");
+    let mut album_toml_path = path.clone();
+    album_toml_path.push("album.toml");
 
-    if !def_toml_path.is_file() {
-        return Err(anyhow::anyhow!("No 'def.toml' file found"));
+    if !album_toml_path.is_file() {
+        return Err(anyhow::anyhow!("No 'album.toml' file found"));
     }
 
-    let s = std::fs::read_to_string(def_toml_path)?;
+    let s = std::fs::read_to_string(album_toml_path)?;
     let def = toml::from_str::<Config>(&s)?;
     let Config::Normal(def) = def else { todo!() };
     println!("Def: {:#?}", def);
@@ -489,8 +488,8 @@ fn create_config_for_album(
     println!("Config: {}", s);
 
     let mut output = PathBuf::from(path);
-    output.push("def.toml");
-    // std::fs::write(output, s).unwrap();
+    output.push("album.toml");
+    std::fs::write(output, s).unwrap();
 
     Ok(())
 }
