@@ -285,7 +285,7 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
 
         if let Ok(metadata) = ffprobe(&path) {
             match metadata.format_name.as_str() {
-                "flac" | "mov,mp4,m4a,3gp,3g2,mj2" | "mp3" => {
+                "flac" | "mov,mp4,m4a,3gp,3g2,mj2" | "mp3" | "wav" => {
                     music_file.push((path, metadata));
                 }
 
@@ -368,8 +368,15 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
                 return Ok(());
             }
         }
-    } else {
+    } else if album_names.len() == 1 {
         album_names.into_iter().next().unwrap().to_string()
+    } else {
+        // TODO(patrik): Let the user choose
+        println!("No metadata found, trying to guess");
+        let album_name =
+            path.file_name().unwrap().to_str().unwrap().to_string();
+
+        album_name
     };
 
     let album_artist = if album_artist_names.len() > 1 {
@@ -400,8 +407,20 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
                 return Ok(());
             }
         }
-    } else {
+    } else if album_artist_names.len() == 1{
         album_artist_names.into_iter().next().unwrap().to_string()
+    } else {
+        // TODO(patrik): Let the user choose
+        let artist_name = path
+            .parent()
+            .unwrap()
+            .file_name()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+
+        artist_name
     };
 
     println!("Album Name: {}", album_name);
@@ -459,7 +478,6 @@ fn main() -> anyhow::Result<()> {
     .context("Failed to set ctrl-c handler")?;
 
     let args = Args::parse();
-    println!("Args: {:#?}", args);
 
     match args.command {
         ArgCommand::List { collection } => list(collection)?,
