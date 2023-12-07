@@ -21,6 +21,7 @@ mod metadata;
 //   - Feat: Repair corruption
 //   - Feat: Import should detect changes
 //   - TODO: When reencoding for mobile check the bitrate
+//   - Feat: User confirmation on create-config before writing the config
 
 // const TARGET_MOBILE_BIT_RATE: usize = 192000;
 
@@ -271,8 +272,19 @@ where
     Ok(())
 }
 
-fn create_config(path: PathBuf) -> anyhow::Result<()> {
-    let mut music_file = Vec::new();
+enum SearchOption {
+    Normal,
+    MultiDisc,
+}
+
+fn get_all_tracks_from_dir<P>(
+    path: P,
+) -> anyhow::Result<Vec<(PathBuf, FormatMetadata)>>
+where
+    P: AsRef<Path>,
+{
+    let path = path.as_ref();
+    let mut music_files = Vec::new();
 
     for entry in path.read_dir()? {
         let entry = entry?;
@@ -286,7 +298,7 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
         if let Ok(metadata) = ffprobe(&path) {
             match metadata.format_name.as_str() {
                 "flac" | "mov,mp4,m4a,3gp,3g2,mj2" | "mp3" | "wav" => {
-                    music_file.push((path, metadata));
+                    music_files.push((path, metadata));
                 }
 
                 format => eprintln!("Unsupported format: {}", format),
@@ -294,33 +306,51 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
         }
     }
 
+    Ok(music_files)
+}
+
+fn create_config_for_album(
+    path: &PathBuf,
+    gussed_album_name: &str,
+    gussed_album_artist: &str,
+) -> anyhow::Result<()> {
     struct FileTrack<'a> {
         path: &'a PathBuf,
         metadata: &'a FormatMetadata,
         file_title: String,
+        file_artist: Option<String>,
     }
+
+    let music_files = get_all_tracks_from_dir(&path)?;
 
     let mut tracks = HashMap::new();
 
-    let reg = Regex::new(r"(\d+)[\s-]+(.*)\.\w+").unwrap();
-
-    for (path, metadata) in music_file.iter() {
+    for (path, metadata) in music_files.iter() {
         let file_name = path.file_name().unwrap().to_str().unwrap();
 
-        if let Some(caps) = reg.captures(file_name) {
-            let track_num = caps[1].parse::<usize>()?;
-            let name = caps[2].to_string();
-            tracks.insert(
-                track_num,
-                FileTrack {
-                    path,
-                    metadata,
-                    file_title: name,
-                },
-            );
-        } else {
-            println!("No track number in filename detected");
-        }
+        let (left, _) = file_name.rsplit_once(".").unwrap();
+        let mut splits = left.split("-");
+        let track_num = splits
+            .next()
+            .unwrap()
+            .trim()
+            .parse::<usize>()
+            .with_context(|| {
+                format!("File name missing track number: '{}'", file_name)
+            })?;
+
+        let file_title = splits.next().unwrap().trim().to_string();
+        let file_artist = splits.next().map(|a| a.trim().to_string());
+
+        tracks.insert(
+            track_num,
+            FileTrack {
+                path,
+                metadata,
+                file_title,
+                file_artist,
+            },
+        );
     }
 
     if tracks.len() <= 0 {
@@ -373,10 +403,8 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
     } else {
         // TODO(patrik): Let the user choose
         println!("No metadata found, trying to guess");
-        let album_name =
-            path.file_name().unwrap().to_str().unwrap().to_string();
 
-        album_name
+        gussed_album_name.to_string()
     };
 
     let album_artist = if album_artist_names.len() > 1 {
@@ -407,20 +435,12 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
                 return Ok(());
             }
         }
-    } else if album_artist_names.len() == 1{
+    } else if album_artist_names.len() == 1 {
         album_artist_names.into_iter().next().unwrap().to_string()
     } else {
         // TODO(patrik): Let the user choose
-        let artist_name = path
-            .parent()
-            .unwrap()
-            .file_name()
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
 
-        artist_name
+        gussed_album_artist.to_string()
     };
 
     println!("Album Name: {}", album_name);
@@ -448,6 +468,7 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
                 .tags
                 .as_ref()
                 .map(|tags| tags.artist.clone())
+                .or(track.file_artist)
                 .or_else(|| Some(album_artist.clone())),
         })
         .collect::<Vec<_>>();
@@ -465,7 +486,66 @@ fn create_config(path: PathBuf) -> anyhow::Result<()> {
 
     let mut output = PathBuf::from(path);
     output.push("def.toml");
-    std::fs::write(output, s).unwrap();
+    // std::fs::write(output, s).unwrap();
+
+    Ok(())
+}
+
+fn create_config(path: PathBuf, search: SearchOption) -> anyhow::Result<()> {
+    match search {
+        SearchOption::Normal => {
+            let album_name = path.file_name().unwrap().to_str().unwrap();
+
+            let artist_name = path
+                .parent()
+                .unwrap()
+                .file_name()
+                .unwrap()
+                .to_str()
+                .unwrap();
+
+            create_config_for_album(&path, &album_name, artist_name)?;
+        }
+
+        SearchOption::MultiDisc => {
+            let regex = Regex::new(r"(disc|cd)\s*(\d+)")?;
+
+            for entry in path.read_dir()? {
+                let entry = entry?;
+                let entry = entry.path();
+
+                if !entry.is_dir() {
+                    continue;
+                }
+
+                let name = entry
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_lowercase();
+                if let Some(caps) = regex.captures(&name) {
+                    let disk_num = caps[2].parse::<usize>()?;
+
+                    let album_name =
+                        path.file_name().unwrap().to_str().unwrap();
+
+                    let album_name =
+                        format!("{} (Disc {})", album_name, disk_num);
+
+                    let artist_name = path
+                        .parent()
+                        .unwrap()
+                        .file_name()
+                        .unwrap()
+                        .to_str()
+                        .unwrap();
+
+                    create_config_for_album(&entry, &album_name, artist_name)?;
+                }
+            }
+        }
+    }
 
     Ok(())
 }
@@ -483,7 +563,24 @@ fn main() -> anyhow::Result<()> {
         ArgCommand::List { collection } => list(collection)?,
         ArgCommand::Import { collection, path } => import(collection, path)?,
         ArgCommand::CreateConfig { path } => {
-            create_config(path.unwrap_or(std::env::current_dir()?))?
+            let options = ["Normal Album", "Multi Disc Album"];
+            let selection = Select::with_theme(&ColorfulTheme::default())
+                .with_prompt("Select type of album")
+                .items(&options)
+                .default(0)
+                .interact()?;
+            println!("Selected {}", options[selection]);
+
+            let search_option = if selection == 1 {
+                SearchOption::MultiDisc
+            } else {
+                SearchOption::Normal
+            };
+
+            create_config(
+                path.unwrap_or(std::env::current_dir()?),
+                search_option,
+            )?
         }
     }
 
