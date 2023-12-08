@@ -1,13 +1,55 @@
+use anyhow::Context;
 use axum::{routing::get, Json, Router};
 use serde::Serialize;
+use sqlx::{Connection, SqliteConnection};
 use tower::ServiceBuilder;
 use tower_http::{cors::CorsLayer, services::ServeDir, trace::TraceLayer};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenvy::dotenv().context("Failed to load enviroment variables")?;
+
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
         .init();
+
+    let database_url =
+        std::env::var("DATABASE_URL").context("No 'DATABASE_URL' set")?;
+    let conn = SqliteConnection::connect(&database_url).await?;
+
+    // Song:
+    //   - Name
+    //   - CoverArt
+    //   - Url
+    //   - Album
+    //   - Artist
+    //   - Available
+
+    // ExtraArtists
+    //  - Song
+    //  - Artist
+
+    // Artist
+    //   - Name
+    //   - Picture
+
+    // Album:
+    //   - Id
+    //   - Name
+    //   - Artist - Might be null
+    //   - CoverArt
+    //   - Songs
+    //   - Available
+
+    // Playlist:
+    //   - Id
+    //   - Name
+    //   - CoverArt
+    //   - Songs
+
+    // Routes:
+    //   - /api/playlists
+    //   - /api/playlists
 
     let api_router = Router::new().route("/playlists", get(get_all_playlists));
 
@@ -20,9 +62,12 @@ async fn main() -> anyhow::Result<()> {
                 .layer(CorsLayer::new()),
         );
 
-    let listener =
-        tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
+        .await
+        .context("Failed to create listener")?;
+    axum::serve(listener, app)
+        .await
+        .context("Failed to serve")?;
 
     Ok(())
 }
