@@ -1,4 +1,4 @@
 [workspace]
 resolver = "2"
-members = ["backend", "struc"]
+members = ["shared", "backend", "struc"]
 default-members = ["backend"]
