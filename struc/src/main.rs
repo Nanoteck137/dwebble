@@ -7,6 +7,7 @@ use std::{
 use anyhow::{bail, Context};
 use clap::{Parser, Subcommand};
 use dialoguer::{theme::ColorfulTheme, Input, Select};
+use dwebble::metadata::{Album, Track, TrackFiles};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -23,33 +24,6 @@ mod metadata;
 //   - Feat: User confirmation on create-config before writing the config
 
 // const TARGET_MOBILE_BIT_RATE: usize = 192000;
-
-// File Structure:
-//   - artists.json
-//   - {SOME_FOLDER_NAME}
-//     - album.json : Album Metadata
-//     - images/
-//     - tracks/
-//       - full/
-//          - track00.flac
-//          - track01.flac
-//       - mobile/
-//          - track00.mp3
-//          - track01.mp3
-// artists.json:
-//   - ID
-//   - Name
-//   - Picture
-// album.json:
-//   - Name
-//   - Artist ID (null if multiple artists)
-//   - CoverArt
-//   - Tracks:
-//       - Track Number
-//       - Name
-//       - full: track00.flac
-//       - mobile: track00.mp3
-//
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -559,6 +533,47 @@ fn main() -> anyhow::Result<()> {
         let _ = term.show_cursor();
     })
     .context("Failed to set ctrl-c handler")?;
+
+    let mut collection = dwebble::Collection::get_or_create("./test");
+    let artist_name = "Metallica".to_string();
+    let artist_index = collection.get_or_insert_artist(&artist_name, || {
+        let id = dwebble::create_id();
+        dwebble::metadata::Artist::new(id, artist_name.clone())
+    });
+
+    let artist_name = "Ado".to_string();
+    let artist_index = collection.get_or_insert_artist(&artist_name, || {
+        let id = dwebble::create_id();
+        dwebble::metadata::Artist::new(id, artist_name.clone())
+    });
+
+    let id = dwebble::create_id();
+    let mut album = Album::new(id, "Album #1".to_string());
+
+    // let id = dwebble::create_id();
+    // album.add_track(Track::new(
+    //     id,
+    //     1,
+    //     "Track #1".to_string(),
+    //     "some_id".to_string(),
+    //     TrackFiles::new("".to_string(), "".to_string()),
+    // ));
+    //
+    // let id = dwebble::create_id();
+    // album.add_track(Track::new(
+    //     id,
+    //     2,
+    //     "Track #2".to_string(),
+    //     "some_id".to_string(),
+    //     TrackFiles::new("".to_string(), "".to_string()),
+    // ));
+
+    collection.add_album(artist_index, album).unwrap();
+    // collection.copy_track();
+
+    collection.save_to_disk();
+
+    panic!();
 
     let args = Args::parse();
 
