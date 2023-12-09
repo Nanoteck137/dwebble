@@ -17,35 +17,40 @@ async fn main() -> anyhow::Result<()> {
         std::env::var("DATABASE_URL").context("No 'DATABASE_URL' set")?;
     let conn = SqliteConnection::connect(&database_url).await?;
 
-    // Song:
-    //   - Name
-    //   - CoverArt
-    //   - Url
-    //   - Album
-    //   - Artist
-    //   - Available
+    // Collection Folder Structure:
+    //   - public: Served by the server
+    //     - tracks: Track Files
+    //       - { track_id }.full.flac
+    //       - { track_id }.mobile.mp3
+    //     - images: Images
+    //       - {id}.png
+    //
+    //   - private: Metadata
+    //     - collection.json: Artist[]
 
-    // ExtraArtists
-    //  - Song
-    //  - Artist
-
-    // Artist
-    //   - Name
-    //   - Picture
+    // Artist:
+    //  - Id: String
+    //  - Name: String
+    //  - Picture: String
+    //  - Changed: Timestamp
+    //  - Albums: Album[]
 
     // Album:
-    //   - Id
-    //   - Name
-    //   - Artist - Might be null
-    //   - CoverArt
-    //   - Songs
-    //   - Available
+    //  - Id: String
+    //  - Name: String
+    //  - CoverArt: String
+    //  - Changed: Timestamp
+    //  - Tracks: Track[]
 
-    // Playlist:
-    //   - Id
-    //   - Name
-    //   - CoverArt
-    //   - Songs
+    // Track:
+    //  - Id: String
+    //  - Num: Int
+    //  - Name: String
+    //  - ArtistID: String
+    //  - CoverArt: String
+    //  - FileQuality: String
+    //  - FileMobile: String
+    //  - Changed: Timestamp
 
     // Routes:
     //   - /api/playlists
