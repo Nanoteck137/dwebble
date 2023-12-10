@@ -1,17 +1,17 @@
 use std::{
     collections::{HashMap, HashSet},
     path::{Path, PathBuf},
-    process::Command,
+    process::{Command, ExitStatus},
 };
 
 use anyhow::{bail, Context};
 use clap::{Parser, Subcommand};
 use dialoguer::{theme::ColorfulTheme, Input, Select};
-use dwebble::metadata::{Album, Track, TrackFiles};
+use dwebble::metadata::{Album, Artist, Track, TrackFiles};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use crate::collection::{Collection, EncodeMetadata};
+use crate::collection::Collection;
 
 mod collection;
 mod metadata;
@@ -24,6 +24,15 @@ mod metadata;
 //   - Feat: User confirmation on create-config before writing the config
 
 // const TARGET_MOBILE_BIT_RATE: usize = 192000;
+
+#[derive(Default, Debug)]
+pub struct EncodeMetadata<'a> {
+    pub track: usize,
+    pub title: &'a str,
+    pub album: &'a str,
+    pub album_artist: &'a str,
+    pub artist: &'a str,
+}
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -188,11 +197,76 @@ where
     Ok(())
 }
 
+enum Mode {
+    None,
+    Copy,
+    Bitrate192,
+}
+
+fn encode<I, O>(
+    input: I,
+    output: O,
+    mode: Mode,
+    metadata: &EncodeMetadata,
+) -> anyhow::Result<ExitStatus>
+where
+    I: AsRef<Path>,
+    O: AsRef<Path>,
+{
+    let input = input.as_ref();
+    let output = output.as_ref();
+
+    let mut command = Command::new("ffmpeg");
+    command.arg("-y").arg("-i").arg(input);
+
+    command.arg("-map_metadata").arg("-1");
+
+    command
+        .arg("-metadata")
+        .arg(format!("title={}", metadata.title));
+
+    command
+        .arg("-metadata")
+        .arg(format!("album={}", metadata.album));
+
+    command
+        .arg("-metadata")
+        .arg(format!("album_artist={}", metadata.album_artist));
+
+    command
+        .arg("-metadata")
+        .arg(format!("artist={}", metadata.artist));
+
+    command
+        .arg("-metadata")
+        .arg(format!("track={}", metadata.track));
+
+    command.arg("-map").arg("0:a");
+
+    match mode {
+        Mode::None => {}
+        Mode::Copy => {
+            command.arg("-c").arg("copy");
+        }
+        Mode::Bitrate192 => {
+            command.arg("-b:a").arg("192k");
+        }
+    }
+
+    command.arg(output);
+
+    let status = command
+        .status()
+        .context("Failed to run ffmpeg 'Is ffmpeg installed?'")?;
+
+    Ok(status)
+}
+
 fn import<P>(collection_path: P, path: PathBuf) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
-    let mut collection = Collection::new(collection_path)?;
+    let mut collection = dwebble::Collection::get_or_create(collection_path);
 
     let mut album_toml_path = path.clone();
     album_toml_path.push("album.toml");
@@ -206,41 +280,113 @@ where
     let Config::Normal(def) = def else { todo!() };
     println!("Def: {:#?}", def);
 
-    let album_artist_index = collection.get_or_insert_artist(&def.artist);
-    let album_artist = collection.artist_by_index(album_artist_index);
-    // TODO(patrik): Remove clone?
-    let album_artist = album_artist.id.clone();
+    let album_artist_index =
+        collection.get_or_insert_artist(&def.artist, || {
+            let id = dwebble::create_id();
+            Artist::new(id, def.artist.clone())
+        });
 
-    if let Some(album) = collection.add_album(&album_artist, &def.name) {
-        println!("Album: {:#?}", album);
-        for track in def.tracks {
-            let mut path = path.clone();
-            path.push(track.filename);
+    // let album_artist_index = collection.get_or_insert_artist(&def.artist);
+    // let album_artist = collection.artist_by_index(album_artist_index);
+    // // TODO(patrik): Remove clone?
+    // let album_artist = album_artist.id.clone();
 
-            let artist = track.artist.as_ref().unwrap_or(&def.artist);
-            let artist = collection.get_or_insert_artist(&artist);
-
-            let encode_metadata = EncodeMetadata {
-                track: track.num,
-                title: &track.name,
-                album: &def.name,
-                album_artist: album_artist_index,
-                artist,
-            };
-
-            collection
-                .process_track(album, path, encode_metadata)
-                .unwrap();
-        }
-    } else {
-        // What to do here?
-        bail!("Album '{}' already exists", def.name);
+    if collection.album_with_name_exists(album_artist_index, &def.name) {
+        bail!("Album with name '{}' already exist", def.name);
     }
+
+    let album_id = dwebble::create_id();
+    let mut album = Album::new(album_id, def.name.clone());
+
+    let track_dir = collection.track_dir();
+
+    for track in def.tracks {
+        let artist = track.artist.as_ref().unwrap_or(&def.artist);
+        let artist_index = collection.get_or_insert_artist(&artist, || {
+            let id = dwebble::create_id();
+            Artist::new(id, artist.clone())
+        });
+        let artist = collection.artist_by_index(artist_index).unwrap();
+
+        let id = dwebble::create_id();
+
+        let path = path.join(track.filename);
+
+        let quality_mode = {
+            if path.extension().unwrap().to_str().unwrap() == "flac" {
+                Mode::Copy
+            } else {
+                Mode::None
+            }
+        };
+
+        let metadata = EncodeMetadata {
+            track: track.num,
+            title: &track.name,
+            album: &def.name,
+            album_artist: &def.artist,
+            artist: &artist.name,
+        };
+
+        let quality_out_filename = format!("{}.quality.flac", id);
+        let out = track_dir.join(&quality_out_filename);
+        // TODO(patrik): Check exit status
+        encode(&path, out, quality_mode, &metadata)
+            .context("Failed to encode quality version")?;
+
+        let mobile_out_filename = format!("{}.mobile.mp3", id);
+        let out = track_dir.join(&mobile_out_filename);
+        // TODO(patrik): Check exit status
+        encode(&path, out, Mode::Bitrate192, &metadata)
+            .context("Failed to encode mobile version")?;
+
+        album.add_track(Track::new(
+            id,
+            track.num,
+            track.name,
+            artist.id.clone(),
+            TrackFiles::new(quality_out_filename, mobile_out_filename),
+        ));
+    }
+
+    match collection.add_album(album_artist_index, album) {
+        Some(_) => {
+            println!("Logic here");
+        }
+        None => bail!("Album '{}' already exists", def.name),
+    }
+
+    // if let Some(album) = collection.add_album(&album_artist, &def.name) {
+    //     println!("Album: {:#?}", album);
+    //     for track in def.tracks {
+    //         let mut path = path.clone();
+    //         path.push(track.filename);
+    //
+    //         let artist = track.artist.as_ref().unwrap_or(&def.artist);
+    //         let artist = collection.get_or_insert_artist(&artist);
+    //
+    //         let encode_metadata = EncodeMetadata {
+    //             track: track.num,
+    //             title: &track.name,
+    //             album: &def.name,
+    //             album_artist: album_artist_index,
+    //             artist,
+    //         };
+    //
+    //         collection
+    //             .process_track(album, path, encode_metadata)
+    //             .unwrap();
+    //     }
+    // } else {
+    //     // What to do here?
+    //     bail!("Album '{}' already exists", def.name);
+    // }
 
     // Check if the album exists
     // Process all the tracks
 
-    collection.save_to_disk().context("Failed save to disk")?;
+    //collection.save_to_disk().context("Failed save to disk")?;
+    collection.save_to_disk();
 
     Ok(())
 }
@@ -533,47 +679,6 @@ fn main() -> anyhow::Result<()> {
         let _ = term.show_cursor();
     })
     .context("Failed to set ctrl-c handler")?;
-
-    let mut collection = dwebble::Collection::get_or_create("./test");
-    let artist_name = "Metallica".to_string();
-    let artist_index = collection.get_or_insert_artist(&artist_name, || {
-        let id = dwebble::create_id();
-        dwebble::metadata::Artist::new(id, artist_name.clone())
-    });
-
-    let artist_name = "Ado".to_string();
-    let artist_index = collection.get_or_insert_artist(&artist_name, || {
-        let id = dwebble::create_id();
-        dwebble::metadata::Artist::new(id, artist_name.clone())
-    });
-
-    let id = dwebble::create_id();
-    let mut album = Album::new(id, "Album #1".to_string());
-
-    // let id = dwebble::create_id();
-    // album.add_track(Track::new(
-    //     id,
-    //     1,
-    //     "Track #1".to_string(),
-    //     "some_id".to_string(),
-    //     TrackFiles::new("".to_string(), "".to_string()),
-    // ));
-    //
-    // let id = dwebble::create_id();
-    // album.add_track(Track::new(
-    //     id,
-    //     2,
-    //     "Track #2".to_string(),
-    //     "some_id".to_string(),
-    //     TrackFiles::new("".to_string(), "".to_string()),
-    // ));
-
-    collection.add_album(artist_index, album).unwrap();
-    // collection.copy_track();
-
-    collection.save_to_disk();
-
-    panic!();
 
     let args = Args::parse();
 

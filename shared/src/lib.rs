@@ -21,6 +21,7 @@ pub struct Collection {
 }
 
 impl Collection {
+    // TODO(patrik): Collection::get_or_create should return an error
     pub fn get_or_create<P>(path: P) -> Self
     where
         P: AsRef<Path>,
@@ -40,11 +41,12 @@ impl Collection {
         let mut collection_json_path = path.to_path_buf();
         collection_json_path.push("collection.json");
 
-        let metadata = if let Ok(s) = std::fs::read_to_string(path) {
-            serde_json::from_str::<metadata::Collection>(&s).unwrap()
-        } else {
-            metadata::Collection::new(Vec::new())
-        };
+        let metadata =
+            if let Ok(s) = std::fs::read_to_string(collection_json_path) {
+                serde_json::from_str::<metadata::Collection>(&s).unwrap()
+            } else {
+                metadata::Collection::new(Vec::new())
+            };
 
         Self {
             base: path.to_path_buf(),
@@ -78,6 +80,26 @@ impl Collection {
         }
     }
 
+    pub fn artist_by_index(&self, artist_index: usize) -> Option<&Artist> {
+        self.metadata.artists.get(artist_index)
+    }
+
+    pub fn album_with_name_exists(
+        &self,
+        artist_index: usize,
+        album_name: &str,
+    ) -> bool {
+        if let Some(artist) = self.artist_by_index(artist_index) {
+            return artist
+                .albums
+                .iter()
+                .find(|album| album.name == album_name)
+                .is_some();
+        }
+
+        false
+    }
+
     pub fn add_album(
         &mut self,
         artist_index: usize,
@@ -87,6 +109,10 @@ impl Collection {
         // TODO(patrik): Check if album already exists
         artist.albums.push(album);
         Some(())
+    }
+
+    pub fn track_dir(&self) -> PathBuf {
+        self.base.join("tracks")
     }
 
     // pub fn copy_track<P>(file: &P) -> Option<()> {
