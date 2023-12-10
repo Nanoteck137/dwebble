@@ -1,9 +1,80 @@
 use anyhow::Context;
-use axum::{routing::get, Json, Router};
+use axum::routing::get;
+use axum::{Json, Router};
 use serde::Serialize;
-use sqlx::{Connection, SqliteConnection};
+use sqlx::sqlite::SqliteRow;
+use sqlx::types::chrono::Utc;
+use sqlx::{Connection, Row, SqliteConnection};
 use tower::ServiceBuilder;
-use tower_http::{cors::CorsLayer, services::ServeDir, trace::TraceLayer};
+use tower_http::cors::CorsLayer;
+use tower_http::services::ServeDir;
+use tower_http::trace::TraceLayer;
+
+async fn sync(conn: &mut SqliteConnection) {
+    let collection = dwebble::Collection::get("./test");
+    println!("{:#?}", collection.artists());
+
+    for artist in collection.artists() {
+        sqlx::query("INSERT INTO artists(id, name, test) VALUES (?, ?, ?)")
+            .bind(&artist.id)
+            .bind(&artist.name)
+            .bind(1702210874)
+            .execute(&mut *conn)
+            .await
+            .unwrap();
+
+        for album in artist.albums.iter() {
+            sqlx::query(
+                "INSERT INTO albums(id, name, artist_id) VALUES (?, ?, ?)",
+            )
+            .bind(&album.id)
+            .bind(&album.name)
+            .bind(&artist.id)
+            .execute(&mut *conn)
+            .await
+            .unwrap();
+
+            for track in album.tracks.iter() {
+                sqlx::query(
+                    "INSERT INTO tracks(id, name, album_id) VALUES (?, ?, ?)",
+                )
+                .bind(&track.id)
+                .bind(&track.name)
+                .bind(&album.id)
+                .execute(&mut *conn)
+                .await
+                .unwrap();
+            }
+        }
+    }
+
+    #[derive(Debug)]
+    struct Test {
+        name: String,
+        created_at: String,
+        test: i64,
+    }
+
+    let list = sqlx::query("SELECT * FROM artists")
+        .map(|row: SqliteRow| Test {
+            name: row.get("name"),
+            created_at: row.get("created_at"),
+            test: row.get("test"),
+        })
+        .fetch_all(&mut *conn)
+        .await
+        .unwrap();
+    println!("{:#?}", list);
+
+    // let typ = sqlx::query!("SELECT * FROM artists")
+    //     .fetch_one(&mut *conn)
+    //     .await
+    //     .unwrap();
+    // println!("Typ: {:?}", typ.name);
+
+    // let list = sqlx::query!("SELECT * FROM artists").fetch_all(&mut *conn).await.unwrap();
+    // println!("List: {:#?}", list);
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -15,42 +86,11 @@ async fn main() -> anyhow::Result<()> {
 
     let database_url =
         std::env::var("DATABASE_URL").context("No 'DATABASE_URL' set")?;
-    let conn = SqliteConnection::connect(&database_url).await?;
+    let mut conn = SqliteConnection::connect(&database_url).await?;
 
-    // Collection Folder Structure:
-    //   - public: Served by the server
-    //     - tracks: Track Files
-    //       - { track_id }.full.flac
-    //       - { track_id }.mobile.mp3
-    //     - images: Images
-    //       - {id}.png
-    //
-    //   - private: Metadata
-    //     - collection.json: Artist[]
+    // let x = sqlx::query!("SELECT DATE()");
 
-    // Artist:
-    //  - Id: String
-    //  - Name: String
-    //  - Picture: String
-    //  - Changed: Timestamp
-    //  - Albums: Album[]
-
-    // Album:
-    //  - Id: String
-    //  - Name: String
-    //  - CoverArt: String
-    //  - Changed: Timestamp
-    //  - Tracks: Track[]
-
-    // Track:
-    //  - Id: String
-    //  - Num: Int
-    //  - Name: String
-    //  - ArtistID: String
-    //  - CoverArt: String
-    //  - FileQuality: String
-    //  - FileMobile: String
-    //  - Changed: Timestamp
+    sync(&mut conn).await;
 
     // Routes:
     //   - /api/playlists

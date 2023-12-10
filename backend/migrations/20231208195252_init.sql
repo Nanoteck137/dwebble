@@ -1,1 +1,23 @@
--- Add migration script here
+CREATE TABLE IF NOT EXISTS artists (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    test TIMESTAMP NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS albums (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    artist_id TEXT NOT NULL,
+
+    FOREIGN KEY(artist_id) REFERENCES artists(id)
+);
+
+CREATE TABLE IF NOT EXISTS tracks (
+    id TEXT PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL,
+    album_id TEXT NOT NULL,
+
+    FOREIGN KEY(album_id) REFERENCES albums(id)
+);
+

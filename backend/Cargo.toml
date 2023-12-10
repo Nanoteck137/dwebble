@@ -9,6 +9,7 @@ edition = "2021"
 anyhow = { version = "1.0.75", features = ["backtrace"] }
 axum = "0.7.1"
 dotenvy = "0.15.7"
+dwebble = { version = "0.1.0", path = "../shared" }
 log = "0.4.20"
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
