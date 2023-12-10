@@ -54,6 +54,28 @@ impl Collection {
         }
     }
 
+    pub fn get<P>(path: P) -> Self
+    where
+        P: AsRef<Path>,
+    {
+        let path = path.as_ref();
+
+        std::fs::create_dir_all(path).unwrap();
+        // create_dir(path, "tracks");
+        // create_dir(path, "images");
+
+        let mut collection_json_path = path.to_path_buf();
+        collection_json_path.push("collection.json");
+
+        let s = std::fs::read_to_string(collection_json_path).unwrap(); 
+        let metadata = serde_json::from_str::<metadata::Collection>(&s).unwrap();
+
+        Self {
+            base: path.to_path_buf(),
+            metadata,
+        }
+    }
+
     pub fn verify(&self) {}
 
     pub fn get_or_insert_artist<F>(
@@ -84,6 +106,10 @@ impl Collection {
         self.metadata.artists.get(artist_index)
     }
 
+    pub fn artist_by_id(&self, artist_id: &str) -> Option<&Artist> {
+        self.metadata.artists.iter().find(|artist| artist.id == artist_id)
+    }
+
     pub fn album_with_name_exists(
         &self,
         artist_index: usize,
@@ -109,6 +135,10 @@ impl Collection {
         // TODO(patrik): Check if album already exists
         artist.albums.push(album);
         Some(())
+    }
+
+    pub fn artists(&self) -> &[Artist] {
+        &self.metadata.artists
     }
 
     pub fn track_dir(&self) -> PathBuf {
