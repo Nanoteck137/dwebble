@@ -181,16 +181,15 @@ fn list<P>(collection_path: P) -> anyhow::Result<()>
 where
     P: AsRef<Path>,
 {
-    let collection = Collection::new(collection_path)?;
-    for album in collection.albums() {
-        let metadata = album.metadata();
-        println!("{}: {}", metadata.id, metadata.name);
-        for track in album.metadata().tracks.iter() {
-            let artist = collection.artist_by_id(&track.artist_id).unwrap();
-            println!(
-                "  {:2} - {} - {}",
-                track.track_num, artist.name, track.name
-            );
+    let collection = dwebble::Collection::get(collection_path);
+
+    for artist in collection.artists() {
+        for album in artist.albums.iter() {
+            println!("{} - {}:", album.name, artist.name);
+            for track in album.tracks.iter() {
+                let artist = collection.artist_by_id(&track.artist_id).unwrap();
+                println!(" {:2}: {} - {}", track.num, track.name, artist.name);
+            }
         }
     }
 
