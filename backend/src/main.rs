@@ -1,26 +1,23 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use axum::extract::rejection::{JsonRejection, QueryRejection};
 use axum::extract::{
-    FromRequest, FromRequestParts, Path, Query, Request, State,
+    FromRequestParts, Path, Query, State,
 };
-use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::routing::get;
 use axum::{Json, Router};
 use chrono::{DateTime, Utc};
+use error::AppError;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use sqlx::{FromRow, PgPool};
-use thiserror::Error;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
-use tracing::Level;
 
-type Result<T> = core::result::Result<T, AppError>;
+use error::Result;
+
+mod error;
 
 const DEFAULT_ARTIST_IMAGE: &str = "/images/artist_default.png";
 
@@ -29,8 +26,6 @@ struct FetchArtistRes {
     id: String,
     name: String,
     picture: Option<String>,
-    created_at: DateTime<Utc>,
-    updated_at: i64,
 }
 
 struct DataAccess {
@@ -39,16 +34,11 @@ struct DataAccess {
 
 impl DataAccess {
     async fn fetch_all_artists(&self) -> Result<Vec<FetchArtistRes>> {
-        sqlx::query_as::<_, FetchArtistRes>("SELECT * FROM artists")
+        sqlx::query_as::<_, FetchArtistRes>("SELECT id, name, picture FROM artists")
             .fetch_all(&self.conn)
             .await
             .map_err(AppError::SqlxError)
     }
-}
-
-#[derive(FromRow)]
-struct DbArtist {
-    id: String,
 }
 
 async fn sync(conn: &PgPool) {
@@ -158,11 +148,22 @@ async fn main() -> anyhow::Result<()> {
     //   - /api/albums/:id
     //   - /api/tracks
     //   - /api/tracks/:id
+    //   - /api/playlists
+    //   - /api/playlists/:id
+
+    async fn stub() {
+        unimplemented!();
+    }
 
     let api_router = Router::new()
         .route("/artists", get(get_all_artists))
         .route("/artists/:id", get(get_artist))
-        .route("/artists/search", get(search_for_artist));
+        .route("/albums", get(stub))
+        .route("/albums/:id", get(stub))
+        .route("/tracks", get(stub))
+        .route("/tracks/:id", get(stub))
+        .route("/playlists", get(stub))
+        .route("/playlists/:id", get(stub));
 
     let state = Arc::new(state);
     let app = Router::new()
@@ -309,46 +310,4 @@ async fn get_artist(
     .map_err(AppError::SqlxError)?;
 
     Ok(Json(ApiArtist { artist, albums }))
-}
-
-#[derive(Error, Debug)]
-pub enum AppError {
-    #[error("No artist with id: '{0}'")]
-    NoArtistWithId(String),
-
-    #[error("Internal server error")]
-    SqlxError(sqlx::Error),
-
-    #[error("Query error: {0}")]
-    QueryError(#[from] QueryRejection),
-}
-
-impl IntoResponse for AppError {
-    #[tracing::instrument]
-    fn into_response(self) -> axum::response::Response {
-        let (status, error_message) = match self {
-            AppError::NoArtistWithId(id) => {
-                (StatusCode::NOT_FOUND, format!("No artist with id '{}'", id))
-            }
-
-            AppError::SqlxError(e) => {
-                tracing::event!(Level::ERROR, "Sqlx Error: {e}");
-                (
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    "Internal server error".to_string(),
-                )
-            }
-
-            AppError::QueryError(e) => {
-                tracing::event!(Level::ERROR, "Query Error: {e}");
-                (e.status(), e.body_text())
-            }
-        };
-
-        let body = Json(json!({
-            "error": error_message,
-        }));
-
-        (status, body).into_response()
-    }
 }
