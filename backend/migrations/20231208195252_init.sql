@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS albums (
     artist_id TEXT NOT NULL,
     picture TEXT,
 
-    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at BIGINT NOT NULL DEFAULT 0,
 
     FOREIGN KEY(artist_id) REFERENCES artists(id)
