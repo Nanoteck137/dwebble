@@ -186,39 +186,6 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-// #[derive(Deserialize, Validate, Debug)]
-// struct Test {
-//     #[validate(length(min = 5))]
-//     field: String,
-//     field2: usize,
-// }
-//
-// async fn test(ValidatedJson(body): ValidatedJson<Test>) {
-//     println!("Body: {:#?}", body);
-// }
-//
-// #[derive(Debug, Clone, Copy, Default)]
-// pub struct ValidatedJson<T>(pub T);
-//
-// #[async_trait]
-// impl<T, S> FromRequest<S> for ValidatedJson<T>
-// where
-//     T: DeserializeOwned + Validate,
-//     S: Send + Sync,
-//     Json<T>: FromRequest<S, Rejection = JsonRejection>,
-// {
-//     type Rejection = String;
-//
-//     async fn from_request(
-//         req: Request,
-//         state: &S,
-//     ) -> Result<Self, Self::Rejection> {
-//         let Json(value) = Json::<T>::from_request(req, state).await.unwrap();
-//         value.validate().unwrap();
-//         Ok(ValidatedJson(value))
-//     }
-// }
-
 #[derive(Serialize, FromRow)]
 struct ArtistRes {
     id: String,
