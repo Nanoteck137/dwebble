@@ -8,9 +8,8 @@ use axum::extract::{
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::get;
-use axum::{async_trait, Json, Router};
-use chrono::{Utc, DateTime};
-use serde::de::DeserializeOwned;
+use axum::{Json, Router};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::{FromRow, PgPool};
@@ -20,7 +19,32 @@ use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 use tracing::Level;
-use validator::Validate;
+
+type Result<T> = core::result::Result<T, AppError>;
+
+const DEFAULT_ARTIST_IMAGE: &str = "/images/artist_default.png";
+
+#[derive(FromRow, Debug)]
+struct FetchArtistRes {
+    id: String,
+    name: String,
+    picture: Option<String>,
+    created_at: DateTime<Utc>,
+    updated_at: i64,
+}
+
+struct DataAccess {
+    conn: PgPool,
+}
+
+impl DataAccess {
+    async fn fetch_all_artists(&self) -> Result<Vec<FetchArtistRes>> {
+        sqlx::query_as::<_, FetchArtistRes>("SELECT * FROM artists")
+            .fetch_all(&self.conn)
+            .await
+            .map_err(AppError::SqlxError)
+    }
+}
 
 #[derive(FromRow)]
 struct DbArtist {
@@ -102,7 +126,7 @@ async fn sync(conn: &PgPool) {
 }
 
 struct AppState {
-    conn: PgPool,
+    data_access: DataAccess,
 }
 
 #[tokio::main]
@@ -121,17 +145,24 @@ async fn main() -> anyhow::Result<()> {
 
     sync(&conn).await;
 
-    let state = AppState { conn };
+    let state = AppState {
+        data_access: DataAccess { conn },
+    };
 
     // Routes:
+    //   - /api/search
+    //
     //   - /api/artists
     //   - /api/artists/:id
+    //   - /api/albums
+    //   - /api/albums/:id
+    //   - /api/tracks
+    //   - /api/tracks/:id
 
     let api_router = Router::new()
         .route("/artists", get(get_all_artists))
         .route("/artists/:id", get(get_artist))
-        .route("/artists/search", get(search_for_artist))
-        .route("/test", get(test));
+        .route("/artists/search", get(search_for_artist));
 
     let state = Arc::new(state);
     let app = Router::new()
@@ -154,65 +185,62 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[derive(Deserialize, Validate, Debug)]
-struct Test {
-    #[validate(length(min = 5))]
-    field: String,
-    field2: usize,
-}
-
-async fn test(ValidatedJson(body): ValidatedJson<Test>) {
-    println!("Body: {:#?}", body);
-}
-
-#[derive(Debug, Clone, Copy, Default)]
-pub struct ValidatedJson<T>(pub T);
-
-#[async_trait]
-impl<T, S> FromRequest<S> for ValidatedJson<T>
-where
-    T: DeserializeOwned + Validate,
-    S: Send + Sync,
-    Json<T>: FromRequest<S, Rejection = JsonRejection>,
-{
-    type Rejection = String;
-
-    async fn from_request(
-        req: Request,
-        state: &S,
-    ) -> Result<Self, Self::Rejection> {
-        let Json(value) = Json::<T>::from_request(req, state).await.unwrap();
-        value.validate().unwrap();
-        Ok(ValidatedJson(value))
-    }
-}
-
-#[derive(Error, Debug)]
-pub enum AppError {
-    #[error("No artist with id: '{0}'")]
-    NoArtistWithId(String),
-
-    #[error("Internal server error")]
-    SqlxError(sqlx::Error),
-
-    #[error("Query error: {0}")]
-    QueryError(#[from] QueryRejection),
-}
+// #[derive(Deserialize, Validate, Debug)]
+// struct Test {
+//     #[validate(length(min = 5))]
+//     field: String,
+//     field2: usize,
+// }
+//
+// async fn test(ValidatedJson(body): ValidatedJson<Test>) {
+//     println!("Body: {:#?}", body);
+// }
+//
+// #[derive(Debug, Clone, Copy, Default)]
+// pub struct ValidatedJson<T>(pub T);
+//
+// #[async_trait]
+// impl<T, S> FromRequest<S> for ValidatedJson<T>
+// where
+//     T: DeserializeOwned + Validate,
+//     S: Send + Sync,
+//     Json<T>: FromRequest<S, Rejection = JsonRejection>,
+// {
+//     type Rejection = String;
+//
+//     async fn from_request(
+//         req: Request,
+//         state: &S,
+//     ) -> Result<Self, Self::Rejection> {
+//         let Json(value) = Json::<T>::from_request(req, state).await.unwrap();
+//         value.validate().unwrap();
+//         Ok(ValidatedJson(value))
+//     }
+// }
 
 #[derive(Serialize, FromRow)]
 struct ArtistRes {
     id: String,
     name: String,
+    picture: String,
+}
+
+impl From<FetchArtistRes> for ArtistRes {
+    fn from(value: FetchArtistRes) -> Self {
+        ArtistRes {
+            id: value.id,
+            name: value.name,
+            picture: value.picture.unwrap_or(DEFAULT_ARTIST_IMAGE.to_string()),
+        }
+    }
 }
 
 async fn get_all_artists(
     State(state): State<Arc<AppState>>,
-) -> Result<Json<Vec<ArtistRes>>, AppError> {
-    sqlx::query_as::<_, ArtistRes>("SELECT id, name FROM artists")
-        .fetch_all(&state.conn)
-        .await
-        .map(|a| Json(a))
-        .map_err(AppError::SqlxError)
+) -> Result<Json<Vec<ArtistRes>>> {
+    let artists = state.data_access.fetch_all_artists().await?;
+
+    Ok(Json(artists.into_iter().map(ArtistRes::from).collect()))
 }
 
 #[derive(FromRequestParts)]
@@ -227,12 +255,12 @@ struct SearchQueryParams {
 async fn search_for_artist(
     State(state): State<Arc<AppState>>,
     QueryExtractor(query_params): QueryExtractor<SearchQueryParams>,
-) -> Result<Json<Vec<ArtistRes>>, AppError> {
+) -> Result<Json<Vec<ArtistRes>>> {
     sqlx::query_as::<_, ArtistRes>(
         "SELECT id, name FROM artists WHERE name LIKE $1",
     )
     .bind(format!("%{}%", query_params.q))
-    .fetch_all(&state.conn)
+    .fetch_all(&state.data_access.conn)
     .await
     .map(|a| Json(a))
     .map_err(AppError::SqlxError)
@@ -242,7 +270,7 @@ async fn search_for_artist(
 struct DbAlbum {
     id: String,
     name: String,
-    created_at: DateTime<Utc>
+    created_at: DateTime<Utc>,
 }
 
 #[derive(Serialize, FromRow)]
@@ -255,18 +283,18 @@ struct DbArtistFull {
 struct ApiArtist {
     #[serde(flatten)]
     artist: DbArtistFull,
-    albums: Vec<DbAlbum>
+    albums: Vec<DbAlbum>,
 }
 
 async fn get_artist(
     State(state): State<Arc<AppState>>,
     Path(id): Path<String>,
-) -> Result<Json<ApiArtist>, AppError> {
+) -> Result<Json<ApiArtist>> {
     let artist = sqlx::query_as::<_, DbArtistFull>(
         "SELECT id, name FROM artists WHERE id = $1",
     )
     .bind(&id)
-    .fetch_optional(&state.conn)
+    .fetch_optional(&state.data_access.conn)
     .await
     .map_err(AppError::SqlxError)?;
 
@@ -276,11 +304,23 @@ async fn get_artist(
         "SELECT id, name, created_at FROM albums WHERE artist_id = $1",
     )
     .bind(&artist.id)
-    .fetch_all(&state.conn)
+    .fetch_all(&state.data_access.conn)
     .await
     .map_err(AppError::SqlxError)?;
 
     Ok(Json(ApiArtist { artist, albums }))
+}
+
+#[derive(Error, Debug)]
+pub enum AppError {
+    #[error("No artist with id: '{0}'")]
+    NoArtistWithId(String),
+
+    #[error("Internal server error")]
+    SqlxError(sqlx::Error),
+
+    #[error("Query error: {0}")]
+    QueryError(#[from] QueryRejection),
 }
 
 impl IntoResponse for AppError {
