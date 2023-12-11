@@ -244,29 +244,6 @@ async fn get_all_artists(
     Ok(Json(artists.into_iter().map(ArtistRes::from).collect()))
 }
 
-#[derive(FromRequestParts)]
-#[from_request(via(Query), rejection(AppError))]
-pub struct QueryExtractor<T>(pub T);
-
-#[derive(Deserialize, Debug)]
-struct SearchQueryParams {
-    q: String,
-}
-
-async fn search_for_artist(
-    State(state): State<Arc<AppState>>,
-    QueryExtractor(query_params): QueryExtractor<SearchQueryParams>,
-) -> Result<Json<Vec<ArtistRes>>> {
-    sqlx::query_as::<_, ArtistRes>(
-        "SELECT id, name FROM artists WHERE name LIKE $1",
-    )
-    .bind(format!("%{}%", query_params.q))
-    .fetch_all(&state.data_access.conn)
-    .await
-    .map(|a| Json(a))
-    .map_err(AppError::SqlxError)
-}
-
 #[derive(Serialize, FromRow)]
 struct DbAlbum {
     id: String,
