@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS artists (
     name TEXT NOT NULL,
     picture TEXT,
 
-    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at BIGINT NOT NULL DEFAULT 0
 );
 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS tracks (
     file_quality TEXT NOT NULL,
     file_mobile TEXT NOT NULL,
 
-    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at BIGINT NOT NULL DEFAULT 0,
 
     FOREIGN KEY(artist_id) REFERENCES artists(id),
