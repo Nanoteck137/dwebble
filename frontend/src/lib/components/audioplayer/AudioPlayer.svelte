@@ -1,46 +1,51 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import ProgressBar from "./ProgressBar.svelte";
-
-  type Item = {
-    name: string;
-    url: string;
-  };
-
-  export let queue: Item[];
-  export let playing = false;
+  import {
+    AudioHandler,
+    currentPlayingSong,
+    isPlaying,
+    time,
+    volume,
+  } from "$lib/audio";
 
   let currentSong = 0;
   let currentTime = 0;
   let duration = 0;
-  let volume = 1.0;
+  // let volume = 1.0;
   let loading = false;
 
-  $: progress = duration > 0 ? currentTime / duration : 0;
+  $: progress = $time.duration > 0 ? $time.currentTime / $time.duration : 0;
 
   let player: HTMLAudioElement;
 
   onMount(() => {
-    const item = localStorage.getItem("volume") ?? "1.0";
-    volume = parseFloat(item);
-    player.volume = volume;
-
-    duration = player.duration;
+    // const item = localStorage.getItem("volume") ?? "1.0";
+    // volume = parseFloat(item);
+    // player.volume = volume;
+    // duration = player.duration;
+    // AudioHandler.registerHandler({
+    //   play() {
+    //     player.play();
+    //   },
+    //   pause() {
+    //     player.pause();
+    //   },
+    //   playPause() {
+    //     if ($isPlaying) {
+    //       this.pause();
+    //     } else {
+    //       this.play();
+    //     }
+    //   },
+    //   setSong(song) {
+    //     player.src = `http://localhost:3000/tracks/${song.file_mobile}`;
+    //   },
+    // });
   });
 
-  function togglePlayer() {
-    if (playing) {
-      player.pause();
-    } else {
-      player.play();
-    }
-  }
-
   function nextSong() {
-    currentSong++;
-    if (currentSong >= queue.length) {
-      currentSong = queue.length - 1;
-    }
+    AudioHandler.nextSong();
   }
 
   function prevSong() {
@@ -49,12 +54,7 @@
       return;
     }
 
-    if (currentSong <= 0) {
-      currentSong = 0;
-      player.currentTime = 0;
-    } else {
-      currentSong--;
-    }
+    AudioHandler.prevSong();
   }
 
   // TODO(patrik): Move utils file
@@ -73,7 +73,7 @@
       e.stopPropagation();
       e.stopImmediatePropagation();
 
-      togglePlayer();
+      AudioHandler.playPause();
     }
   }}
 />
@@ -123,8 +123,11 @@
         </svg>
       </button>
 
-      <button class="flex items-center justify-center" on:click={togglePlayer}>
-        {#if playing}
+      <button
+        class="flex items-center justify-center"
+        on:click={AudioHandler.playPause}
+      >
+        {#if $isPlaying == "playing"}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -137,7 +140,7 @@
               clip-rule="evenodd"
             />
           </svg>
-        {:else}
+        {:else if $isPlaying === "paused"}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -167,25 +170,30 @@
       </button>
 
       {#if !loading}
-        <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+        <span
+          >{formatTime($time.currentTime)} / {formatTime($time.duration)}</span
+        >
       {/if}
     </div>
 
-    <p class="col-span-3">{queue[currentSong].name}</p>
+    {#if $currentPlayingSong}
+      <p class="col-span-3">{$currentPlayingSong.name}</p>
+    {:else}
+      <p class="col-span-3">No song playing</p>
+    {/if}
 
     <div class="w-full">
       <ProgressBar
-        progress={volume}
+        progress={$volume}
         on:progress={(e) => {
-          player.volume = e.detail;
+          volume.set(e.detail as number)
         }}
       />
     </div>
   </div>
 
-  <audio
+  <!-- <audio
     bind:this={player}
-    src={queue[currentSong].url}
     on:timeupdate={(e) => {
       currentTime = e.currentTarget.currentTime;
       duration = e.currentTarget.duration;
@@ -196,10 +204,10 @@
       localStorage.setItem("volume", volume.toString());
     }}
     on:pause={() => {
-      playing = false;
+      isPlaying.set(false);
     }}
     on:play={() => {
-      playing = true;
+      isPlaying.set(true);
     }}
     on:loadstart={() => {
       loading = true;
@@ -210,5 +218,8 @@
     on:canplay={(e) => {
       e.currentTarget.play();
     }}
-  ></audio>
+    on:ended={(e) => {
+      nextSong();
+    }}
+  ></audio> -->
 </div>
