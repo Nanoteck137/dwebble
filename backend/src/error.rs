@@ -10,6 +10,9 @@ pub enum AppError {
     #[error("No artist with id: '{0}'")]
     NoArtistWithId(String),
 
+    #[error("No album with id: '{0}'")]
+    NoAlbumWithId(String),
+
     #[error("Internal server error")]
     SqlxError(sqlx::Error),
 }
@@ -20,6 +23,10 @@ impl IntoResponse for AppError {
         let (status, error_message) = match self {
             AppError::NoArtistWithId(id) => {
                 (StatusCode::NOT_FOUND, format!("No artist with id '{}'", id))
+            }
+
+            AppError::NoAlbumWithId(id) => {
+                (StatusCode::NOT_FOUND, format!("No album with id '{}'", id))
             }
 
             AppError::SqlxError(e) => {

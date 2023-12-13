@@ -1,15 +1,11 @@
 use std::sync::Arc;
 
 use anyhow::Context;
-use axum::extract::{
-    FromRequestParts, Path, Query, State,
-};
+use axum::extract::{Path, State};
 use axum::routing::get;
 use axum::{Json, Router};
-use chrono::{DateTime, Utc};
-use error::AppError;
-use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool};
+use serde::Serialize;
+use sqlx::PgPool;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
@@ -18,28 +14,10 @@ use tower_http::trace::TraceLayer;
 use error::Result;
 
 mod error;
+mod data;
 
 const DEFAULT_ARTIST_IMAGE: &str = "/images/artist_default.png";
-
-#[derive(FromRow, Debug)]
-struct FetchArtistRes {
-    id: String,
-    name: String,
-    picture: Option<String>,
-}
-
-struct DataAccess {
-    conn: PgPool,
-}
-
-impl DataAccess {
-    async fn fetch_all_artists(&self) -> Result<Vec<FetchArtistRes>> {
-        sqlx::query_as::<_, FetchArtistRes>("SELECT id, name, picture FROM artists")
-            .fetch_all(&self.conn)
-            .await
-            .map_err(AppError::SqlxError)
-    }
-}
+const DEFAULT_ALBUM_IMAGE: &str = "/images/album_default.png";
 
 async fn sync(conn: &PgPool) {
     let collection = dwebble::Collection::get("./test");
@@ -116,7 +94,7 @@ async fn sync(conn: &PgPool) {
 }
 
 struct AppState {
-    data_access: DataAccess,
+    data_access: data::DataAccess,
 }
 
 #[tokio::main]
@@ -136,7 +114,7 @@ async fn main() -> anyhow::Result<()> {
     sync(&conn).await;
 
     let state = AppState {
-        data_access: DataAccess { conn },
+        data_access: data::DataAccess::new(conn),
     };
 
     // Routes:
@@ -159,7 +137,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/artists", get(get_all_artists))
         .route("/artists/:id", get(get_artist))
         .route("/albums", get(stub))
-        .route("/albums/:id", get(stub))
+        .route("/albums/:id", get(get_album))
         .route("/tracks", get(stub))
         .route("/tracks/:id", get(stub))
         .route("/playlists", get(stub))
@@ -168,7 +146,7 @@ async fn main() -> anyhow::Result<()> {
     let state = Arc::new(state);
     let app = Router::new()
         .nest("/api", api_router)
-        .nest_service("/songs", ServeDir::new("songs"))
+        .nest_service("/tracks", ServeDir::new("./test/tracks"))
         .layer(
             ServiceBuilder::new()
                 .layer(TraceLayer::new_for_http())
@@ -186,72 +164,46 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-#[derive(Serialize, FromRow)]
-struct ArtistRes {
-    id: String,
-    name: String,
-    picture: String,
-}
-
-impl From<FetchArtistRes> for ArtistRes {
-    fn from(value: FetchArtistRes) -> Self {
-        ArtistRes {
-            id: value.id,
-            name: value.name,
-            picture: value.picture.unwrap_or(DEFAULT_ARTIST_IMAGE.to_string()),
-        }
-    }
-}
-
 async fn get_all_artists(
     State(state): State<Arc<AppState>>,
-) -> Result<Json<Vec<ArtistRes>>> {
+) -> Result<Json<Vec<data::Artist>>> {
     let artists = state.data_access.fetch_all_artists().await?;
 
-    Ok(Json(artists.into_iter().map(ArtistRes::from).collect()))
-}
-
-#[derive(Serialize, FromRow)]
-struct DbAlbum {
-    id: String,
-    name: String,
-    created_at: DateTime<Utc>,
-}
-
-#[derive(Serialize, FromRow)]
-struct DbArtistFull {
-    id: String,
-    name: String,
+    Ok(Json(artists))
 }
 
 #[derive(Serialize)]
-struct ApiArtist {
+struct GetArtistResponse {
     #[serde(flatten)]
-    artist: DbArtistFull,
-    albums: Vec<DbAlbum>,
+    artist: data::Artist,
+
+    albums: Vec<data::Album>,
 }
 
 async fn get_artist(
     State(state): State<Arc<AppState>>,
     Path(id): Path<String>,
-) -> Result<Json<ApiArtist>> {
-    let artist = sqlx::query_as::<_, DbArtistFull>(
-        "SELECT id, name FROM artists WHERE id = $1",
-    )
-    .bind(&id)
-    .fetch_optional(&state.data_access.conn)
-    .await
-    .map_err(AppError::SqlxError)?;
+) -> Result<Json<GetArtistResponse>> {
+    let artist = state.data_access.fetch_single_artist(&id).await?;
+    let albums = state.data_access.fetch_albums_by_artist(&id).await?;
 
-    let artist = artist.ok_or(AppError::NoArtistWithId(id))?;
+    Ok(Json(GetArtistResponse { artist, albums }))
+}
 
-    let albums = sqlx::query_as::<_, DbAlbum>(
-        "SELECT id, name, created_at FROM albums WHERE artist_id = $1",
-    )
-    .bind(&artist.id)
-    .fetch_all(&state.data_access.conn)
-    .await
-    .map_err(AppError::SqlxError)?;
+#[derive(Serialize)]
+struct GetAlbumResponse {
+    #[serde(flatten)]
+    album: data::Album,
 
-    Ok(Json(ApiArtist { artist, albums }))
+    tracks: Vec<data::Track>,
+}
+
+async fn get_album(
+    State(state): State<Arc<AppState>>,
+    Path(id): Path<String>,
+) -> Result<Json<GetAlbumResponse>> {
+    let album = state.data_access.fetch_single_album(&id).await?;
+    let tracks = state.data_access.fetch_tracks_by_album(&id).await?;
+
+    Ok(Json(GetAlbumResponse { album, tracks }))
 }
