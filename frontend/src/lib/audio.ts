@@ -45,7 +45,7 @@ function init() {
   audio.addEventListener("loadeddata", () => {
     isPlaying.set("playing");
   });
-  audio.addEventListener("canplay", () => {});
+  audio.addEventListener("canplay", () => { });
   audio.addEventListener("ended", () => AudioHandler.nextSong());
 
   volume.subscribe((volume) => {
@@ -88,13 +88,16 @@ export const AudioHandler = {
     }
   },
 
+  setSong(song: Track, play?: boolean) {
+    if (!audio) { return; }
+    audio.src = `http://10.28.28.2:3000/tracks/${song.file_mobile}`;
+    if (play)
+      audio.play();
+  },
+
   setQueue(songs: Track[], index?: number) {
     playQueue.set({ index: index || 0, songs });
-    if (audio) {
-      audio.src = `http://localhost:3000/tracks/${
-        songs[index || 0].file_mobile
-      }`;
-    }
+    this.setSong(songs[index || 0]);
     // handlers.setSong(songs[index || 0]);
   },
 
@@ -105,7 +108,7 @@ export const AudioHandler = {
 
     const newIndex = queue.index + 1;
     playQueue.update((old) => ({ ...old, index: newIndex }));
-    // handlers.setSong(queue.songs[newIndex]);
+    this.setSong(queue.songs[newIndex]);
   },
 
   prevSong() {
@@ -115,6 +118,6 @@ export const AudioHandler = {
 
     const newIndex = queue.index - 1;
     playQueue.update((old) => ({ ...old, index: newIndex }));
-    // handlers.setSong(queue.songs[newIndex]);
+    this.setSong(queue.songs[newIndex]);
   },
 };
