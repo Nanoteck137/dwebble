@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use anyhow::Context;
 use axum::extract::{Path, State};
@@ -6,6 +7,8 @@ use axum::routing::get;
 use axum::{Json, Router};
 use serde::Serialize;
 use sqlx::PgPool;
+use sqlx::prelude::FromRow;
+use tokio::time::Instant;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
@@ -13,8 +16,8 @@ use tower_http::trace::TraceLayer;
 
 use error::Result;
 
-mod error;
 mod data;
+mod error;
 
 const DEFAULT_ARTIST_IMAGE: &str = "/images/artist_default.png";
 const DEFAULT_ALBUM_IMAGE: &str = "/images/album_default.png";
@@ -136,7 +139,7 @@ async fn main() -> anyhow::Result<()> {
     let api_router = Router::new()
         .route("/artists", get(get_all_artists))
         .route("/artists/:id", get(get_artist))
-        .route("/albums", get(stub))
+        .route("/albums", get(get_all_albums))
         .route("/albums/:id", get(get_album))
         .route("/tracks", get(stub))
         .route("/tracks/:id", get(stub))
@@ -164,19 +167,22 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[derive(Serialize)]
+struct GetAllArtistsResponse {
+    artists: Vec<data::Artist>,
+}
+
 async fn get_all_artists(
     State(state): State<Arc<AppState>>,
-) -> Result<Json<Vec<data::Artist>>> {
+) -> Result<Json<GetAllArtistsResponse>> {
     let artists = state.data_access.fetch_all_artists().await?;
 
-    Ok(Json(artists))
+    Ok(Json(GetAllArtistsResponse { artists }))
 }
 
 #[derive(Serialize)]
 struct GetArtistResponse {
-    #[serde(flatten)]
     artist: data::Artist,
-
     albums: Vec<data::Album>,
 }
 
@@ -191,10 +197,21 @@ async fn get_artist(
 }
 
 #[derive(Serialize)]
-struct GetAlbumResponse {
-    #[serde(flatten)]
-    album: data::Album,
+struct GetAllAlbumsResponse {
+    albums: Vec<data::FetchAllAlbumItem>,
+}
 
+async fn get_all_albums(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<GetAllAlbumsResponse>> {
+    let albums = state.data_access.fetch_all_albums().await?;
+
+    Ok(Json(GetAllAlbumsResponse { albums }))
+}
+
+#[derive(Serialize)]
+struct GetAlbumResponse {
+    album: data::Album,
     tracks: Vec<data::Track>,
 }
 

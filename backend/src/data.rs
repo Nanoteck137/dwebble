@@ -1,6 +1,6 @@
 use crate::error::{AppError, Result};
 use serde::Serialize;
-use sqlx::{postgres::PgRow, FromRow, PgPool, Row};
+use sqlx::{postgres::PgRow, PgPool, Row};
 
 #[derive(Serialize, Debug)]
 pub struct Artist {
@@ -17,6 +17,7 @@ pub struct Album {
 }
 
 #[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct Track {
     pub id: String,
     pub num: i32,
@@ -30,8 +31,16 @@ pub struct Track {
     pub file_mobile: String,
 }
 
+#[derive(Serialize, Debug)]
+pub struct FetchAllAlbumItem {
+    #[serde(flatten)]
+    album: Album,
+
+    artist_name: String,
+}
+
 pub struct DataAccess {
-    conn: PgPool,
+    pub conn: PgPool,
 }
 
 impl DataAccess {
@@ -81,15 +90,31 @@ impl DataAccess {
     }
 
     pub async fn fetch_single_artist(&self, id: &str) -> Result<Artist> {
-        sqlx::query(
-            "SELECT id, name, picture FROM artists WHERE id = $1",
-        )
-        .bind(id)
-        .try_map(Self::map_artist)
-        .fetch_optional(&self.conn)
-        .await
-        .map_err(AppError::SqlxError)?
-        .ok_or_else(|| AppError::NoArtistWithId(id.to_string()))
+        sqlx::query("SELECT id, name, picture FROM artists WHERE id = $1")
+            .bind(id)
+            .try_map(Self::map_artist)
+            .fetch_optional(&self.conn)
+            .await
+            .map_err(AppError::SqlxError)?
+            .ok_or_else(|| AppError::NoArtistWithId(id.to_string()))
+    }
+
+    pub async fn fetch_all_albums(&self) -> Result<Vec<FetchAllAlbumItem>> {
+        let res = sqlx::query!("SELECT albums.id, albums.name, albums.picture, artists.name as artist_name FROM albums JOIN artists ON artists.id = artist_id ORDER BY name")
+            .fetch_all(&self.conn)
+            .await
+            .map_err(AppError::SqlxError)?;
+
+        Ok(res.into_iter().map(|r| FetchAllAlbumItem {
+            album: Album {
+                id: r.id,
+                name: r.name,
+                picture: r
+                    .picture
+                    .unwrap_or(crate::DEFAULT_ALBUM_IMAGE.to_string()),
+            },
+            artist_name: r.artist_name,
+        }).collect())
     }
 
     pub async fn fetch_albums_by_artist(
@@ -107,15 +132,13 @@ impl DataAccess {
     }
 
     pub async fn fetch_single_album(&self, id: &str) -> Result<Album> {
-        sqlx::query(
-            "SELECT id, name, picture FROM albums WHERE id = $1",
-        )
-        .bind(id)
-        .try_map(Self::map_album)
-        .fetch_optional(&self.conn)
-        .await
-        .map_err(AppError::SqlxError)?
-        .ok_or_else(|| AppError::NoAlbumWithId(id.to_string()))
+        sqlx::query("SELECT id, name, picture FROM albums WHERE id = $1")
+            .bind(id)
+            .try_map(Self::map_album)
+            .fetch_optional(&self.conn)
+            .await
+            .map_err(AppError::SqlxError)?
+            .ok_or_else(|| AppError::NoAlbumWithId(id.to_string()))
     }
 
     pub async fn fetch_tracks_by_album(&self, id: &str) -> Result<Vec<Track>> {
