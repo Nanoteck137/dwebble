@@ -29,6 +29,7 @@
             openssl
             pkg-config
             ffmpeg
+            rust-analyzer
             
             (rustVersion.override { extensions = [ "rust-src" ]; }) 
           ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
