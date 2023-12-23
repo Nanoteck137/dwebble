@@ -30,6 +30,7 @@
             pkg-config
             ffmpeg
             rust-analyzer
+            go
             
             (rustVersion.override { extensions = [ "rust-src" ]; }) 
           ] ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
