@@ -2,16 +2,22 @@ package main
 
 import (
 	"context"
+	"embed"
 	"log"
+	"net/http"
 	"os"
 
 	"github.com/dwebble/v2/internal/database"
 	"github.com/dwebble/v2/internal/handlers"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
+
+//go:embed images/*
+var content embed.FS
 
 func main() {
 	err := godotenv.Load()
@@ -34,7 +40,14 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 
-	queries.CreateArtist(context.Background(), database.CreateArtistParams{ID: "hello", Name: "Text"})
+	app.Use("/images", filesystem.New(filesystem.Config{
+		Root: http.Dir("./images"),
+	}))
+
+	app.Use("/images", filesystem.New(filesystem.Config{
+		Root: http.FS(content),
+		PathPrefix: "images",
+	}))
 
 	apiConfig := handlers.New(queries)
 
