@@ -21,7 +21,7 @@ type Artist struct {
 	Picture pgtype.Text `json:"picture"`
 }
 
-type Song struct {
+type Track struct {
 	ID       string      `json:"id"`
 	Name     string      `json:"name"`
 	CoverArt pgtype.Text `json:"coverArt"`

@@ -36,7 +36,7 @@ func (q *Queries) DeleteAllArtists(ctx context.Context) error {
 }
 
 const getAllArtists = `-- name: GetAllArtists :many
-SELECT id, name, picture FROM artists
+SELECT id, name, picture FROM artists ORDER BY name
 `
 
 func (q *Queries) GetAllArtists(ctx context.Context) ([]Artist, error) {

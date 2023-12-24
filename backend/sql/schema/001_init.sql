@@ -13,7 +13,7 @@ CREATE TABLE albums (
     artist_id TEXT NOT NULL REFERENCES artists(id)
 );
 
-CREATE TABLE songs (
+CREATE TABLE tracks (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
     cover_art TEXT,
@@ -23,6 +23,6 @@ CREATE TABLE songs (
 );
 
 -- +goose Down
-DROP TABLE songs;
+DROP TABLE tracks;
 DROP TABLE albums;
 DROP TABLE artists;

@@ -76,35 +76,35 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 		}
 	}
 
-	songs, err := apiConfig.queries.GetSongsByAlbum(c.Context(), id);
+	tracks, err := apiConfig.queries.GetTracksByAlbum(c.Context(), id);
 
 	res := struct {
 		Album database.Album `json:"album"`
-		Songs []database.Song `json:"songs"`
+		Tracks []database.Track `json:"tracks"`
 	} {
 		Album: album,
-		Songs: songs,
+		Tracks: tracks,
 	}
 
 	return c.JSON(res)
 }
 
-func (apiConfig *ApiConfig) HandlerGetAllSongs(c *fiber.Ctx) error {
-	artists, err := apiConfig.queries.GetAllSongs(c.Context())
+func (apiConfig *ApiConfig) HandlerGetAllTracks(c *fiber.Ctx) error {
+	artists, err := apiConfig.queries.GetAllTracks(c.Context())
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(fiber.Map{"songs": artists})
+	return c.JSON(fiber.Map{"tracks": artists})
 }
 
-func (apiConfig *ApiConfig) HandlerGetSong(c *fiber.Ctx) error {
+func (apiConfig *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	artist, err := apiConfig.queries.GetSong(c.Context(), id)
+	artist, err := apiConfig.queries.GetTrack(c.Context(), id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return c.Status(404).JSON(fiber.Map{"message": fmt.Sprintf("No song with id: %s", id)})
+			return c.Status(404).JSON(fiber.Map{"message": fmt.Sprintf("No track with id: %s", id)})
 		} else {
 			return err
 		}
