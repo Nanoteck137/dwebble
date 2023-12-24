@@ -63,6 +63,7 @@ func generateMockData(queries *database.Queries, dir string) {
 
 				err := queries.CreateTrack(ctx, database.CreateTrackParams{
 					ID:   trackId,
+					TrackNumber: int32(trackIndex) + 1,
 					Name: fmt.Sprintf("Track #%v", trackIndex+1),
 					CoverArt: pgtype.Text{
 						String: defaultImagePath,

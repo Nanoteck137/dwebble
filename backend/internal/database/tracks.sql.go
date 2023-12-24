@@ -12,20 +12,22 @@ import (
 )
 
 const createTrack = `-- name: CreateTrack :exec
-INSERT INTO tracks (id, name, cover_art, album_id, artist_id) VALUES ($1, $2, $3, $4, $5)
+INSERT INTO tracks (id, track_number, name, cover_art, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type CreateTrackParams struct {
-	ID       string      `json:"id"`
-	Name     string      `json:"name"`
-	CoverArt pgtype.Text `json:"coverArt"`
-	AlbumID  string      `json:"albumId"`
-	ArtistID string      `json:"artistId"`
+	ID          string      `json:"id"`
+	TrackNumber int32       `json:"trackNumber"`
+	Name        string      `json:"name"`
+	CoverArt    pgtype.Text `json:"coverArt"`
+	AlbumID     string      `json:"albumId"`
+	ArtistID    string      `json:"artistId"`
 }
 
 func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) error {
 	_, err := q.db.Exec(ctx, createTrack,
 		arg.ID,
+		arg.TrackNumber,
 		arg.Name,
 		arg.CoverArt,
 		arg.AlbumID,
@@ -44,7 +46,7 @@ func (q *Queries) DeleteAllTracks(ctx context.Context) error {
 }
 
 const getAllTracks = `-- name: GetAllTracks :many
-SELECT id, name, cover_art, album_id, artist_id FROM tracks
+SELECT id, track_number, name, cover_art, album_id, artist_id FROM tracks
 `
 
 func (q *Queries) GetAllTracks(ctx context.Context) ([]Track, error) {
@@ -58,6 +60,7 @@ func (q *Queries) GetAllTracks(ctx context.Context) ([]Track, error) {
 		var i Track
 		if err := rows.Scan(
 			&i.ID,
+			&i.TrackNumber,
 			&i.Name,
 			&i.CoverArt,
 			&i.AlbumID,
@@ -74,7 +77,7 @@ func (q *Queries) GetAllTracks(ctx context.Context) ([]Track, error) {
 }
 
 const getTrack = `-- name: GetTrack :one
-SELECT id, name, cover_art, album_id, artist_id FROM tracks WHERE id=$1
+SELECT id, track_number, name, cover_art, album_id, artist_id FROM tracks WHERE id=$1
 `
 
 func (q *Queries) GetTrack(ctx context.Context, id string) (Track, error) {
@@ -82,6 +85,7 @@ func (q *Queries) GetTrack(ctx context.Context, id string) (Track, error) {
 	var i Track
 	err := row.Scan(
 		&i.ID,
+		&i.TrackNumber,
 		&i.Name,
 		&i.CoverArt,
 		&i.AlbumID,
@@ -91,7 +95,7 @@ func (q *Queries) GetTrack(ctx context.Context, id string) (Track, error) {
 }
 
 const getTracksByAlbum = `-- name: GetTracksByAlbum :many
-SELECT id, name, cover_art, album_id, artist_id FROM tracks WHERE album_id=$1
+SELECT id, track_number, name, cover_art, album_id, artist_id FROM tracks WHERE album_id=$1 ORDER BY track_number
 `
 
 func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]Track, error) {
@@ -105,6 +109,7 @@ func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]Track
 		var i Track
 		if err := rows.Scan(
 			&i.ID,
+			&i.TrackNumber,
 			&i.Name,
 			&i.CoverArt,
 			&i.AlbumID,

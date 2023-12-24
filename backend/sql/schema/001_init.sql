@@ -15,11 +15,14 @@ CREATE TABLE albums (
 
 CREATE TABLE tracks (
     id TEXT PRIMARY KEY,
+    track_number INT NOT NULL,
     name TEXT NOT NULL,
     cover_art TEXT,
 
     album_id TEXT NOT NULL REFERENCES albums(id),
-    artist_id TEXT NOT NULL REFERENCES artists(id)
+    artist_id TEXT NOT NULL REFERENCES artists(id),
+
+    UNIQUE(album_id, track_number)
 );
 
 -- +goose Down

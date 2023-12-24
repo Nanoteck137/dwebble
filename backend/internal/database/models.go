@@ -22,9 +22,10 @@ type Artist struct {
 }
 
 type Track struct {
-	ID       string      `json:"id"`
-	Name     string      `json:"name"`
-	CoverArt pgtype.Text `json:"coverArt"`
-	AlbumID  string      `json:"albumId"`
-	ArtistID string      `json:"artistId"`
+	ID          string      `json:"id"`
+	TrackNumber int32       `json:"trackNumber"`
+	Name        string      `json:"name"`
+	CoverArt    pgtype.Text `json:"coverArt"`
+	AlbumID     string      `json:"albumId"`
+	ArtistID    string      `json:"artistId"`
 }
