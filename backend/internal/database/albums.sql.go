@@ -25,6 +25,35 @@ func (q *Queries) GetAlbum(ctx context.Context, id string) (Album, error) {
 	return i, err
 }
 
+const getAlbumsByArtist = `-- name: GetAlbumsByArtist :many
+SELECT id, name, cover_art, artist_id FROM albums WHERE artist_id=$1
+`
+
+func (q *Queries) GetAlbumsByArtist(ctx context.Context, artistID string) ([]Album, error) {
+	rows, err := q.db.Query(ctx, getAlbumsByArtist, artistID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Album{}
+	for rows.Next() {
+		var i Album
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CoverArt,
+			&i.ArtistID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllAlbums = `-- name: GetAllAlbums :many
 SELECT id, name, cover_art, artist_id FROM albums
 `

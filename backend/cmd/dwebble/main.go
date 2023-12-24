@@ -34,6 +34,8 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 
+	queries.CreateArtist(context.Background(), database.CreateArtistParams{ID: "hello", Name: "Text"})
+
 	apiConfig := handlers.New(queries)
 
 	v1 := app.Group("/api/v1")

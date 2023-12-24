@@ -7,7 +7,33 @@ package database
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createArtist = `-- name: CreateArtist :exec
+INSERT INTO artists (id, name, picture) VALUES ($1, $2, $3)
+`
+
+type CreateArtistParams struct {
+	ID      string      `json:"id"`
+	Name    string      `json:"name"`
+	Picture pgtype.Text `json:"picture"`
+}
+
+func (q *Queries) CreateArtist(ctx context.Context, arg CreateArtistParams) error {
+	_, err := q.db.Exec(ctx, createArtist, arg.ID, arg.Name, arg.Picture)
+	return err
+}
+
+const deleteAllArtists = `-- name: DeleteAllArtists :exec
+DELETE FROM artists
+`
+
+func (q *Queries) DeleteAllArtists(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteAllArtists)
+	return err
+}
 
 const getAllArtists = `-- name: GetAllArtists :many
 SELECT id, name, picture FROM artists
