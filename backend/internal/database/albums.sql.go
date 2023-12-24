@@ -7,7 +7,39 @@ package database
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+const createAlbum = `-- name: CreateAlbum :exec
+INSERT INTO albums (id, name, cover_art, artist_id) VALUES ($1, $2, $3, $4)
+`
+
+type CreateAlbumParams struct {
+	ID       string      `json:"id"`
+	Name     string      `json:"name"`
+	CoverArt pgtype.Text `json:"coverArt"`
+	ArtistID string      `json:"artistId"`
+}
+
+func (q *Queries) CreateAlbum(ctx context.Context, arg CreateAlbumParams) error {
+	_, err := q.db.Exec(ctx, createAlbum,
+		arg.ID,
+		arg.Name,
+		arg.CoverArt,
+		arg.ArtistID,
+	)
+	return err
+}
+
+const deleteAllAlbums = `-- name: DeleteAllAlbums :exec
+DELETE FROM albums
+`
+
+func (q *Queries) DeleteAllAlbums(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, deleteAllAlbums)
+	return err
+}
 
 const getAlbum = `-- name: GetAlbum :one
 SELECT id, name, cover_art, artist_id FROM albums WHERE id=$1
