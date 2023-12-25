@@ -1,8 +1,21 @@
 -- name: GetAllTracks :many
-SELECT * FROM tracks;
+SELECT
+    tracks.*, 
+    albums.name as album_name,
+    artists.name as artist_name
+FROM tracks
+LEFT JOIN albums ON albums.id = tracks.album_id 
+LEFT JOIN artists ON artists.id = tracks.artist_id;
 
 -- name: GetTrack :one
-SELECT * FROM tracks WHERE id=$1;
+SELECT
+    tracks.*, 
+    albums.name as album_name,
+    artists.name as artist_name
+FROM tracks 
+LEFT JOIN albums ON albums.id = tracks.album_id 
+LEFT JOIN artists ON artists.id = tracks.artist_id
+WHERE tracks.id=$1;
 
 -- name: GetTracksByAlbum :many
 SELECT 

@@ -59,5 +59,8 @@ func main() {
 	v1.Get("/albums", apiConfig.HandlerGetAllAlbums)
 	v1.Get("/albums/:id", apiConfig.HandlerGetAlbum)
 
+	v1.Get("/tracks", apiConfig.HandlerGetAllTracks)
+	v1.Get("/tracks/:id", apiConfig.HandlerGetTrack)
+
 	log.Fatal(app.Listen(":3000"))
 }

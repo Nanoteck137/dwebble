@@ -8,7 +8,6 @@ import (
 
 	"github.com/dwebble/v2/internal/database"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/joho/godotenv"
 	"github.com/nrednav/cuid2"
 )
@@ -23,16 +22,13 @@ func generateMockData(queries *database.Queries, dir string) {
 		log.Fatal(err)
 	}
 
-	for artistIndex := 0; artistIndex < 5; artistIndex++ {
+	for artistIndex := 0; artistIndex < 100; artistIndex++ {
 		artistId := gen()
 
 		err := queries.CreateArtist(ctx, database.CreateArtistParams{
-			ID:   artistId,
-			Name: fmt.Sprintf("Artist #%v", artistIndex+1),
-			Picture: pgtype.Text{
-				String: defaultImagePath,
-				Valid:  true,
-			},
+			ID:      artistId,
+			Name:    fmt.Sprintf("Artist #%v", artistIndex+1),
+			Picture: defaultImagePath,
 		})
 
 		if err != nil {
@@ -40,16 +36,13 @@ func generateMockData(queries *database.Queries, dir string) {
 			continue
 		}
 
-		for albumIndex := 0; albumIndex < 10; albumIndex++ {
+		for albumIndex := 0; albumIndex < 4; albumIndex++ {
 			albumId := gen()
 
 			err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
-				ID:   albumId,
-				Name: fmt.Sprintf("Album #%v", albumIndex+1),
-				CoverArt: pgtype.Text{
-					String: defaultImagePath,
-					Valid:  true,
-				},
+				ID:       albumId,
+				Name:     fmt.Sprintf("Album #%v", albumIndex+1),
+				CoverArt: defaultImagePath,
 				ArtistID: artistId,
 			})
 
@@ -58,19 +51,16 @@ func generateMockData(queries *database.Queries, dir string) {
 				continue
 			}
 
-			for trackIndex := 0; trackIndex < 15; trackIndex++ {
+			for trackIndex := 0; trackIndex < 8; trackIndex++ {
 				trackId := gen()
 
 				err := queries.CreateTrack(ctx, database.CreateTrackParams{
-					ID:   trackId,
+					ID:          trackId,
 					TrackNumber: int32(trackIndex) + 1,
-					Name: fmt.Sprintf("Track #%v", trackIndex+1),
-					CoverArt: pgtype.Text{
-						String: defaultImagePath,
-						Valid:  true,
-					},
-					AlbumID:  albumId,
-					ArtistID: artistId,
+					Name:        fmt.Sprintf("Track #%v", trackIndex+1),
+					CoverArt:    defaultImagePath,
+					AlbumID:     albumId,
+					ArtistID:    artistId,
 				})
 
 				if err != nil {

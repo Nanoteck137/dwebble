@@ -7,8 +7,6 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createAlbum = `-- name: CreateAlbum :exec
@@ -16,10 +14,10 @@ INSERT INTO albums (id, name, cover_art, artist_id) VALUES ($1, $2, $3, $4)
 `
 
 type CreateAlbumParams struct {
-	ID       string      `json:"id"`
-	Name     string      `json:"name"`
-	CoverArt pgtype.Text `json:"coverArt"`
-	ArtistID string      `json:"artistId"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	CoverArt string `json:"coverArt"`
+	ArtistID string `json:"artistId"`
 }
 
 func (q *Queries) CreateAlbum(ctx context.Context, arg CreateAlbumParams) error {

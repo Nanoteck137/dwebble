@@ -24,6 +24,11 @@ func (apiConfig *ApiConfig) HandlerGetAllArtists(c *fiber.Ctx) error {
 		return err
 	}
 
+	for i := range artists {
+		a := &artists[i]
+		a.Picture = ConvertURL(c, a.Picture)
+	}
+
 	return c.JSON(fiber.Map{"artists": artists})
 }
 
@@ -39,15 +44,22 @@ func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
 		}
 	}
 
+	artist.Picture = ConvertURL(c, artist.Picture)
+
 	albums, err := apiConfig.queries.GetAlbumsByArtist(c.Context(), id)
 	if err != nil {
 		return err
 	}
 
+	for i := range albums {
+		a := &albums[i]
+		a.CoverArt = ConvertURL(c, a.CoverArt)
+	}
+
 	res := struct {
-		Artist database.Artist `json:"artist"`
+		Artist database.Artist  `json:"artist"`
 		Albums []database.Album `json:"albums"`
-	} {
+	}{
 		Artist: artist,
 		Albums: albums,
 	}
@@ -56,12 +68,17 @@ func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
 }
 
 func (apiConfig *ApiConfig) HandlerGetAllAlbums(c *fiber.Ctx) error {
-	artists, err := apiConfig.queries.GetAllAlbums(c.Context())
+	albums, err := apiConfig.queries.GetAllAlbums(c.Context())
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(fiber.Map{"albums": artists})
+	for i := range albums {
+		a := &albums[i]
+		a.CoverArt = ConvertURL(c, a.CoverArt)
+	}
+
+	return c.JSON(fiber.Map{"albums": albums})
 }
 
 func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
@@ -76,35 +93,51 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 		}
 	}
 
-	tracks, err := apiConfig.queries.GetTracksByAlbum(c.Context(), id);
+	album.CoverArt = ConvertURL(c, album.CoverArt)
+
+	tracks, err := apiConfig.queries.GetTracksByAlbum(c.Context(), id)
 	if err != nil {
 		return err
 	}
 
+	for i := range tracks {
+		t := &tracks[i]
+		t.CoverArt = ConvertURL(c, t.CoverArt)
+	}
+
 	res := struct {
-		Album database.Album `json:"album"`
+		Album  database.Album                 `json:"album"`
 		Tracks []database.GetTracksByAlbumRow `json:"tracks"`
-	} {
-		Album: album,
+	}{
+		Album:  album,
 		Tracks: tracks,
 	}
 
 	return c.JSON(res)
 }
 
+func ConvertURL(c *fiber.Ctx, path string) string {
+	return c.BaseURL() + path
+}
+
 func (apiConfig *ApiConfig) HandlerGetAllTracks(c *fiber.Ctx) error {
-	artists, err := apiConfig.queries.GetAllTracks(c.Context())
+	tracks, err := apiConfig.queries.GetAllTracks(c.Context())
 	if err != nil {
 		return err
 	}
 
-	return c.JSON(fiber.Map{"tracks": artists})
+	for i := range tracks {
+		a := &tracks[i]
+		a.CoverArt = ConvertURL(c, a.CoverArt)
+	}
+
+	return c.JSON(fiber.Map{"tracks": tracks})
 }
 
 func (apiConfig *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	artist, err := apiConfig.queries.GetTrack(c.Context(), id)
+	track, err := apiConfig.queries.GetTrack(c.Context(), id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return c.Status(404).JSON(fiber.Map{"message": fmt.Sprintf("No track with id: %s", id)})
@@ -113,5 +146,7 @@ func (apiConfig *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.JSON(artist)
+	track.CoverArt = ConvertURL(c, track.CoverArt)
+
+	return c.JSON(track)
 }

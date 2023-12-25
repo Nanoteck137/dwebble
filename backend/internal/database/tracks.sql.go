@@ -16,12 +16,12 @@ INSERT INTO tracks (id, track_number, name, cover_art, album_id, artist_id) VALU
 `
 
 type CreateTrackParams struct {
-	ID          string      `json:"id"`
-	TrackNumber int32       `json:"trackNumber"`
-	Name        string      `json:"name"`
-	CoverArt    pgtype.Text `json:"coverArt"`
-	AlbumID     string      `json:"albumId"`
-	ArtistID    string      `json:"artistId"`
+	ID          string `json:"id"`
+	TrackNumber int32  `json:"trackNumber"`
+	Name        string `json:"name"`
+	CoverArt    string `json:"coverArt"`
+	AlbumID     string `json:"albumId"`
+	ArtistID    string `json:"artistId"`
 }
 
 func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) error {
@@ -46,18 +46,35 @@ func (q *Queries) DeleteAllTracks(ctx context.Context) error {
 }
 
 const getAllTracks = `-- name: GetAllTracks :many
-SELECT id, track_number, name, cover_art, album_id, artist_id FROM tracks
+SELECT
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.album_id, tracks.artist_id, 
+    albums.name as album_name,
+    artists.name as artist_name
+FROM tracks
+LEFT JOIN albums ON albums.id = tracks.album_id 
+LEFT JOIN artists ON artists.id = tracks.artist_id
 `
 
-func (q *Queries) GetAllTracks(ctx context.Context) ([]Track, error) {
+type GetAllTracksRow struct {
+	ID          string      `json:"id"`
+	TrackNumber int32       `json:"trackNumber"`
+	Name        string      `json:"name"`
+	CoverArt    string      `json:"coverArt"`
+	AlbumID     string      `json:"albumId"`
+	ArtistID    string      `json:"artistId"`
+	AlbumName   pgtype.Text `json:"albumName"`
+	ArtistName  pgtype.Text `json:"artistName"`
+}
+
+func (q *Queries) GetAllTracks(ctx context.Context) ([]GetAllTracksRow, error) {
 	rows, err := q.db.Query(ctx, getAllTracks)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Track{}
+	items := []GetAllTracksRow{}
 	for rows.Next() {
-		var i Track
+		var i GetAllTracksRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.TrackNumber,
@@ -65,6 +82,8 @@ func (q *Queries) GetAllTracks(ctx context.Context) ([]Track, error) {
 			&i.CoverArt,
 			&i.AlbumID,
 			&i.ArtistID,
+			&i.AlbumName,
+			&i.ArtistName,
 		); err != nil {
 			return nil, err
 		}
@@ -77,12 +96,30 @@ func (q *Queries) GetAllTracks(ctx context.Context) ([]Track, error) {
 }
 
 const getTrack = `-- name: GetTrack :one
-SELECT id, track_number, name, cover_art, album_id, artist_id FROM tracks WHERE id=$1
+SELECT
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.album_id, tracks.artist_id, 
+    albums.name as album_name,
+    artists.name as artist_name
+FROM tracks 
+LEFT JOIN albums ON albums.id = tracks.album_id 
+LEFT JOIN artists ON artists.id = tracks.artist_id
+WHERE tracks.id=$1
 `
 
-func (q *Queries) GetTrack(ctx context.Context, id string) (Track, error) {
+type GetTrackRow struct {
+	ID          string      `json:"id"`
+	TrackNumber int32       `json:"trackNumber"`
+	Name        string      `json:"name"`
+	CoverArt    string      `json:"coverArt"`
+	AlbumID     string      `json:"albumId"`
+	ArtistID    string      `json:"artistId"`
+	AlbumName   pgtype.Text `json:"albumName"`
+	ArtistName  pgtype.Text `json:"artistName"`
+}
+
+func (q *Queries) GetTrack(ctx context.Context, id string) (GetTrackRow, error) {
 	row := q.db.QueryRow(ctx, getTrack, id)
-	var i Track
+	var i GetTrackRow
 	err := row.Scan(
 		&i.ID,
 		&i.TrackNumber,
@@ -90,6 +127,8 @@ func (q *Queries) GetTrack(ctx context.Context, id string) (Track, error) {
 		&i.CoverArt,
 		&i.AlbumID,
 		&i.ArtistID,
+		&i.AlbumName,
+		&i.ArtistName,
 	)
 	return i, err
 }
@@ -110,7 +149,7 @@ type GetTracksByAlbumRow struct {
 	ID          string      `json:"id"`
 	TrackNumber int32       `json:"trackNumber"`
 	Name        string      `json:"name"`
-	CoverArt    pgtype.Text `json:"coverArt"`
+	CoverArt    string      `json:"coverArt"`
 	AlbumID     string      `json:"albumId"`
 	ArtistID    string      `json:"artistId"`
 	AlbumName   pgtype.Text `json:"albumName"`
