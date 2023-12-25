@@ -77,10 +77,13 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 	}
 
 	tracks, err := apiConfig.queries.GetTracksByAlbum(c.Context(), id);
+	if err != nil {
+		return err
+	}
 
 	res := struct {
 		Album database.Album `json:"album"`
-		Tracks []database.Track `json:"tracks"`
+		Tracks []database.GetTracksByAlbumRow `json:"tracks"`
 	} {
 		Album: album,
 		Tracks: tracks,

@@ -95,18 +95,37 @@ func (q *Queries) GetTrack(ctx context.Context, id string) (Track, error) {
 }
 
 const getTracksByAlbum = `-- name: GetTracksByAlbum :many
-SELECT id, track_number, name, cover_art, album_id, artist_id FROM tracks WHERE album_id=$1 ORDER BY track_number
+SELECT 
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.album_id, tracks.artist_id, 
+    albums.name as album_name,
+    artists.name as artist_name
+FROM tracks 
+LEFT JOIN albums ON albums.id = tracks.album_id 
+LEFT JOIN artists ON artists.id = tracks.artist_id 
+WHERE album_id=$1 
+ORDER BY track_number
 `
 
-func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]Track, error) {
+type GetTracksByAlbumRow struct {
+	ID          string      `json:"id"`
+	TrackNumber int32       `json:"trackNumber"`
+	Name        string      `json:"name"`
+	CoverArt    pgtype.Text `json:"coverArt"`
+	AlbumID     string      `json:"albumId"`
+	ArtistID    string      `json:"artistId"`
+	AlbumName   pgtype.Text `json:"albumName"`
+	ArtistName  pgtype.Text `json:"artistName"`
+}
+
+func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]GetTracksByAlbumRow, error) {
 	rows, err := q.db.Query(ctx, getTracksByAlbum, albumID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Track{}
+	items := []GetTracksByAlbumRow{}
 	for rows.Next() {
-		var i Track
+		var i GetTracksByAlbumRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.TrackNumber,
@@ -114,6 +133,8 @@ func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]Track
 			&i.CoverArt,
 			&i.AlbumID,
 			&i.ArtistID,
+			&i.AlbumName,
+			&i.ArtistName,
 		); err != nil {
 			return nil, err
 		}
