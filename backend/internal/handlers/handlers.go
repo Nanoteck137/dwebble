@@ -103,6 +103,7 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 	for i := range tracks {
 		t := &tracks[i]
 		t.CoverArt = ConvertURL(c, t.CoverArt)
+		t.Filename = ConvertURL(c, "/tracks/" + t.Filename)
 	}
 
 	res := struct {

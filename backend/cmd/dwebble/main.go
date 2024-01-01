@@ -40,6 +40,10 @@ func main() {
 	app := fiber.New()
 	app.Use(logger.New())
 
+	app.Use("/tracks", filesystem.New(filesystem.Config{
+		Root: http.Dir("./test"),
+	}))
+
 	app.Use("/images", filesystem.New(filesystem.Config{
 		Root: http.Dir("./images"),
 	}))
@@ -48,6 +52,7 @@ func main() {
 		Root: http.FS(content),
 		PathPrefix: "images",
 	}))
+
 
 	apiConfig := handlers.New(queries)
 

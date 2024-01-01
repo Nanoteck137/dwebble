@@ -59,6 +59,7 @@ func generateMockData(queries *database.Queries, dir string) {
 					TrackNumber: int32(trackIndex) + 1,
 					Name:        fmt.Sprintf("Track #%v", trackIndex+1),
 					CoverArt:    defaultImagePath,
+					Filename:    "123.flac",
 					AlbumID:     albumId,
 					ArtistID:    artistId,
 				})

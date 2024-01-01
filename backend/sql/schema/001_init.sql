@@ -19,6 +19,8 @@ CREATE TABLE tracks (
     name TEXT NOT NULL,
     cover_art TEXT NOT NULL,
 
+    filename TEXT NOT NULL,
+
     album_id TEXT NOT NULL REFERENCES albums(id),
     artist_id TEXT NOT NULL REFERENCES artists(id),
 
