@@ -1,3 +1,5 @@
+.PHONY: css views sqlc
+
 generate: css views
 
 css:
@@ -6,4 +8,6 @@ css:
 views:
 	templ generate
 
-.PHONY: css views
+sqlc:
+	sqlc generate
+

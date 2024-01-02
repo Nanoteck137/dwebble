@@ -22,6 +22,7 @@
             ffmpeg
             air
             templ.packages.${system}.templ
+            sqlc
             go
           ];
         };
