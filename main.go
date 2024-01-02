@@ -73,7 +73,23 @@ func main() {
 	apiConfig := handlers.New(queries)
 
 	app.Get("/", func(c *fiber.Ctx) error {
-		return component(c, views.Index())
+		artists, err := queries.GetAllArtists(c.Context())
+		if err != nil {
+			return err
+		}
+
+		return component(c, views.Index(artists))
+	})
+
+	app.Get("/artist/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+
+		artist, err := queries.GetArtist(c.Context(), id)
+		if err != nil {
+			return err
+		}
+
+		return component(c, views.ArtistPage(artist))
 	})
 
 	v1 := app.Group("/api/v1")
