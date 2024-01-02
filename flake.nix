@@ -4,9 +4,10 @@
   inputs = {
     nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url  = "github:numtide/flake-utils";
+    templ.url        = "github:a-h/templ";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
+  outputs = { self, nixpkgs, templ, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [];
@@ -20,6 +21,7 @@
             nodejs_20
             ffmpeg
             air
+            templ.packages.${system}.templ
             go
           ];
         };
