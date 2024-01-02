@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/dwebble/v2/internal/database"
+	"github.com/nanoteck137/dwebble/v2/internal/database"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 )

@@ -8,15 +8,15 @@ import (
 	"os"
 
 	"github.com/a-h/templ"
-	"github.com/dwebble/v2/internal/database"
-	"github.com/dwebble/v2/internal/handlers"
-	"github.com/dwebble/v2/views"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/template/html/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/nanoteck137/dwebble/v2/internal/database"
+	"github.com/nanoteck137/dwebble/v2/internal/handlers"
+	"github.com/nanoteck137/dwebble/v2/views"
 )
 
 //go:embed images/* public/*

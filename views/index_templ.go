@@ -10,7 +10,7 @@ import "context"
 import "io"
 import "bytes"
 
-import "github.com/dwebble/v2/internal/database"
+import "github.com/nanoteck137/dwebble/v2/internal/database"
 import "fmt"
 
 func layout() templ.Component {
