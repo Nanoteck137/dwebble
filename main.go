@@ -89,7 +89,28 @@ func main() {
 			return err
 		}
 
-		return component(c, views.ArtistPage(artist))
+		albums, err := queries.GetAlbumsByArtist(c.Context(), id)
+		if err != nil {
+			return err
+		}
+
+		return component(c, views.ArtistPage(artist, albums))
+	})
+
+	app.Get("/album/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+
+		album, err := queries.GetAlbum(c.Context(), id)
+		if err != nil {
+			return err
+		}
+
+		tracks, err := queries.GetTracksByAlbum(c.Context(), id)
+		if err != nil {
+			return err
+		}
+
+		return component(c, views.AlbumPage(album, tracks))
 	})
 
 	v1 := app.Group("/api/v1")
