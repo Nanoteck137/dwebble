@@ -7,17 +7,25 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/a-h/templ"
 	"github.com/dwebble/v2/internal/database"
 	"github.com/dwebble/v2/internal/handlers"
+	"github.com/dwebble/v2/views"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/template/html/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 )
 
-//go:embed images/*
+//go:embed images/* public/*
 var content embed.FS
+
+func component(c *fiber.Ctx, component templ.Component) error {
+	c.Response().Header.SetContentType(fiber.MIMETextHTML)
+	return component.Render(c.Context(), c.Response().BodyWriter())
+}
 
 func main() {
 	err := godotenv.Load()
@@ -37,7 +45,11 @@ func main() {
 
 	queries := database.New(db)
 
-	app := fiber.New()
+	engine := html.New("./views", ".html")
+
+	app := fiber.New(fiber.Config{
+		Views: engine,
+	})
 	app.Use(logger.New())
 
 	app.Use("/tracks", filesystem.New(filesystem.Config{
@@ -49,12 +61,20 @@ func main() {
 	}))
 
 	app.Use("/images", filesystem.New(filesystem.Config{
-		Root: http.FS(content),
+		Root:       http.FS(content),
 		PathPrefix: "images",
 	}))
 
+	app.Use("/public", filesystem.New(filesystem.Config{
+		Root:       http.FS(content),
+		PathPrefix: "public",
+	}))
 
 	apiConfig := handlers.New(queries)
+
+	app.Get("/", func(c *fiber.Ctx) error {
+		return component(c, views.Index())
+	})
 
 	v1 := app.Group("/api/v1")
 
