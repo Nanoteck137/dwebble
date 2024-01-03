@@ -1,12 +1,6 @@
-.PHONY: css views sqlc
+.PHONY: sqlc
 
-generate: css views
-
-css:
-	npx tailwindcss -i ./style.css -o ./public/style.css
-
-views:
-	templ generate
+generate: sqlc
 
 sqlc:
 	sqlc generate

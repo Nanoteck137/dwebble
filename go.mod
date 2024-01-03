@@ -5,7 +5,6 @@ go 1.21.5
 require (
 	github.com/a-h/templ v0.2.513
 	github.com/gofiber/fiber/v2 v2.51.0
-	github.com/gofiber/template/html/v2 v2.0.5
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/joho/godotenv v1.5.1
 	github.com/nrednav/cuid2 v1.0.0
@@ -16,8 +15,6 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
-	github.com/gofiber/template v1.8.2 // indirect
-	github.com/gofiber/utils v1.1.0 // indirect
 	github.com/google/uuid v1.4.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect

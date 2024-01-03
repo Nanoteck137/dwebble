@@ -9,17 +9,16 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/template/html/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/nanoteck137/dwebble/v2/internal/database"
 	"github.com/nanoteck137/dwebble/v2/internal/handlers"
-	"github.com/nanoteck137/dwebble/v2/views"
 )
 
-//go:embed images/* public/*
+//go:embed images/*
 var content embed.FS
 
 func component(c *fiber.Ctx, component templ.Component) error {
@@ -45,12 +44,10 @@ func main() {
 
 	queries := database.New(db)
 
-	engine := html.New("./views", ".html")
-
-	app := fiber.New(fiber.Config{
-		Views: engine,
-	})
+	app := fiber.New(fiber.Config{})
 	app.Use(logger.New())
+
+	app.Use(cors.New())
 
 	app.Use("/tracks", filesystem.New(filesystem.Config{
 		Root: http.Dir("./test"),
@@ -65,53 +62,7 @@ func main() {
 		PathPrefix: "images",
 	}))
 
-	app.Use("/public", filesystem.New(filesystem.Config{
-		Root:       http.FS(content),
-		PathPrefix: "public",
-	}))
-
 	apiConfig := handlers.New(queries)
-
-	app.Get("/", func(c *fiber.Ctx) error {
-		artists, err := queries.GetAllArtists(c.Context())
-		if err != nil {
-			return err
-		}
-
-		return component(c, views.Index(artists))
-	})
-
-	app.Get("/artist/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-
-		artist, err := queries.GetArtist(c.Context(), id)
-		if err != nil {
-			return err
-		}
-
-		albums, err := queries.GetAlbumsByArtist(c.Context(), id)
-		if err != nil {
-			return err
-		}
-
-		return component(c, views.ArtistPage(artist, albums))
-	})
-
-	app.Get("/album/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-
-		album, err := queries.GetAlbum(c.Context(), id)
-		if err != nil {
-			return err
-		}
-
-		tracks, err := queries.GetTracksByAlbum(c.Context(), id)
-		if err != nil {
-			return err
-		}
-
-		return component(c, views.AlbumPage(album, tracks))
-	})
 
 	v1 := app.Group("/api/v1")
 
