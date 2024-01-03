@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
@@ -20,11 +19,6 @@ import (
 
 //go:embed images/*
 var content embed.FS
-
-func component(c *fiber.Ctx, component templ.Component) error {
-	c.Response().Header.SetContentType(fiber.MIMETextHTML)
-	return component.Render(c.Context(), c.Response().BodyWriter())
-}
 
 func main() {
 	err := godotenv.Load()

@@ -3,7 +3,6 @@ module github.com/nanoteck137/dwebble/v2
 go 1.21.5
 
 require (
-	github.com/a-h/templ v0.2.513
 	github.com/gofiber/fiber/v2 v2.51.0
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/joho/godotenv v1.5.1
