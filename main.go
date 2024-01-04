@@ -69,5 +69,8 @@ func main() {
 	v1.Get("/tracks", apiConfig.HandlerGetAllTracks)
 	v1.Get("/tracks/:id", apiConfig.HandlerGetTrack)
 
+	// /queue/album/:id
+	v1.Post("/queue/album", apiConfig.HandlerCreateQueueFromAlbum)
+
 	log.Fatal(app.Listen(":3000"))
 }

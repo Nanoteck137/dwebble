@@ -3,9 +3,9 @@ package handlers
 import (
 	"fmt"
 
-	"github.com/nanoteck137/dwebble/v2/internal/database"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
+	"github.com/nanoteck137/dwebble/v2/internal/database"
 )
 
 type ApiConfig struct {
@@ -103,7 +103,7 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 	for i := range tracks {
 		t := &tracks[i]
 		t.CoverArt = ConvertURL(c, t.CoverArt)
-		t.Filename = ConvertURL(c, "/tracks/" + t.Filename)
+		t.Filename = ConvertURL(c, "/tracks/"+t.Filename)
 	}
 
 	res := struct {
@@ -150,4 +150,28 @@ func (apiConfig *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
 	track.CoverArt = ConvertURL(c, track.CoverArt)
 
 	return c.JSON(track)
+}
+
+func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {
+	body := struct {
+		AlbumId string `json:"albumId"`
+	}{}
+
+	err := c.BodyParser(&body)
+	if err != nil {
+		return err
+	}
+
+	tracks, err := apiConfig.queries.GetTracksByAlbum(c.Context(), body.AlbumId)
+	if err != nil {
+		return err
+	}
+
+	res := struct {
+		Queue []database.GetTracksByAlbumRow `json:"queue"`
+	}{
+		Queue: tracks,
+	}
+
+	return c.JSON(res)
 }
