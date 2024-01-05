@@ -12,9 +12,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/nanoteck137/dwebble/v2/collection"
+	"github.com/nanoteck137/dwebble/v2/utils"
 	"github.com/nrednav/cuid2"
 	"github.com/spf13/cobra"
-	"github.com/gosimple/slug"
 )
 
 var validExts []string = []string{
@@ -220,12 +220,12 @@ func main() {
 
 			_ = col
 
-			return
-
 			entries, err := os.ReadDir(importPath)
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			files := []utils.FileResult{}
 
 			// TODO(patrik): Check if sorting of files is working correctly
 			for _, entry := range entries {
@@ -233,8 +233,16 @@ func main() {
 				ext := path.Ext(p)[1:]
 
 				if isValidExt(ext) {
-					fmt.Printf("p: %v\n", p)
+					file, err := utils.CheckFile(p)
+					if err == nil {
+						fmt.Printf("p: %v %+v\n", p, file)
+						files = append(files, file)
+					}
 				}
+			}
+
+			if len(files) == 0 {
+				log.Fatal("No music files found")
 			}
 
 			// reader := bufio.NewReader(os.Stdin)
@@ -266,54 +274,78 @@ func main() {
 
 			m := metadata.Media[0]
 
-			tracks := make([]collection.TrackDef, len(m.Tracks))
+			artistName := metadata.ArtistCredit[0].Name
+			fmt.Printf("artistName: %v\n", artistName)
 
+			if len(files) != len(m.Tracks) {
+				fmt.Println("Warning: Missing tracks from album")
+			}
+
+			fmt.Printf("Mapping:\n")
 			for i, track := range m.Tracks {
-				tracks[i] = collection.TrackDef{
-					Id:       gen(),
-					Number:   uint(track.Position),
-					CoverArt: "",
-					Name:     track.Title,
+				if i < len(files) {
+					fmt.Printf("  %02v:%v -> %02v:%v:%v\n", track.Position, track.Title, files[i].Number, path.Base(files[i].Path), files[i].Name)
+				} else {
+					fmt.Printf("  %02v:%v -> Missing\n", track.Position, track.Title)
 				}
 			}
 
-			albumDef := collection.AlbumDef{
-				Id:       gen(),
-				Name:     metadata.Title,
-				CoverArt: "",
-				Tracks:   tracks,
+			artist, err := col.FindArtistByName(artistName)
+			if err != nil {
+				if err == collection.NotFoundErr {
+					log.Printf("Artist '%v' not found in collection (creating)", artistName)
+					artist = col.CreateArtist(artistName)
+				} else {
+					log.Fatal(err)
+				}
+			} else {
+				// TODO(patrik): Check artist against metadata
 			}
 
-			artistDef := collection.ArtistDef{
-				Id:      gen(),
-				Name:    metadata.ArtistCredit[0].Name,
-				Changed: 0,
-				Picture: "",
-				Albums: []collection.AlbumDef{
-					albumDef,
-				},
+			album, err := artist.FindAlbumByName(metadata.Title)
+			if err != nil {
+				if err == collection.NotFoundErr {
+					album = artist.CreateAlbum(metadata.Title)
+				} else {
+					log.Fatal(err)
+				}
+			} else {
+				// TODO(patrik): Check album against metadata
 			}
 
-			j, err := json.MarshalIndent(artistDef, "", "  ")
+			if len(album.Tracks) == 0 {
+				// TODO(patrik): Add all
+				for _, track := range m.Tracks {
+					album.Tracks = append(album.Tracks, collection.TrackDef{
+						Id:       gen(),
+						Number:   uint(track.Position),
+						CoverArt: "",
+						Name:     track.Title,
+					})
+				}
+			} else if len(album.Tracks) != len(m.Tracks) {
+				// TODO(patrik): Analyze missing tracks
+				log.Printf("Mismatch\n")
+			} else if len(album.Tracks) == len(m.Tracks) {
+				// TODO(patrik): Check so album.Tracks and m.Tracks matches
+				log.Printf("Check\n")
+
+				// for i := 0; i < len(album.Tracks); i++ {
+				// 	mtrack := m.Tracks[i]
+				// 	atrack := album.Tracks[i]
+				//
+				// 	if atrack.Name != mtrack.Title {
+				// 		fmt.Printf("Album and Metadata track name not matching '%v' : '%v'\n", atrack.Name, mtrack.Title)
+				// 	}
+				// }
+			} else {
+				log.Fatal("No metadata tracks?")
+			}
+
+			err = col.Flush()
 			if err != nil {
 				log.Fatal(err)
 			}
-
-			fmt.Println(string(j))
-
-			s := slug.Make(artistDef.Name)
-			fmt.Printf("s: %v\n", s)
-
-			p := path.Join(collectionPath, s)
-			err = os.MkdirAll(p, 0755)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			// err = os.WriteFile(path.Join(p, "artist.json"), j, 0644)
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
 		},
 	}
 
