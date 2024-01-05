@@ -10,39 +10,18 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/joho/godotenv"
+	"github.com/nanoteck137/dwebble/v2/collection"
 	"github.com/nanoteck137/dwebble/v2/internal/database"
 )
 
 const defaultImagePath = "/images/default_artist.png"
 
-type TrackDef struct {
-	Id       string `json:"id"`
-	Number   uint   `json:"number"`
-	CoverArt string `json:"coverArt"`
-	Name     string `json:"name"`
-}
-
-type AlbumDef struct {
-	Id       string     `json:"id"`
-	Name     string     `json:"name"`
-	CoverArt string     `json:"coverArt"`
-	Tracks   []TrackDef `json:"tracks"`
-}
-
-type ArtistDef struct {
-	Id      string     `json:"id"`
-	Name    string     `json:"name"`
-	Changed int        `json:"changed"`
-	Picture string     `json:"picture"`
-	Albums  []AlbumDef `json:"albums"`
-}
-
-func updateArtist(queries *database.Queries, dbArtist database.Artist, artist ArtistDef) error {
+func updateArtist(queries *database.Queries, dbArtist database.Artist, artist collection.ArtistDef) error {
 	log.Printf("Updating '%v'\n", dbArtist.Name)
 	return nil
 }
 
-func createArtist(queries *database.Queries, artist ArtistDef) error {
+func createArtist(queries *database.Queries, artist collection.ArtistDef) error {
 	ctx := context.Background()
 
 	// TODO(patrik): Check for picture
@@ -94,10 +73,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	collection := os.Getenv("COLLECTION")
-	fmt.Printf("collection: %v\n", collection)
+	collectionPath := os.Getenv("COLLECTION")
+	fmt.Printf("collection: %v\n", collectionPath)
 
-	entries, err := os.ReadDir(collection)
+	entries, err := os.ReadDir(collectionPath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -123,7 +102,7 @@ func main() {
 	}
 
 	for _, entry := range entries {
-		p := path.Join(collection, entry.Name())
+		p := path.Join(collectionPath, entry.Name())
 		fmt.Printf("p: %v\n", p)
 
 		data, err := os.ReadFile(path.Join(p, "artist.json"))
@@ -131,7 +110,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		var artist ArtistDef
+		var artist collection.ArtistDef
 		err = json.Unmarshal(data, &artist)
 		if err != nil {
 			log.Fatal(err)
