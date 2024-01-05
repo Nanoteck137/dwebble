@@ -4,17 +4,21 @@ go 1.21.5
 
 require (
 	github.com/gofiber/fiber/v2 v2.51.0
+	github.com/google/uuid v1.4.0
+	github.com/gosimple/slug v1.13.1
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/joho/godotenv v1.5.1
 	github.com/nrednav/cuid2 v1.0.0
 	github.com/pressly/goose/v3 v3.17.0
+	github.com/spf13/cobra v1.8.0
 	github.com/urfave/cli/v2 v2.26.0
 )
 
 require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
-	github.com/google/uuid v1.4.0 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.3 // indirect
+	github.com/gosimple/unidecode v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
@@ -25,6 +29,7 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sethvargo/go-retry v0.2.4 // indirect
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.50.0 // indirect
