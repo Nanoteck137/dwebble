@@ -2,10 +2,16 @@ package collection
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"path"
+
+	"github.com/gosimple/slug"
+	"github.com/nanoteck137/dwebble/v2/utils"
 )
+
+var NotFoundErr = fmt.Errorf("Not found")
 
 type TrackDef struct {
 	Id       string `json:"id"`
@@ -29,8 +35,37 @@ type ArtistDef struct {
 	Albums  []AlbumDef `json:"albums"`
 }
 
+func (artist *ArtistDef) FindAlbumByName(name string) (*AlbumDef, error) {
+	for i, album := range artist.Albums {
+		if album.Name == name {
+			return &artist.Albums[i], nil
+		}
+	}
+
+	return nil, NotFoundErr
+}
+
+func (artist *ArtistDef) CreateAlbum(name string) *AlbumDef {
+	artist.Albums = append(artist.Albums, AlbumDef{
+		Id:       utils.CreateId(),
+		Name:     name,
+		CoverArt: "",
+		Tracks:   []TrackDef{},
+	})
+
+	return &artist.Albums[len(artist.Albums)-1]
+}
+
+type collectionEntry struct {
+	def ArtistDef
+
+	originalPath string
+	created      bool
+}
+
 type Collection struct {
-	artists []ArtistDef
+	path string
+	entries []collectionEntry
 }
 
 func Read(collectionPath string) (*Collection, error) {
@@ -39,7 +74,7 @@ func Read(collectionPath string) (*Collection, error) {
 		return nil, err
 	}
 
-	artists := []ArtistDef{}
+	colEntries := []collectionEntry{}
 
 	// TODO(patrik): Check for duplicated arists name
 	for _, entry := range entries {
@@ -60,16 +95,77 @@ func Read(collectionPath string) (*Collection, error) {
 			return nil, err
 		}
 
-		artists = append(artists, artistDef)
+		colEntries = append(colEntries, collectionEntry{
+			def:          artistDef,
+			originalPath: p,
+			created:      false,
+		})
 	}
 
-	return &Collection{artists: artists}, nil
+	return &Collection{path: collectionPath, entries: colEntries}, nil
 }
 
-func (col *Collection) FindArtistByName(name string) *ArtistDef {
-	for _, artist := range col.artists {
-		if artist.Name == name {
-			return &artist
+func (col *Collection) FindArtistByName(name string) (*ArtistDef, error) {
+	for i, entry := range col.entries {
+		if entry.def.Name == name {
+			return &col.entries[i].def, nil
+		}
+	}
+
+	return nil, NotFoundErr
+}
+
+func (col *Collection) CreateArtist(name string) *ArtistDef {
+	col.entries = append(col.entries, collectionEntry{
+		def: ArtistDef{
+			Id:      utils.CreateId(),
+			Name:    name,
+			Changed: 0,
+			Picture: "",
+			Albums:  []AlbumDef{},
+		},
+		created: true,
+	})
+
+	return &col.entries[len(col.entries)-1].def
+}
+
+func (col *Collection) Flush() error {
+	for _, entry := range col.entries {
+		if entry.created {
+			name := slug.Make(entry.def.Name)
+			p := path.Join(col.path, name)
+			err := os.MkdirAll(p, 0755)
+			if err != nil {
+				// TODO(patrik): Should we return errors in the loop?
+				return err
+			}
+
+			data, err := json.MarshalIndent(entry.def, "", "  ")
+			if err != nil {
+				// TODO(patrik): Should we return errors in the loop?
+				return err
+			}
+
+			err = os.WriteFile(path.Join(p, "artist.json"), data, 0644)
+			if err != nil {
+				// TODO(patrik): Should we return errors in the loop?
+				return err
+			}
+		} else {
+			// TODO(patrik): Only write dirty data
+
+			data, err := json.MarshalIndent(entry.def, "", "  ")
+			if err != nil {
+				// TODO(patrik): Should we return errors in the loop?
+				return err
+			}
+
+			err = os.WriteFile(path.Join(entry.originalPath, "artist.json"), data, 0644)
+			if err != nil {
+				// TODO(patrik): Should we return errors in the loop?
+				return err
+			}
 		}
 	}
 
