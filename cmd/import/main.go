@@ -386,24 +386,83 @@ func runImport(col *collection.Collection, importPath string) {
 	}
 }
 
+func copy(src, dst string) (int64, error) {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return 0, err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return 0, fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return 0, err
+	}
+	defer destination.Close()
+	nBytes, err := io.Copy(destination, source)
+	return nBytes, err
+}
+
+type ProcessedFiles struct {
+	Original string `json:"original"`
+	Best     string `json:"best"`
+	Mobile   string `json:"mobile"`
+}
+
 func processFile(outputDir string, id string, file utils.FileResult) error {
-	// original - untouched 
+	// original - untouched
 	// best - flac / maybe mp3
 	// mobile - mp3
 
 	fmt.Printf("m.file.Path: %v\n", file.Path)
-	input := file.Path
-	output := path.Join(outputDir, fmt.Sprintf("%v.%v.flac", id, "best"))
-	cmd := exec.Command("ffmpeg", "-y", "-i", input, output)
+
+	originalExt := path.Ext(file.Path)[1:]
+	bestExt := "flac"
+	mobileExt := "mp3"
+
+	original := fmt.Sprintf("%v.%v.%v", id, "original", originalExt)
+	best := fmt.Sprintf("%v.%v.%v", id, "best", bestExt)
+	mobile := fmt.Sprintf("%v.%v.%v", id, "mobile", mobileExt)
+
+	output := path.Join(outputDir, original)
+	_, err := copy(file.Path, output)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	output = path.Join(outputDir, best)
+	cmd := exec.Command("ffmpeg", "-y", "-i", file.Path, output)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	fmt.Printf("cmd.String(): %v\n", cmd.String())
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	output = path.Join(outputDir, mobile)
+	cmd = exec.Command("ffmpeg", "-y", "-i", file.Path, "-vn", "-ar", "44100", "-b:a", "192k", output)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	fmt.Printf("cmd.String(): %v\n", cmd.String())
+
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return nil
 }
 
 func main() {
