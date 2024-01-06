@@ -7,10 +7,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/gosimple/slug"
 	"github.com/nanoteck137/dwebble/v2/collection"
 	"github.com/nanoteck137/dwebble/v2/utils"
 	"github.com/nrednav/cuid2"
@@ -19,6 +21,7 @@ import (
 
 var validExts []string = []string{
 	"wav",
+	"m4a",
 }
 
 func isValidExt(ext string) bool {
@@ -199,6 +202,210 @@ func fetchAlbumMetadata(mbid string) (metadata, error) {
 	return metadata, nil
 }
 
+func getOrCreateArtist(col *collection.Collection, metadata *metadata) *collection.ArtistDef {
+	artistName := metadata.ArtistCredit[0].Name
+
+	artist, err := col.FindArtistByName(artistName)
+	if err != nil {
+		if err == collection.NotFoundErr {
+			log.Printf("Artist '%v' not found in collection (creating)", artistName)
+			artist = col.CreateArtist(artistName)
+		} else {
+			log.Fatal(err)
+		}
+	} else {
+		// TODO(patrik): Check artist against metadata
+	}
+
+	return artist
+}
+
+func getOrCreateAlbum(artist *collection.ArtistDef, metadata *metadata) *collection.AlbumDef {
+	album, err := artist.FindAlbumByName(metadata.Title)
+	if err != nil {
+		if err == collection.NotFoundErr {
+			album = artist.CreateAlbum(metadata.Title)
+		} else {
+			log.Fatal(err)
+		}
+	} else {
+		// TODO(patrik): Check album against metadata
+	}
+
+	return album
+}
+
+func runImport(col *collection.Collection, importPath string) {
+	entries, err := os.ReadDir(importPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	files := []utils.FileResult{}
+
+	// TODO(patrik): Check if sorting of files is working correctly
+	for _, entry := range entries {
+		p := path.Join(importPath, entry.Name())
+		ext := path.Ext(p)[1:]
+
+		if isValidExt(ext) {
+			file, err := utils.CheckFile(p)
+			if err == nil {
+				fmt.Printf("p: %v %+v\n", p, file)
+				files = append(files, file)
+			}
+		}
+	}
+
+	if len(files) == 0 {
+		log.Fatal("No music files found")
+	}
+
+	// reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter MBID (musicbrainz.org): ")
+	mbid := "2529f558-970b-33d2-a42c-41ab15a970c6"
+	// mbid := "eac4cbe6-00fa-4e3f-8304-e6674a34543d"
+
+	// mbid, err := reader.ReadString('\n')
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	mbid = strings.TrimSpace(mbid)
+
+	fmt.Println("MBID:", mbid)
+
+	_, err = uuid.Parse(mbid)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	metadata, err := fetchAlbumMetadata(mbid)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	gen, err := cuid2.Init(cuid2.WithLength(32))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	m := metadata.Media[0]
+
+	if len(files) < len(m.Tracks) {
+		fmt.Println("Warning: Missing tracks from album")
+	}
+
+	if len(files) > len(m.Tracks) {
+		fmt.Println("Warning: More tracks then metadata album")
+	}
+
+	type res struct {
+		file  utils.FileResult
+		track track
+	}
+
+	mapping := []res{}
+
+	fmt.Printf("Mapping:\n")
+	for _, track := range m.Tracks {
+		found := false
+		for _, file := range files {
+			if file.Number == track.Position {
+				fmt.Printf("  %02v:%v -> %02v:%v:%v\n", track.Position, track.Title, file.Number, path.Base(file.Path), file.Name)
+				found = true
+
+				mapping = append(mapping, res{
+					file:  file,
+					track: track,
+				})
+
+				break
+			}
+		}
+
+		if found {
+			continue
+		}
+
+		fmt.Printf("  %02v:%v -> Missing\n", track.Position, track.Title)
+	}
+
+	artist := getOrCreateArtist(col, &metadata)
+	album := getOrCreateAlbum(artist, &metadata)
+
+	artistDirPath, err := col.GetArtistDir(artist)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("artistDirPath: %v\n", artistDirPath)
+
+	albumPath := path.Join(artistDirPath, slug.Make(album.Name))
+	err = os.MkdirAll(albumPath, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("albumPath: %v\n", albumPath)
+
+	if len(album.Tracks) == 0 {
+		// TODO(patrik): Add all
+		for _, m := range mapping {
+			id := gen()
+
+			err := processFile(albumPath, id, m.file)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			album.Tracks = append(album.Tracks, collection.TrackDef{
+				Id:       id,
+				Number:   uint(m.track.Position),
+				CoverArt: "",
+				Name:     m.track.Title,
+			})
+		}
+	} else if len(album.Tracks) != len(mapping) {
+		// TODO(patrik): Analyze missing tracks
+		log.Printf("Mismatch\n")
+	} else if len(album.Tracks) == len(mapping) {
+		// TODO(patrik): Check so album.Tracks and m.Tracks matches
+		log.Printf("Check\n")
+
+		// for i := 0; i < len(album.Tracks); i++ {
+		// 	mtrack := m.Tracks[i]
+		// 	atrack := album.Tracks[i]
+		//
+		// 	if atrack.Name != mtrack.Title {
+		// 		fmt.Printf("Album and Metadata track name not matching '%v' : '%v'\n", atrack.Name, mtrack.Title)
+		// 	}
+		// }
+	} else {
+		log.Fatal("No metadata tracks?")
+	}
+}
+
+func processFile(outputDir string, id string, file utils.FileResult) error {
+	// original - untouched 
+	// best - flac / maybe mp3
+	// mobile - mp3
+
+	fmt.Printf("m.file.Path: %v\n", file.Path)
+	input := file.Path
+	output := path.Join(outputDir, fmt.Sprintf("%v.%v.flac", id, "best"))
+	cmd := exec.Command("ffmpeg", "-y", "-i", input, output)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	fmt.Printf("cmd.String(): %v\n", cmd.String())
+
+	err := cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func main() {
 	root := &cobra.Command{
 		Use:   "dwebble-import",
@@ -218,129 +425,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			_ = col
-
-			entries, err := os.ReadDir(importPath)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			files := []utils.FileResult{}
-
-			// TODO(patrik): Check if sorting of files is working correctly
-			for _, entry := range entries {
-				p := path.Join(importPath, entry.Name())
-				ext := path.Ext(p)[1:]
-
-				if isValidExt(ext) {
-					file, err := utils.CheckFile(p)
-					if err == nil {
-						fmt.Printf("p: %v %+v\n", p, file)
-						files = append(files, file)
-					}
-				}
-			}
-
-			if len(files) == 0 {
-				log.Fatal("No music files found")
-			}
-
-			// reader := bufio.NewReader(os.Stdin)
-			fmt.Print("Enter MBID (musicbrainz.org): ")
-			mbid := "2529f558-970b-33d2-a42c-41ab15a970c6"
-			// mbid, err := reader.ReadString('\n')
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
-
-			mbid = strings.TrimSpace(mbid)
-
-			fmt.Println("MBID:", mbid)
-
-			_, err = uuid.Parse(mbid)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			metadata, err := fetchAlbumMetadata(mbid)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			gen, err := cuid2.Init(cuid2.WithLength(32))
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			m := metadata.Media[0]
-
-			artistName := metadata.ArtistCredit[0].Name
-			fmt.Printf("artistName: %v\n", artistName)
-
-			if len(files) != len(m.Tracks) {
-				fmt.Println("Warning: Missing tracks from album")
-			}
-
-			fmt.Printf("Mapping:\n")
-			for i, track := range m.Tracks {
-				if i < len(files) {
-					fmt.Printf("  %02v:%v -> %02v:%v:%v\n", track.Position, track.Title, files[i].Number, path.Base(files[i].Path), files[i].Name)
-				} else {
-					fmt.Printf("  %02v:%v -> Missing\n", track.Position, track.Title)
-				}
-			}
-
-			artist, err := col.FindArtistByName(artistName)
-			if err != nil {
-				if err == collection.NotFoundErr {
-					log.Printf("Artist '%v' not found in collection (creating)", artistName)
-					artist = col.CreateArtist(artistName)
-				} else {
-					log.Fatal(err)
-				}
-			} else {
-				// TODO(patrik): Check artist against metadata
-			}
-
-			album, err := artist.FindAlbumByName(metadata.Title)
-			if err != nil {
-				if err == collection.NotFoundErr {
-					album = artist.CreateAlbum(metadata.Title)
-				} else {
-					log.Fatal(err)
-				}
-			} else {
-				// TODO(patrik): Check album against metadata
-			}
-
-			if len(album.Tracks) == 0 {
-				// TODO(patrik): Add all
-				for _, track := range m.Tracks {
-					album.Tracks = append(album.Tracks, collection.TrackDef{
-						Id:       gen(),
-						Number:   uint(track.Position),
-						CoverArt: "",
-						Name:     track.Title,
-					})
-				}
-			} else if len(album.Tracks) != len(m.Tracks) {
-				// TODO(patrik): Analyze missing tracks
-				log.Printf("Mismatch\n")
-			} else if len(album.Tracks) == len(m.Tracks) {
-				// TODO(patrik): Check so album.Tracks and m.Tracks matches
-				log.Printf("Check\n")
-
-				// for i := 0; i < len(album.Tracks); i++ {
-				// 	mtrack := m.Tracks[i]
-				// 	atrack := album.Tracks[i]
-				//
-				// 	if atrack.Name != mtrack.Title {
-				// 		fmt.Printf("Album and Metadata track name not matching '%v' : '%v'\n", atrack.Name, mtrack.Title)
-				// 	}
-				// }
-			} else {
-				log.Fatal("No metadata tracks?")
-			}
+			runImport(col, importPath)
 
 			err = col.Flush()
 			if err != nil {
