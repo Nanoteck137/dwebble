@@ -171,3 +171,15 @@ func (col *Collection) Flush() error {
 
 	return nil
 }
+
+func (col* Collection) GetArtistDir(artist *ArtistDef) (string, error) {
+	name := slug.Make(artist.Name)
+	p := path.Join(col.path, name)
+
+	err := os.MkdirAll(p, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	return p, nil
+}
