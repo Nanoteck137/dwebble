@@ -252,10 +252,13 @@ func runImport(col *collection.Collection, importPath string) {
 		ext := path.Ext(p)[1:]
 
 		if isValidExt(ext) {
+			fmt.Printf("p: %v\n", p)
 			file, err := utils.CheckFile(p)
 			if err == nil {
 				fmt.Printf("p: %v %+v\n", p, file)
 				files = append(files, file)
+			} else {
+				fmt.Printf("%v\n", err)
 			}
 		}
 	}
