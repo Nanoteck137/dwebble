@@ -412,9 +412,11 @@ func copy(src, dst string) (int64, error) {
 }
 
 type ProcessedFiles struct {
-	Best     string `json:"best"`
-	Mobile   string `json:"mobile"`
+	Best   string `json:"best"`
+	Mobile string `json:"mobile"`
 }
+
+var verbose = false
 
 func processFile(outputDir string, id string, file utils.FileResult) error {
 	// best - flac / maybe mp3
@@ -430,8 +432,10 @@ func processFile(outputDir string, id string, file utils.FileResult) error {
 
 	output := path.Join(outputDir, best)
 	cmd := exec.Command("ffmpeg", "-y", "-i", file.Path, output)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	if verbose {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 
 	fmt.Printf("cmd.String(): %v\n", cmd.String())
 
@@ -442,8 +446,10 @@ func processFile(outputDir string, id string, file utils.FileResult) error {
 
 	output = path.Join(outputDir, mobile)
 	cmd = exec.Command("ffmpeg", "-y", "-i", file.Path, "-vn", "-ar", "44100", "-b:a", "192k", output)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	if verbose {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 
 	fmt.Printf("cmd.String(): %v\n", cmd.String())
 
