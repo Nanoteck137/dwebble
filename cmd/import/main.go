@@ -412,40 +412,30 @@ func copy(src, dst string) (int64, error) {
 }
 
 type ProcessedFiles struct {
-	Original string `json:"original"`
 	Best     string `json:"best"`
 	Mobile   string `json:"mobile"`
 }
 
 func processFile(outputDir string, id string, file utils.FileResult) error {
-	// original - untouched
 	// best - flac / maybe mp3
 	// mobile - mp3
 
 	fmt.Printf("m.file.Path: %v\n", file.Path)
 
-	originalExt := path.Ext(file.Path)[1:]
 	bestExt := "flac"
 	mobileExt := "mp3"
 
-	original := fmt.Sprintf("%v.%v.%v", id, "original", originalExt)
 	best := fmt.Sprintf("%v.%v.%v", id, "best", bestExt)
 	mobile := fmt.Sprintf("%v.%v.%v", id, "mobile", mobileExt)
 
-	output := path.Join(outputDir, original)
-	_, err := copy(file.Path, output)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	output = path.Join(outputDir, best)
+	output := path.Join(outputDir, best)
 	cmd := exec.Command("ffmpeg", "-y", "-i", file.Path, output)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	fmt.Printf("cmd.String(): %v\n", cmd.String())
 
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
