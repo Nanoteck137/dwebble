@@ -1,4 +1,0 @@
-[workspace]
-resolver = "2"
-members = ["shared", "backend", "struc"]
-default-members = ["backend"]
