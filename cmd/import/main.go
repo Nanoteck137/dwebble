@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,6 +23,8 @@ import (
 var validExts []string = []string{
 	"wav",
 	"m4a",
+	"flac",
+	"mp3",
 }
 
 func isValidExt(ext string) bool {
@@ -261,15 +264,15 @@ func runImport(col *collection.Collection, importPath string) {
 		log.Fatal("No music files found")
 	}
 
-	// reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Enter MBID (musicbrainz.org): ")
-	mbid := "2529f558-970b-33d2-a42c-41ab15a970c6"
+	// mbid := "2529f558-970b-33d2-a42c-41ab15a970c6"
 	// mbid := "eac4cbe6-00fa-4e3f-8304-e6674a34543d"
 
-	// mbid, err := reader.ReadString('\n')
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	reader := bufio.NewReader(os.Stdin)
+	mbid, err := reader.ReadString('\n')
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	mbid = strings.TrimSpace(mbid)
 
@@ -354,16 +357,22 @@ func runImport(col *collection.Collection, importPath string) {
 		for _, m := range mapping {
 			id := gen()
 
-			err := processFile(albumPath, id, m.file)
+			files, err := processFile(albumPath, id, m.file)
 			if err != nil {
 				log.Fatal(err)
 			}
+
+			prefix := path.Base(albumPath)
+			files.Best = path.Join(prefix, files.Best)
+			files.Mobile = path.Join(prefix, files.Mobile)
+			fmt.Printf("files: %v\n", files)
 
 			album.Tracks = append(album.Tracks, collection.TrackDef{
 				Id:       id,
 				Number:   uint(m.track.Position),
 				CoverArt: "",
 				Name:     m.track.Title,
+				Files:    files,
 			})
 		}
 	} else if len(album.Tracks) != len(mapping) {
@@ -411,54 +420,72 @@ func copy(src, dst string) (int64, error) {
 	return nBytes, err
 }
 
-type ProcessedFiles struct {
-	Best   string `json:"best"`
-	Mobile string `json:"mobile"`
-}
-
 var verbose = false
 
-func processFile(outputDir string, id string, file utils.FileResult) error {
+func runFFmpeg(args ...string) error {
+	cmd := exec.Command("ffmpeg", args...)
+	if verbose {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
+
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func processFile(outputDir string, id string, file utils.FileResult) (collection.TrackFiles, error) {
 	// best - flac / maybe mp3
 	// mobile - mp3
 
 	fmt.Printf("m.file.Path: %v\n", file.Path)
 
-	bestExt := "flac"
+	fileExt := path.Ext(file.Path)[1:]
+
+	bestExt := fileExt
+	// Set best extention to flac if the input is a wav file
+	if fileExt == "wav" {
+		bestExt = "flac"
+	}
+
 	mobileExt := "mp3"
 
+	// Skip converting to mp3 if the input already is an mp3 file
+	convertToMp3 := fileExt != "mp3"
+
 	best := fmt.Sprintf("%v.%v.%v", id, "best", bestExt)
-	mobile := fmt.Sprintf("%v.%v.%v", id, "mobile", mobileExt)
-
-	output := path.Join(outputDir, best)
-	cmd := exec.Command("ffmpeg", "-y", "-i", file.Path, output)
-	if verbose {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+	mobile := best
+	if convertToMp3 {
+		mobile = fmt.Sprintf("%v.%v.%v", id, "mobile", mobileExt)
 	}
 
-	fmt.Printf("cmd.String(): %v\n", cmd.String())
+	bestFilePath := path.Join(outputDir, best)
 
-	err := cmd.Run()
-	if err != nil {
-		log.Fatal(err)
+	// Convert wav files to flac
+	if fileExt == "wav" {
+		runFFmpeg("-y", "-i", file.Path, bestFilePath)
+	} else {
+		_, err := copy(file.Path, bestFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	output = path.Join(outputDir, mobile)
-	cmd = exec.Command("ffmpeg", "-y", "-i", file.Path, "-vn", "-ar", "44100", "-b:a", "192k", output)
-	if verbose {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+	if convertToMp3 {
+		output := path.Join(outputDir, mobile)
+		err := runFFmpeg("-y", "-i", file.Path, "-vn", "-ar", "44100", "-b:a", "192k", output)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
-	fmt.Printf("cmd.String(): %v\n", cmd.String())
-
-	err = cmd.Run()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return nil
+	return collection.TrackFiles{
+		Best:   best,
+		Mobile: mobile,
+	}, nil
 }
 
 func main() {

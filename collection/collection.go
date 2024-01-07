@@ -13,11 +13,17 @@ import (
 
 var NotFoundErr = fmt.Errorf("Not found")
 
+type TrackFiles struct {
+	Best   string `json:"best"`
+	Mobile string `json:"mobile"`
+}
+
 type TrackDef struct {
 	Id       string `json:"id"`
 	Number   uint   `json:"number"`
 	CoverArt string `json:"coverArt"`
 	Name     string `json:"name"`
+	Files TrackFiles `json:"files"`
 }
 
 type AlbumDef struct {
