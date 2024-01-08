@@ -1,22 +1,18 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
-	"strings"
+	"sort"
 
-	"github.com/google/uuid"
 	"github.com/gosimple/slug"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/v2/collection"
 	"github.com/nanoteck137/dwebble/v2/utils"
-	"github.com/nrednav/cuid2"
 	"github.com/spf13/cobra"
 )
 
@@ -37,176 +33,22 @@ func isValidExt(ext string) bool {
 	return false
 }
 
-type track struct {
-	Id       string `json:"id"`
-	Title    string `json:"title"`
-	Number   string `json:"number"`
-	Position int    `json:"position"`
-
-	//	          "number": "2",
-	//	          "length": 324600,
-	//	          "position": 2,
-	//	          "title": "Sad but True",
-
-	Recording struct {
-		ArtistCredit []struct {
-			Id   string `json:"id"`
-			Name string `json:"name"`
-			Type string `json:"type"`
-			//	                "joinphrase": "",
-			//	                "name": "Metallica",
-			//	                "artist": {
-			//	                  "type": "Group",
-			//	                  "sort-name": "Metallica",
-			//	                  "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
-			//	                  "disambiguation": "",
-			//	                  "name": "Metallica",
-			//	                  "id": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab"
-			//	                }
-		} `json:"artist-credit"`
-		Disambiguation   string `json:"disambiguation"`
-		Title            string `json:"title"`
-		Length           int    `json:"length"`
-		Id               string `json:"id"`
-		FirstReleaseDate string `json:"first-release-date"`
-		Video            bool   `json:"video"`
-	} `json:"recording"`
-
-	//	          "number": "2",
-	//	          "length": 324600,
-	//	          "position": 2,
-	//	          "title": "Sad but True",
-	//	          "artist-credit": [
-	//	            {
-	//	              "joinphrase": "",
-	//	              "name": "Metallica",
-	//	              "artist": {
-	//	                "id": "65f4f0c5-ef9e-490c-aee3-909e7ae6b2ab",
-	//	                "name": "Metallica",
-	//	                "type-id": "e431f5f6-b5d2-343d-8b36-72607fffb74b",
-	//	                "disambiguation": "",
-	//	                "sort-name": "Metallica",
-	//	                "type": "Group"
-	//	              }
-	//	            }
-	//	          ]
-}
-
-type media struct {
-	Title    string `json:"title"`
-	FormatId string `json:"format-id"`
-	Position int    `json:"position"`
-	Format   string `json:"format"`
-
-	TrackCount  string `json:"track-count"`
-	TrackOffset string `json:"track-offset"`
-
-	Tracks []track `json:"tracks"`
+type metadataTrack struct {
+	Path       string
+	Title      string
+	ArtistName string
+	Number     int
 }
 
 type metadata struct {
-	Id    string  `json:"id"`
-	Title string  `json:"title"`
-	Date  string  `json:"date"`
-	Media []media `json:"media"`
+	AlbumArtistName string
+	AlbumName       string
 
-	ArtistCredit []struct {
-		Name   string `json:"name"`
-		Artist struct {
-			Id   string `json:"id"`
-			Name string `json:"name"`
-			Type string `json:"type"`
-		} `json:"arist"`
-	} `json:"artist-credit"`
-
-	//	{
-	//	  "packaging-id": null,
-	//	  "text-representation": {
-	//	    "language": "eng",
-	//	    "script": "Latn"
-	//	  },
-	//	  "title": "Metallica",
-	//	  "cover-art-archive": {
-	//	    "front": true,
-	//	    "artwork": true,
-	//	    "count": 6,
-	//	    "back": true,
-	//	    "darkened": false
-	//	  },
-	//	  "asin": "B000002H97",
-	//	  "disambiguation": "",
-	//	  "status": "Official",
-	//	  "release-events": [
-	//	    {
-	//	      "date": "1991-08-12",
-	//	      "area": {
-	//	        "type-id": null,
-	//	        "disambiguation": "",
-	//	        "iso-3166-1-codes": [
-	//	          "CA"
-	//	        ],
-	//	        "type": null,
-	//	        "sort-name": "Canada",
-	//	        "id": "71bbafaa-e825-3e15-8ca9-017dcad1748b",
-	//	        "name": "Canada"
-	//	      }
-	//	    }
-	//	  ],
-	//	  "packaging": null,
-	//	  "barcode": "075596111324",
-	//	  "id": "2529f558-970b-33d2-a42c-41ab15a970c6",
-	//	  "country": "CA",
-	//	  "quality": "high",
-	//	  "date": "1991-08-12",
-	//	  "artist-credit": [
-	//	    {
-	//	    }
-	//	  ],
-	//	  "status-id": "4e304316-386d-3409-af2e-78857eec5cfe"
-	//	}
-}
-
-func fetchAlbumMetadata(mbid string) (metadata, error) {
-	// https://musicbrainz.org/ws/2/release/2529f558-970b-33d2-a42c-41ab15a970c6?inc=artist-credits%2Brecordings&fmt=json
-	url := fmt.Sprintf("https://musicbrainz.org/ws/2/release/%v?inc=artist-credits+recordings&fmt=json", mbid)
-
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return metadata{}, err
-	}
-
-	req.Header.Set("User-Agent", "dwebble/0.0.1 ( github.com/nanoteck137/dwebble )")
-
-	res, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return metadata{}, err
-	}
-	defer res.Body.Close()
-
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return metadata{}, err
-	}
-
-	var metadata metadata
-	json.Unmarshal(data, &metadata)
-
-	fmt.Printf("Title: %v\n", metadata.Title)
-	fmt.Printf("Date: %v\n", metadata.Date)
-	for _, m := range metadata.Media {
-		fmt.Printf("  %v\n", m.Position)
-
-		for _, t := range m.Tracks {
-			fmt.Printf("    %v", t.Recording.Title)
-			fmt.Printf(" - %v\n", t.Recording.ArtistCredit[0].Name)
-		}
-	}
-
-	return metadata, nil
+	tracks []metadataTrack
 }
 
 func getOrCreateArtist(col *collection.Collection, metadata *metadata) *collection.ArtistDef {
-	artistName := metadata.ArtistCredit[0].Name
+	artistName := metadata.AlbumArtistName
 
 	artist, err := col.FindArtistByName(artistName)
 	if err != nil {
@@ -224,10 +66,12 @@ func getOrCreateArtist(col *collection.Collection, metadata *metadata) *collecti
 }
 
 func getOrCreateAlbum(artist *collection.ArtistDef, metadata *metadata) *collection.AlbumDef {
-	album, err := artist.FindAlbumByName(metadata.Title)
+	albumName := metadata.AlbumName
+
+	album, err := artist.FindAlbumByName(metadata.AlbumName)
 	if err != nil {
 		if err == collection.NotFoundErr {
-			album = artist.CreateAlbum(metadata.Title)
+			album = artist.CreateAlbum(albumName)
 		} else {
 			log.Fatal(err)
 		}
@@ -267,75 +111,219 @@ func runImport(col *collection.Collection, importPath string) {
 		log.Fatal("No music files found")
 	}
 
-	fmt.Print("Enter MBID (musicbrainz.org): ")
-	// mbid := "2529f558-970b-33d2-a42c-41ab15a970c6"
-	// mbid := "eac4cbe6-00fa-4e3f-8304-e6674a34543d"
+	// Metadata
+	// Artist
+	// Album
+	// All Tracks (Available, Missing)
 
-	reader := bufio.NewReader(os.Stdin)
-	mbid, err := reader.ReadString('\n')
-	if err != nil {
-		log.Fatal(err)
+	// Metadata
+	//  Filename - Track, Maybe name
+	//  Musicdb - All
+	//  ffprobe -
+
+	albumName := ""
+	albums := make(map[string]int)
+	for _, file := range files {
+		if file.Probe.Album != "" {
+			albumName = file.Probe.Album
+			albums[file.Probe.Album]++
+		}
 	}
 
-	mbid = strings.TrimSpace(mbid)
-
-	fmt.Println("MBID:", mbid)
-
-	_, err = uuid.Parse(mbid)
-	if err != nil {
-		log.Fatal(err)
+	if len(albums) == 0 {
+		log.Fatal("No album name detected")
 	}
 
-	metadata, err := fetchAlbumMetadata(mbid)
-	if err != nil {
-		log.Fatal(err)
+	if len(albums) > 1 {
+		log.Fatal("Multiple album name detected")
 	}
 
-	gen, err := cuid2.Init(cuid2.WithLength(32))
-	if err != nil {
-		log.Fatal(err)
+	if albumName == "" {
+		// TODO(patrik): Let the user provide this (MBID)
+		log.Fatal("Should not happend")
 	}
 
-	m := metadata.Media[0]
+	fmt.Printf("albumName: %v\n", albumName)
 
-	if len(files) < len(m.Tracks) {
-		fmt.Println("Warning: Missing tracks from album")
-	}
+	artists := make(map[string]int)
+	albumArtist := ""
 
-	if len(files) > len(m.Tracks) {
-		fmt.Println("Warning: More tracks then metadata album")
-	}
-
-	type res struct {
-		file  utils.FileResult
-		track track
-	}
-
-	mapping := []res{}
-
-	fmt.Printf("Mapping:\n")
-	for _, track := range m.Tracks {
-		found := false
-		for _, file := range files {
-			if file.Number == track.Position {
-				fmt.Printf("  %02v:%v -> %02v:%v:%v\n", track.Position, track.Title, file.Number, path.Base(file.Path), file.Name)
-				found = true
-
-				mapping = append(mapping, res{
-					file:  file,
-					track: track,
-				})
-
-				break
-			}
+	for _, file := range files {
+		if file.Probe.AlbumArtist != "" {
+			albumArtist = file.Probe.AlbumArtist
 		}
 
-		if found {
-			continue
+		if file.Probe.Artist != "" {
+			artists[file.Probe.Artist]++
+		}
+	}
+
+	if albumArtist == "" {
+		if len(artists) > 1 {
+			albumArtist = "Various Artists"
+		} else {
+			// TODO(patrik): Let the user provide this (MBID)
+			log.Fatal("No album artist found")
+		}
+	}
+
+	fmt.Printf("albumArtist: %v\n", albumArtist)
+
+	const (
+		STATUS_OK             = 0
+		STATUS_MISSING_TITLE  = 1 << 0
+		STATUS_MISSING_ARTIST = 1 << 1
+		// TODO(patrik): Detect
+		STATUS_MISSING_TRACK = 1 << 2
+	)
+
+	type t struct {
+		Path   string
+		Number int
+		Title  string
+		Artist string
+		Status int
+	}
+
+	tracks := make(map[int]t)
+
+	for _, file := range files {
+		num := file.Number
+		if file.Probe.Track != file.Number {
+			log.Printf("Track number not matching (using filename number)")
 		}
 
-		fmt.Printf("  %02v:%v -> Missing\n", track.Position, track.Title)
+		if tracks[num].Path != "" {
+			log.Fatal("Multiple tracks with the name number")
+		}
+
+		status := STATUS_OK
+		title := file.Probe.Title
+		artist := file.Probe.Artist
+
+		if title == "" {
+			status |= STATUS_MISSING_TITLE
+		}
+
+		if artist == "" {
+			status |= STATUS_MISSING_ARTIST
+		}
+
+		tracks[num] = t{
+			Path:   file.Path,
+			Number: num,
+			Title:  title,
+			Artist: artist,
+			Status: status,
+		}
 	}
+
+	fmt.Printf("tracks: %+v\n", tracks)
+
+	metadata := metadata{
+		AlbumArtistName: albumArtist,
+		AlbumName:       albumName,
+	}
+
+	for _, track := range tracks {
+		title := track.Title
+		// TODO(patrik): Handle this
+		if track.Status&STATUS_MISSING_TITLE > 0 {
+			title = "MISSING_TITLE"
+		}
+
+		artist := track.Artist
+		// TODO(patrik): Handle this
+		if track.Status&STATUS_MISSING_ARTIST > 0 {
+			artist = "MISSING_ARTIST"
+		}
+
+		fmt.Printf("track %v:\n", track.Number)
+		fmt.Printf("  title: %v\n", title)
+		fmt.Printf("  artist: %v\n", artist)
+
+		metadata.tracks = append(metadata.tracks, metadataTrack{
+			Path:       track.Path,
+			Title:      title,
+			ArtistName: artist,
+			Number:     track.Number,
+		})
+	}
+
+	sort.SliceStable(metadata.tracks, func(i, j int) bool {
+		return metadata.tracks[i].Number < metadata.tracks[j].Number
+	})
+	pretty.Print(metadata)
+
+	// fmt.Print("Enter MBID (musicbrainz.org): ")
+	// // mbid := "2529f558-970b-33d2-a42c-41ab15a970c6"
+	// // mbid := "eac4cbe6-00fa-4e3f-8304-e6674a34543d"
+	//
+	// reader := bufio.NewReader(os.Stdin)
+	// mbid, err := reader.ReadString('\n')
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	// mbid = strings.TrimSpace(mbid)
+	//
+	// fmt.Println("MBID:", mbid)
+	//
+	// _, err = uuid.Parse(mbid)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	// metadata, err := musicbrainz.FetchAlbumMetadata(mbid)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	// gen, err := cuid2.Init(cuid2.WithLength(32))
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	// m := metadata.Media[0]
+	//
+	// if len(files) < len(m.Tracks) {
+	// 	fmt.Println("Warning: Missing tracks from album")
+	// }
+	//
+	// if len(files) > len(m.Tracks) {
+	// 	fmt.Println("Warning: More tracks then metadata album")
+	// }
+	//
+	// type res struct {
+	// 	file  utils.FileResult
+	// 	track track
+	// }
+	//
+	// mapping := []res{}
+	//
+	// fmt.Printf("Mapping:\n")
+	// for _, track := range m.Tracks {
+	// 	found := false
+	// 	for _, file := range files {
+	// 		if file.Number == track.Position {
+	// 			fmt.Printf("  %02v:%v -> %02v:%v:%v\n", track.Position, track.Title, file.Number, path.Base(file.Path), file.Name)
+	// 			found = true
+	//
+	// 			mapping = append(mapping, res{
+	// 				file:  file,
+	// 				track: track,
+	// 			})
+	//
+	// 			break
+	// 		}
+	// 	}
+	//
+	// 	if found {
+	// 		continue
+	// 	}
+	//
+	// 	fmt.Printf("  %02v:%v -> Missing\n", track.Position, track.Title)
+	// }
 
 	artist := getOrCreateArtist(col, &metadata)
 	album := getOrCreateAlbum(artist, &metadata)
@@ -357,10 +345,10 @@ func runImport(col *collection.Collection, importPath string) {
 
 	if len(album.Tracks) == 0 {
 		// TODO(patrik): Add all
-		for _, m := range mapping {
-			id := gen()
+		for _, track := range metadata.tracks {
+			id := utils.CreateId()
 
-			files, err := processFile(albumPath, id, m.file)
+			files, err := processFile(albumPath, id, track)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -372,16 +360,16 @@ func runImport(col *collection.Collection, importPath string) {
 
 			album.Tracks = append(album.Tracks, collection.TrackDef{
 				Id:       id,
-				Number:   uint(m.track.Position),
+				Number:   uint(track.Number),
 				CoverArt: "",
-				Name:     m.track.Title,
+				Name:     track.Title,
 				Files:    files,
 			})
 		}
-	} else if len(album.Tracks) != len(mapping) {
+	} else if len(album.Tracks) != len(metadata.tracks) {
 		// TODO(patrik): Analyze missing tracks
 		log.Printf("Mismatch\n")
-	} else if len(album.Tracks) == len(mapping) {
+	} else if len(album.Tracks) == len(metadata.tracks) {
 		// TODO(patrik): Check so album.Tracks and m.Tracks matches
 		log.Printf("Check\n")
 
@@ -440,13 +428,13 @@ func runFFmpeg(args ...string) error {
 	return nil
 }
 
-func processFile(outputDir string, id string, file utils.FileResult) (collection.TrackFiles, error) {
+func processFile(outputDir string, id string, track metadataTrack) (collection.TrackFiles, error) {
 	// best - flac / maybe mp3
 	// mobile - mp3
 
-	fmt.Printf("m.file.Path: %v\n", file.Path)
+	fmt.Printf("m.file.Path: %v\n", track.Path)
 
-	fileExt := path.Ext(file.Path)[1:]
+	fileExt := path.Ext(track.Path)[1:]
 
 	bestExt := fileExt
 	// Set best extention to flac if the input is a wav file
@@ -469,9 +457,9 @@ func processFile(outputDir string, id string, file utils.FileResult) (collection
 
 	// Convert wav files to flac
 	if fileExt == "wav" {
-		runFFmpeg("-y", "-i", file.Path, bestFilePath)
+		runFFmpeg("-y", "-i", track.Path, bestFilePath)
 	} else {
-		_, err := copy(file.Path, bestFilePath)
+		_, err := copy(track.Path, bestFilePath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -479,7 +467,7 @@ func processFile(outputDir string, id string, file utils.FileResult) (collection
 
 	if convertToMp3 {
 		output := path.Join(outputDir, mobile)
-		err := runFFmpeg("-y", "-i", file.Path, "-vn", "-ar", "44100", "-b:a", "192k", output)
+		err := runFFmpeg("-y", "-i", track.Path, "-vn", "-ar", "44100", "-b:a", "192k", output)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -52,6 +52,7 @@ type FileResult struct {
 	Probe ProbeResult
 }
 
+// TODO(patrik): Update to not include file extentions
 var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)`)
 var test2 = regexp.MustCompile(`track(\d+).+`)
 
@@ -145,8 +146,7 @@ func getNumberFromFormatString(s string) int {
 
 	num, err := strconv.Atoi(s)
 	if err != nil {
-		// TODO(patrik): Return error
-		log.Fatal(err)
+		return -1
 	}
 
 	return num
@@ -170,10 +170,10 @@ func CheckFile(filepath string) (FileResult, error) {
 	}
 
 	// fmt.Printf("probe: %+v\n", probe)
-// probe.Format.Tags.Track
+	// probe.Format.Tags.Track
 
-track := getNumberFromFormatString(probe.Format.Tags.Track)
-disc := getNumberFromFormatString(probe.Format.Tags.Disc)
+	track := getNumberFromFormatString(probe.Format.Tags.Track)
+	disc := getNumberFromFormatString(probe.Format.Tags.Disc)
 
 	probeResult := ProbeResult{
 		Artist:      probe.Format.Tags.Artist,
@@ -201,7 +201,7 @@ disc := getNumberFromFormatString(probe.Format.Tags.Disc)
 			Path:   filepath,
 			Number: num,
 			Name:   "",
-			Probe: probeResult,
+			Probe:  probeResult,
 		}, nil
 	} else {
 		num, err := strconv.Atoi(string(res[1]))
@@ -214,7 +214,7 @@ disc := getNumberFromFormatString(probe.Format.Tags.Disc)
 			Path:   filepath,
 			Number: num,
 			Name:   name,
-			Probe: probeResult,
+			Probe:  probeResult,
 		}, nil
 	}
 }
