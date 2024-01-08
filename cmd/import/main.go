@@ -12,6 +12,7 @@ import (
 	"github.com/gosimple/slug"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/v2/collection"
+	"github.com/nanoteck137/dwebble/v2/imp"
 	"github.com/nanoteck137/dwebble/v2/utils"
 	"github.com/spf13/cobra"
 )
@@ -498,7 +499,10 @@ func main() {
 				log.Fatal(err)
 			}
 
-			runImport(col, importPath)
+			err = imp.ImportDir(col, importPath)
+			if err != nil {
+				log.Fatal(err)
+			}
 
 			err = col.Flush()
 			if err != nil {
