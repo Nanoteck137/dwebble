@@ -19,11 +19,11 @@ type TrackFiles struct {
 }
 
 type TrackDef struct {
-	Id       string `json:"id"`
-	Number   uint   `json:"number"`
-	CoverArt string `json:"coverArt"`
-	Name     string `json:"name"`
-	Files TrackFiles `json:"files"`
+	Id       string     `json:"id"`
+	Number   uint       `json:"number"`
+	CoverArt string     `json:"coverArt"`
+	Name     string     `json:"name"`
+	Files    TrackFiles `json:"files"`
 }
 
 type AlbumDef struct {
@@ -70,7 +70,7 @@ type collectionEntry struct {
 }
 
 type Collection struct {
-	path string
+	path    string
 	entries []collectionEntry
 }
 
@@ -178,7 +178,7 @@ func (col *Collection) Flush() error {
 	return nil
 }
 
-func (col* Collection) GetArtistDir(artist *ArtistDef) (string, error) {
+func (col *Collection) GetArtistDir(artist *ArtistDef) (string, error) {
 	name := slug.Make(artist.Name)
 	p := path.Join(col.path, name)
 
