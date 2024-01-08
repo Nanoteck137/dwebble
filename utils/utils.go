@@ -152,6 +152,7 @@ func getNumberFromFormatString(s string) int {
 	return num
 }
 
+// TODO(patrik): Fix this function
 func CheckFile(filepath string) (FileResult, error) {
 	// ffprobe -v quiet -print_format json -show_format -show_streams input
 
@@ -217,4 +218,21 @@ func CheckFile(filepath string) (FileResult, error) {
 			Probe:  probeResult,
 		}, nil
 	}
+}
+
+var validExts []string = []string{
+	"wav",
+	"m4a",
+	"flac",
+	"mp3",
+}
+
+func IsValidTrackExt(ext string) bool {
+	for _, valid := range validExts {
+		if valid == ext {
+			return true
+		}
+	}
+
+	return false
 }
