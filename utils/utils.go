@@ -53,7 +53,7 @@ type FileResult struct {
 }
 
 // TODO(patrik): Update to not include file extentions
-var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)`)
+var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+).`)
 var test2 = regexp.MustCompile(`track(\d+).+`)
 
 type probeFormat struct {
