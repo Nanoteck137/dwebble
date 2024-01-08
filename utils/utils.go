@@ -52,9 +52,6 @@ type FileResult struct {
 	Probe ProbeResult
 }
 
-// TODO(patrik): Update to not include file extentions
-var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+).`)
-var test2 = regexp.MustCompile(`track(\d+).+`)
 
 type probeFormat struct {
 	BitRate string `json:"bit_rate"`
@@ -152,6 +149,10 @@ func getNumberFromFormatString(s string) int {
 	return num
 }
 
+// TODO(patrik): Update to not include file extentions
+var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)\.`)
+var test2 = regexp.MustCompile(`track(\d+).+`)
+
 // TODO(patrik): Fix this function
 func CheckFile(filepath string) (FileResult, error) {
 	// ffprobe -v quiet -print_format json -show_format -show_streams input
@@ -162,7 +163,7 @@ func CheckFile(filepath string) (FileResult, error) {
 		return FileResult{}, err
 	}
 
-	fmt.Printf("string(data): %v\n", string(data))
+	// fmt.Printf("string(data): %v\n", string(data))
 
 	var probe probe
 	err = json.Unmarshal(data, &probe)
@@ -187,11 +188,13 @@ func CheckFile(filepath string) (FileResult, error) {
 
 	name := path.Base(filepath)
 	res := test1.FindStringSubmatch(name)
+		fmt.Printf("res: %v\n", res)
 	if res == nil {
 		res := test2.FindStringSubmatch(name)
 		if res == nil {
 			return FileResult{}, fmt.Errorf("No result")
 		}
+
 
 		num, err := strconv.Atoi(string(res[1]))
 		if err != nil {
