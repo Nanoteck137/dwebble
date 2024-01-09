@@ -26,7 +26,7 @@ func createIdGenerator() func() string {
 	return res
 }
 
-func runFFprobe(args ...string) ([]byte, error) {
+func RunFFprobe(args ...string) ([]byte, error) {
 	cmd := exec.Command("ffprobe", args...)
 
 	data, err := cmd.Output()
@@ -35,6 +35,21 @@ func runFFprobe(args ...string) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+func RunFFmpeg(verbose bool, args ...string) error {
+	cmd := exec.Command("ffmpeg", args...)
+	if verbose {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
+
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type ProbeResult struct {
@@ -159,7 +174,7 @@ var test2 = regexp.MustCompile(`track(\d+).+`)
 func CheckFile(filepath string) (FileResult, error) {
 	// ffprobe -v quiet -print_format json -show_format -show_streams input
 
-	data, err := runFFprobe("-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filepath)
+	data, err := RunFFprobe("-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filepath)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return FileResult{}, err
