@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -387,30 +386,6 @@ func runImport(col *collection.Collection, importPath string) {
 	}
 }
 
-func copy(src, dst string) (int64, error) {
-	sourceFileStat, err := os.Stat(src)
-	if err != nil {
-		return 0, err
-	}
-
-	if !sourceFileStat.Mode().IsRegular() {
-		return 0, fmt.Errorf("%s is not a regular file", src)
-	}
-
-	source, err := os.Open(src)
-	if err != nil {
-		return 0, err
-	}
-	defer source.Close()
-
-	destination, err := os.Create(dst)
-	if err != nil {
-		return 0, err
-	}
-	defer destination.Close()
-	nBytes, err := io.Copy(destination, source)
-	return nBytes, err
-}
 
 var verbose = false
 
@@ -460,7 +435,7 @@ func processFile(outputDir string, id string, track metadataTrack) (collection.T
 	if fileExt == "wav" {
 		runFFmpeg("-y", "-i", track.Path, bestFilePath)
 	} else {
-		_, err := copy(track.Path, bestFilePath)
+		_, err := utils.CopyFile(track.Path, bestFilePath)
 		if err != nil {
 			log.Fatal(err)
 		}
