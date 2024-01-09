@@ -188,7 +188,6 @@ func CheckFile(filepath string) (FileResult, error) {
 
 	name := path.Base(filepath)
 	res := test1.FindStringSubmatch(name)
-		fmt.Printf("res: %v\n", res)
 	if res == nil {
 		res := test2.FindStringSubmatch(name)
 		if res == nil {
