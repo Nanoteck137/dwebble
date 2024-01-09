@@ -69,18 +69,29 @@ func getOrCreateAlbum(artist *collection.ArtistDef, metadata *ImportMetadata) *c
 	return album
 }
 
-func getFiles(p string) ([]utils.FileResult, error) {
+type Files struct {
+	tracks []utils.FileResult
+	coverArt string
+}
+
+func getFiles(p string) (Files, error) {
 	dirEntries, err := os.ReadDir(p)
 	if err != nil {
-		return nil, err
+		return Files{}, err
 	}
 
+	coverArt := ""
 	var entries []utils.FileResult
 
 	for _, entry := range dirEntries {
 		fullPath := path.Join(p, entry.Name())
 
 		if entry.IsDir() {
+			continue
+		}
+
+		if strings.HasPrefix(entry.Name(), "cover") && coverArt == "" {
+			coverArt = fullPath
 			continue
 		}
 
@@ -98,7 +109,10 @@ func getFiles(p string) ([]utils.FileResult, error) {
 
 	pretty.Println(entries)
 
-	return entries, nil
+	return Files{
+		tracks:   entries,
+		coverArt: coverArt,
+	}, nil
 }
 
 const (
@@ -309,12 +323,16 @@ func ImportDir(col *collection.Collection, importPath string) error {
 
 	importMetadata := ImportMetadata{}
 
-	if checkFiles(files) {
-		f := &files[0]
+	if checkFiles(files.tracks) {
+		f := &files.tracks[0]
 		importMetadata.AlbumArtistName = f.Probe.AlbumArtist
 		importMetadata.AlbumName = f.Probe.Album
 
-		for _, f := range files {
+		if files.coverArt != "" {
+			importMetadata.CoverArt.File = files.coverArt
+		}
+
+		for _, f := range files.tracks {
 			importMetadata.Tracks = append(importMetadata.Tracks, ImportMetadataTrack{
 				Path:   f.Path,
 				Title:  f.Probe.Title,
@@ -322,7 +340,7 @@ func ImportDir(col *collection.Collection, importPath string) error {
 			})
 		}
 	} else {
-		missingMetadata(files, &importMetadata)
+		missingMetadata(files.tracks, &importMetadata)
 	}
 
 	// if checkFiles() {
