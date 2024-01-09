@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/gosimple/slug"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/v2/collection"
 	"github.com/nanoteck137/dwebble/v2/musicbrainz"
@@ -249,6 +250,57 @@ func missingMetadata(files []utils.FileResult, importMetadata *ImportMetadata) {
 	fmt.Printf("Cover Art: %v\n", file.Name())
 }
 
+func processFile(outputDir string, id string, track ImportMetadataTrack) (collection.TrackFiles, error) {
+	// best - flac / maybe mp3
+	// mobile - mp3
+
+	fmt.Printf("m.file.Path: %v\n", track.Path)
+
+	fileExt := path.Ext(track.Path)[1:]
+
+	bestExt := fileExt
+	// Set best extention to flac if the input is a wav file
+	if fileExt == "wav" {
+		bestExt = "flac"
+	}
+
+	mobileExt := "mp3"
+
+	// Skip converting to mp3 if the input already is an mp3 file
+	convertToMp3 := fileExt != "mp3"
+
+	best := fmt.Sprintf("%v.%v.%v", id, "best", bestExt)
+	mobile := best
+	if convertToMp3 {
+		mobile = fmt.Sprintf("%v.%v.%v", id, "mobile", mobileExt)
+	}
+
+	bestFilePath := path.Join(outputDir, best)
+
+	// Convert wav files to flac
+	if fileExt == "wav" {
+		utils.RunFFmpeg(false, "-y", "-i", track.Path, bestFilePath)
+	} else {
+		_, err := utils.CopyFile(track.Path, bestFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if convertToMp3 {
+		output := path.Join(outputDir, mobile)
+		err := utils.RunFFmpeg(false, "-y", "-i", track.Path, "-vn", "-ar", "44100", "-b:a", "192k", output)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	return collection.TrackFiles{
+		Best:   best,
+		Mobile: mobile,
+	}, nil
+}
+
 func ImportDir(col *collection.Collection, importPath string) error {
 	files, err := getFiles(importPath)
 	if err != nil {
@@ -293,20 +345,25 @@ func ImportDir(col *collection.Collection, importPath string) error {
 	// }
 
 	pretty.Print(importMetadata)
-	fmt.Println()
 
 	artist := getOrCreateArtist(col, &importMetadata)
 	album := getOrCreateAlbum(artist, &importMetadata)
 
+	artistDirPath, err := col.GetArtistDir(artist)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	albumPath := path.Join(artistDirPath, slug.Make(album.Name))
+	err = os.MkdirAll(albumPath, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if importMetadata.CoverArt.File != "" {
 		coverArtFile := importMetadata.CoverArt.File
 
-		dir, err := col.GetArtistDir(artist)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		imagesDir := path.Join(dir, "images")
+		imagesDir := path.Join(artistDirPath, "images")
 		err = os.MkdirAll(imagesDir, 0755)
 		if err != nil {
 			log.Fatal(err)
@@ -337,15 +394,21 @@ func ImportDir(col *collection.Collection, importPath string) error {
 			id := utils.CreateId()
 			// TODO(patrik): Process the file
 
+			trackFiles, err := processFile(albumPath, id, track)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			prefix := path.Base(albumPath)
+			trackFiles.Best = path.Join(prefix, trackFiles.Best)
+			trackFiles.Mobile = path.Join(prefix, trackFiles.Mobile)
+
 			album.Tracks = append(album.Tracks, collection.TrackDef{
 				Id:       id,
 				Number:   uint(track.Number),
-				CoverArt: "TODO",
+				CoverArt: album.CoverArt,
 				Name:     track.Title,
-				Files: collection.TrackFiles{
-					Best:   "TODO",
-					Mobile: "TODO",
-				},
+				Files:    trackFiles,
 			})
 		}
 	} else {
