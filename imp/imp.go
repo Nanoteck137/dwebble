@@ -15,6 +15,11 @@ import (
 	"github.com/nanoteck137/dwebble/v2/utils"
 )
 
+type ImageFile struct {
+	File   string
+	Remove bool
+}
+
 type ImportMetadataTrack struct {
 	Path   string
 	Title  string
@@ -24,6 +29,7 @@ type ImportMetadataTrack struct {
 type ImportMetadata struct {
 	AlbumName       string
 	AlbumArtistName string
+	CoverArt        ImageFile
 	Tracks          []ImportMetadataTrack
 }
 
@@ -168,6 +174,81 @@ func askForMbid() uuid.UUID {
 	return id
 }
 
+func missingMetadata(files []utils.FileResult, importMetadata *ImportMetadata) {
+	mbid := askForMbid()
+	fmt.Printf("MBID: %v\n", mbid)
+
+	albumMetadata, err := musicbrainz.FetchAlbumMetadata(mbid.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	importMetadata.AlbumArtistName = albumMetadata.ArtistCredit[0].Name
+	importMetadata.AlbumName = albumMetadata.Title
+
+	type t struct {
+		path   string
+		title  string
+		number int
+	}
+
+	media := albumMetadata.Media[0]
+	var tracks []t
+
+	for _, file := range files {
+		var meta musicbrainz.Track
+		found := false
+
+		for _, tm := range media.Tracks {
+			if tm.Position == file.Number {
+				meta = tm
+				found = true
+			}
+		}
+
+		if !found {
+			log.Fatalf("Failed to find mapping for %v\n", file.Path)
+		}
+
+		tracks = append(tracks, t{
+			path:   file.Path,
+			title:  meta.Title,
+			number: file.Number,
+		})
+	}
+
+	// TODO(patrik): Maybe sort here?
+
+	for _, track := range tracks {
+		importMetadata.Tracks = append(importMetadata.Tracks, ImportMetadataTrack{
+			Path:   track.path,
+			Title:  track.title,
+			Number: track.number,
+		})
+	}
+
+	// NOTE(patrik): Fetch the cover art from the archive
+	coverArt, err := musicbrainz.FetchCoverArt(mbid.String())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	file, err := os.CreateTemp(os.TempDir(), fmt.Sprintf("*.%v", coverArt.Ext))
+	defer file.Close()
+
+	_, err = file.Write(coverArt.Data)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	importMetadata.CoverArt = ImageFile{
+		File:   file.Name(),
+		Remove: true,
+	}
+
+	fmt.Printf("Cover Art: %v\n", file.Name())
+}
+
 func ImportDir(col *collection.Collection, importPath string) error {
 	files, err := getFiles(importPath)
 	if err != nil {
@@ -189,57 +270,7 @@ func ImportDir(col *collection.Collection, importPath string) error {
 			})
 		}
 	} else {
-		mbid := askForMbid()
-		fmt.Printf("MBID: %v\n", mbid)
-
-		albumMetadata, err := musicbrainz.FetchAlbumMetadata(mbid.String())
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		importMetadata.AlbumArtistName = albumMetadata.ArtistCredit[0].Name
-		importMetadata.AlbumName = albumMetadata.Title
-
-		type t struct {
-			path string
-			title string
-			number int
-		}
-
-		media := albumMetadata.Media[0]
-		var tracks []t
-
-		for _, file := range files {
-			var meta musicbrainz.Track
-			found := false
-
-			for _, tm := range media.Tracks {
-				if tm.Position == file.Number {
-					meta = tm
-					found = true
-				}
-			}
-
-			if !found {
-				log.Fatalf("Failed to find mapping for %v\n", file.Path)
-			}
-
-			tracks = append(tracks, t{
-				path:   file.Path,
-				title:  meta.Title,
-				number: file.Number,
-			})
-		}
-
-		// TODO(patrik): Maybe sort here?
-
-		for _, track := range tracks {
-			importMetadata.Tracks = append(importMetadata.Tracks, ImportMetadataTrack{
-				Path:   track.path,
-				Title:  track.title,
-				Number: track.number,
-			})
-		}
+		missingMetadata(files, &importMetadata)
 	}
 
 	// if checkFiles() {
@@ -266,6 +297,39 @@ func ImportDir(col *collection.Collection, importPath string) error {
 
 	artist := getOrCreateArtist(col, &importMetadata)
 	album := getOrCreateAlbum(artist, &importMetadata)
+
+	if importMetadata.CoverArt.File != "" {
+		coverArtFile := importMetadata.CoverArt.File
+
+		dir, err := col.GetArtistDir(artist)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		imagesDir := path.Join(dir, "images")
+		err = os.MkdirAll(imagesDir, 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ext := path.Ext(coverArtFile)[1:]
+		name := fmt.Sprintf("cover-art.original.%v", ext)
+
+		_, err = utils.CopyFile(coverArtFile, path.Join(imagesDir, name))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		album.CoverArt = path.Join("images", name)
+
+		if importMetadata.CoverArt.Remove {
+			log.Printf("Removing cover art: %v\n", coverArtFile)
+			err := os.Remove(coverArtFile)
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	}
 
 	if len(album.Tracks) == 0 {
 		// TODO(patrik): Just add all tracks
