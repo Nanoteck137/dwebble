@@ -1,11 +1,17 @@
 package imp
 
 import (
+	"bufio"
 	"fmt"
 	"log"
+	"os"
+	"path"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/v2/collection"
+	"github.com/nanoteck137/dwebble/v2/musicbrainz"
 	"github.com/nanoteck137/dwebble/v2/utils"
 )
 
@@ -56,18 +62,185 @@ func getOrCreateAlbum(artist *collection.ArtistDef, metadata *ImportMetadata) *c
 	return album
 }
 
-type File struct {
-	Path string
-	Number int
+func getFiles(p string) ([]utils.FileResult, error) {
+	dirEntries, err := os.ReadDir(p)
+	if err != nil {
+		return nil, err
+	}
+
+	var entries []utils.FileResult
+
+	for _, entry := range dirEntries {
+		fullPath := path.Join(p, entry.Name())
+
+		if entry.IsDir() {
+			continue
+		}
+
+		ext := path.Ext(fullPath)[1:]
+		if utils.IsValidTrackExt(ext) {
+			file, err := utils.CheckFile(fullPath)
+			if err != nil {
+				log.Printf("%v", err)
+				continue
+			}
+
+			entries = append(entries, file)
+		}
+	}
+
+	pretty.Println(entries)
+
+	return entries, nil
 }
 
-func getFiles(p string) []File {
-	return nil
+const (
+	FILE_STATUS_OK            = 0
+	FILE_STATUS_MISSING_TITLE = 1 << 0
+)
+
+func checkFiles(files []utils.FileResult) bool {
+	valid := true
+
+	// fileStatus := make([]int, len(files))
+
+	tracks := make(map[int][]int)
+
+	for i, file := range files {
+		if file.Name == "" && file.Probe.Title == "" {
+			fmt.Printf("No title available\n")
+			valid = false
+		}
+
+		if file.Probe.Artist == "" {
+			fmt.Printf("No artist assigned\n")
+			valid = false
+		}
+
+		if file.Probe.AlbumArtist == "" {
+			fmt.Printf("No album artist assigned\n")
+			valid = false
+		}
+
+		if file.Probe.Album == "" {
+			fmt.Printf("No album assigned\n")
+			valid = false
+		}
+
+		if file.Probe.Track == -1 {
+			fmt.Printf("No track assigned\n")
+			valid = false
+		}
+
+		if file.Probe.Disc == -1 {
+			fmt.Printf("No disc assigned\n")
+			valid = false
+		}
+
+		tracks[file.Number] = append(tracks[file.Number], i)
+
+		// Artist      string
+		// AlbumArtist string
+		// Album       string
+		// Track       int
+		// Disc        int
+	}
+
+	for n, t := range tracks {
+		if len(t) > 1 {
+			log.Fatalf("Mutliple tracks with the number %v\n", n)
+		}
+	}
+
+	return valid
+}
+
+func askForMbid() uuid.UUID {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter MBID: ")
+	text, _ := reader.ReadString('\n')
+
+	id, err := uuid.Parse(strings.TrimSpace(text))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return id
 }
 
 func ImportDir(col *collection.Collection, importPath string) error {
-	files := getFiles(importPath)
-	_ = files
+	files, err := getFiles(importPath)
+	if err != nil {
+		return err
+	}
+
+	importMetadata := ImportMetadata{}
+
+	if checkFiles(files) {
+		f := &files[0]
+		importMetadata.AlbumArtistName = f.Probe.AlbumArtist
+		importMetadata.AlbumName = f.Probe.Album
+
+		for _, f := range files {
+			importMetadata.Tracks = append(importMetadata.Tracks, ImportMetadataTrack{
+				Path:   f.Path,
+				Title:  f.Probe.Title,
+				Number: f.Number,
+			})
+		}
+	} else {
+		mbid := askForMbid()
+		fmt.Printf("MBID: %v\n", mbid)
+
+		albumMetadata, err := musicbrainz.FetchAlbumMetadata(mbid.String())
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		importMetadata.AlbumArtistName = albumMetadata.ArtistCredit[0].Name
+		importMetadata.AlbumName = albumMetadata.Title
+
+		type t struct {
+			path string
+			title string
+			number int
+		}
+
+		media := albumMetadata.Media[0]
+		var tracks []t
+
+		for _, file := range files {
+			var meta musicbrainz.Track
+			found := false
+
+			for _, tm := range media.Tracks {
+				if tm.Position == file.Number {
+					meta = tm
+					found = true
+				}
+			}
+
+			if !found {
+				log.Fatalf("Failed to find mapping for %v\n", file.Path)
+			}
+
+			tracks = append(tracks, t{
+				path:   file.Path,
+				title:  meta.Title,
+				number: file.Number,
+			})
+		}
+
+		// TODO(patrik): Maybe sort here?
+
+		for _, track := range tracks {
+			importMetadata.Tracks = append(importMetadata.Tracks, ImportMetadataTrack{
+				Path:   track.path,
+				Title:  track.title,
+				Number: track.number,
+			})
+		}
+	}
 
 	// if checkFiles() {
 	// 	if askUserIfTheyWantToFetchMetadataFromDatabase() {
@@ -87,23 +260,6 @@ func ImportDir(col *collection.Collection, importPath string) error {
 	// 		createImportMetadataFromDatabase()
 	// 	}
 	// }
-
-	importMetadata := ImportMetadata{
-		AlbumName:       "Test Album",
-		AlbumArtistName: "Test Artist",
-		Tracks: []ImportMetadataTrack{
-			{
-				Path:   "/some/path",
-				Title:  "Track #1",
-				Number: 1,
-			},
-			{
-				Path:   "/some/other/path",
-				Title:  "Track #2",
-				Number: 2,
-			},
-		},
-	}
 
 	pretty.Print(importMetadata)
 	fmt.Println()
