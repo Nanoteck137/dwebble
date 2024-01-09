@@ -136,8 +136,52 @@ type Metadata struct {
 	//	}
 }
 
+type CoverArtResponse struct {
+	Ext  string
+	Data []byte
+}
+
+func FetchCoverArt(mbid string) (CoverArtResponse, error) {
+	// https://coverartarchive.org/release/{mbid}/front
+	url := fmt.Sprintf("https://coverartarchive.org/release/%v/front", mbid)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return CoverArtResponse{}, err
+	}
+
+	req.Header.Set("User-Agent", "dwebble/0.0.1 ( github.com/nanoteck137/dwebble )")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return CoverArtResponse{}, err
+	}
+	defer res.Body.Close()
+
+	contentType := res.Header.Get("Content-Type")
+	var ext string
+
+	switch contentType {
+	case "image/jpeg":
+		ext = "jpg"
+	case "image/png":
+		ext = "png"
+	default:
+		return CoverArtResponse{}, fmt.Errorf("Unknown content type for cover art: %v\n", contentType)
+	}
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return CoverArtResponse{}, err
+	}
+
+	return CoverArtResponse{
+		Ext:  ext,
+		Data: data,
+	}, err
+}
+
 func FetchAlbumMetadata(mbid string) (Metadata, error) {
-	// https://musicbrainz.org/ws/2/release/2529f558-970b-33d2-a42c-41ab15a970c6?inc=artist-credits%2Brecordings&fmt=json
+	// https://musicbrainz.org/ws/2/release/{mbid}?inc=artist-credits%2Brecordings&fmt=json
 	url := fmt.Sprintf("https://musicbrainz.org/ws/2/release/%v?inc=artist-credits+recordings&fmt=json", mbid)
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
