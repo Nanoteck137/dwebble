@@ -21,14 +21,38 @@ func updateArtist(queries *database.Queries, dbArtist database.Artist, artist co
 	return nil
 }
 
-func createArtist(queries *database.Queries, artist collection.ArtistDef) error {
+func createArtist(workDir string, queries *database.Queries, artistDir string, artist collection.ArtistDef) error {
 	ctx := context.Background()
+
+	picture := defaultImagePath
+
+	// pretty.Println(artist)
+	// if artist.Picture != "" {
+	// 	ext := path.Ext(artist.Picture)[1:]
+	// 	typ := "picture"
+	// 	name := fmt.Sprintf("%v.%v.%v", artist.Id, typ, ext)
+	// 	dst := path.Join(workDir, name)
+	//
+	// 	fmt.Printf("dst: %v\n", dst)
+	//
+	// 	a, err := filepath.Abs(path.Join(artistDir, artist.Picture))
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	//
+	// 	err = os.Symlink(a, dst)
+	// 	if err != nil {
+	// 		log.Fatal(err)
+	// 	}
+	//
+	// 	picture = fmt.Sprintf("/images/%v", name)
+	// }
 
 	// TODO(patrik): Check for picture
 	err := queries.CreateArtist(ctx, database.CreateArtistParams{
 		ID:      artist.Id,
 		Name:    artist.Name,
-		Picture: defaultImagePath, // artist.Picture,
+		Picture: picture, 
 	})
 
 	if err != nil {
@@ -86,6 +110,12 @@ func main() {
 		log.Fatal("DB_URL not set")
 	}
 
+	workingDir := "./work"
+	err = os.MkdirAll(workingDir, 0755)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	ctx := context.Background()
 
 	db, err := pgx.Connect(ctx, dbUrl)
@@ -123,7 +153,7 @@ func main() {
 			if err == pgx.ErrNoRows {
 				log.Printf("Create artist '%v'\n", artist.Name)
 
-				err := createArtist(queries, artist)
+				err := createArtist(workingDir, queries, p, artist)
 				if err != nil {
 					log.Fatal(err)
 				}
