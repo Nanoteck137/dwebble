@@ -2,20 +2,72 @@ package handlers
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/nanoteck137/dwebble/v2/internal/database"
+	"github.com/nanoteck137/dwebble/v2/utils"
 )
 
+type ApiError struct {
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+	Data    any    `json:"data,omitempty"`
+}
+
+func (apiError ApiError) Error() string {
+	return apiError.Message
+}
+
+type ApiData struct {
+	Status int `json:"status"`
+	Data   any `json:"data"`
+}
+
 type ApiConfig struct {
-	queries *database.Queries
+	validate *validator.Validate
+	queries  *database.Queries
 }
 
 func New(queries *database.Queries) ApiConfig {
+	var validate = validator.New()
+	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
+		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
 	return ApiConfig{
-		queries: queries,
+		queries:  queries,
+		validate: validate,
 	}
+}
+
+func (api *ApiConfig) validateBody(body any) map[string]string {
+	err := api.validate.Struct(body)
+	if err != nil {
+		type ValidationError struct {
+			Field   string `json:"field"`
+			Message string `json:"message"`
+		}
+
+		validationErrs := make(map[string]string)
+		for _, err := range err.(validator.ValidationErrors) {
+			field := err.Field()
+			validationErrs[field] = fmt.Sprintf("'%v' not satisfying tags '%v'", field, err.Tag())
+		}
+
+		return validationErrs
+	}
+
+	return nil
 }
 
 func (apiConfig *ApiConfig) HandlerGetAllArtists(c *fiber.Ctx) error {
@@ -30,6 +82,44 @@ func (apiConfig *ApiConfig) HandlerGetAllArtists(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"artists": artists})
+}
+
+type CreateArtistBody struct {
+	Name string `json:"name" form:"name" validate:"required"`
+}
+
+const defaultArtistImage = "default_artist.png"
+const defaultAlbumImage = "default_album.png"
+const defaultTrackImage = defaultAlbumImage
+
+func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
+	var body CreateArtistBody
+	err := c.BodyParser(&body)
+	if err != nil {
+		return err
+	}
+
+	errs := api.validateBody(body)
+	if errs != nil {
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create artist",
+			Data:    errs,
+		}
+	}
+
+	artist, err := api.queries.CreateArtist(c.Context(), database.CreateArtistParams{
+		ID:      utils.CreateId(),
+		Name:    body.Name,
+		Picture: defaultArtistImage,
+	})
+
+	artist.Picture = ConvertURL(c, fmt.Sprintf("/images/%v", artist.Picture))
+
+	return c.JSON(ApiData{
+		Status: 200,
+		Data:   artist,
+	})
 }
 
 func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
@@ -156,6 +246,8 @@ func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {
 	body := struct {
 		AlbumId string `json:"albumId"`
 	}{}
+
+	fmt.Println("Hello")
 
 	err := c.BodyParser(&body)
 	if err != nil {

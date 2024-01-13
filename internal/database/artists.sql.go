@@ -9,8 +9,8 @@ import (
 	"context"
 )
 
-const createArtist = `-- name: CreateArtist :exec
-INSERT INTO artists (id, name, picture) VALUES ($1, $2, $3)
+const createArtist = `-- name: CreateArtist :one
+INSERT INTO artists (id, name, picture) VALUES ($1, $2, $3) RETURNING id, name, picture
 `
 
 type CreateArtistParams struct {
@@ -19,9 +19,11 @@ type CreateArtistParams struct {
 	Picture string `json:"picture"`
 }
 
-func (q *Queries) CreateArtist(ctx context.Context, arg CreateArtistParams) error {
-	_, err := q.db.Exec(ctx, createArtist, arg.ID, arg.Name, arg.Picture)
-	return err
+func (q *Queries) CreateArtist(ctx context.Context, arg CreateArtistParams) (Artist, error) {
+	row := q.db.QueryRow(ctx, createArtist, arg.ID, arg.Name, arg.Picture)
+	var i Artist
+	err := row.Scan(&i.ID, &i.Name, &i.Picture)
+	return i, err
 }
 
 const deleteAllArtists = `-- name: DeleteAllArtists :exec
