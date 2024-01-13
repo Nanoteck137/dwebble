@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -38,7 +39,32 @@ func main() {
 
 	queries := database.New(db)
 
-	app := fiber.New(fiber.Config{})
+	app := fiber.New(fiber.Config{
+		BodyLimit: 1 * 1024 * 1024 * 1024,
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			if strings.HasPrefix(c.Path(), "/api") {
+				switch err := err.(type) {
+				case handlers.ApiError:
+					return c.Status(err.Status).JSON(err)
+				case *fiber.Error:
+					return c.Status(err.Code).JSON(handlers.ApiError{
+						Status:  err.Code,
+						Message: err.Error(),
+						Data:    nil,
+					})
+				default:
+					return c.Status(500).JSON(handlers.ApiError{
+						Status:  500,
+						Message: err.Error(),
+						Data:    nil,
+					})
+				}
+			}
+
+			return fiber.DefaultErrorHandler(c, err)
+		},
+	})
+
 	app.Use(logger.New())
 
 	app.Use(cors.New())
@@ -61,6 +87,7 @@ func main() {
 	v1 := app.Group("/api/v1")
 
 	v1.Get("/artists", apiConfig.HandlerGetAllArtists)
+	v1.Post("/artists", apiConfig.HandlerCreateArtist)
 	v1.Get("/artists/:id", apiConfig.HandlerGetArtist)
 
 	v1.Get("/albums", apiConfig.HandlerGetAllAlbums)
@@ -71,6 +98,20 @@ func main() {
 
 	// /queue/album/:id
 	v1.Post("/queue/album", apiConfig.HandlerCreateQueueFromAlbum)
+
+	// v1.Post("/", func(c *fiber.Ctx) error {
+	// 	form, err  := c.MultipartForm()
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	//
+	// 	t := form.File["files"]
+	// 	for _, x := range t {
+	// 		fmt.Printf("%v\n", x.Filename)
+	// 	}
+	//
+	// 	return nil
+	// })
 
 	log.Fatal(app.Listen(":3000"))
 }
