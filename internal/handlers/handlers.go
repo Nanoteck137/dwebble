@@ -2,6 +2,9 @@ package handlers
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"path"
 	"reflect"
 	"strings"
 
@@ -33,11 +36,12 @@ type ApiData struct {
 }
 
 type ApiConfig struct {
+	workDir  string
 	validate *validator.Validate
 	queries  *database.Queries
 }
 
-func New(queries *database.Queries) ApiConfig {
+func New(queries *database.Queries, workDir string) ApiConfig {
 	var validate = validator.New()
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
@@ -50,6 +54,7 @@ func New(queries *database.Queries) ApiConfig {
 	})
 
 	return ApiConfig{
+		workDir:  workDir,
 		queries:  queries,
 		validate: validate,
 	}
@@ -296,6 +301,59 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	err := c.BodyParser(&body)
 	if err != nil {
 		return err
+	}
+
+	multipart, err := c.MultipartForm()
+	if err != nil {
+		return err
+	}
+
+	trackFiles := multipart.File["trackFile"]
+	if len(trackFiles) > 0 {
+		file := trackFiles[0]
+
+		var ext string
+		switch file.Header.Get("Content-Type") {
+		case "audio/x-flac", "audio/flac":
+			ext = "flac"
+
+		case "":
+			return ApiError{
+				Status:  400,
+				Message: "No 'Content-Type' is not set on 'trackFile'",
+				Data:    nil,
+			}
+		}
+
+		f, err := file.Open()
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		err = os.MkdirAll(path.Join(api.workDir, "tracks"), 0755)
+		if err != nil {
+			return err
+		}
+
+		df, err := os.Create(path.Join(api.workDir, "tracks", "test.flac"))
+		if err != nil {
+			return err
+		}
+		defer df.Close()
+
+		_, err = io.Copy(df, f)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("%v\n", ext)
+	} else {
+		return ApiError{
+			Status:  400,
+			Message: "No 'Content-Type' is not set on 'trackFile'",
+			Data:    nil,
+		}
 	}
 
 	errs := api.validateBody(body)

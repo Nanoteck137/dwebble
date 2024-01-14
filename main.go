@@ -82,7 +82,7 @@ func main() {
 		PathPrefix: "images",
 	}))
 
-	apiConfig := handlers.New(queries)
+	apiConfig := handlers.New(queries, "./work")
 
 	v1 := app.Group("/api/v1")
 
