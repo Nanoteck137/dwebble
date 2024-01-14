@@ -8,9 +8,14 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/nanoteck137/dwebble/v2/internal/database"
 	"github.com/nanoteck137/dwebble/v2/utils"
 )
+
+const defaultArtistImage = "default_artist.png"
+const defaultAlbumImage = "default_album.png"
+const defaultTrackImage = defaultAlbumImage
 
 type ApiError struct {
 	Status  int    `json:"status"`
@@ -88,10 +93,6 @@ type CreateArtistBody struct {
 	Name string `json:"name" form:"name" validate:"required"`
 }
 
-const defaultArtistImage = "default_artist.png"
-const defaultAlbumImage = "default_album.png"
-const defaultTrackImage = defaultAlbumImage
-
 func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
 	var body CreateArtistBody
 	err := c.BodyParser(&body)
@@ -113,6 +114,10 @@ func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
 		Name:    body.Name,
 		Picture: defaultArtistImage,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	artist.Picture = ConvertURL(c, fmt.Sprintf("/images/%v", artist.Picture))
 
@@ -171,6 +176,60 @@ func (apiConfig *ApiConfig) HandlerGetAllAlbums(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"albums": albums})
 }
 
+type CreateAlbumBody struct {
+	Name   string `json:"name" form:"name" validate:"required"`
+	Artist string `json:"artist" form:"artist" validate:"required"`
+}
+
+func (api *ApiConfig) HandlerCreateAlbum(c *fiber.Ctx) error {
+	var body CreateAlbumBody
+	err := c.BodyParser(&body)
+	if err != nil {
+		return err
+	}
+
+	errs := api.validateBody(body)
+	if errs != nil {
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create album",
+			Data:    errs,
+		}
+	}
+
+	album, err := api.queries.CreateAlbum(c.Context(), database.CreateAlbumParams{
+		ID:       utils.CreateId(),
+		Name:     body.Name,
+		CoverArt: defaultAlbumImage,
+		ArtistID: body.Artist,
+	})
+
+	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			switch err.Code {
+			case "23503":
+				switch err.ConstraintName {
+				case "albums_artist_id_fk":
+					return ApiError{
+						Status:  400,
+						Message: fmt.Sprintf("No artist with id: '%v'", body.Artist),
+						Data:    nil,
+					}
+				}
+			}
+		}
+
+		return err
+	}
+
+	album.CoverArt = ConvertURL(c, fmt.Sprintf("/images/%v", album.CoverArt))
+
+	return c.JSON(ApiData{
+		Status: 200,
+		Data:   album,
+	})
+}
+
 func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -223,6 +282,79 @@ func (apiConfig *ApiConfig) HandlerGetAllTracks(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"tracks": tracks})
+}
+
+type CreateTrackBody struct {
+	Name   string `json:"name" form:"name" validate:"required"`
+	Number int    `json:"number" form:"number" validate:"required"`
+	Album  string `json:"album" form:"album" validate:"required"`
+	Artist string `json:"artist" form:"artist" validate:"required"`
+}
+
+func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
+	var body CreateTrackBody
+	err := c.BodyParser(&body)
+	if err != nil {
+		return err
+	}
+
+	errs := api.validateBody(body)
+	if errs != nil {
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data:    errs,
+		}
+	}
+
+	track, err := api.queries.CreateTrack(c.Context(), database.CreateTrackParams{
+		ID:          utils.CreateId(),
+		TrackNumber: int32(body.Number),
+		Name:        body.Name,
+		CoverArt:    "",
+		Filename:    "",
+		AlbumID:     body.Album,
+		ArtistID:    body.Artist,
+	})
+
+	if err != nil {
+		if err, ok := err.(*pgconn.PgError); ok {
+			switch err.Code {
+			case "23503":
+				switch err.ConstraintName {
+				case "tracks_album_id_fk":
+					return ApiError{
+						Status:  400,
+						Message: fmt.Sprintf("No album with id: '%v'", body.Album),
+						Data:    nil,
+					}
+				case "tracks_artist_id_fk":
+					return ApiError{
+						Status:  400,
+						Message: fmt.Sprintf("No artist with id: '%v'", body.Artist),
+						Data:    nil,
+					}
+				}
+			case "23505":
+				if err.ConstraintName == "tracks_track_number_unique" {
+					return ApiError{
+						Status:  400,
+						Message: "Track number need to be unique",
+						Data:    nil,
+					}
+				}
+			}
+		}
+
+		return err
+	}
+
+	// album.CoverArt = ConvertURL(c, fmt.Sprintf("/images/%v", album.CoverArt))
+
+	return c.JSON(ApiData{
+		Status: 200,
+		Data:   track,
+	})
 }
 
 func (apiConfig *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {

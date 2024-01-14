@@ -11,8 +11,8 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const createTrack = `-- name: CreateTrack :exec
-INSERT INTO tracks (id, track_number, name, cover_art, filename, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7)
+const createTrack = `-- name: CreateTrack :one
+INSERT INTO tracks (id, track_number, name, cover_art, filename, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, track_number, name, cover_art, filename, album_id, artist_id
 `
 
 type CreateTrackParams struct {
@@ -25,8 +25,8 @@ type CreateTrackParams struct {
 	ArtistID    string `json:"artistId"`
 }
 
-func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) error {
-	_, err := q.db.Exec(ctx, createTrack,
+func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) (Track, error) {
+	row := q.db.QueryRow(ctx, createTrack,
 		arg.ID,
 		arg.TrackNumber,
 		arg.Name,
@@ -35,7 +35,17 @@ func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) error 
 		arg.AlbumID,
 		arg.ArtistID,
 	)
-	return err
+	var i Track
+	err := row.Scan(
+		&i.ID,
+		&i.TrackNumber,
+		&i.Name,
+		&i.CoverArt,
+		&i.Filename,
+		&i.AlbumID,
+		&i.ArtistID,
+	)
+	return i, err
 }
 
 const deleteAllTracks = `-- name: DeleteAllTracks :exec

@@ -91,9 +91,11 @@ func main() {
 	v1.Get("/artists/:id", apiConfig.HandlerGetArtist)
 
 	v1.Get("/albums", apiConfig.HandlerGetAllAlbums)
+	v1.Post("/albums", apiConfig.HandlerCreateAlbum)
 	v1.Get("/albums/:id", apiConfig.HandlerGetAlbum)
 
 	v1.Get("/tracks", apiConfig.HandlerGetAllTracks)
+	v1.Post("/tracks", apiConfig.HandlerCreateTrack)
 	v1.Get("/tracks/:id", apiConfig.HandlerGetTrack)
 
 	// /queue/album/:id
