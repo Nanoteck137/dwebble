@@ -1,8 +1,11 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"log"
+	"mime/multipart"
 	"os"
 	"path"
 	"reflect"
@@ -12,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nanoteck137/dwebble/v2/internal/database"
 	"github.com/nanoteck137/dwebble/v2/utils"
 )
@@ -38,10 +42,12 @@ type ApiData struct {
 type ApiConfig struct {
 	workDir  string
 	validate *validator.Validate
+
+	db *pgxpool.Pool
 	queries  *database.Queries
 }
 
-func New(queries *database.Queries, workDir string) ApiConfig {
+func New(db *pgxpool.Pool, queries *database.Queries, workDir string) ApiConfig {
 	var validate = validator.New()
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
@@ -56,6 +62,7 @@ func New(queries *database.Queries, workDir string) ApiConfig {
 	return ApiConfig{
 		workDir:  workDir,
 		queries:  queries,
+		db: db,
 		validate: validate,
 	}
 }
@@ -296,65 +303,134 @@ type CreateTrackBody struct {
 	Artist string `json:"artist" form:"artist" validate:"required"`
 }
 
+func getExtForBestQuality(contentType string) (string, error) {
+	switch contentType {
+	case "audio/x-flac", "audio/flac":
+		return "flac", nil
+	case "audio/ogg":
+		return "ogg", nil
+	case "audio/mpeg":
+		return "mp3", nil
+	case "":
+		return "", errors.New("No 'Content-Type' is not set")
+	default:
+		return "", fmt.Errorf("Unsupported Content-Type: %v", contentType)
+	}
+}
+
+func checkMobileQualityType(file *multipart.FileHeader) error {
+	contentType := file.Header.Get("Content-Type")
+	if contentType == "" {
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data: map[string]any{
+				"mobileQualityFile": "No Content-Type set",
+			},
+		}
+	} else if contentType != "audio/mpeg" {
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data: map[string]any{
+				"mobileQualityFile": "Content-Type needs to be audio/mpeg",
+			},
+		}
+	}
+
+	return nil
+}
+
+func (api *ApiConfig) writeTrackFile(file *multipart.FileHeader, name string) error {
+	f, err := file.Open()
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	fileName := path.Join(api.workDir, "tracks", name)
+	df, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	defer df.Close()
+
+	_, err = io.Copy(df, f)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
+	tx, err := api.db.BeginTx(c.Context(), pgx.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(c.Context())
+
+	queries := database.New(tx)
+
 	var body CreateTrackBody
-	err := c.BodyParser(&body)
+	err = c.BodyParser(&body)
 	if err != nil {
 		return err
 	}
 
-	multipart, err := c.MultipartForm()
+	form, err := c.MultipartForm()
 	if err != nil {
 		return err
 	}
 
-	trackFiles := multipart.File["trackFile"]
-	if len(trackFiles) > 0 {
-		file := trackFiles[0]
+	id := utils.CreateId()
+	log.Println("New ID:", id)
 
-		var ext string
-		switch file.Header.Get("Content-Type") {
-		case "audio/x-flac", "audio/flac":
-			ext = "flac"
-
-		case "":
-			return ApiError{
+	firstFile := func(name string) (*multipart.FileHeader, error) {
+		files := form.File[name]
+		if len(files) == 1 {
+			return files[0], nil
+		} else if len(files) > 1 {
+			return nil, ApiError{
 				Status:  400,
-				Message: "No 'Content-Type' is not set on 'trackFile'",
+				Message: "Too many track files",
 				Data:    nil,
 			}
 		}
 
-		f, err := file.Open()
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		err = os.MkdirAll(path.Join(api.workDir, "tracks"), 0755)
-		if err != nil {
-			return err
-		}
-
-		df, err := os.Create(path.Join(api.workDir, "tracks", "test.flac"))
-		if err != nil {
-			return err
-		}
-		defer df.Close()
-
-		_, err = io.Copy(df, f)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("%v\n", ext)
-	} else {
-		return ApiError{
+		return nil, ApiError{
 			Status:  400,
-			Message: "No 'Content-Type' is not set on 'trackFile'",
+			Message: "No track files",
 			Data:    nil,
 		}
 	}
+
+	err = os.MkdirAll(path.Join(api.workDir, "tracks"), 0755)
+	if err != nil {
+		return err
+	}
+
+	type TrackFile struct {
+		file     *multipart.FileHeader
+		fullPath string
+	}
+
+	bestQualityFile, err := firstFile("bestQualityFile")
+	if err != nil {
+		return err
+	}
+
+	ext, err := getExtForBestQuality(bestQualityFile.Header.Get("Content-Type"))
+	if err != nil {
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data: map[string]any{
+				"bestQualityFile": err.Error(),
+			},
+		}
+	}
+
 
 	errs := api.validateBody(body)
 	if errs != nil {
@@ -365,8 +441,8 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		}
 	}
 
-	track, err := api.queries.CreateTrack(c.Context(), database.CreateTrackParams{
-		ID:          utils.CreateId(),
+	track, err := queries.CreateTrack(c.Context(), database.CreateTrackParams{
+		ID:          id,
 		TrackNumber: int32(body.Number),
 		Name:        body.Name,
 		CoverArt:    "",
@@ -408,6 +484,34 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	}
 
 	// album.CoverArt = ConvertURL(c, fmt.Sprintf("/images/%v", album.CoverArt))
+
+	bestQualityFileName := fmt.Sprintf("%v.best.%v", id, ext)
+	api.writeTrackFile(bestQualityFile, bestQualityFileName)
+
+	mobileQualityFileName := fmt.Sprintf("%v.mobile.mp3", id)
+	fmt.Println("Ext:", ext)
+	fmt.Println("Len:", len(form.File["mobileQualityFile"]))
+	if ext == "mp3" && len(form.File["mobileQualityFile"]) == 0 {
+		err := os.Symlink(bestQualityFileName, path.Join(api.workDir, "tracks", mobileQualityFileName))
+		if err != nil {
+			return err
+		}
+	} else {
+		mobileQualityFile, err := firstFile("mobileQualityFile")
+		if err != nil {
+			return err
+		}
+
+		err = api.writeTrackFile(mobileQualityFile, mobileQualityFileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit(c.Context())
+	if err != nil {
+		return err
+	}
 
 	return c.JSON(ApiData{
 		Status: 200,
