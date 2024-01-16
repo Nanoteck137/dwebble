@@ -2,10 +2,10 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main"
-  cmd = "go build -o ./tmp/main ."
+  bin = "./tmp/dwebble"
+  cmd = "go build -o ./tmp/dwebble cmd/dwebble/main.go"
   delay = 1000
-  exclude_dir = ["assets", "tmp", "vendor"]
+  exclude_dir = ["tmp", "vendor"]
   exclude_file = []
   exclude_regex = [".*_templ.go"]
   exclude_unchanged = false
