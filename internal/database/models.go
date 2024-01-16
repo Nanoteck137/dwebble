@@ -20,11 +20,12 @@ type Artist struct {
 }
 
 type Track struct {
-	ID          string `json:"id"`
-	TrackNumber int32  `json:"trackNumber"`
-	Name        string `json:"name"`
-	CoverArt    string `json:"coverArt"`
-	Filename    string `json:"filename"`
-	AlbumID     string `json:"albumId"`
-	ArtistID    string `json:"artistId"`
+	ID                string `json:"id"`
+	TrackNumber       int32  `json:"trackNumber"`
+	Name              string `json:"name"`
+	CoverArt          string `json:"coverArt"`
+	BestQualityFile   string `json:"bestQualityFile"`
+	MobileQualityFile string `json:"mobileQualityFile"`
+	AlbumID           string `json:"albumId"`
+	ArtistID          string `json:"artistId"`
 }

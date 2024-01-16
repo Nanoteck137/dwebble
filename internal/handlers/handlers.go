@@ -43,8 +43,8 @@ type ApiConfig struct {
 	workDir  string
 	validate *validator.Validate
 
-	db *pgxpool.Pool
-	queries  *database.Queries
+	db      *pgxpool.Pool
+	queries *database.Queries
 }
 
 func New(db *pgxpool.Pool, queries *database.Queries, workDir string) ApiConfig {
@@ -62,7 +62,7 @@ func New(db *pgxpool.Pool, queries *database.Queries, workDir string) ApiConfig 
 	return ApiConfig{
 		workDir:  workDir,
 		queries:  queries,
-		db: db,
+		db:       db,
 		validate: validate,
 	}
 }
@@ -264,7 +264,8 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 	for i := range tracks {
 		t := &tracks[i]
 		t.CoverArt = ConvertURL(c, t.CoverArt)
-		t.Filename = ConvertURL(c, "/tracks/"+t.Filename)
+		t.BestQualityFile = ConvertURL(c, "/tracks/"+t.BestQualityFile)
+		t.MobileQualityFile = ConvertURL(c, "/tracks/"+t.MobileQualityFile)
 	}
 
 	res := struct {
@@ -289,8 +290,10 @@ func (apiConfig *ApiConfig) HandlerGetAllTracks(c *fiber.Ctx) error {
 	}
 
 	for i := range tracks {
-		a := &tracks[i]
-		a.CoverArt = ConvertURL(c, a.CoverArt)
+		track := &tracks[i]
+		track.CoverArt = ConvertURL(c, track.CoverArt)
+		track.BestQualityFile = ConvertURL(c, "/tracks/"+track.BestQualityFile)
+		track.MobileQualityFile = ConvertURL(c, "/tracks/"+track.MobileQualityFile)
 	}
 
 	return c.JSON(fiber.Map{"tracks": tracks})
@@ -431,6 +434,8 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		}
 	}
 
+	bestQualityFileName := fmt.Sprintf("%v.best.%v", id, ext)
+	mobileQualityFileName := fmt.Sprintf("%v.mobile.mp3", id)
 
 	errs := api.validateBody(body)
 	if errs != nil {
@@ -442,13 +447,14 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	}
 
 	track, err := queries.CreateTrack(c.Context(), database.CreateTrackParams{
-		ID:          id,
-		TrackNumber: int32(body.Number),
-		Name:        body.Name,
-		CoverArt:    "",
-		Filename:    "",
-		AlbumID:     body.Album,
-		ArtistID:    body.Artist,
+		ID:                id,
+		TrackNumber:       int32(body.Number),
+		Name:              body.Name,
+		CoverArt:          "",
+		BestQualityFile:   bestQualityFileName,
+		MobileQualityFile: mobileQualityFileName,
+		AlbumID:           body.Album,
+		ArtistID:          body.Artist,
 	})
 
 	if err != nil {
@@ -485,10 +491,8 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 
 	// album.CoverArt = ConvertURL(c, fmt.Sprintf("/images/%v", album.CoverArt))
 
-	bestQualityFileName := fmt.Sprintf("%v.best.%v", id, ext)
 	api.writeTrackFile(bestQualityFile, bestQualityFileName)
 
-	mobileQualityFileName := fmt.Sprintf("%v.mobile.mp3", id)
 	fmt.Println("Ext:", ext)
 	fmt.Println("Len:", len(form.File["mobileQualityFile"]))
 	if ext == "mp3" && len(form.File["mobileQualityFile"]) == 0 {

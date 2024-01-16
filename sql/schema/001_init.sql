@@ -26,7 +26,8 @@ CREATE TABLE tracks (
     name TEXT NOT NULL,
     cover_art TEXT NOT NULL,
 
-    filename TEXT NOT NULL,
+    best_quality_file TEXT NOT NULL,
+    mobile_quality_file TEXT NOT NULL,
 
     album_id TEXT NOT NULL,
     artist_id TEXT NOT NULL,

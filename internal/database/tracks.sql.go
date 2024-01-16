@@ -12,17 +12,18 @@ import (
 )
 
 const createTrack = `-- name: CreateTrack :one
-INSERT INTO tracks (id, track_number, name, cover_art, filename, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, track_number, name, cover_art, filename, album_id, artist_id
+INSERT INTO tracks (id, track_number, name, cover_art, best_quality_file, mobile_quality_file, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, track_number, name, cover_art, best_quality_file, mobile_quality_file, album_id, artist_id
 `
 
 type CreateTrackParams struct {
-	ID          string `json:"id"`
-	TrackNumber int32  `json:"trackNumber"`
-	Name        string `json:"name"`
-	CoverArt    string `json:"coverArt"`
-	Filename    string `json:"filename"`
-	AlbumID     string `json:"albumId"`
-	ArtistID    string `json:"artistId"`
+	ID                string `json:"id"`
+	TrackNumber       int32  `json:"trackNumber"`
+	Name              string `json:"name"`
+	CoverArt          string `json:"coverArt"`
+	BestQualityFile   string `json:"bestQualityFile"`
+	MobileQualityFile string `json:"mobileQualityFile"`
+	AlbumID           string `json:"albumId"`
+	ArtistID          string `json:"artistId"`
 }
 
 func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) (Track, error) {
@@ -31,7 +32,8 @@ func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) (Track
 		arg.TrackNumber,
 		arg.Name,
 		arg.CoverArt,
-		arg.Filename,
+		arg.BestQualityFile,
+		arg.MobileQualityFile,
 		arg.AlbumID,
 		arg.ArtistID,
 	)
@@ -41,7 +43,8 @@ func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) (Track
 		&i.TrackNumber,
 		&i.Name,
 		&i.CoverArt,
-		&i.Filename,
+		&i.BestQualityFile,
+		&i.MobileQualityFile,
 		&i.AlbumID,
 		&i.ArtistID,
 	)
@@ -59,7 +62,7 @@ func (q *Queries) DeleteAllTracks(ctx context.Context) error {
 
 const getAllTracks = `-- name: GetAllTracks :many
 SELECT
-    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.filename, tracks.album_id, tracks.artist_id, 
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks
@@ -68,15 +71,16 @@ LEFT JOIN artists ON artists.id = tracks.artist_id
 `
 
 type GetAllTracksRow struct {
-	ID          string      `json:"id"`
-	TrackNumber int32       `json:"trackNumber"`
-	Name        string      `json:"name"`
-	CoverArt    string      `json:"coverArt"`
-	Filename    string      `json:"filename"`
-	AlbumID     string      `json:"albumId"`
-	ArtistID    string      `json:"artistId"`
-	AlbumName   pgtype.Text `json:"albumName"`
-	ArtistName  pgtype.Text `json:"artistName"`
+	ID                string      `json:"id"`
+	TrackNumber       int32       `json:"trackNumber"`
+	Name              string      `json:"name"`
+	CoverArt          string      `json:"coverArt"`
+	BestQualityFile   string      `json:"bestQualityFile"`
+	MobileQualityFile string      `json:"mobileQualityFile"`
+	AlbumID           string      `json:"albumId"`
+	ArtistID          string      `json:"artistId"`
+	AlbumName         pgtype.Text `json:"albumName"`
+	ArtistName        pgtype.Text `json:"artistName"`
 }
 
 func (q *Queries) GetAllTracks(ctx context.Context) ([]GetAllTracksRow, error) {
@@ -93,7 +97,8 @@ func (q *Queries) GetAllTracks(ctx context.Context) ([]GetAllTracksRow, error) {
 			&i.TrackNumber,
 			&i.Name,
 			&i.CoverArt,
-			&i.Filename,
+			&i.BestQualityFile,
+			&i.MobileQualityFile,
 			&i.AlbumID,
 			&i.ArtistID,
 			&i.AlbumName,
@@ -111,7 +116,7 @@ func (q *Queries) GetAllTracks(ctx context.Context) ([]GetAllTracksRow, error) {
 
 const getTrack = `-- name: GetTrack :one
 SELECT
-    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.filename, tracks.album_id, tracks.artist_id, 
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks 
@@ -121,15 +126,16 @@ WHERE tracks.id=$1
 `
 
 type GetTrackRow struct {
-	ID          string      `json:"id"`
-	TrackNumber int32       `json:"trackNumber"`
-	Name        string      `json:"name"`
-	CoverArt    string      `json:"coverArt"`
-	Filename    string      `json:"filename"`
-	AlbumID     string      `json:"albumId"`
-	ArtistID    string      `json:"artistId"`
-	AlbumName   pgtype.Text `json:"albumName"`
-	ArtistName  pgtype.Text `json:"artistName"`
+	ID                string      `json:"id"`
+	TrackNumber       int32       `json:"trackNumber"`
+	Name              string      `json:"name"`
+	CoverArt          string      `json:"coverArt"`
+	BestQualityFile   string      `json:"bestQualityFile"`
+	MobileQualityFile string      `json:"mobileQualityFile"`
+	AlbumID           string      `json:"albumId"`
+	ArtistID          string      `json:"artistId"`
+	AlbumName         pgtype.Text `json:"albumName"`
+	ArtistName        pgtype.Text `json:"artistName"`
 }
 
 func (q *Queries) GetTrack(ctx context.Context, id string) (GetTrackRow, error) {
@@ -140,7 +146,8 @@ func (q *Queries) GetTrack(ctx context.Context, id string) (GetTrackRow, error) 
 		&i.TrackNumber,
 		&i.Name,
 		&i.CoverArt,
-		&i.Filename,
+		&i.BestQualityFile,
+		&i.MobileQualityFile,
 		&i.AlbumID,
 		&i.ArtistID,
 		&i.AlbumName,
@@ -151,7 +158,7 @@ func (q *Queries) GetTrack(ctx context.Context, id string) (GetTrackRow, error) 
 
 const getTracksByAlbum = `-- name: GetTracksByAlbum :many
 SELECT 
-    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.filename, tracks.album_id, tracks.artist_id, 
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks 
@@ -162,15 +169,16 @@ ORDER BY track_number
 `
 
 type GetTracksByAlbumRow struct {
-	ID          string      `json:"id"`
-	TrackNumber int32       `json:"trackNumber"`
-	Name        string      `json:"name"`
-	CoverArt    string      `json:"coverArt"`
-	Filename    string      `json:"filename"`
-	AlbumID     string      `json:"albumId"`
-	ArtistID    string      `json:"artistId"`
-	AlbumName   pgtype.Text `json:"albumName"`
-	ArtistName  pgtype.Text `json:"artistName"`
+	ID                string      `json:"id"`
+	TrackNumber       int32       `json:"trackNumber"`
+	Name              string      `json:"name"`
+	CoverArt          string      `json:"coverArt"`
+	BestQualityFile   string      `json:"bestQualityFile"`
+	MobileQualityFile string      `json:"mobileQualityFile"`
+	AlbumID           string      `json:"albumId"`
+	ArtistID          string      `json:"artistId"`
+	AlbumName         pgtype.Text `json:"albumName"`
+	ArtistName        pgtype.Text `json:"artistName"`
 }
 
 func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]GetTracksByAlbumRow, error) {
@@ -187,7 +195,8 @@ func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]GetTr
 			&i.TrackNumber,
 			&i.Name,
 			&i.CoverArt,
-			&i.Filename,
+			&i.BestQualityFile,
+			&i.MobileQualityFile,
 			&i.AlbumID,
 			&i.ArtistID,
 			&i.AlbumName,

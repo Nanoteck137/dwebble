@@ -29,7 +29,7 @@ WHERE album_id=$1
 ORDER BY track_number;
 
 -- name: CreateTrack :one
-INSERT INTO tracks (id, track_number, name, cover_art, filename, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
+INSERT INTO tracks (id, track_number, name, cover_art, best_quality_file, mobile_quality_file, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;
 
 -- name: DeleteAllTracks :exec
 DELETE FROM tracks;

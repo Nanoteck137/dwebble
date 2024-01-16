@@ -70,7 +70,7 @@ func main() {
 	app.Use(cors.New())
 
 	app.Use("/tracks", filesystem.New(filesystem.Config{
-		Root: http.Dir("./test"),
+		Root: http.Dir("./work/tracks"),
 	}))
 
 	app.Use("/images", filesystem.New(filesystem.Config{
