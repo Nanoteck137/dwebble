@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"embed"
 	"log"
 	"net/http"
 	"os"
@@ -14,12 +13,10 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/nanoteck137/dwebble/v2/assets"
 	"github.com/nanoteck137/dwebble/v2/internal/database"
 	"github.com/nanoteck137/dwebble/v2/internal/handlers"
 )
-
-//go:embed images/*
-var content embed.FS
 
 func main() {
 	err := godotenv.Load()
@@ -78,7 +75,7 @@ func main() {
 	}))
 
 	app.Use("/images", filesystem.New(filesystem.Config{
-		Root:       http.FS(content),
+		Root:       http.FS(assets.Content),
 		PathPrefix: "images",
 	}))
 
