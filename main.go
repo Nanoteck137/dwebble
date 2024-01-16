@@ -112,5 +112,10 @@ func main() {
 	// 	return nil
 	// })
 
-	log.Fatal(app.Listen(":3000"))
+	listen_addr := os.Getenv("LISTEN_ADDR")
+	if listen_addr == "" {
+		log.Fatal("LISTEN_ADDR not set")
+	}
+
+	log.Fatal(app.Listen(listen_addr))
 }
