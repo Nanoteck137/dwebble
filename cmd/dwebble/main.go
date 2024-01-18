@@ -38,6 +38,27 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		BodyLimit: 1 * 1024 * 1024 * 1024,
+	})
+
+	app.Use(logger.New())
+	app.Use(cors.New())
+
+	app.Use("/tracks", filesystem.New(filesystem.Config{
+		Root: http.Dir("./work/tracks"),
+	}))
+
+	app.Use("/images", filesystem.New(filesystem.Config{
+		Root: http.Dir("./images"),
+	}))
+
+	app.Use("/images", filesystem.New(filesystem.Config{
+		Root:       http.FS(assets.Content),
+		PathPrefix: "images",
+	}))
+
+	apiConfig := handlers.New(db, queries, "./work")
+
+	v1 := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			if strings.HasPrefix(c.Path(), "/api") {
 				switch err := err.(type) {
@@ -62,27 +83,6 @@ func main() {
 		},
 	})
 
-	app.Use(logger.New())
-
-	app.Use(cors.New())
-
-	app.Use("/tracks", filesystem.New(filesystem.Config{
-		Root: http.Dir("./work/tracks"),
-	}))
-
-	app.Use("/images", filesystem.New(filesystem.Config{
-		Root: http.Dir("./images"),
-	}))
-
-	app.Use("/images", filesystem.New(filesystem.Config{
-		Root:       http.FS(assets.Content),
-		PathPrefix: "images",
-	}))
-
-	apiConfig := handlers.New(db, queries, "./work")
-
-	v1 := app.Group("/api/v1")
-
 	v1.Get("/artists", apiConfig.HandlerGetAllArtists)
 	v1.Post("/artists", apiConfig.HandlerCreateArtist)
 	v1.Get("/artists/:id", apiConfig.HandlerGetArtist)
@@ -97,6 +97,8 @@ func main() {
 
 	// /queue/album/:id
 	v1.Post("/queue/album", apiConfig.HandlerCreateQueueFromAlbum)
+
+	app.Mount("/api/v1", v1)
 
 	// v1.Post("/", func(c *fiber.Ctx) error {
 	// 	form, err  := c.MultipartForm()
