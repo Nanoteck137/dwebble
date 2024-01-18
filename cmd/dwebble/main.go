@@ -100,19 +100,5 @@ func main() {
 
 	app.Mount("/api/v1", v1)
 
-	// v1.Post("/", func(c *fiber.Ctx) error {
-	// 	form, err  := c.MultipartForm()
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	//
-	// 	t := form.File["files"]
-	// 	for _, x := range t {
-	// 		fmt.Printf("%v\n", x.Filename)
-	// 	}
-	//
-	// 	return nil
-	// })
-
 	log.Fatal(app.Listen(":3000"))
 }
