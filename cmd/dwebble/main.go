@@ -13,7 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/nanoteck137/dwebble/v2/api"
+	"github.com/nanoteck137/dwebble/api"
 )
 
 type WorkDir string

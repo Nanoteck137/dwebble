@@ -1,4 +1,4 @@
-module github.com/nanoteck137/dwebble/v2
+module github.com/nanoteck137/dwebble
 
 go 1.21.5
 

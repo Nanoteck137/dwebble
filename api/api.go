@@ -5,9 +5,9 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/nanoteck137/dwebble/v2/database"
-	"github.com/nanoteck137/dwebble/v2/handlers"
-	"github.com/nanoteck137/dwebble/v2/types"
+	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/handlers"
+	"github.com/nanoteck137/dwebble/types"
 )
 
 type Api struct {
