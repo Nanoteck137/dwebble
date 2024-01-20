@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/nanoteck137/dwebble/v2/internal/database"
+	"github.com/nanoteck137/dwebble/v2/database"
 	"github.com/nanoteck137/dwebble/v2/utils"
 )
 
