@@ -16,6 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nanoteck137/dwebble/v2/database"
+	"github.com/nanoteck137/dwebble/v2/types"
 	"github.com/nanoteck137/dwebble/v2/utils"
 )
 
@@ -373,10 +374,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	var body CreateTrackBody
 	err = c.BodyParser(&body)
 	if err != nil {
-		return ApiError{
-			Status:  400,
-			Message: fmt.Sprintf("Failed to create track: %v", err),
-		}
+		return types.ApiBadRequestError("Failed to create track: " + err.Error())
 	}
 
 	errs := api.validateBody(body)

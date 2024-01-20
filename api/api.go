@@ -1,10 +1,13 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nanoteck137/dwebble/v2/database"
 	"github.com/nanoteck137/dwebble/v2/handlers"
+	"github.com/nanoteck137/dwebble/v2/types"
 )
 
 type Api struct {
@@ -16,6 +19,8 @@ func New(db *pgxpool.Pool) *fiber.App {
 			switch err := err.(type) {
 			case handlers.ApiError:
 				return c.Status(err.Status).JSON(err)
+			case types.ApiError:
+				return c.Status(err.Status).JSON(err)
 			case *fiber.Error:
 				return c.Status(err.Code).JSON(handlers.ApiError{
 					Status:  err.Code,
@@ -24,8 +29,8 @@ func New(db *pgxpool.Pool) *fiber.App {
 				})
 			}
 
-			return c.Status(500).JSON(handlers.ApiError{
-				Status:  500,
+			return c.Status(http.StatusInternalServerError).JSON(handlers.ApiError{
+				Status:  http.StatusInternalServerError,
 				Message: err.Error(),
 				Data:    nil,
 			})
