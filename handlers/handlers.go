@@ -83,7 +83,9 @@ func (apiConfig *ApiConfig) HandlerGetAllArtists(c *fiber.Ctx) error {
 		a.Picture = ConvertURL(c, a.Picture)
 	}
 
-	return c.JSON(fiber.Map{"artists": artists})
+	return c.JSON(types.NewApiResponse(types.Map{
+		"artists": artists,
+	}))
 }
 
 type CreateArtistBody struct {
@@ -123,7 +125,7 @@ func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
 	artist, err := apiConfig.queries.GetArtist(c.Context(), id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return c.Status(404).JSON(fiber.Map{"message": fmt.Sprintf("No artist with id: %s", id)})
+			return types.ApiNotFoundError(fmt.Sprintf("No artist with id: '%s'", id))
 		} else {
 			return err
 		}
@@ -149,7 +151,7 @@ func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
 		Albums: albums,
 	}
 
-	return c.JSON(res)
+	return c.JSON(types.NewApiResponse(res))
 }
 
 func (apiConfig *ApiConfig) HandlerGetAllAlbums(c *fiber.Ctx) error {
@@ -163,7 +165,7 @@ func (apiConfig *ApiConfig) HandlerGetAllAlbums(c *fiber.Ctx) error {
 		a.CoverArt = ConvertURL(c, a.CoverArt)
 	}
 
-	return c.JSON(fiber.Map{"albums": albums})
+	return c.JSON(types.NewApiResponse(types.Map{"albums": albums}))
 }
 
 type CreateAlbumBody struct {
@@ -215,7 +217,7 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 	album, err := apiConfig.queries.GetAlbum(c.Context(), id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return c.Status(404).JSON(fiber.Map{"message": fmt.Sprintf("No album with id: %s", id)})
+			return types.ApiNotFoundError(fmt.Sprintf("No album with id: '%s'", id))
 		} else {
 			return err
 		}
@@ -263,7 +265,7 @@ func (apiConfig *ApiConfig) HandlerGetAllTracks(c *fiber.Ctx) error {
 		track.MobileQualityFile = ConvertURL(c, "/tracks/"+track.MobileQualityFile)
 	}
 
-	return c.JSON(fiber.Map{"tracks": tracks})
+	return c.JSON(types.NewApiResponse(types.Map{"tracks": tracks}))
 }
 
 type CreateTrackBody struct {
@@ -292,12 +294,12 @@ func checkMobileQualityType(file *multipart.FileHeader) error {
 	contentType := file.Header.Get("Content-Type")
 	if contentType == "" {
 		return types.ApiBadRequestError("Failed to create track", map[string]any{
-				"mobileQualityFile": "No Content-Type set",
-			})
+			"mobileQualityFile": "No Content-Type set",
+		})
 	} else if contentType != "audio/mpeg" {
 		return types.ApiBadRequestError("Failed to create track", map[string]any{
-				"mobileQualityFile": "Content-Type needs to be audio/mpeg",
-			})
+			"mobileQualityFile": "Content-Type needs to be audio/mpeg",
+		})
 	}
 
 	return nil
@@ -478,7 +480,7 @@ func (apiConfig *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
 	track, err := apiConfig.queries.GetTrack(c.Context(), id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return c.Status(404).JSON(fiber.Map{"message": fmt.Sprintf("No track with id: %s", id)})
+			return types.ApiNotFoundError(fmt.Sprintf("No track with id: '%s'", id))
 		} else {
 			return err
 		}

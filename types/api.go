@@ -32,6 +32,10 @@ func ApiBadRequestError(message string, data ...any) ApiError {
 	return NewApiError(http.StatusBadRequest, message, data...)
 }
 
+func ApiNotFoundError(message string, data ...any) ApiError {
+	return NewApiError(http.StatusNotFound, message, data...)
+}
+
 type ApiResponse struct {
 	Status int `json:"status"`
 	Data   any `json:"data"`
