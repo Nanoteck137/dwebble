@@ -487,13 +487,13 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 				case "tracks_album_id_fk":
 					return ApiError{
 						Status:  400,
-						Message: fmt.Sprintf("No album with id: '%v'", body.Album),
+						Message: fmt.Sprintf("Failed to create track: No album with id: '%v'", body.Album),
 						Data:    nil,
 					}
 				case "tracks_artist_id_fk":
 					return ApiError{
 						Status:  400,
-						Message: fmt.Sprintf("No artist with id: '%v'", body.Artist),
+						Message: fmt.Sprintf("Failed to create track: No artist with id: '%v'", body.Artist),
 						Data:    nil,
 					}
 				}
@@ -501,7 +501,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 				if err.ConstraintName == "tracks_track_number_unique" {
 					return ApiError{
 						Status:  400,
-						Message: "Track number need to be unique",
+						Message: "Failed to create track: Track number need to be unique",
 						Data:    nil,
 					}
 				}
