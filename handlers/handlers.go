@@ -109,16 +109,12 @@ func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
 	var body CreateArtistBody
 	err := c.BodyParser(&body)
 	if err != nil {
-		return err
+		return types.ApiBadRequestError("Failed to create artist: " + err.Error())
 	}
 
 	errs := api.validateBody(body)
 	if errs != nil {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create artist",
-			Data:    errs,
-		}
+		return types.ApiBadRequestError("Failed to create artist", errs)
 	}
 
 	artist, err := api.queries.CreateArtist(c.Context(), database.CreateArtistParams{
@@ -133,10 +129,7 @@ func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
 
 	artist.Picture = ConvertURL(c, fmt.Sprintf("/images/%v", artist.Picture))
 
-	return c.JSON(ApiData{
-		Status: 200,
-		Data:   artist,
-	})
+	return c.JSON(types.NewApiResponse(artist))
 }
 
 func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
@@ -197,16 +190,12 @@ func (api *ApiConfig) HandlerCreateAlbum(c *fiber.Ctx) error {
 	var body CreateAlbumBody
 	err := c.BodyParser(&body)
 	if err != nil {
-		return err
+		return types.ApiBadRequestError("Failed to create album: " + err.Error())
 	}
 
 	errs := api.validateBody(body)
 	if errs != nil {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create album",
-			Data:    errs,
-		}
+		return types.ApiBadRequestError("Failed to create album", errs)
 	}
 
 	album, err := api.queries.CreateAlbum(c.Context(), database.CreateAlbumParams{
@@ -222,11 +211,7 @@ func (api *ApiConfig) HandlerCreateAlbum(c *fiber.Ctx) error {
 			case "23503":
 				switch err.ConstraintName {
 				case "albums_artist_id_fk":
-					return ApiError{
-						Status:  400,
-						Message: fmt.Sprintf("No artist with id: '%v'", body.Artist),
-						Data:    nil,
-					}
+					return types.ApiBadRequestError(fmt.Sprintf("No artist with id: '%v'", body.Artist))
 				}
 			}
 		}
@@ -236,10 +221,7 @@ func (api *ApiConfig) HandlerCreateAlbum(c *fiber.Ctx) error {
 
 	album.CoverArt = ConvertURL(c, fmt.Sprintf("/images/%v", album.CoverArt))
 
-	return c.JSON(ApiData{
-		Status: 200,
-		Data:   album,
-	})
+	return c.JSON(types.NewApiResponse(album))
 }
 
 func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
