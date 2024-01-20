@@ -73,7 +73,7 @@ func (api *ApiConfig) validateBody(body any) map[string]string {
 }
 
 func (apiConfig *ApiConfig) HandlerGetAllArtists(c *fiber.Ctx) error {
-	artists, err := apiConfig.queries.GetAllArtists(c.Context())
+	artists, err := apiConfig.queries.GetAllArtists(c.UserContext())
 	if err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
 		return types.ApiBadRequestError("Failed to create artist", errs)
 	}
 
-	artist, err := api.queries.CreateArtist(c.Context(), database.CreateArtistParams{
+	artist, err := api.queries.CreateArtist(c.UserContext(), database.CreateArtistParams{
 		ID:      utils.CreateId(),
 		Name:    body.Name,
 		Picture: defaultArtistImage,
@@ -122,7 +122,7 @@ func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
 func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	artist, err := apiConfig.queries.GetArtist(c.Context(), id)
+	artist, err := apiConfig.queries.GetArtist(c.UserContext(), id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return types.ApiNotFoundError(fmt.Sprintf("No artist with id: '%s'", id))
@@ -133,7 +133,7 @@ func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
 
 	artist.Picture = ConvertURL(c, artist.Picture)
 
-	albums, err := apiConfig.queries.GetAlbumsByArtist(c.Context(), id)
+	albums, err := apiConfig.queries.GetAlbumsByArtist(c.UserContext(), id)
 	if err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
 }
 
 func (apiConfig *ApiConfig) HandlerGetAllAlbums(c *fiber.Ctx) error {
-	albums, err := apiConfig.queries.GetAllAlbums(c.Context())
+	albums, err := apiConfig.queries.GetAllAlbums(c.UserContext())
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (api *ApiConfig) HandlerCreateAlbum(c *fiber.Ctx) error {
 		return types.ApiBadRequestError("Failed to create album", errs)
 	}
 
-	album, err := api.queries.CreateAlbum(c.Context(), database.CreateAlbumParams{
+	album, err := api.queries.CreateAlbum(c.UserContext(), database.CreateAlbumParams{
 		ID:       utils.CreateId(),
 		Name:     body.Name,
 		CoverArt: defaultAlbumImage,
@@ -214,7 +214,7 @@ func (api *ApiConfig) HandlerCreateAlbum(c *fiber.Ctx) error {
 func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	album, err := apiConfig.queries.GetAlbum(c.Context(), id)
+	album, err := apiConfig.queries.GetAlbum(c.UserContext(), id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return types.ApiNotFoundError(fmt.Sprintf("No album with id: '%s'", id))
@@ -225,7 +225,7 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 
 	album.CoverArt = ConvertURL(c, album.CoverArt)
 
-	tracks, err := apiConfig.queries.GetTracksByAlbum(c.Context(), id)
+	tracks, err := apiConfig.queries.GetTracksByAlbum(c.UserContext(), id)
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func ConvertURL(c *fiber.Ctx, path string) string {
 }
 
 func (apiConfig *ApiConfig) HandlerGetAllTracks(c *fiber.Ctx) error {
-	tracks, err := apiConfig.queries.GetAllTracks(c.Context())
+	tracks, err := apiConfig.queries.GetAllTracks(c.UserContext())
 	if err != nil {
 		return err
 	}
@@ -316,11 +316,11 @@ func (api *ApiConfig) writeImageFile(file *multipart.FileHeader, name string) er
 }
 
 func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
-	tx, err := api.db.BeginTx(c.Context(), pgx.TxOptions{})
+	tx, err := api.db.BeginTx(c.UserContext(), pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(c.Context())
+	defer tx.Rollback(c.UserContext())
 
 	queries := database.New(tx)
 
@@ -400,7 +400,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	mobileQualityFileName := fmt.Sprintf("%v.mobile.mp3", id)
 	coverArtFileName := fmt.Sprintf("%v.cover.%v", id, imageExt)
 
-	track, err := queries.CreateTrack(c.Context(), database.CreateTrackParams{
+	track, err := queries.CreateTrack(c.UserContext(), database.CreateTrackParams{
 		ID:                id,
 		TrackNumber:       int32(body.Number),
 		Name:              body.Name,
@@ -466,7 +466,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		}
 	}
 
-	err = tx.Commit(c.Context())
+	err = tx.Commit(c.UserContext())
 	if err != nil {
 		return err
 	}
@@ -477,7 +477,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 func (apiConfig *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	track, err := apiConfig.queries.GetTrack(c.Context(), id)
+	track, err := apiConfig.queries.GetTrack(c.UserContext(), id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return types.ApiNotFoundError(fmt.Sprintf("No track with id: '%s'", id))
@@ -503,7 +503,7 @@ func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {
 		return err
 	}
 
-	tracks, err := apiConfig.queries.GetTracksByAlbum(c.Context(), body.AlbumId)
+	tracks, err := apiConfig.queries.GetTracksByAlbum(c.UserContext(), body.AlbumId)
 	if err != nil {
 		return err
 	}
