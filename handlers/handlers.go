@@ -362,15 +362,21 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 
 	queries := database.New(tx)
 
+	form, err := c.MultipartForm()
+	if err != nil {
+		return ApiError{
+			Status:  400,
+			Message: fmt.Sprintf("Failed to create track: %v", err),
+		}
+	}
+
 	var body CreateTrackBody
 	err = c.BodyParser(&body)
 	if err != nil {
-		return err
-	}
-
-	form, err := c.MultipartForm()
-	if err != nil {
-		return err
+		return ApiError{
+			Status:  400,
+			Message: fmt.Sprintf("Failed to create track: %v", err),
+		}
 	}
 
 	id := utils.CreateId()
