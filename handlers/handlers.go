@@ -403,11 +403,6 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		return err
 	}
 
-	type TrackFile struct {
-		file     *multipart.FileHeader
-		fullPath string
-	}
-
 	bestQualityFile, err := firstFile("bestQualityFile")
 	if err != nil {
 		return ApiError{
