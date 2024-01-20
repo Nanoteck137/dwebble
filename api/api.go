@@ -17,23 +17,16 @@ func New(db *pgxpool.Pool) *fiber.App {
 	router := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			switch err := err.(type) {
-			case handlers.ApiError:
-				return c.Status(err.Status).JSON(err)
 			case types.ApiError:
 				return c.Status(err.Status).JSON(err)
 			case *fiber.Error:
-				return c.Status(err.Code).JSON(handlers.ApiError{
-					Status:  err.Code,
-					Message: err.Error(),
-					Data:    nil,
-				})
+				return c.Status(err.Code).JSON(types.NewApiError(err.Code, err.Error()))
 			}
 
-			return c.Status(http.StatusInternalServerError).JSON(handlers.ApiError{
-				Status:  http.StatusInternalServerError,
-				Message: err.Error(),
-				Data:    nil,
-			})
+			return c.Status(http.StatusInternalServerError).JSON(types.NewApiError(
+				http.StatusInternalServerError,
+				err.Error(),
+			))
 		},
 	})
 

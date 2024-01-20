@@ -24,21 +24,6 @@ const defaultArtistImage = "default_artist.png"
 const defaultAlbumImage = "default_album.png"
 const defaultTrackImage = defaultAlbumImage
 
-type ApiError struct {
-	Status  int    `json:"status"`
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
-}
-
-func (apiError ApiError) Error() string {
-	return apiError.Message
-}
-
-type ApiData struct {
-	Status int `json:"status"`
-	Data   any `json:"data"`
-}
-
 type ApiConfig struct {
 	workDir  string
 	validate *validator.Validate
@@ -306,21 +291,13 @@ func getExtForBestQuality(contentType string) (string, error) {
 func checkMobileQualityType(file *multipart.FileHeader) error {
 	contentType := file.Header.Get("Content-Type")
 	if contentType == "" {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data: map[string]any{
+		return types.ApiBadRequestError("Failed to create track", map[string]any{
 				"mobileQualityFile": "No Content-Type set",
-			},
-		}
+			})
 	} else if contentType != "audio/mpeg" {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data: map[string]any{
+		return types.ApiBadRequestError("Failed to create track", map[string]any{
 				"mobileQualityFile": "Content-Type needs to be audio/mpeg",
-			},
-		}
+			})
 	}
 
 	return nil
