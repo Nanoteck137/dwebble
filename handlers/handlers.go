@@ -20,10 +20,6 @@ import (
 	"github.com/nanoteck137/dwebble/v2/utils"
 )
 
-const defaultArtistImage = "default_artist.png"
-const defaultAlbumImage = "default_album.png"
-const defaultTrackImage = defaultAlbumImage
-
 type ApiConfig struct {
 	workDir  string
 	validate *validator.Validate
@@ -107,7 +103,7 @@ func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
 	artist, err := api.queries.CreateArtist(c.UserContext(), database.CreateArtistParams{
 		ID:      utils.CreateId(),
 		Name:    body.Name,
-		Picture: defaultArtistImage,
+		Picture: "TODO",
 	})
 
 	if err != nil {
@@ -188,7 +184,7 @@ func (api *ApiConfig) HandlerCreateAlbum(c *fiber.Ctx) error {
 	album, err := api.queries.CreateAlbum(c.UserContext(), database.CreateAlbumParams{
 		ID:       utils.CreateId(),
 		Name:     body.Name,
-		CoverArt: defaultAlbumImage,
+		CoverArt: "TODO",
 		ArtistID: body.Artist,
 	})
 

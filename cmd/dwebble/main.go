@@ -14,7 +14,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/nanoteck137/dwebble/v2/api"
-	"github.com/nanoteck137/dwebble/v2/assets"
 )
 
 type WorkDir string
@@ -65,11 +64,6 @@ func main() {
 
 	app.Use("/images", filesystem.New(filesystem.Config{
 		Root: http.Dir(workDir.ImagesDir()),
-	}))
-
-	app.Use("/images", filesystem.New(filesystem.Config{
-		Root:       http.FS(assets.Content),
-		PathPrefix: "images",
 	}))
 
 	app.Mount("/api/v1", api.New(db))
