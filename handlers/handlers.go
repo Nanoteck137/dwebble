@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"mime/multipart"
 	"os"
@@ -291,7 +290,7 @@ func (apiConfig *ApiConfig) HandlerGetAllTracks(c *fiber.Ctx) error {
 
 	for i := range tracks {
 		track := &tracks[i]
-		track.CoverArt = ConvertURL(c, track.CoverArt)
+		track.CoverArt = ConvertURL(c, "/images/"+track.CoverArt)
 		track.BestQualityFile = ConvertURL(c, "/tracks/"+track.BestQualityFile)
 		track.MobileQualityFile = ConvertURL(c, "/tracks/"+track.MobileQualityFile)
 	}
@@ -345,25 +344,13 @@ func checkMobileQualityType(file *multipart.FileHeader) error {
 }
 
 func (api *ApiConfig) writeTrackFile(file *multipart.FileHeader, name string) error {
-	f, err := file.Open()
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
 	fileName := path.Join(api.workDir, "tracks", name)
-	df, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0666)
-	if err != nil {
-		return err
-	}
-	defer df.Close()
+	return utils.WriteFormFile(file, fileName)
+}
 
-	_, err = io.Copy(df, f)
-	if err != nil {
-		return err
-	}
-
-	return nil
+func (api *ApiConfig) writeImageFile(file *multipart.FileHeader, name string) error {
+	fileName := path.Join(api.workDir, "images", name)
+	return utils.WriteFormFile(file, fileName)
 }
 
 func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
@@ -394,21 +381,18 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		if len(files) == 1 {
 			return files[0], nil
 		} else if len(files) > 1 {
-			return nil, ApiError{
-				Status:  400,
-				Message: "Too many track files",
-				Data:    nil,
-			}
+			return nil, errors.New("Too many files, expected one file")
 		}
 
-		return nil, ApiError{
-			Status:  400,
-			Message: "No track files",
-			Data:    nil,
-		}
+		return nil, errors.New("Missing file")
 	}
 
 	err = os.MkdirAll(path.Join(api.workDir, "tracks"), 0755)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(path.Join(api.workDir, "images"), 0755)
 	if err != nil {
 		return err
 	}
@@ -420,7 +404,13 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 
 	bestQualityFile, err := firstFile("bestQualityFile")
 	if err != nil {
-		return err
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data: map[string]any{
+				"bestQualityFile": err.Error(),
+			},
+		}
 	}
 
 	ext, err := getExtForBestQuality(bestQualityFile.Header.Get("Content-Type"))
@@ -434,8 +424,50 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		}
 	}
 
+	coverArtFile, err := firstFile("coverArt")
+	if err != nil {
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data: map[string]any{
+				"coverArt": err.Error(),
+			},
+		}
+	}
+
+	fmt.Printf("Headers: %v\n", coverArtFile.Header)
+
+	contentType := coverArtFile.Header.Get("Content-Type")
+
+	var imageExt string
+	switch contentType {
+	case "image/jpeg":
+		imageExt = "jpg"
+	case "image/png":
+		imageExt = "png"
+	case "":
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data: map[string]any{
+				"coverArt": errors.New("No 'Content-Type' is not set"),
+			},
+		}
+	default:
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data: map[string]any{
+				"coverArt": fmt.Errorf("Unsupported Content-Type: %v", contentType),
+			},
+		}
+	}
+
+	fmt.Printf("Image Ext: %v\n", imageExt)
+
 	bestQualityFileName := fmt.Sprintf("%v.best.%v", id, ext)
 	mobileQualityFileName := fmt.Sprintf("%v.mobile.mp3", id)
+	coverArtFileName := fmt.Sprintf("%v.cover.%v", id, imageExt)
 
 	errs := api.validateBody(body)
 	if errs != nil {
@@ -450,7 +482,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		ID:                id,
 		TrackNumber:       int32(body.Number),
 		Name:              body.Name,
-		CoverArt:          "",
+		CoverArt:          coverArtFileName,
 		BestQualityFile:   bestQualityFileName,
 		MobileQualityFile: mobileQualityFileName,
 		AlbumID:           body.Album,
@@ -489,9 +521,19 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		return err
 	}
 
-	// album.CoverArt = ConvertURL(c, fmt.Sprintf("/images/%v", album.CoverArt))
+	track.CoverArt = ConvertURL(c, "/images/" + track.CoverArt)
+	track.BestQualityFile = ConvertURL(c, "/tracks/" + track.BestQualityFile)
+	track.MobileQualityFile = ConvertURL(c, "/tracks/" + track.MobileQualityFile)
 
-	api.writeTrackFile(bestQualityFile, bestQualityFileName)
+	err = api.writeTrackFile(bestQualityFile, bestQualityFileName)
+	if err != nil {
+		return err
+	}
+
+	err = api.writeImageFile(coverArtFile, coverArtFileName)
+	if err != nil {
+		return err
+	}
 
 	fmt.Println("Ext:", ext)
 	fmt.Println("Len:", len(form.File["mobileQualityFile"]))
