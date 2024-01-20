@@ -47,3 +47,9 @@ func NewApiResponse(data any) ApiResponse {
 		Data:   data,
 	}
 }
+
+type ApiArtist struct {
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
+}
