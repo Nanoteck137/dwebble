@@ -522,9 +522,9 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		return err
 	}
 
-	track.CoverArt = ConvertURL(c, "/images/" + track.CoverArt)
-	track.BestQualityFile = ConvertURL(c, "/tracks/" + track.BestQualityFile)
-	track.MobileQualityFile = ConvertURL(c, "/tracks/" + track.MobileQualityFile)
+	track.CoverArt = ConvertURL(c, "/images/"+track.CoverArt)
+	track.BestQualityFile = ConvertURL(c, "/tracks/"+track.BestQualityFile)
+	track.MobileQualityFile = ConvertURL(c, "/tracks/"+track.MobileQualityFile)
 
 	err = api.writeTrackFile(bestQualityFile, bestQualityFileName)
 	if err != nil {
@@ -546,7 +546,13 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	} else {
 		mobileQualityFile, err := firstFile("mobileQualityFile")
 		if err != nil {
-			return err
+			return ApiError{
+				Status:  400,
+				Message: "Failed to create track",
+				Data: map[string]any{
+					"mobileQualityFile": err.Error(),
+				},
+			}
 		}
 
 		err = api.writeTrackFile(mobileQualityFile, mobileQualityFileName)
