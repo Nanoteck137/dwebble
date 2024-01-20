@@ -501,7 +501,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 				if err.ConstraintName == "tracks_track_number_unique" {
 					return ApiError{
 						Status:  400,
-						Message: "Failed to create track: Track number need to be unique",
+						Message: "Failed to create track: Number need to be unique",
 						Data:    nil,
 					}
 				}
