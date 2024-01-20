@@ -379,6 +379,15 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		}
 	}
 
+	errs := api.validateBody(body)
+	if errs != nil {
+		return ApiError{
+			Status:  400,
+			Message: "Failed to create track",
+			Data:    errs,
+		}
+	}
+
 	id := utils.CreateId()
 	log.Println("New ID:", id)
 
@@ -458,15 +467,6 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	bestQualityFileName := fmt.Sprintf("%v.best.%v", id, ext)
 	mobileQualityFileName := fmt.Sprintf("%v.mobile.mp3", id)
 	coverArtFileName := fmt.Sprintf("%v.cover.%v", id, imageExt)
-
-	errs := api.validateBody(body)
-	if errs != nil {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data:    errs,
-		}
-	}
 
 	track, err := queries.CreateTrack(c.Context(), database.CreateTrackParams{
 		ID:                id,
