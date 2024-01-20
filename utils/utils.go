@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -69,7 +70,6 @@ type FileResult struct {
 
 	Probe ProbeResult
 }
-
 
 type probeFormat struct {
 	BitRate string `json:"bit_rate"`
@@ -212,7 +212,6 @@ func CheckFile(filepath string) (FileResult, error) {
 			return FileResult{}, fmt.Errorf("No result")
 		}
 
-
 		num, err := strconv.Atoi(string(res[1]))
 		if err != nil {
 			return FileResult{}, nil
@@ -301,4 +300,15 @@ func WriteFormFile(file *multipart.FileHeader, dst string) error {
 	}
 
 	return nil
+}
+
+func GetSingleFile(form *multipart.Form, name string) (*multipart.FileHeader, error) {
+	files := form.File[name]
+	if len(files) == 1 {
+		return files[0], nil
+	} else if len(files) > 1 {
+		return nil, errors.New("Too many files, expected one file")
+	}
+
+	return nil, errors.New("Missing file")
 }

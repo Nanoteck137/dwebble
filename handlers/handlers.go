@@ -382,17 +382,6 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	id := utils.CreateId()
 	log.Println("New ID:", id)
 
-	firstFile := func(name string) (*multipart.FileHeader, error) {
-		files := form.File[name]
-		if len(files) == 1 {
-			return files[0], nil
-		} else if len(files) > 1 {
-			return nil, errors.New("Too many files, expected one file")
-		}
-
-		return nil, errors.New("Missing file")
-	}
-
 	err = os.MkdirAll(path.Join(api.workDir, "tracks"), 0755)
 	if err != nil {
 		return err
@@ -403,7 +392,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		return err
 	}
 
-	bestQualityFile, err := firstFile("bestQualityFile")
+	bestQualityFile, err := utils.GetSingleFile(form, "bestQualityFile")
 	if err != nil {
 		return ApiError{
 			Status:  400,
@@ -425,7 +414,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		}
 	}
 
-	coverArtFile, err := firstFile("coverArt")
+	coverArtFile, err := utils.GetSingleFile(form, "coverArt")
 	if err != nil {
 		return ApiError{
 			Status:  400,
@@ -544,7 +533,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 			return err
 		}
 	} else {
-		mobileQualityFile, err := firstFile("mobileQualityFile")
+		mobileQualityFile, err := utils.GetSingleFile(form, "mobileQualityFile")
 		if err != nil {
 			return ApiError{
 				Status:  400,
