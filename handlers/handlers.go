@@ -365,10 +365,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 
 	form, err := c.MultipartForm()
 	if err != nil {
-		return ApiError{
-			Status:  400,
-			Message: fmt.Sprintf("Failed to create track: %v", err),
-		}
+		return types.ApiBadRequestError(fmt.Sprintf("Failed to create track: %v", err))
 	}
 
 	var body CreateTrackBody
@@ -379,11 +376,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 
 	errs := api.validateBody(body)
 	if errs != nil {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data:    errs,
-		}
+		return types.ApiBadRequestError("Failed to create track", errs)
 	}
 
 	id := utils.CreateId()
@@ -401,35 +394,23 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 
 	bestQualityFile, err := utils.GetSingleFile(form, "bestQualityFile")
 	if err != nil {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data: map[string]any{
-				"bestQualityFile": err.Error(),
-			},
-		}
+		return types.ApiBadRequestError("Failed to create track", types.Map{
+			"bestQualityFile": err.Error(),
+		})
 	}
 
 	ext, err := getExtForBestQuality(bestQualityFile.Header.Get("Content-Type"))
 	if err != nil {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data: map[string]any{
-				"bestQualityFile": err.Error(),
-			},
-		}
+		return types.ApiBadRequestError("Failed to create track", types.Map{
+			"bestQualityFile": err.Error(),
+		})
 	}
 
 	coverArtFile, err := utils.GetSingleFile(form, "coverArt")
 	if err != nil {
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data: map[string]any{
-				"coverArt": err.Error(),
-			},
-		}
+		return types.ApiBadRequestError("Failed to create track", types.Map{
+			"coverArt": err.Error(),
+		})
 	}
 
 	fmt.Printf("Headers: %v\n", coverArtFile.Header)
@@ -443,21 +424,13 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	case "image/png":
 		imageExt = "png"
 	case "":
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data: map[string]any{
-				"coverArt": errors.New("No 'Content-Type' is not set"),
-			},
-		}
+		return types.ApiBadRequestError("Failed to create track", types.Map{
+			"coverArt": "No 'Content-Type' is not set",
+		})
 	default:
-		return ApiError{
-			Status:  400,
-			Message: "Failed to create track",
-			Data: map[string]any{
-				"coverArt": fmt.Errorf("Unsupported Content-Type: %v", contentType),
-			},
-		}
+		return types.ApiBadRequestError("Failed to create track", types.Map{
+			"coverArt": "Unsupported Content-Type: " + contentType,
+		})
 	}
 
 	fmt.Printf("Image Ext: %v\n", imageExt)
@@ -483,25 +456,13 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 			case "23503":
 				switch err.ConstraintName {
 				case "tracks_album_id_fk":
-					return ApiError{
-						Status:  400,
-						Message: fmt.Sprintf("Failed to create track: No album with id: '%v'", body.Album),
-						Data:    nil,
-					}
+					return types.ApiBadRequestError(fmt.Sprintf("Failed to create track: No album with id: '%v'", body.Album))
 				case "tracks_artist_id_fk":
-					return ApiError{
-						Status:  400,
-						Message: fmt.Sprintf("Failed to create track: No artist with id: '%v'", body.Artist),
-						Data:    nil,
-					}
+					return types.ApiBadRequestError(fmt.Sprintf("Failed to create track: No artist with id: '%v'", body.Artist))
 				}
 			case "23505":
 				if err.ConstraintName == "tracks_track_number_unique" {
-					return ApiError{
-						Status:  400,
-						Message: "Failed to create track: Number need to be unique",
-						Data:    nil,
-					}
+					return types.ApiBadRequestError("Failed to create track: Number need to be unique")
 				}
 			}
 		}
@@ -533,13 +494,9 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	} else {
 		mobileQualityFile, err := utils.GetSingleFile(form, "mobileQualityFile")
 		if err != nil {
-			return ApiError{
-				Status:  400,
-				Message: "Failed to create track",
-				Data: map[string]any{
-					"mobileQualityFile": err.Error(),
-				},
-			}
+			return types.ApiBadRequestError("Failed to create track", types.Map{
+				"mobileQualityFile": err.Error(),
+			})
 		}
 
 		err = api.writeTrackFile(mobileQualityFile, mobileQualityFileName)
@@ -553,10 +510,7 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.JSON(ApiData{
-		Status: 200,
-		Data:   track,
-	})
+	return c.JSON(types.NewApiResponse(track))
 }
 
 func (apiConfig *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
