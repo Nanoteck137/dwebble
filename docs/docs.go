@@ -15,6 +15,175 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/albums": {
+            "get": {
+                "description": "Get all albums",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Get all albums",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetAlbumsData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new album",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Create new album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Artist Id",
+                        "name": "artistId",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiPostAlbumData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    }
+                }
+            }
+        },
+        "/albums/{id}": {
+            "get": {
+                "description": "Get album by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Get album by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Album Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetAlbumByIdData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    }
+                }
+            }
+        },
+        "/albums/{id}/tracks": {
+            "get": {
+                "description": "Get all tracks from album",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "albums"
+                ],
+                "summary": "Get all tracks from album",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Artist Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetAlbumTracksByIdData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    }
+                }
+            }
+        },
         "/artists": {
             "get": {
                 "description": "Get all artists",
@@ -223,6 +392,45 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ApiGetAlbumByIdData": {
+            "type": "object",
+            "properties": {
+                "artistId": {
+                    "type": "string"
+                },
+                "coverArt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.ApiGetAlbumTracksByIdData": {
+            "type": "object",
+            "properties": {
+                "tracks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ApiTrack"
+                    }
+                }
+            }
+        },
+        "types.ApiGetAlbumsData": {
+            "type": "object",
+            "properties": {
+                "albums": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ApiAlbum"
+                    }
+                }
+            }
+        },
         "types.ApiGetArtistAlbumsByIdData": {
             "type": "object",
             "properties": {
@@ -259,6 +467,23 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ApiPostAlbumData": {
+            "type": "object",
+            "properties": {
+                "artistId": {
+                    "type": "string"
+                },
+                "coverArt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "types.ApiPostArtistData": {
             "type": "object",
             "properties": {
@@ -270,6 +495,42 @@ const docTemplate = `{
                 },
                 "picture": {
                     "type": "string"
+                }
+            }
+        },
+        "types.ApiResponse-types_ApiGetAlbumByIdData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/types.ApiGetAlbumByIdData"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        },
+        "types.ApiResponse-types_ApiGetAlbumTracksByIdData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/types.ApiGetAlbumTracksByIdData"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        },
+        "types.ApiResponse-types_ApiGetAlbumsData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/types.ApiGetAlbumsData"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
                 }
             }
         },
@@ -309,6 +570,18 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ApiResponse-types_ApiPostAlbumData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/types.ApiPostAlbumData"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        },
         "types.ApiResponse-types_ApiPostArtistData": {
             "type": "object",
             "properties": {
@@ -318,6 +591,41 @@ const docTemplate = `{
                 "status": {
                     "type": "integer",
                     "example": 200
+                }
+            }
+        },
+        "types.ApiTrack": {
+            "type": "object",
+            "properties": {
+                "albumId": {
+                    "type": "string"
+                },
+                "albumName": {
+                    "type": "string"
+                },
+                "artistId": {
+                    "type": "string"
+                },
+                "artistName": {
+                    "type": "string"
+                },
+                "bestQualityFile": {
+                    "type": "string"
+                },
+                "coverArt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mobileQualityFile": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
                 }
             }
         }

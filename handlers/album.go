@@ -11,13 +11,23 @@ import (
 	"github.com/nanoteck137/dwebble/utils"
 )
 
+// HandleGetAlbums godoc
+//
+//	@Summary		Get all albums
+//	@Description	Get all albums
+//	@Tags			albums
+//	@Produce		json
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetAlbumsData]
+//	@Failure		400	{object}	types.ApiError
+//	@Failure		500	{object}	types.ApiError
+//	@Router			/albums [get]
 func (api *ApiConfig) HandleGetAlbums(c *fiber.Ctx) error {
 	albums, err := api.queries.GetAllAlbums(c.UserContext())
 	if err != nil {
 		return err
 	}
 
-	result := types.ApiGetAlbums{
+	result := types.ApiGetAlbumsData{
 		Albums: make([]types.ApiAlbum, len(albums)),
 	}
 
@@ -38,6 +48,19 @@ type CreateAlbumBody struct {
 	Artist string `json:"artist" form:"artist" validate:"required"`
 }
 
+// HandlePostAlbum godoc
+//
+//	@Summary		Create new album
+//	@Description	Create new album
+//	@Tags			albums
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			name	formData	string	true	"Album name"
+//	@Param			artistId	formData	string	true	"Artist Id"
+//	@Success		200		{object}	types.ApiResponse[types.ApiPostAlbumData]
+//	@Failure		400		{object}	types.ApiError
+//	@Failure		500		{object}	types.ApiError
+//	@Router			/albums [post]
 func (api *ApiConfig) HandlePostAlbum(c *fiber.Ctx) error {
 	var body CreateAlbumBody
 	err := c.BodyParser(&body)
@@ -71,7 +94,7 @@ func (api *ApiConfig) HandlePostAlbum(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.JSON(types.NewApiResponse(types.ApiAlbum{
+	return c.JSON(types.NewApiResponse(types.ApiPostAlbumData{
 		Id:       album.ID,
 		Name:     album.Name,
 		CoverArt: ConvertURL(c, "/images/"+album.CoverArt),
@@ -79,6 +102,18 @@ func (api *ApiConfig) HandlePostAlbum(c *fiber.Ctx) error {
 	}))
 }
 
+// HandleGetAlbumById godoc
+//
+//	@Summary		Get album by id
+//	@Description	Get album by id
+//	@Tags			albums
+//	@Produce		json
+//	@Param			id	path		string	true	"Album Id"
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetAlbumByIdData]
+//	@Failure		400	{object}	types.ApiError
+//	@Failure		404	{object}	types.ApiError
+//	@Failure		500	{object}	types.ApiError
+//	@Router			/albums/{id} [get]
 func (api *ApiConfig) HandleGetAlbumById(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -91,7 +126,7 @@ func (api *ApiConfig) HandleGetAlbumById(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.JSON(types.NewApiResponse(types.ApiAlbum{
+	return c.JSON(types.NewApiResponse(types.ApiGetAlbumByIdData{
 		Id:       album.ID,
 		Name:     album.Name,
 		CoverArt: album.CoverArt,
@@ -99,6 +134,17 @@ func (api *ApiConfig) HandleGetAlbumById(c *fiber.Ctx) error {
 	}))
 }
 
+// HandleGetAlbumTracksById godoc
+//
+//	@Summary		Get all tracks from album
+//	@Description	Get all tracks from album 
+//	@Tags			albums
+//	@Produce		json
+//	@Param			id	path		string	true	"Artist Id"
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetAlbumTracksByIdData]
+//	@Failure		400	{object}	types.ApiError
+//	@Failure		500	{object}	types.ApiError
+//	@Router			/albums/{id}/tracks [get]
 func (api *ApiConfig) HandleGetAlbumTracksById(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -107,7 +153,7 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c *fiber.Ctx) error {
 		return err
 	}
 
-	result := types.ApiGetAlbumTracksData{
+	result := types.ApiGetAlbumTracksByIdData{
 		Tracks: make([]types.ApiTrack, len(tracks)),
 	}
 

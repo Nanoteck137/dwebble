@@ -29,6 +29,31 @@ definitions:
         example: 400
         type: integer
     type: object
+  types.ApiGetAlbumByIdData:
+    properties:
+      artistId:
+        type: string
+      coverArt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  types.ApiGetAlbumTracksByIdData:
+    properties:
+      tracks:
+        items:
+          $ref: '#/definitions/types.ApiTrack'
+        type: array
+    type: object
+  types.ApiGetAlbumsData:
+    properties:
+      albums:
+        items:
+          $ref: '#/definitions/types.ApiAlbum'
+        type: array
+    type: object
   types.ApiGetArtistAlbumsByIdData:
     properties:
       albums:
@@ -52,6 +77,17 @@ definitions:
           $ref: '#/definitions/types.ApiArtist'
         type: array
     type: object
+  types.ApiPostAlbumData:
+    properties:
+      artistId:
+        type: string
+      coverArt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   types.ApiPostArtistData:
     properties:
       id:
@@ -60,6 +96,30 @@ definitions:
         type: string
       picture:
         type: string
+    type: object
+  types.ApiResponse-types_ApiGetAlbumByIdData:
+    properties:
+      data:
+        $ref: '#/definitions/types.ApiGetAlbumByIdData'
+      status:
+        example: 200
+        type: integer
+    type: object
+  types.ApiResponse-types_ApiGetAlbumTracksByIdData:
+    properties:
+      data:
+        $ref: '#/definitions/types.ApiGetAlbumTracksByIdData'
+      status:
+        example: 200
+        type: integer
+    type: object
+  types.ApiResponse-types_ApiGetAlbumsData:
+    properties:
+      data:
+        $ref: '#/definitions/types.ApiGetAlbumsData'
+      status:
+        example: 200
+        type: integer
     type: object
   types.ApiResponse-types_ApiGetArtistAlbumsByIdData:
     properties:
@@ -85,6 +145,14 @@ definitions:
         example: 200
         type: integer
     type: object
+  types.ApiResponse-types_ApiPostAlbumData:
+    properties:
+      data:
+        $ref: '#/definitions/types.ApiPostAlbumData'
+      status:
+        example: 200
+        type: integer
+    type: object
   types.ApiResponse-types_ApiPostArtistData:
     properties:
       data:
@@ -93,10 +161,145 @@ definitions:
         example: 200
         type: integer
     type: object
+  types.ApiTrack:
+    properties:
+      albumId:
+        type: string
+      albumName:
+        type: string
+      artistId:
+        type: string
+      artistName:
+        type: string
+      bestQualityFile:
+        type: string
+      coverArt:
+        type: string
+      id:
+        type: string
+      mobileQualityFile:
+        type: string
+      name:
+        type: string
+      number:
+        type: integer
+    type: object
 info:
   contact: {}
   title: Testing Testing
 paths:
+  /albums:
+    get:
+      description: Get all albums
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ApiResponse-types_ApiGetAlbumsData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ApiError'
+      summary: Get all albums
+      tags:
+      - albums
+    post:
+      consumes:
+      - multipart/form-data
+      description: Create new album
+      parameters:
+      - description: Album name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Artist Id
+        in: formData
+        name: artistId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ApiResponse-types_ApiPostAlbumData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ApiError'
+      summary: Create new album
+      tags:
+      - albums
+  /albums/{id}:
+    get:
+      description: Get album by id
+      parameters:
+      - description: Album Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ApiResponse-types_ApiGetAlbumByIdData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ApiError'
+      summary: Get album by id
+      tags:
+      - albums
+  /albums/{id}/tracks:
+    get:
+      description: Get all tracks from album
+      parameters:
+      - description: Artist Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ApiResponse-types_ApiGetAlbumTracksByIdData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ApiError'
+      summary: Get all tracks from album
+      tags:
+      - albums
   /artists:
     get:
       description: Get all artists
