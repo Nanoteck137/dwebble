@@ -55,11 +55,11 @@ type CreateAlbumBody struct {
 //	@Tags			albums
 //	@Accept			mpfd
 //	@Produce		json
-//	@Param			name	formData	string	true	"Album name"
+//	@Param			name		formData	string	true	"Album name"
 //	@Param			artistId	formData	string	true	"Artist Id"
-//	@Success		200		{object}	types.ApiResponse[types.ApiPostAlbumData]
-//	@Failure		400		{object}	types.ApiError
-//	@Failure		500		{object}	types.ApiError
+//	@Success		200			{object}	types.ApiResponse[types.ApiPostAlbumData]
+//	@Failure		400			{object}	types.ApiError
+//	@Failure		500			{object}	types.ApiError
 //	@Router			/albums [post]
 func (api *ApiConfig) HandlePostAlbum(c *fiber.Ctx) error {
 	var body CreateAlbumBody

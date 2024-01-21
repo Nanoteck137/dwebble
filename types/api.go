@@ -99,3 +99,12 @@ type ApiGetAlbumByIdData ApiAlbum
 type ApiGetAlbumTracksByIdData struct {
 	Tracks []ApiTrack `json:"tracks"`
 }
+
+// NOTE(patrik): Album Handlers
+// TODO(patrik): Use these in the track handlers
+type ApiGetTracksData struct {
+	Tracks []ApiTrack `json:"tracks"`
+}
+
+type ApiPostTrackData ApiTrack
+type ApiGetTrackById ApiTrack

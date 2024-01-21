@@ -345,6 +345,169 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tracks": {
+            "get": {
+                "description": "Get all tracks",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tracks"
+                ],
+                "summary": "Get all tracks",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetTracksData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create new track",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tracks"
+                ],
+                "summary": "Create new track",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Track name",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Track number",
+                        "name": "number",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Album Id",
+                        "name": "albumId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Artist Id",
+                        "name": "artistId",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Best Quality File",
+                        "name": "bestQualityFile",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Mobile Quality File",
+                        "name": "mobileQualityFile",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Cover Art",
+                        "name": "coverArt",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiPostTrackData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    }
+                }
+            }
+        },
+        "/tracks/{id}": {
+            "get": {
+                "description": "Get track by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tracks"
+                ],
+                "summary": "Get track by id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Track Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetTrackById"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.ApiError"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -467,6 +630,52 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ApiGetTrackById": {
+            "type": "object",
+            "properties": {
+                "albumId": {
+                    "type": "string"
+                },
+                "albumName": {
+                    "type": "string"
+                },
+                "artistId": {
+                    "type": "string"
+                },
+                "artistName": {
+                    "type": "string"
+                },
+                "bestQualityFile": {
+                    "type": "string"
+                },
+                "coverArt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mobileQualityFile": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.ApiGetTracksData": {
+            "type": "object",
+            "properties": {
+                "tracks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ApiTrack"
+                    }
+                }
+            }
+        },
         "types.ApiPostAlbumData": {
             "type": "object",
             "properties": {
@@ -495,6 +704,41 @@ const docTemplate = `{
                 },
                 "picture": {
                     "type": "string"
+                }
+            }
+        },
+        "types.ApiPostTrackData": {
+            "type": "object",
+            "properties": {
+                "albumId": {
+                    "type": "string"
+                },
+                "albumName": {
+                    "type": "string"
+                },
+                "artistId": {
+                    "type": "string"
+                },
+                "artistName": {
+                    "type": "string"
+                },
+                "bestQualityFile": {
+                    "type": "string"
+                },
+                "coverArt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mobileQualityFile": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
                 }
             }
         },
@@ -570,6 +814,30 @@ const docTemplate = `{
                 }
             }
         },
+        "types.ApiResponse-types_ApiGetTrackById": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/types.ApiGetTrackById"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        },
+        "types.ApiResponse-types_ApiGetTracksData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/types.ApiGetTracksData"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        },
         "types.ApiResponse-types_ApiPostAlbumData": {
             "type": "object",
             "properties": {
@@ -587,6 +855,18 @@ const docTemplate = `{
             "properties": {
                 "data": {
                     "$ref": "#/definitions/types.ApiPostArtistData"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        },
+        "types.ApiResponse-types_ApiPostTrackData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/types.ApiPostTrackData"
                 },
                 "status": {
                     "type": "integer",

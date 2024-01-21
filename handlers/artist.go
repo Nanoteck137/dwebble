@@ -45,7 +45,7 @@ type CreateArtistBody struct {
 	Name string `json:"name" form:"name" validate:"required"`
 }
 
-// HandleGetArtists godoc
+// HandlePostArtist godoc
 //
 //	@Summary		Create new artist
 //	@Description	Create new artist

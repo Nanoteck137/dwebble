@@ -16,7 +16,17 @@ import (
 	"github.com/nanoteck137/dwebble/utils"
 )
 
-func (api *ApiConfig) HandlerGetAllTracks(c *fiber.Ctx) error {
+// HandleGetTracks godoc
+//
+//	@Summary		Get all tracks
+//	@Description	Get all tracks
+//	@Tags			tracks
+//	@Produce		json
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetTracksData]
+//	@Failure		400	{object}	types.ApiError
+//	@Failure		500	{object}	types.ApiError
+//	@Router			/tracks [get]
+func (api *ApiConfig) HandleGetTracks(c *fiber.Ctx) error {
 	tracks, err := api.queries.GetAllTracks(c.UserContext())
 	if err != nil {
 		return err
@@ -79,7 +89,25 @@ func (api *ApiConfig) writeImageFile(file *multipart.FileHeader, name string) er
 	return utils.WriteFormFile(file, fileName)
 }
 
-func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
+// HandlePostTrack godoc
+//
+//	@Summary		Create new track
+//	@Description	Create new track
+//	@Tags			tracks
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			name				formData	string	true	"Track name"
+//	@Param			number				formData	string	true	"Track number"
+//	@Param			albumId				formData	string	true	"Album Id"
+//	@Param			artistId			formData	string	true	"Artist Id"
+//	@Param			bestQualityFile		formData	file	true	"Best Quality File"
+//	@Param			mobileQualityFile	formData	file	true	"Mobile Quality File"
+//	@Param			coverArt			formData	file	true	"Cover Art"
+//	@Success		200					{object}	types.ApiResponse[types.ApiPostTrackData]
+//	@Failure		400					{object}	types.ApiError
+//	@Failure		500					{object}	types.ApiError
+//	@Router			/tracks [post]
+func (api *ApiConfig) HandlePostTrack(c *fiber.Ctx) error {
 	tx, err := api.db.BeginTx(c.UserContext(), pgx.TxOptions{})
 	if err != nil {
 		return err
@@ -238,7 +266,19 @@ func (api *ApiConfig) HandlerCreateTrack(c *fiber.Ctx) error {
 	return c.JSON(types.NewApiResponse(track))
 }
 
-func (api *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
+// HandleGetTrackById godoc
+//
+//	@Summary		Get track by id
+//	@Description	Get track by id
+//	@Tags			tracks
+//	@Produce		json
+//	@Param			id	path		string	true	"Track Id"
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetTrackById]
+//	@Failure		400	{object}	types.ApiError
+//	@Failure		404	{object}	types.ApiError
+//	@Failure		500	{object}	types.ApiError
+//	@Router			/tracks/{id} [get]
+func (api *ApiConfig) HandleGetTrackById(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	track, err := api.queries.GetTrack(c.UserContext(), id)
@@ -256,7 +296,7 @@ func (api *ApiConfig) HandlerGetTrack(c *fiber.Ctx) error {
 }
 
 func InstallTrackHandlers(router *fiber.App, apiConfig *ApiConfig) {
-	router.Get("/tracks", apiConfig.HandlerGetAllTracks)
-	router.Post("/tracks", apiConfig.HandlerCreateTrack)
-	router.Get("/tracks/:id", apiConfig.HandlerGetTrack)
+	router.Get("/tracks", apiConfig.HandleGetTracks)
+	router.Post("/tracks", apiConfig.HandlePostTrack)
+	router.Get("/tracks/:id", apiConfig.HandleGetTrackById)
 }
