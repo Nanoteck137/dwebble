@@ -68,100 +68,26 @@ func (api *ApiConfig) validateBody(body any) map[string]string {
 	return nil
 }
 
-func (apiConfig *ApiConfig) HandlerGetAllArtists(c *fiber.Ctx) error {
-	artists, err := apiConfig.queries.GetAllArtists(c.UserContext())
-	if err != nil {
-		return err
-	}
-
-	for i := range artists {
-		a := &artists[i]
-		a.Picture = ConvertURL(c, a.Picture)
-	}
-
-	return c.JSON(types.NewApiResponse(types.Map{
-		"artists": artists,
-	}))
-}
-
-type CreateArtistBody struct {
-	Name string `json:"name" form:"name" validate:"required"`
-}
-
-func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
-	var body CreateArtistBody
-	err := c.BodyParser(&body)
-	if err != nil {
-		return types.ApiBadRequestError("Failed to create artist: " + err.Error())
-	}
-
-	errs := api.validateBody(body)
-	if errs != nil {
-		return types.ApiBadRequestError("Failed to create artist", errs)
-	}
-
-	artist, err := api.queries.CreateArtist(c.UserContext(), database.CreateArtistParams{
-		ID:      utils.CreateId(),
-		Name:    body.Name,
-		Picture: "TODO",
-	})
-
-	if err != nil {
-		return err
-	}
-
-	artist.Picture = ConvertURL(c, fmt.Sprintf("/images/%v", artist.Picture))
-
-	return c.JSON(types.NewApiResponse(artist))
-}
-
-func (apiConfig *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
-	id := c.Params("id")
-
-	artist, err := apiConfig.queries.GetArtist(c.UserContext(), id)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return types.ApiNotFoundError(fmt.Sprintf("No artist with id: '%s'", id))
-		} else {
-			return err
-		}
-	}
-
-	artist.Picture = ConvertURL(c, artist.Picture)
-
-	albums, err := apiConfig.queries.GetAlbumsByArtist(c.UserContext(), id)
-	if err != nil {
-		return err
-	}
-
-	for i := range albums {
-		a := &albums[i]
-		a.CoverArt = ConvertURL(c, a.CoverArt)
-	}
-
-	res := struct {
-		Artist database.Artist  `json:"artist"`
-		Albums []database.Album `json:"albums"`
-	}{
-		Artist: artist,
-		Albums: albums,
-	}
-
-	return c.JSON(types.NewApiResponse(res))
-}
-
-func (apiConfig *ApiConfig) HandlerGetAllAlbums(c *fiber.Ctx) error {
+func (apiConfig *ApiConfig) HandlerGetAlbums(c *fiber.Ctx) error {
 	albums, err := apiConfig.queries.GetAllAlbums(c.UserContext())
 	if err != nil {
 		return err
 	}
 
-	for i := range albums {
-		a := &albums[i]
-		a.CoverArt = ConvertURL(c, a.CoverArt)
+	result := types.ApiGetAlbums{
+		Albums: make([]types.ApiAlbum, len(albums)),
 	}
 
-	return c.JSON(types.NewApiResponse(types.Map{"albums": albums}))
+	for i, album := range albums {
+		result.Albums[i] = types.ApiAlbum{
+			Id:       album.ID,
+			Name:     album.Name,
+			CoverArt: ConvertURL(c, "/images/"+album.CoverArt),
+			ArtistId: album.ArtistID,
+		}
+	}
+
+	return c.JSON(types.NewApiResponse(result))
 }
 
 type CreateAlbumBody struct {
@@ -202,9 +128,12 @@ func (api *ApiConfig) HandlerCreateAlbum(c *fiber.Ctx) error {
 		return err
 	}
 
-	album.CoverArt = ConvertURL(c, fmt.Sprintf("/images/%v", album.CoverArt))
-
-	return c.JSON(types.NewApiResponse(album))
+	return c.JSON(types.NewApiResponse(types.ApiAlbum{
+		Id:       album.ID,
+		Name:     album.Name,
+		CoverArt: ConvertURL(c, "/images/"+album.CoverArt),
+		ArtistId: album.ArtistID,
+	}))
 }
 
 func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
@@ -219,29 +148,42 @@ func (apiConfig *ApiConfig) HandlerGetAlbum(c *fiber.Ctx) error {
 		}
 	}
 
-	album.CoverArt = ConvertURL(c, album.CoverArt)
+	return c.JSON(types.NewApiResponse(types.ApiAlbum{
+		Id:       album.ID,
+		Name:     album.Name,
+		CoverArt: album.CoverArt,
+		ArtistId: album.ArtistID,
+	}))
+}
 
-	tracks, err := apiConfig.queries.GetTracksByAlbum(c.UserContext(), id)
+func (api *ApiConfig) HandlerGetAlbumTracks(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	tracks, err := api.queries.GetTracksByAlbum(c.UserContext(), id)
 	if err != nil {
 		return err
 	}
 
-	for i := range tracks {
-		t := &tracks[i]
-		t.CoverArt = ConvertURL(c, t.CoverArt)
-		t.BestQualityFile = ConvertURL(c, "/tracks/"+t.BestQualityFile)
-		t.MobileQualityFile = ConvertURL(c, "/tracks/"+t.MobileQualityFile)
+	result := types.ApiGetAlbumTracksData{
+		Tracks: make([]types.ApiTrack, len(tracks)),
 	}
 
-	res := struct {
-		Album  database.Album                 `json:"album"`
-		Tracks []database.GetTracksByAlbumRow `json:"tracks"`
-	}{
-		Album:  album,
-		Tracks: tracks,
+	for i, track := range tracks {
+		result.Tracks[i] = types.ApiTrack{
+			Id:                track.ID,
+			Number:            track.TrackNumber,
+			Name:              track.Name,
+			CoverArt:          ConvertURL(c, "/images/"+track.CoverArt),
+			BestQualityFile:   ConvertURL(c, "/tracks/"+track.BestQualityFile),
+			MobileQualityFile: ConvertURL(c, "/tracks/"+track.MobileQualityFile),
+			AlbumId:           track.AlbumID,
+			ArtistId:          track.ArtistID,
+			AlbumName:         track.AlbumName,
+			ArtistName:        track.ArtistName,
+		}
 	}
 
-	return c.JSON(res)
+	return c.JSON(types.NewApiResponse(result))
 }
 
 func ConvertURL(c *fiber.Ctx, path string) string {

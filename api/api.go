@@ -33,13 +33,15 @@ func New(db *pgxpool.Pool) *fiber.App {
 	queries := database.New(db)
 	apiConfig := handlers.New(db, queries, "./work")
 
-	router.Get("/artists", apiConfig.HandlerGetAllArtists)
-	router.Post("/artists", apiConfig.HandlerCreateArtist)
-	router.Get("/artists/:id", apiConfig.HandlerGetArtist)
+	router.Get("/artists", apiConfig.HandlerGetAllArtists)              // HandleGetArtists
+	router.Post("/artists", apiConfig.HandlerCreateArtist)              // HandlePostArtist
+	router.Get("/artists/:id", apiConfig.HandlerGetArtist)              // HandleGetArtist
+	router.Get("/artists/:id/albums", apiConfig.HandlerGetArtistAlbums) // HandleGetArtistAlbums
 
-	router.Get("/albums", apiConfig.HandlerGetAllAlbums)
+	router.Get("/albums", apiConfig.HandlerGetAlbums)
 	router.Post("/albums", apiConfig.HandlerCreateAlbum)
 	router.Get("/albums/:id", apiConfig.HandlerGetAlbum)
+	router.Get("/albums/:id/tracks", apiConfig.HandlerGetAlbumTracks)
 
 	router.Get("/tracks", apiConfig.HandlerGetAllTracks)
 	router.Post("/tracks", apiConfig.HandlerCreateTrack)

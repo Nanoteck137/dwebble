@@ -54,6 +54,16 @@ type ApiArtist struct {
 	Picture string `json:"picture"`
 }
 
+type ApiArtistListItem struct {
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
+}
+
+type ApiArtistList struct {
+	Artists []ApiArtistListItem `json:"artists"`
+}
+
 type ApiAlbum struct {
 	Id       string `json:"id"`
 	Name     string `json:"name"`
@@ -62,14 +72,26 @@ type ApiAlbum struct {
 }
 
 type ApiTrack struct {
-	Id       string `json:"id"`
-	Number     string `json:"number"`
-	Name string `json:"name"`
-	CoverArt string `json:"coverArt"`
-	BestQualityFile string `json:"bestQualityFile"`
+	Id                string `json:"id"`
+	Number            int32 `json:"number"`
+	Name              string `json:"name"`
+	CoverArt          string `json:"coverArt"`
+	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
-	AlbumId string `json:"albumId"`
-	ArtistId string `json:"artistId"`
-	AlbumName string `json:"albumName"`
-	ArtistName string `json:"artistName"`
+	AlbumId           string `json:"albumId"`
+	ArtistId          string `json:"artistId"`
+	AlbumName         string `json:"albumName"`
+	ArtistName        string `json:"artistName"`
+}
+
+type ApiGetArtistAlbumsData struct {
+	Albums []ApiAlbum `json:"albums"`
+}
+
+type ApiGetAlbums struct {
+	Albums []ApiAlbum `json:"albums"`
+}
+
+type ApiGetAlbumTracksData struct {
+	Tracks []ApiTrack `json:"tracks"`
 }

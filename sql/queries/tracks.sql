@@ -4,8 +4,8 @@ SELECT
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks
-LEFT JOIN albums ON albums.id = tracks.album_id 
-LEFT JOIN artists ON artists.id = tracks.artist_id;
+JOIN albums ON albums.id = tracks.album_id 
+JOIN artists ON artists.id = tracks.artist_id;
 
 -- name: GetTrack :one
 SELECT
@@ -13,8 +13,8 @@ SELECT
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks 
-LEFT JOIN albums ON albums.id = tracks.album_id 
-LEFT JOIN artists ON artists.id = tracks.artist_id
+JOIN albums ON albums.id = tracks.album_id 
+JOIN artists ON artists.id = tracks.artist_id
 WHERE tracks.id=$1;
 
 -- name: GetTracksByAlbum :many
@@ -23,8 +23,8 @@ SELECT
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks 
-LEFT JOIN albums ON albums.id = tracks.album_id 
-LEFT JOIN artists ON artists.id = tracks.artist_id 
+JOIN albums ON albums.id = tracks.album_id 
+JOIN artists ON artists.id = tracks.artist_id 
 WHERE album_id=$1 
 ORDER BY track_number;
 

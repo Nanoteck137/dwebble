@@ -7,8 +7,6 @@ package database
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createTrack = `-- name: CreateTrack :one
@@ -66,21 +64,21 @@ SELECT
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks
-LEFT JOIN albums ON albums.id = tracks.album_id 
-LEFT JOIN artists ON artists.id = tracks.artist_id
+JOIN albums ON albums.id = tracks.album_id 
+JOIN artists ON artists.id = tracks.artist_id
 `
 
 type GetAllTracksRow struct {
-	ID                string      `json:"id"`
-	TrackNumber       int32       `json:"trackNumber"`
-	Name              string      `json:"name"`
-	CoverArt          string      `json:"coverArt"`
-	BestQualityFile   string      `json:"bestQualityFile"`
-	MobileQualityFile string      `json:"mobileQualityFile"`
-	AlbumID           string      `json:"albumId"`
-	ArtistID          string      `json:"artistId"`
-	AlbumName         pgtype.Text `json:"albumName"`
-	ArtistName        pgtype.Text `json:"artistName"`
+	ID                string `json:"id"`
+	TrackNumber       int32  `json:"trackNumber"`
+	Name              string `json:"name"`
+	CoverArt          string `json:"coverArt"`
+	BestQualityFile   string `json:"bestQualityFile"`
+	MobileQualityFile string `json:"mobileQualityFile"`
+	AlbumID           string `json:"albumId"`
+	ArtistID          string `json:"artistId"`
+	AlbumName         string `json:"albumName"`
+	ArtistName        string `json:"artistName"`
 }
 
 func (q *Queries) GetAllTracks(ctx context.Context) ([]GetAllTracksRow, error) {
@@ -120,22 +118,22 @@ SELECT
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks 
-LEFT JOIN albums ON albums.id = tracks.album_id 
-LEFT JOIN artists ON artists.id = tracks.artist_id
+JOIN albums ON albums.id = tracks.album_id 
+JOIN artists ON artists.id = tracks.artist_id
 WHERE tracks.id=$1
 `
 
 type GetTrackRow struct {
-	ID                string      `json:"id"`
-	TrackNumber       int32       `json:"trackNumber"`
-	Name              string      `json:"name"`
-	CoverArt          string      `json:"coverArt"`
-	BestQualityFile   string      `json:"bestQualityFile"`
-	MobileQualityFile string      `json:"mobileQualityFile"`
-	AlbumID           string      `json:"albumId"`
-	ArtistID          string      `json:"artistId"`
-	AlbumName         pgtype.Text `json:"albumName"`
-	ArtistName        pgtype.Text `json:"artistName"`
+	ID                string `json:"id"`
+	TrackNumber       int32  `json:"trackNumber"`
+	Name              string `json:"name"`
+	CoverArt          string `json:"coverArt"`
+	BestQualityFile   string `json:"bestQualityFile"`
+	MobileQualityFile string `json:"mobileQualityFile"`
+	AlbumID           string `json:"albumId"`
+	ArtistID          string `json:"artistId"`
+	AlbumName         string `json:"albumName"`
+	ArtistName        string `json:"artistName"`
 }
 
 func (q *Queries) GetTrack(ctx context.Context, id string) (GetTrackRow, error) {
@@ -162,23 +160,23 @@ SELECT
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks 
-LEFT JOIN albums ON albums.id = tracks.album_id 
-LEFT JOIN artists ON artists.id = tracks.artist_id 
+JOIN albums ON albums.id = tracks.album_id 
+JOIN artists ON artists.id = tracks.artist_id 
 WHERE album_id=$1 
 ORDER BY track_number
 `
 
 type GetTracksByAlbumRow struct {
-	ID                string      `json:"id"`
-	TrackNumber       int32       `json:"trackNumber"`
-	Name              string      `json:"name"`
-	CoverArt          string      `json:"coverArt"`
-	BestQualityFile   string      `json:"bestQualityFile"`
-	MobileQualityFile string      `json:"mobileQualityFile"`
-	AlbumID           string      `json:"albumId"`
-	ArtistID          string      `json:"artistId"`
-	AlbumName         pgtype.Text `json:"albumName"`
-	ArtistName        pgtype.Text `json:"artistName"`
+	ID                string `json:"id"`
+	TrackNumber       int32  `json:"trackNumber"`
+	Name              string `json:"name"`
+	CoverArt          string `json:"coverArt"`
+	BestQualityFile   string `json:"bestQualityFile"`
+	MobileQualityFile string `json:"mobileQualityFile"`
+	AlbumID           string `json:"albumId"`
+	ArtistID          string `json:"artistId"`
+	AlbumName         string `json:"albumName"`
+	ArtistName        string `json:"artistName"`
 }
 
 func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]GetTracksByAlbumRow, error) {
