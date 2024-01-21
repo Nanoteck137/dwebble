@@ -11,15 +11,13 @@ import (
 )
 
 // HandleGetArtists godoc
+//
 //	@Summary		Get all artists
 //	@Description	Get all artists
-//	@Tags			accounts
-//	@Accept			json
-//	@Accept			xml
+//	@Tags			artists
 //	@Produce		json
-//	@Success		200	{object}	types.ApiResponse[types.ApiArtist]
-//	@Failure		400	{object}	types.ApiError
-//	@Failure		404	{object}	types.ApiError
+//	@Success		200	{object}	types.ApiResponse[types.ApiArtistList]
+//	@Failure		400	{object}	types.ApiError(status = 404)
 //	@Failure		500	{object}	types.ApiError
 //	@Router			/artists [get]
 func (api *ApiConfig) HandleGetArtists(c *fiber.Ctx) error {
@@ -48,16 +46,15 @@ type CreateArtistBody struct {
 }
 
 // HandleGetArtists godoc
-//	@Summary		Get all artists
-//	@Description	Get all artists
-//	@Tags			accounts
+//
+//	@Summary		Create new artist
+//	@Description	Create new artist
+//	@Tags			artists
 //	@Accept			mpfd
 //	@Produce		json
 //	@Param			name	formData	string	true	"Artist name"
-//	@Param			picture	formData	file	true	"Picture"
 //	@Success		200		{object}	types.ApiResponse[types.ApiArtist]
 //	@Failure		400		{object}	types.ApiError
-//	@Failure		404		{object}	types.ApiError
 //	@Failure		500		{object}	types.ApiError
 //	@Router			/artists [post]
 func (api *ApiConfig) HandlePostArtist(c *fiber.Ctx) error {
@@ -89,6 +86,18 @@ func (api *ApiConfig) HandlePostArtist(c *fiber.Ctx) error {
 	}))
 }
 
+// HandleGetArtistById godoc
+//
+//	@Summary		Get artist by id
+//	@Description	Get artist by id
+//	@Tags			artists
+//	@Produce		json
+//	@Param			id	path		string	true	"Artist Id"
+//	@Success		200	{object}	types.ApiResponse[types.ApiArtist]
+//	@Failure		400	{object}	types.ApiError
+//	@Failure		404	{object}	types.ApiError
+//	@Failure		500	{object}	types.ApiError
+//	@Router			/artists/{id} [get]
 func (api *ApiConfig) HandleGetArtistById(c *fiber.Ctx) error {
 	id := c.Params("id")
 
@@ -108,6 +117,17 @@ func (api *ApiConfig) HandleGetArtistById(c *fiber.Ctx) error {
 	}))
 }
 
+// HandleGetArtistAlbumsById godoc
+//
+//	@Summary		Get all albums by artist
+//	@Description	Get all albums by artist
+//	@Tags			artists
+//	@Produce		json
+//	@Param			id	path		string	true	"Artist Id"
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetArtistAlbumsData]
+//	@Failure		400	{object}	types.ApiError
+//	@Failure		500	{object}	types.ApiError
+//	@Router			/artists/{id}/albums [get]
 func (api *ApiConfig) HandleGetArtistAlbumsById(c *fiber.Ctx) error {
 	id := c.Params("id")
 

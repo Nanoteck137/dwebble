@@ -1,6 +1,33 @@
 basePath: /api/v1
 definitions:
+  types.ApiAlbum:
+    properties:
+      artistId:
+        type: string
+      coverArt:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   types.ApiArtist:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      picture:
+        type: string
+    type: object
+  types.ApiArtistList:
+    properties:
+      artists:
+        items:
+          $ref: '#/definitions/types.ApiArtistListItem'
+        type: array
+    type: object
+  types.ApiArtistListItem:
     properties:
       id:
         type: string
@@ -18,10 +45,33 @@ definitions:
         example: 400
         type: integer
     type: object
+  types.ApiGetArtistAlbumsData:
+    properties:
+      albums:
+        items:
+          $ref: '#/definitions/types.ApiAlbum'
+        type: array
+    type: object
   types.ApiResponse-types_ApiArtist:
     properties:
       data:
         $ref: '#/definitions/types.ApiArtist'
+      status:
+        example: 200
+        type: integer
+    type: object
+  types.ApiResponse-types_ApiArtistList:
+    properties:
+      data:
+        $ref: '#/definitions/types.ApiArtistList'
+      status:
+        example: 200
+        type: integer
+    type: object
+  types.ApiResponse-types_ApiGetArtistAlbumsData:
+    properties:
+      data:
+        $ref: '#/definitions/types.ApiGetArtistAlbumsData'
       status:
         example: 200
         type: integer
@@ -32,9 +82,6 @@ info:
 paths:
   /artists:
     get:
-      consumes:
-      - application/json
-      - text/xml
       description: Get all artists
       produces:
       - application/json
@@ -42,13 +89,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.ApiResponse-types_ApiArtist'
+            $ref: '#/definitions/types.ApiResponse-types_ApiArtistList'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/types.ApiError'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/types.ApiError'
         "500":
@@ -57,22 +100,44 @@ paths:
             $ref: '#/definitions/types.ApiError'
       summary: Get all artists
       tags:
-      - accounts
+      - artists
     post:
       consumes:
       - multipart/form-data
-      description: Get all artists
+      description: Create new artist
       parameters:
       - description: Artist name
         in: formData
         name: name
         required: true
         type: string
-      - description: Picture
-        in: formData
-        name: picture
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ApiResponse-types_ApiArtist'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ApiError'
+      summary: Create new artist
+      tags:
+      - artists
+  /artists/{id}:
+    get:
+      description: Get artist by id
+      parameters:
+      - description: Artist Id
+        in: path
+        name: id
         required: true
-        type: file
+        type: string
       produces:
       - application/json
       responses:
@@ -92,7 +157,34 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/types.ApiError'
-      summary: Get all artists
+      summary: Get artist by id
       tags:
-      - accounts
+      - artists
+  /artists/{id}/albums:
+    get:
+      description: Get all albums by artist
+      parameters:
+      - description: Artist Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ApiResponse-types_ApiGetArtistAlbumsData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ApiError'
+      summary: Get all albums by artist
+      tags:
+      - artists
 swagger: "2.0"
