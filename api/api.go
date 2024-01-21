@@ -35,10 +35,7 @@ func New(db *pgxpool.Pool) *fiber.App {
 
 	handlers.InstallArtistHandlers(router, &apiConfig)
 	handlers.InstallAlbumHandlers(router, &apiConfig)
-
-	router.Get("/tracks", apiConfig.HandlerGetAllTracks)
-	router.Post("/tracks", apiConfig.HandlerCreateTrack)
-	router.Get("/tracks/:id", apiConfig.HandlerGetTrack)
+	handlers.InstallTrackHandlers(router, &apiConfig)
 
 	router.Post("/queue/album", apiConfig.HandlerCreateQueueFromAlbum)
 
