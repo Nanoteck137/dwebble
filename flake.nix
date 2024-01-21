@@ -15,14 +15,14 @@
           inherit system overlays;
         };
 
-        swag = pkgs.buildGoModule {
+        swag = pkgs.buildGoModule rec {
           name = "swag";
-          vendorHash = "sha256-sxW4WgtsuVQQiacM24wU81cXKEJuCxT39uUqh2nMZ0k=";
+          vendorHash = "sha256-BxWmEcx5IIT/yI46CJGE0vE1BRm5zwngc0x1dVy/04s=";
           src = pkgs.fetchFromGitHub {
             owner = "swaggo";
             repo = "swag";
-            rev = "v1.16.2";
-            hash = "sha256-lLsrwWuSfyU5C8cJUNVihSqQTbr28yVcTVej8fW5oP4=";
+            rev = "76695ca";
+            hash = "sha256-+YjmYf0BYsjXL8rztPTdQtQhfiTwznGXL/73EzuUu6g=";
           };
 
           subPackages = [ "cmd/swag" ];
@@ -38,7 +38,6 @@
             sqlc
             go
             swag
-            gotools
           ];
         };
       }
