@@ -5,7 +5,7 @@ import (
 )
 
 type ApiError struct {
-	Status  int    `json:"status"`
+	Status  int    `json:"status" example:"400"`
 	Message string `json:"message"`
 	Data    any    `json:"data,omitempty"`
 }
@@ -36,13 +36,13 @@ func ApiNotFoundError(message string, data ...any) ApiError {
 	return NewApiError(http.StatusNotFound, message, data...)
 }
 
-type ApiResponse struct {
-	Status int `json:"status"`
-	Data   any `json:"data"`
+type ApiResponse[T any] struct {
+	Status int `json:"status" example:"200"`
+	Data   T   `json:"data"`
 }
 
-func NewApiResponse(data any) ApiResponse {
-	return ApiResponse{
+func NewApiResponse[T any](data T) ApiResponse[T] {
+	return ApiResponse[T]{
 		Status: 200,
 		Data:   data,
 	}
@@ -73,7 +73,7 @@ type ApiAlbum struct {
 
 type ApiTrack struct {
 	Id                string `json:"id"`
-	Number            int32 `json:"number"`
+	Number            int32  `json:"number"`
 	Name              string `json:"name"`
 	CoverArt          string `json:"coverArt"`
 	BestQualityFile   string `json:"bestQualityFile"`

@@ -11,9 +11,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/filesystem"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/swagger"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/nanoteck137/dwebble/api"
+
+	_ "github.com/nanoteck137/dwebble/docs"
 )
 
 type WorkDir string
@@ -50,6 +53,8 @@ func main() {
 
 	app.Use(logger.New())
 	app.Use(cors.New())
+
+	app.Get("/swagger/*", swagger.HandlerDefault)
 
 	workDirPath := os.Getenv("WORK_DIR")
 	if workDirPath == "" {

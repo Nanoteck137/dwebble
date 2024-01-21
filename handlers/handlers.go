@@ -63,7 +63,6 @@ func ConvertURL(c *fiber.Ctx, path string) string {
 	return c.BaseURL() + path
 }
 
-
 func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {
 	body := struct {
 		AlbumId string `json:"albumId"`

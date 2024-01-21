@@ -10,6 +10,18 @@ import (
 	"github.com/nanoteck137/dwebble/utils"
 )
 
+// HandleGetArtists godoc
+//	@Summary		Get all artists
+//	@Description	Get all artists
+//	@Tags			accounts
+//	@Accept			json
+//	@Accept			xml
+//	@Produce		json
+//	@Success		200	{object}	types.ApiResponse[types.ApiArtist]
+//	@Failure		400	{object}	types.ApiError
+//	@Failure		404	{object}	types.ApiError
+//	@Failure		500	{object}	types.ApiError
+//	@Router			/artists [get]
 func (api *ApiConfig) HandleGetArtists(c *fiber.Ctx) error {
 	artists, err := api.queries.GetAllArtists(c.UserContext())
 	if err != nil {
@@ -35,6 +47,19 @@ type CreateArtistBody struct {
 	Name string `json:"name" form:"name" validate:"required"`
 }
 
+// HandleGetArtists godoc
+//	@Summary		Get all artists
+//	@Description	Get all artists
+//	@Tags			accounts
+//	@Accept			mpfd
+//	@Produce		json
+//	@Param			name	formData	string	true	"Artist name"
+//	@Param			picture	formData	file	true	"Picture"
+//	@Success		200		{object}	types.ApiResponse[types.ApiArtist]
+//	@Failure		400		{object}	types.ApiError
+//	@Failure		404		{object}	types.ApiError
+//	@Failure		500		{object}	types.ApiError
+//	@Router			/artists [post]
 func (api *ApiConfig) HandlePostArtist(c *fiber.Ctx) error {
 	var body CreateArtistBody
 	err := c.BodyParser(&body)

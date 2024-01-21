@@ -13,6 +13,8 @@ import (
 type Api struct {
 }
 
+//	@title		Testing Testing
+//	@BasePath	/api/v1
 func New(db *pgxpool.Pool) *fiber.App {
 	router := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
