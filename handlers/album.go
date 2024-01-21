@@ -167,8 +167,9 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c *fiber.Ctx) error {
 			MobileQualityFile: ConvertURL(c, "/tracks/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumID,
 			ArtistId:          track.ArtistID,
-			AlbumName:         track.AlbumName,
-			ArtistName:        track.ArtistName,
+			// TODO(patrik): Fix
+			// AlbumName:         track.AlbumName,
+			// ArtistName:        track.ArtistName,
 		}
 	}
 

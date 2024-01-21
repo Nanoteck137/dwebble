@@ -70,8 +70,6 @@ type ApiTrack struct {
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumId           string `json:"albumId"`
 	ArtistId          string `json:"artistId"`
-	AlbumName         string `json:"albumName"`
-	ArtistName        string `json:"artistName"`
 }
 
 // NOTE(patrik): Artist Handlers
@@ -102,9 +100,14 @@ type ApiGetAlbumTracksByIdData struct {
 
 // NOTE(patrik): Album Handlers
 // TODO(patrik): Use these in the track handlers
+type ApiGetTracksDataTrackItem struct {
+	ApiTrack
+	AlbumName  string `json:"albumName"`
+	ArtistName string `json:"artistName"`
+}
 type ApiGetTracksData struct {
-	Tracks []ApiTrack `json:"tracks"`
+	Tracks []ApiGetTracksDataTrackItem `json:"tracks"`
 }
 
 type ApiPostTrackData ApiTrack
-type ApiGetTrackById ApiTrack
+type ApiGetTrackByIdData ApiTrack

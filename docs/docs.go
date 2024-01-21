@@ -485,7 +485,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetTrackById"
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetTrackByIdData"
                         }
                     },
                     "400": {
@@ -630,7 +630,47 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ApiGetTrackById": {
+        "types.ApiGetTrackByIdData": {
+            "type": "object",
+            "properties": {
+                "albumId": {
+                    "type": "string"
+                },
+                "artistId": {
+                    "type": "string"
+                },
+                "bestQualityFile": {
+                    "type": "string"
+                },
+                "coverArt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mobileQualityFile": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "integer"
+                }
+            }
+        },
+        "types.ApiGetTracksData": {
+            "type": "object",
+            "properties": {
+                "tracks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ApiGetTracksDataTrackItem"
+                    }
+                }
+            }
+        },
+        "types.ApiGetTracksDataTrackItem": {
             "type": "object",
             "properties": {
                 "albumId": {
@@ -662,17 +702,6 @@ const docTemplate = `{
                 },
                 "number": {
                     "type": "integer"
-                }
-            }
-        },
-        "types.ApiGetTracksData": {
-            "type": "object",
-            "properties": {
-                "tracks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.ApiTrack"
-                    }
                 }
             }
         },
@@ -713,13 +742,7 @@ const docTemplate = `{
                 "albumId": {
                     "type": "string"
                 },
-                "albumName": {
-                    "type": "string"
-                },
                 "artistId": {
-                    "type": "string"
-                },
-                "artistName": {
                     "type": "string"
                 },
                 "bestQualityFile": {
@@ -814,11 +837,11 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ApiResponse-types_ApiGetTrackById": {
+        "types.ApiResponse-types_ApiGetTrackByIdData": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/types.ApiGetTrackById"
+                    "$ref": "#/definitions/types.ApiGetTrackByIdData"
                 },
                 "status": {
                     "type": "integer",
@@ -880,13 +903,7 @@ const docTemplate = `{
                 "albumId": {
                     "type": "string"
                 },
-                "albumName": {
-                    "type": "string"
-                },
                 "artistId": {
-                    "type": "string"
-                },
-                "artistName": {
                     "type": "string"
                 },
                 "bestQualityFile": {

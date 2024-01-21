@@ -32,14 +32,28 @@ func (api *ApiConfig) HandleGetTracks(c *fiber.Ctx) error {
 		return err
 	}
 
-	for i := range tracks {
-		track := &tracks[i]
-		track.CoverArt = ConvertURL(c, "/images/"+track.CoverArt)
-		track.BestQualityFile = ConvertURL(c, "/tracks/"+track.BestQualityFile)
-		track.MobileQualityFile = ConvertURL(c, "/tracks/"+track.MobileQualityFile)
+	result := types.ApiGetTracksData{
+		Tracks: make([]types.ApiGetTracksDataTrackItem, len(tracks)),
 	}
 
-	return c.JSON(types.NewApiResponse(types.Map{"tracks": tracks}))
+	for i, track := range tracks {
+		result.Tracks[i] = types.ApiGetTracksDataTrackItem{
+			ApiTrack: types.ApiTrack{
+				Id:                track.ID,
+				Number:            track.TrackNumber,
+				Name:              track.Name,
+				CoverArt:          ConvertURL(c, "/images/"+track.CoverArt),
+				BestQualityFile:   ConvertURL(c, "/tracks/"+track.BestQualityFile),
+				MobileQualityFile: ConvertURL(c, "/tracks/"+track.MobileQualityFile),
+				AlbumId:           track.AlbumID,
+				ArtistId:          track.ArtistID,
+			},
+			AlbumName:  track.AlbumName,
+			ArtistName: track.ArtistName,
+		}
+	}
+
+	return c.JSON(types.NewApiResponse(result))
 }
 
 type CreateTrackBody struct {
@@ -223,10 +237,6 @@ func (api *ApiConfig) HandlePostTrack(c *fiber.Ctx) error {
 		return err
 	}
 
-	track.CoverArt = ConvertURL(c, "/images/"+track.CoverArt)
-	track.BestQualityFile = ConvertURL(c, "/tracks/"+track.BestQualityFile)
-	track.MobileQualityFile = ConvertURL(c, "/tracks/"+track.MobileQualityFile)
-
 	err = api.writeTrackFile(bestQualityFile, bestQualityFileName)
 	if err != nil {
 		return err
@@ -263,7 +273,16 @@ func (api *ApiConfig) HandlePostTrack(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.JSON(types.NewApiResponse(track))
+	return c.JSON(types.NewApiResponse(types.ApiPostTrackData{
+		Id:                track.ID,
+		Number:            track.TrackNumber,
+		Name:              track.Name,
+		CoverArt:          ConvertURL(c, "/images/"+track.CoverArt),
+		BestQualityFile:   ConvertURL(c, "/tracks/"+track.BestQualityFile),
+		MobileQualityFile: ConvertURL(c, "/tracks/"+track.MobileQualityFile),
+		AlbumId:           track.AlbumID,
+		ArtistId:          track.ArtistID,
+	}))
 }
 
 // HandleGetTrackById godoc
@@ -273,7 +292,7 @@ func (api *ApiConfig) HandlePostTrack(c *fiber.Ctx) error {
 //	@Tags			tracks
 //	@Produce		json
 //	@Param			id	path		string	true	"Track Id"
-//	@Success		200	{object}	types.ApiResponse[types.ApiGetTrackById]
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetTrackByIdData]
 //	@Failure		400	{object}	types.ApiError
 //	@Failure		404	{object}	types.ApiError
 //	@Failure		500	{object}	types.ApiError
@@ -290,9 +309,16 @@ func (api *ApiConfig) HandleGetTrackById(c *fiber.Ctx) error {
 		}
 	}
 
-	track.CoverArt = ConvertURL(c, track.CoverArt)
-
-	return c.JSON(track)
+	return c.JSON(types.NewApiResponse(types.ApiGetTrackByIdData{
+		Id:                track.ID,
+		Number:            track.TrackNumber,
+		Name:              track.Name,
+		CoverArt:          ConvertURL(c, "/images/"+track.CoverArt),
+		BestQualityFile:   ConvertURL(c, "/tracks/"+track.BestQualityFile),
+		MobileQualityFile: ConvertURL(c, "/tracks/"+track.MobileQualityFile),
+		AlbumId:           track.AlbumID,
+		ArtistId:          track.ArtistID,
+	}))
 }
 
 func InstallTrackHandlers(router *fiber.App, apiConfig *ApiConfig) {
