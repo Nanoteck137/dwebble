@@ -16,8 +16,8 @@ import (
 //	@Description	Get all artists
 //	@Tags			artists
 //	@Produce		json
-//	@Success		200	{object}	types.ApiResponse[types.ApiArtistList]
-//	@Failure		400	{object}	types.ApiError(status = 404)
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetArtistsData]
+//	@Failure		400	{object}	types.ApiError
 //	@Failure		500	{object}	types.ApiError
 //	@Router			/artists [get]
 func (api *ApiConfig) HandleGetArtists(c *fiber.Ctx) error {
@@ -26,12 +26,12 @@ func (api *ApiConfig) HandleGetArtists(c *fiber.Ctx) error {
 		return err
 	}
 
-	result := types.ApiArtistList{
-		Artists: make([]types.ApiArtistListItem, len(artists)),
+	result := types.ApiGetArtistsData{
+		Artists: make([]types.ApiArtist, len(artists)),
 	}
 
 	for i, artist := range artists {
-		result.Artists[i] = types.ApiArtistListItem{
+		result.Artists[i] = types.ApiArtist{
 			Id:      artist.ID,
 			Name:    artist.Name,
 			Picture: ConvertURL(c, "/images/"+artist.Picture),
@@ -53,7 +53,7 @@ type CreateArtistBody struct {
 //	@Accept			mpfd
 //	@Produce		json
 //	@Param			name	formData	string	true	"Artist name"
-//	@Success		200		{object}	types.ApiResponse[types.ApiArtist]
+//	@Success		200		{object}	types.ApiResponse[types.ApiPostArtistData]
 //	@Failure		400		{object}	types.ApiError
 //	@Failure		500		{object}	types.ApiError
 //	@Router			/artists [post]
@@ -79,7 +79,7 @@ func (api *ApiConfig) HandlePostArtist(c *fiber.Ctx) error {
 		return err
 	}
 
-	return c.JSON(types.NewApiResponse(types.ApiArtist{
+	return c.JSON(types.NewApiResponse(types.ApiPostArtistData{
 		Id:      artist.ID,
 		Name:    artist.Name,
 		Picture: ConvertURL(c, "/images/"+artist.Picture),
@@ -93,7 +93,7 @@ func (api *ApiConfig) HandlePostArtist(c *fiber.Ctx) error {
 //	@Tags			artists
 //	@Produce		json
 //	@Param			id	path		string	true	"Artist Id"
-//	@Success		200	{object}	types.ApiResponse[types.ApiArtist]
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetArtistByIdData]
 //	@Failure		400	{object}	types.ApiError
 //	@Failure		404	{object}	types.ApiError
 //	@Failure		500	{object}	types.ApiError
@@ -110,7 +110,7 @@ func (api *ApiConfig) HandleGetArtistById(c *fiber.Ctx) error {
 		}
 	}
 
-	return c.JSON(types.NewApiResponse(types.ApiArtist{
+	return c.JSON(types.NewApiResponse(types.ApiGetArtistByIdData{
 		Id:      artist.ID,
 		Name:    artist.Name,
 		Picture: ConvertURL(c, "/images/"+artist.Picture),
@@ -124,7 +124,7 @@ func (api *ApiConfig) HandleGetArtistById(c *fiber.Ctx) error {
 //	@Tags			artists
 //	@Produce		json
 //	@Param			id	path		string	true	"Artist Id"
-//	@Success		200	{object}	types.ApiResponse[types.ApiGetArtistAlbumsData]
+//	@Success		200	{object}	types.ApiResponse[types.ApiGetArtistAlbumsByIdData]
 //	@Failure		400	{object}	types.ApiError
 //	@Failure		500	{object}	types.ApiError
 //	@Router			/artists/{id}/albums [get]
@@ -136,7 +136,7 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c *fiber.Ctx) error {
 		return err
 	}
 
-	result := types.ApiGetArtistAlbumsData{
+	result := types.ApiGetArtistAlbumsByIdData{
 		Albums: make([]types.ApiAlbum, len(albums)),
 	}
 

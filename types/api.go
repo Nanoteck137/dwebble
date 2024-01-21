@@ -54,16 +54,6 @@ type ApiArtist struct {
 	Picture string `json:"picture"`
 }
 
-type ApiArtistListItem struct {
-	Id      string `json:"id"`
-	Name    string `json:"name"`
-	Picture string `json:"picture"`
-}
-
-type ApiArtistList struct {
-	Artists []ApiArtistListItem `json:"artists"`
-}
-
 type ApiAlbum struct {
 	Id       string `json:"id"`
 	Name     string `json:"name"`
@@ -84,7 +74,14 @@ type ApiTrack struct {
 	ArtistName        string `json:"artistName"`
 }
 
-type ApiGetArtistAlbumsData struct {
+type ApiGetArtistsData struct {
+	Artists []ApiArtist `json:"artists"`
+}
+
+type ApiPostArtistData ApiArtist
+type ApiGetArtistByIdData ApiArtist
+
+type ApiGetArtistAlbumsByIdData struct {
 	Albums []ApiAlbum `json:"albums"`
 }
 

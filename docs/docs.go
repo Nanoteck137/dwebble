@@ -29,7 +29,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.ApiResponse-types_ApiArtistList"
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetArtistsData"
                         }
                     },
                     "400": {
@@ -71,7 +71,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.ApiResponse-types_ApiArtist"
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiPostArtistData"
                         }
                     },
                     "400": {
@@ -112,7 +112,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.ApiResponse-types_ApiArtist"
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetArtistByIdData"
                         }
                     },
                     "400": {
@@ -159,7 +159,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetArtistAlbumsData"
+                            "$ref": "#/definitions/types.ApiResponse-types_ApiGetArtistAlbumsByIdData"
                         }
                     },
                     "400": {
@@ -210,31 +210,6 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ApiArtistList": {
-            "type": "object",
-            "properties": {
-                "artists": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.ApiArtistListItem"
-                    }
-                }
-            }
-        },
-        "types.ApiArtistListItem": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "picture": {
-                    "type": "string"
-                }
-            }
-        },
         "types.ApiError": {
             "type": "object",
             "properties": {
@@ -248,7 +223,7 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ApiGetArtistAlbumsData": {
+        "types.ApiGetArtistAlbumsByIdData": {
             "type": "object",
             "properties": {
                 "albums": {
@@ -259,11 +234,50 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ApiResponse-types_ApiArtist": {
+        "types.ApiGetArtistByIdData": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "picture": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.ApiGetArtistsData": {
+            "type": "object",
+            "properties": {
+                "artists": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/types.ApiArtist"
+                    }
+                }
+            }
+        },
+        "types.ApiPostArtistData": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "picture": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.ApiResponse-types_ApiGetArtistAlbumsByIdData": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/types.ApiArtist"
+                    "$ref": "#/definitions/types.ApiGetArtistAlbumsByIdData"
                 },
                 "status": {
                     "type": "integer",
@@ -271,11 +285,11 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ApiResponse-types_ApiArtistList": {
+        "types.ApiResponse-types_ApiGetArtistByIdData": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/types.ApiArtistList"
+                    "$ref": "#/definitions/types.ApiGetArtistByIdData"
                 },
                 "status": {
                     "type": "integer",
@@ -283,11 +297,23 @@ const docTemplate = `{
                 }
             }
         },
-        "types.ApiResponse-types_ApiGetArtistAlbumsData": {
+        "types.ApiResponse-types_ApiGetArtistsData": {
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "#/definitions/types.ApiGetArtistAlbumsData"
+                    "$ref": "#/definitions/types.ApiGetArtistsData"
+                },
+                "status": {
+                    "type": "integer",
+                    "example": 200
+                }
+            }
+        },
+        "types.ApiResponse-types_ApiPostArtistData": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/types.ApiPostArtistData"
                 },
                 "status": {
                     "type": "integer",

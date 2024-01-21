@@ -20,22 +20,6 @@ definitions:
       picture:
         type: string
     type: object
-  types.ApiArtistList:
-    properties:
-      artists:
-        items:
-          $ref: '#/definitions/types.ApiArtistListItem'
-        type: array
-    type: object
-  types.ApiArtistListItem:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      picture:
-        type: string
-    type: object
   types.ApiError:
     properties:
       data: {}
@@ -45,33 +29,66 @@ definitions:
         example: 400
         type: integer
     type: object
-  types.ApiGetArtistAlbumsData:
+  types.ApiGetArtistAlbumsByIdData:
     properties:
       albums:
         items:
           $ref: '#/definitions/types.ApiAlbum'
         type: array
     type: object
-  types.ApiResponse-types_ApiArtist:
+  types.ApiGetArtistByIdData:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      picture:
+        type: string
+    type: object
+  types.ApiGetArtistsData:
+    properties:
+      artists:
+        items:
+          $ref: '#/definitions/types.ApiArtist'
+        type: array
+    type: object
+  types.ApiPostArtistData:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      picture:
+        type: string
+    type: object
+  types.ApiResponse-types_ApiGetArtistAlbumsByIdData:
     properties:
       data:
-        $ref: '#/definitions/types.ApiArtist'
+        $ref: '#/definitions/types.ApiGetArtistAlbumsByIdData'
       status:
         example: 200
         type: integer
     type: object
-  types.ApiResponse-types_ApiArtistList:
+  types.ApiResponse-types_ApiGetArtistByIdData:
     properties:
       data:
-        $ref: '#/definitions/types.ApiArtistList'
+        $ref: '#/definitions/types.ApiGetArtistByIdData'
       status:
         example: 200
         type: integer
     type: object
-  types.ApiResponse-types_ApiGetArtistAlbumsData:
+  types.ApiResponse-types_ApiGetArtistsData:
     properties:
       data:
-        $ref: '#/definitions/types.ApiGetArtistAlbumsData'
+        $ref: '#/definitions/types.ApiGetArtistsData'
+      status:
+        example: 200
+        type: integer
+    type: object
+  types.ApiResponse-types_ApiPostArtistData:
+    properties:
+      data:
+        $ref: '#/definitions/types.ApiPostArtistData'
       status:
         example: 200
         type: integer
@@ -89,7 +106,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.ApiResponse-types_ApiArtistList'
+            $ref: '#/definitions/types.ApiResponse-types_ApiGetArtistsData'
         "400":
           description: Bad Request
           schema:
@@ -117,7 +134,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.ApiResponse-types_ApiArtist'
+            $ref: '#/definitions/types.ApiResponse-types_ApiPostArtistData'
         "400":
           description: Bad Request
           schema:
@@ -144,7 +161,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.ApiResponse-types_ApiArtist'
+            $ref: '#/definitions/types.ApiResponse-types_ApiGetArtistByIdData'
         "400":
           description: Bad Request
           schema:
@@ -175,7 +192,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/types.ApiResponse-types_ApiGetArtistAlbumsData'
+            $ref: '#/definitions/types.ApiResponse-types_ApiGetArtistAlbumsByIdData'
         "400":
           description: Bad Request
           schema:
