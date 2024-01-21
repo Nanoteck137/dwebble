@@ -10,7 +10,7 @@ import (
 	"github.com/nanoteck137/dwebble/utils"
 )
 
-func (api *ApiConfig) HandlerGetAllArtists(c *fiber.Ctx) error {
+func (api *ApiConfig) HandleGetArtists(c *fiber.Ctx) error {
 	artists, err := api.queries.GetAllArtists(c.UserContext())
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ type CreateArtistBody struct {
 	Name string `json:"name" form:"name" validate:"required"`
 }
 
-func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
+func (api *ApiConfig) HandlePostArtist(c *fiber.Ctx) error {
 	var body CreateArtistBody
 	err := c.BodyParser(&body)
 	if err != nil {
@@ -64,7 +64,7 @@ func (api *ApiConfig) HandlerCreateArtist(c *fiber.Ctx) error {
 	}))
 }
 
-func (api *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
+func (api *ApiConfig) HandleGetArtistById(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	artist, err := api.queries.GetArtist(c.UserContext(), id)
@@ -83,7 +83,7 @@ func (api *ApiConfig) HandlerGetArtist(c *fiber.Ctx) error {
 	}))
 }
 
-func (api *ApiConfig) HandlerGetArtistAlbums(c *fiber.Ctx) error {
+func (api *ApiConfig) HandleGetArtistAlbumsById(c *fiber.Ctx) error {
 	id := c.Params("id")
 
 	albums, err := api.queries.GetAlbumsByArtist(c.UserContext(), id)
