@@ -106,3 +106,10 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c *fiber.Ctx) error {
 
 	return c.JSON(types.NewApiResponse(result))
 }
+
+func InstallArtistHandlers(router *fiber.App, apiConfig *ApiConfig) {
+	router.Get("/artists", apiConfig.HandleGetArtists)
+	router.Post("/artists", apiConfig.HandlePostArtist)
+	router.Get("/artists/:id", apiConfig.HandleGetArtistById)
+	router.Get("/artists/:id/albums", apiConfig.HandleGetArtistAlbumsById)
+}
