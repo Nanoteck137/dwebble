@@ -407,14 +407,14 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Album Id",
-                        "name": "albumId",
+                        "name": "album",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "string",
                         "description": "Artist Id",
-                        "name": "artistId",
+                        "name": "artist",
                         "in": "formData",
                         "required": true
                     },

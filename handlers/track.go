@@ -112,8 +112,8 @@ func (api *ApiConfig) writeImageFile(file *multipart.FileHeader, name string) er
 //	@Produce		json
 //	@Param			name				formData	string	true	"Track name"
 //	@Param			number				formData	string	true	"Track number"
-//	@Param			albumId				formData	string	true	"Album Id"
-//	@Param			artistId			formData	string	true	"Artist Id"
+//	@Param			album				formData	string	true	"Album Id"
+//	@Param			artist				formData	string	true	"Artist Id"
 //	@Param			bestQualityFile		formData	file	true	"Best Quality File"
 //	@Param			mobileQualityFile	formData	file	true	"Mobile Quality File"
 //	@Param			coverArt			formData	file	true	"Cover Art"

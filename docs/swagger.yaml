@@ -533,12 +533,12 @@ paths:
         type: string
       - description: Album Id
         in: formData
-        name: albumId
+        name: album
         required: true
         type: string
       - description: Artist Id
         in: formData
-        name: artistId
+        name: artist
         required: true
         type: string
       - description: Best Quality File
