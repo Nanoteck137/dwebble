@@ -69,3 +69,27 @@ func (q *Queries) GetArtist(ctx context.Context, id string) (Artist, error) {
 	err := row.Scan(&i.ID, &i.Name, &i.Picture)
 	return i, err
 }
+
+const getArtistByName = `-- name: GetArtistByName :many
+SELECT id, name, picture FROM artists WHERE name LIKE $1
+`
+
+func (q *Queries) GetArtistByName(ctx context.Context, name string) ([]Artist, error) {
+	rows, err := q.db.Query(ctx, getArtistByName, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Artist{}
+	for rows.Next() {
+		var i Artist
+		if err := rows.Scan(&i.ID, &i.Name, &i.Picture); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

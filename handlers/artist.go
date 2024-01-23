@@ -21,9 +21,23 @@ import (
 //	@Failure		500	{object}	types.ApiError
 //	@Router			/artists [get]
 func (api *ApiConfig) HandleGetArtists(c *fiber.Ctx) error {
-	artists, err := api.queries.GetAllArtists(c.UserContext())
-	if err != nil {
-		return err
+	var artists []database.Artist
+
+	name := c.Query("name")
+	if name != "" {
+		a, err := api.queries.GetArtistByName(c.UserContext(), name)
+		if err != nil {
+			return err
+		}
+
+		artists = a
+	} else {
+		a, err := api.queries.GetAllArtists(c.UserContext())
+		if err != nil {
+			return err
+		}
+
+		artists = a
 	}
 
 	result := types.ApiGetArtistsData{
@@ -155,6 +169,7 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c *fiber.Ctx) error {
 func InstallArtistHandlers(router *fiber.App, apiConfig *ApiConfig) {
 	router.Get("/artists", apiConfig.HandleGetArtists)
 	router.Post("/artists", apiConfig.HandlePostArtist)
+
 	router.Get("/artists/:id", apiConfig.HandleGetArtistById)
 	router.Get("/artists/:id/albums", apiConfig.HandleGetArtistAlbumsById)
 }
