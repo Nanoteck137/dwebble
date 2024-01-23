@@ -17,7 +17,9 @@ CREATE TABLE albums (
     CONSTRAINT albums_pk PRIMARY KEY(id),
 
     CONSTRAINT albums_artist_id_fk FOREIGN KEY (artist_id)
-        REFERENCES artists(id)
+        REFERENCES artists(id),
+
+    CONSTRAINT albums_name_unique UNIQUE(name, artist_id)
 );
 
 CREATE TABLE tracks (

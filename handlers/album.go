@@ -88,10 +88,15 @@ func (api *ApiConfig) HandlePostAlbum(c *fiber.Ctx) error {
 				case "albums_artist_id_fk":
 					return types.ApiBadRequestError(fmt.Sprintf("No artist with id: '%v'", body.Artist))
 				}
+			case "23505":
+				switch err.ConstraintName {
+				case "albums_name_unique":
+					return types.ApiBadRequestError(fmt.Sprintf("Album with name '%s' already exists", body.Name))
+				}
 			}
-		}
 
-		return err
+			return err
+		}
 	}
 
 	return c.JSON(types.NewApiResponse(types.ApiPostAlbumData{
@@ -137,7 +142,7 @@ func (api *ApiConfig) HandleGetAlbumById(c *fiber.Ctx) error {
 // HandleGetAlbumTracksById godoc
 //
 //	@Summary		Get all tracks from album
-//	@Description	Get all tracks from album 
+//	@Description	Get all tracks from album
 //	@Tags			albums
 //	@Produce		json
 //	@Param			id	path		string	true	"Artist Id"
