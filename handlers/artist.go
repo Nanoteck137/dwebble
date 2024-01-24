@@ -145,10 +145,29 @@ func (api *ApiConfig) HandleGetArtistById(c *fiber.Ctx) error {
 func (api *ApiConfig) HandleGetArtistAlbumsById(c *fiber.Ctx) error {
 	id := c.Params("id")
 
-	albums, err := api.queries.GetAlbumsByArtist(c.UserContext(), id)
-	if err != nil {
-		return err
+	var albums []database.Album
+
+	nameQuery := c.Query("name")
+	if nameQuery != "" {
+		a, err := api.queries.GetAlbumsByArtistAndName(c.UserContext(), database.GetAlbumsByArtistAndNameParams{
+			ArtistID: id,
+			Name:     nameQuery,
+		})
+
+		if err != nil {
+			return err
+		}
+
+		albums = a
+	} else {
+		a, err := api.queries.GetAlbumsByArtist(c.UserContext(), id)
+		if err != nil {
+			return err
+		}
+
+		albums = a
 	}
+
 
 	result := types.ApiGetArtistAlbumsByIdData{
 		Albums: make([]types.ApiAlbum, len(albums)),
