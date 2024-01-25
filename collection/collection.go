@@ -94,6 +94,20 @@ func ReadFromDir(dir string) (*Collection, error) {
 		}
 	}
 
+	for _, artist := range artists {
+		a, ok := artistsMap[artist.Id]
+		if !ok {
+			log.Fatalf("No artist with id: '%v'\n", artist.Id)
+		}
+
+		for _, album := range artist.Albums {
+			a.Albums = append(a.Albums, Album{
+				Name:   album.Name,
+				Artist: a,
+			})
+		}
+	}
+
 	pretty.Println(artistsMap)
 
 	return nil, nil
