@@ -6,8 +6,6 @@ import (
 	"log"
 	"os"
 	"path"
-
-	"github.com/kr/pretty"
 )
 
 type TrackMetadata struct {
@@ -49,7 +47,7 @@ type Artist struct {
 }
 
 type Collection struct {
-	artists map[string]*Artist
+	Artists map[string]*Artist
 	albums  map[string]*Album
 	tracks  map[string]*Track
 }
@@ -86,6 +84,7 @@ func ReadFromDir(dir string) (*Collection, error) {
 		artist, err := ReadEntryFromDir(p)
 		if err != nil {
 			log.Printf("Warning: %v\n", err)
+			continue
 		}
 
 		artists = append(artists, artist)
@@ -148,9 +147,9 @@ func ReadFromDir(dir string) (*Collection, error) {
 		}
 	}
 
-	pretty.Println(artistMap)
-	pretty.Println(albumMap)
-	pretty.Println(trackMap)
-
-	return nil, nil
+	return &Collection{
+		Artists: artistMap,
+		albums:  albumMap,
+		tracks:  trackMap,
+	}, nil
 }
