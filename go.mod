@@ -8,6 +8,7 @@ require (
 	github.com/gofiber/swagger v0.1.14
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/joho/godotenv v1.5.1
+	github.com/kennygrant/sanitize v1.2.4
 	github.com/kr/pretty v0.3.1
 	github.com/nrednav/cuid2 v1.0.0
 	github.com/pressly/goose/v3 v3.17.0
