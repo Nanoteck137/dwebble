@@ -8,7 +8,6 @@ import (
 	"path"
 
 	"github.com/kennygrant/sanitize"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/collection"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -96,11 +95,43 @@ func randomTrackName() string {
 	return trackNames[index]
 }
 
+func getDir() (string, error) {
+	dir := "./mockdata"
+	_, err := os.Stat(dir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return "", err
+		}
+	} else {
+		err := os.RemoveAll(dir)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	err = os.MkdirAll(dir, 0755)
+	if err != nil {
+		return "", err
+	}
+
+	return dir, nil
+}
+
 func main() {
 	// numArtists := randRange(2, 5)
 	numArtists := 4
 
 	var artists []collection.ArtistMetadata
+
+	dir, err := getDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ffmpeg -f lavfi -i "sine=frequency=1000:duration=5" test.flac
+
+	out := path.Join(dir, "testaudio.flac")
+	utils.RunFFmpeg(false, "-f", "lavfi", "-i", "sine=frequency=1000:duration=5", out)
 
 	for artistIndex := 0; artistIndex < numArtists; artistIndex++ {
 		artistName := randomArtistName()
@@ -135,25 +166,6 @@ func main() {
 			Name:   artistName,
 			Albums: albums,
 		})
-	}
-
-	dir := "./mockdata"
-	info, err := os.Stat(dir)
-	if err != nil {
-		if !os.IsNotExist(err) {
-			log.Fatal(err)
-		}
-	} else {
-		err := os.RemoveAll(dir)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	pretty.Println(info)
-	err = os.MkdirAll(dir, 0755)
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	for _, artist := range artists {
