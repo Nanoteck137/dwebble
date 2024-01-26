@@ -2,7 +2,9 @@ package sync
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kr/pretty"
@@ -46,6 +48,19 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool) error {
 
 			return err
 		} else {
+			sql, params, err := goqu.Update("artists").Set(goqu.Record{
+				"name": v.Name,
+			}).Where(goqu.C("id").Eq(k)).ToSQL()
+			if err != nil {
+				return err
+			}
+
+			pretty.Println(sql)
+			pretty.Println(params)
+
+			tag, err := db.Exec(ctx, sql)
+			fmt.Println(tag.String())
+
 			_ = dbArtist
 		}
 	}
