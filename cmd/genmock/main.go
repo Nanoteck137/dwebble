@@ -1,11 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
 	"os"
 	"path"
+	"path/filepath"
+	"strconv"
 
 	"github.com/kennygrant/sanitize"
 	"github.com/nanoteck137/dwebble/collection"
@@ -121,8 +124,6 @@ func main() {
 	// numArtists := randRange(2, 5)
 	numArtists := 4
 
-	var artists []collection.ArtistMetadata
-
 	dir, err := getDir()
 	if err != nil {
 		log.Fatal(err)
@@ -130,30 +131,57 @@ func main() {
 
 	// ffmpeg -f lavfi -i "sine=frequency=1000:duration=5" test.flac
 
-	out := path.Join(dir, "testaudio.flac")
-	utils.RunFFmpeg(false, "-f", "lavfi", "-i", "sine=frequency=1000:duration=5", out)
+	audioFile := path.Join(dir, "testaudio.flac")
+	utils.RunFFmpeg(false, "-f", "lavfi", "-i", "sine=frequency=1000:duration=5", audioFile)
 
 	for artistIndex := 0; artistIndex < numArtists; artistIndex++ {
 		artistName := randomArtistName()
+		artistName += " #" + strconv.Itoa(artistIndex)
 		fmt.Println("Artist", artistName)
 
+		name := sanitize.Name(artistName)
+		artistDir := path.Join(dir, name)
+
+		err := os.Mkdir(artistDir, 0755)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		audioFilePath, err := filepath.Abs(audioFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("%v\n", audioFilePath)
+
 		var albums []collection.AlbumMetadata
-
 		for albumIndex := 0; albumIndex < 2; albumIndex++ {
-			var tracks []collection.TrackMetadata
+			albumName := randomAlbumName()
+			albumName += " #" + strconv.Itoa(albumIndex)
 
+			name := sanitize.Name(albumName)
+			albumDir := path.Join(artistDir, name)
+
+			err := os.Mkdir(albumDir, 0755)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			var tracks []collection.TrackMetadata
 			for trackIndex := 0; trackIndex < 4; trackIndex++ {
 				trackName := randomTrackName()
+
+				name := fmt.Sprintf("%v.flac", strconv.Itoa(trackIndex + 1))
+				os.Symlink(audioFilePath, path.Join(albumDir, name))
 
 				tracks = append(tracks, collection.TrackMetadata{
 					Id:       utils.CreateId(),
 					Name:     trackName,
-					FilePath: "",
+					FileName: name,
 					// Artist:   artistName,
 				})
 			}
 
-			albumName := randomAlbumName()
 			albums = append(albums, collection.AlbumMetadata{
 				Id:     utils.CreateId(),
 				Name:   albumName,
@@ -161,19 +189,18 @@ func main() {
 			})
 		}
 
-		artists = append(artists, collection.ArtistMetadata{
+		artist := collection.ArtistMetadata{
 			Id:     utils.CreateId(),
 			Name:   artistName,
 			Albums: albums,
-		})
-	}
+		}
 
-	for _, artist := range artists {
-		name := sanitize.Name(artist.Name)
-		p := path.Join(dir, name)
-		fmt.Printf("Path: %v\n", p)
+		data, err := json.MarshalIndent(artist, "", "  ")
+		if err != nil {
+			log.Fatal(err)
+		}
 
-		err := os.Mkdir(p, 0755)
+		err = os.WriteFile(path.Join(artistDir, "artist.json"), data, 0644)
 		if err != nil {
 			log.Fatal(err)
 		}
