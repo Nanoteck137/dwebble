@@ -13,8 +13,8 @@ import (
 type TrackMetadata struct {
 	Id       string `json:"id"`
 	Name     string `json:"name"`
-	FilePath string `json:"filePath"`
-	Artist   string `json:"artist,omitempty"`
+	FileName string `json:"fileName"`
+	ArtistId string `json:"artistId,omitempty"`
 }
 
 type AlbumMetadata struct {
@@ -31,7 +31,7 @@ type ArtistMetadata struct {
 
 type Track struct {
 	Name     string
-	Filepath string
+	FileName string
 	Album    *Album
 	Artist   *Artist
 }
@@ -131,7 +131,7 @@ func ReadFromDir(dir string) (*Collection, error) {
 			for _, trackMetadata := range albumMetadata.Tracks {
 				track := &Track{
 					Name:     trackMetadata.Name,
-					Filepath: trackMetadata.FilePath,
+					FileName: trackMetadata.FileName,
 					Album:    album,
 					Artist:   artist,
 				}
