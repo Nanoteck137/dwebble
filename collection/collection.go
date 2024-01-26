@@ -36,9 +36,9 @@ type Track struct {
 }
 
 type Album struct {
-	Name   string
-	Tracks []*Track
-	Artist *Artist
+	Name     string
+	Tracks   []*Track
+	ArtistId string
 }
 
 type Artist struct {
@@ -48,8 +48,8 @@ type Artist struct {
 
 type Collection struct {
 	Artists map[string]*Artist
-	albums  map[string]*Album
-	tracks  map[string]*Track
+	Albums  map[string]*Album
+	Tracks  map[string]*Track
 }
 
 func ReadEntryFromDir(dir string) (*ArtistMetadata, error) {
@@ -114,9 +114,9 @@ func ReadFromDir(dir string) (*Collection, error) {
 
 		for _, albumMetadata := range artistMetadata.Albums {
 			album := &Album{
-				Name:   albumMetadata.Name,
-				Artist: artist,
-				Tracks: []*Track{},
+				Name:     albumMetadata.Name,
+				ArtistId: artistMetadata.Id,
+				Tracks:   []*Track{},
 			}
 
 			_, exists := albumMap[albumMetadata.Id]
@@ -149,7 +149,7 @@ func ReadFromDir(dir string) (*Collection, error) {
 
 	return &Collection{
 		Artists: artistMap,
-		albums:  albumMap,
-		tracks:  trackMap,
+		Albums:  albumMap,
+		Tracks:  trackMap,
 	}, nil
 }
