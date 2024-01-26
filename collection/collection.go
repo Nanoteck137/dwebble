@@ -29,18 +29,28 @@ type ArtistMetadata struct {
 	Albums []AlbumMetadata `json:"albums"`
 }
 
-type Artist struct {
-	Name   string
-	Albums []Album
+type Track struct {
+	Name     string
+	Filepath string
+	Album    *Album
+	Artist   *Artist
 }
 
 type Album struct {
 	Name   string
+	Tracks []*Track
 	Artist *Artist
+}
+
+type Artist struct {
+	Name   string
+	Albums []*Album
 }
 
 type Collection struct {
 	artists map[string]*Artist
+	albums  map[string]*Album
+	tracks  map[string]*Track
 }
 
 func ReadEntryFromDir(dir string) (*ArtistMetadata, error) {
@@ -80,35 +90,66 @@ func ReadFromDir(dir string) (*Collection, error) {
 		artists = append(artists, artist)
 	}
 
-	artistsMap := make(map[string]*Artist)
+	artistMap := make(map[string]*Artist)
+	albumMap := make(map[string]*Album)
+	trackMap := make(map[string]*Track)
 
 	for _, artist := range artists {
-		if _, ok := artistsMap[artist.Id]; ok {
+		if _, ok := artistMap[artist.Id]; ok {
 			// TODO(patrik): Better error message
 			log.Fatalf("Duplicated artist ids: %v\n", artist.Id)
 		}
 
-		artistsMap[artist.Id] = &Artist{
+		artistMap[artist.Id] = &Artist{
 			Name:   artist.Name,
-			Albums: []Album{},
+			Albums: []*Album{},
 		}
 	}
 
-	for _, artist := range artists {
-		a, ok := artistsMap[artist.Id]
+	for _, artistMetadata := range artists {
+		artist, ok := artistMap[artistMetadata.Id]
 		if !ok {
-			log.Fatalf("No artist with id: '%v'\n", artist.Id)
+			log.Fatalf("No artist with id: '%v'\n", artistMetadata.Id)
 		}
 
-		for _, album := range artist.Albums {
-			a.Albums = append(a.Albums, Album{
-				Name:   album.Name,
-				Artist: a,
-			})
+		for _, albumMetadata := range artistMetadata.Albums {
+			album := &Album{
+				Name:   albumMetadata.Name,
+				Artist: artist,
+				Tracks: []*Track{},
+			}
+
+			_, exists := albumMap[albumMetadata.Id]
+			if exists {
+				log.Fatalf("Duplicated album id: '%v'\n", albumMetadata.Id)
+			}
+
+			albumMap[albumMetadata.Id] = album
+
+			artist.Albums = append(artist.Albums, album)
+
+			for _, trackMetadata := range albumMetadata.Tracks {
+				track := &Track{
+					Name:     trackMetadata.Name,
+					Filepath: trackMetadata.FilePath,
+					Album:    album,
+					Artist:   artist,
+				}
+
+				_, exists := trackMap[trackMetadata.Id]
+				if exists {
+					log.Fatalf("Duplicated track id: '%v'\n", albumMetadata.Id)
+				}
+
+				trackMap[trackMetadata.Id] = track
+				album.Tracks = append(album.Tracks, track)
+			}
 		}
 	}
 
-	pretty.Println(artistsMap)
+	pretty.Println(artistMap)
+	pretty.Println(albumMap)
+	pretty.Println(trackMap)
 
 	return nil, nil
 }
