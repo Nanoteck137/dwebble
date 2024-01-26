@@ -185,6 +185,7 @@ func main() {
 			albums = append(albums, collection.AlbumMetadata{
 				Id:     utils.CreateId(),
 				Name:   albumName,
+				Dir:    name,
 				Tracks: tracks,
 			})
 		}

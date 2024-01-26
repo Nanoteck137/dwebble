@@ -20,6 +20,7 @@ type TrackMetadata struct {
 type AlbumMetadata struct {
 	Id     string          `json:"id"`
 	Name   string          `json:"name"`
+	Dir    string          `json:"dir"`
 	Tracks []TrackMetadata `json:"tracks"`
 }
 
