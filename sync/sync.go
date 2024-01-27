@@ -171,13 +171,6 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool, workDir types.
 		dbTrack, err := queries.GetTrack(ctx, trackId)
 		if err != nil {
 			if err == pgx.ErrNoRows {
-				album, exists := col.Albums[track.AlbumId]
-				if !exists {
-					return fmt.Errorf("Failed to create track: album with id '%v' don't exist", track.AlbumId)
-				}
-
-				_ = album
-
 				p := path.Join(col.BasePath, track.FilePath)
 				fmt.Printf("Path: %v\n", p)
 
@@ -188,7 +181,8 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool, workDir types.
 				}
 
 				ext := path.Ext(p)[1:]
-				fileDst := path.Join(dst, fmt.Sprintf("%v.%v", track.Id, ext))
+				fileName := fmt.Sprintf("%v.%v", track.Id, ext)
+				fileDst := path.Join(dst, fileName)
 				test, err := filepath.Rel(dst, p)
 				if err != nil {
 					return err
@@ -212,14 +206,12 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool, workDir types.
 					}
 				}
 
-				// track.FileName
-
 				_, err = queries.CreateTrack(ctx, database.CreateTrackParams{
 					ID:                trackId,
 					TrackNumber:       int32(track.Number),
 					Name:              track.Name,
 					CoverArt:          "TODO",
-					BestQualityFile:   "TODO",
+					BestQualityFile:   fileName,
 					MobileQualityFile: "TODO",
 					AlbumID:           track.AlbumId,
 					ArtistID:          track.ArtistId,

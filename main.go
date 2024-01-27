@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/nanoteck137/dwebble/api"
+	"github.com/nanoteck137/dwebble/types"
 
 	_ "github.com/nanoteck137/dwebble/docs"
 )
@@ -48,10 +49,10 @@ func main() {
 		log.Println("Warning: WORK_DIR not set, using cwd")
 		workDirPath = "./"
 	}
-	workDir := WorkDir(workDirPath)
+	workDir := types.WorkDir(workDirPath)
 
 	app.Use("/tracks", filesystem.New(filesystem.Config{
-		Root: http.Dir(workDir.TracksDir()),
+		Root: http.Dir(workDir.OriginalTracksDir()),
 	}))
 
 	app.Use("/images", filesystem.New(filesystem.Config{
