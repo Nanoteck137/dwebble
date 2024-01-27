@@ -68,6 +68,53 @@ func RunAlbumUpdate(ctx context.Context, db *pgxpool.Pool, albumId string, req *
 	return nil
 }
 
+// type FileType int
+//
+// const (
+// 	FileTypeOriginal FileType = iota
+// 	FileTypeMobile
+// 	FileTypeImage
+// )
+//
+// func fileSync(typ FileType) error {
+// 	p := path.Join(col.BasePath, track.FilePath)
+// 	fmt.Printf("Path: %v\n", p)
+//
+// 	dst := workDir.OriginalTracksDir()
+// 	err := os.MkdirAll(dst, 0755)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	ext := path.Ext(p)[1:]
+// 	fileName := fmt.Sprintf("%v.%v", track.Id, ext)
+// 	fileDst := path.Join(dst, fileName)
+// 	test, err := filepath.Rel(dst, p)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	fmt.Printf("Test: %v\n", test)
+//
+// 	err = os.Symlink(test, fileDst)
+// 	if err != nil {
+// 		if os.IsExist(err) {
+// 			err := os.Remove(fileDst)
+// 			if err != nil {
+// 				return err
+// 			}
+//
+// 			err = os.Symlink(test, fileDst)
+// 			if err != nil {
+// 				return err
+// 			}
+// 		} else {
+// 			return err
+// 		}
+// 	}
+//
+// 	return nil
+// }
+
 func SyncCollection(col *collection.Collection, db *pgxpool.Pool, workDir types.WorkDir) error {
 	queries := database.New(db)
 
@@ -99,10 +146,45 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool, workDir types.
 		dbArtist, err := queries.GetArtist(ctx, artistId)
 		if err != nil {
 			if err == pgx.ErrNoRows {
-				_, err := queries.CreateArtist(ctx, database.CreateArtistParams{
+				p := path.Join(col.BasePath, artist.PicturePath)
+				fmt.Printf("Image: %v\n", p)
+
+				dst := workDir.ImagesDir()
+				err := os.MkdirAll(dst, 0755)
+				if err != nil {
+					return err
+				}
+
+				ext := path.Ext(p)[1:]
+				fileName := fmt.Sprintf("%v.%v", artist.Id, ext)
+				fileDst := path.Join(dst, fileName)
+				test, err := filepath.Rel(dst, p)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("Test: %v\n", test)
+
+				err = os.Symlink(test, fileDst)
+				if err != nil {
+					if os.IsExist(err) {
+						err := os.Remove(fileDst)
+						if err != nil {
+							return err
+						}
+
+						err = os.Symlink(test, fileDst)
+						if err != nil {
+							return err
+						}
+					} else {
+						return err
+					}
+				}
+
+				_, err = queries.CreateArtist(ctx, database.CreateArtistParams{
 					ID:      artistId,
 					Name:    artist.Name,
-					Picture: "TODO",
+					Picture: fileName,
 				})
 
 				if err != nil {
@@ -131,10 +213,45 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool, workDir types.
 		dbAlbum, err := queries.GetAlbum(ctx, albumId)
 		if err != nil {
 			if err == pgx.ErrNoRows {
-				_, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
+				p := path.Join(col.BasePath, album.CoverArtPath)
+				fmt.Printf("Image: %v\n", p)
+
+				dst := workDir.ImagesDir()
+				err := os.MkdirAll(dst, 0755)
+				if err != nil {
+					return err
+				}
+
+				ext := path.Ext(p)[1:]
+				fileName := fmt.Sprintf("%v.%v", album.Id, ext)
+				fileDst := path.Join(dst, fileName)
+				test, err := filepath.Rel(dst, p)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("Test: %v\n", test)
+
+				err = os.Symlink(test, fileDst)
+				if err != nil {
+					if os.IsExist(err) {
+						err := os.Remove(fileDst)
+						if err != nil {
+							return err
+						}
+
+						err = os.Symlink(test, fileDst)
+						if err != nil {
+							return err
+						}
+					} else {
+						return err
+					}
+				}
+
+				_, err = queries.CreateAlbum(ctx, database.CreateAlbumParams{
 					ID:       albumId,
 					Name:     album.Name,
-					CoverArt: "TODO",
+					CoverArt: fileName,
 					ArtistID: album.ArtistId,
 				})
 
