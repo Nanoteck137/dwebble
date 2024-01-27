@@ -11,6 +11,7 @@ import (
 type TrackMetadata struct {
 	Id       string `json:"id"`
 	Name     string `json:"name"`
+	Number   int    `json:"number"`
 	FileName string `json:"fileName"`
 	ArtistId string `json:"artistId,omitempty"`
 }
@@ -29,21 +30,24 @@ type ArtistMetadata struct {
 }
 
 type Track struct {
+	Id       string
 	Name     string
 	FileName string
-	Album    *Album
-	Artist   *Artist
+	AlbumId  string
+	ArtistId string
 }
 
 type Album struct {
+	Id       string
 	Name     string
-	Tracks   []*Track
+	TrackIds []string
 	ArtistId string
 }
 
 type Artist struct {
-	Name   string
-	Albums []*Album
+	Id       string
+	Name     string
+	AlbumIds []string
 }
 
 type Collection struct {
@@ -101,8 +105,9 @@ func ReadFromDir(dir string) (*Collection, error) {
 		}
 
 		artistMap[artist.Id] = &Artist{
-			Name:   artist.Name,
-			Albums: []*Album{},
+			Id:       artist.Id,
+			Name:     artist.Name,
+			AlbumIds: []string{},
 		}
 	}
 
@@ -114,9 +119,10 @@ func ReadFromDir(dir string) (*Collection, error) {
 
 		for _, albumMetadata := range artistMetadata.Albums {
 			album := &Album{
+				Id:       albumMetadata.Id,
 				Name:     albumMetadata.Name,
+				TrackIds: []string{},
 				ArtistId: artistMetadata.Id,
-				Tracks:   []*Track{},
 			}
 
 			_, exists := albumMap[albumMetadata.Id]
@@ -126,14 +132,15 @@ func ReadFromDir(dir string) (*Collection, error) {
 
 			albumMap[albumMetadata.Id] = album
 
-			artist.Albums = append(artist.Albums, album)
+			artist.AlbumIds = append(artist.AlbumIds, albumMetadata.Id)
 
 			for _, trackMetadata := range albumMetadata.Tracks {
 				track := &Track{
+					Id:       trackMetadata.Id,
 					Name:     trackMetadata.Name,
 					FileName: trackMetadata.FileName,
-					Album:    album,
-					Artist:   artist,
+					AlbumId:  album.Id,
+					ArtistId: artist.Id,
 				}
 
 				_, exists := trackMap[trackMetadata.Id]
@@ -142,7 +149,7 @@ func ReadFromDir(dir string) (*Collection, error) {
 				}
 
 				trackMap[trackMetadata.Id] = track
-				album.Tracks = append(album.Tracks, track)
+				album.TrackIds = append(album.TrackIds, track.Id)
 			}
 		}
 	}

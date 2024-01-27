@@ -143,5 +143,43 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool) error {
 
 	}
 
+	// for trackId, track := range col.Tracks {
+	// 	dbAlbum, err := queries.GetAlbum(ctx, trackId)
+	// 	if err != nil {
+	// 		if err == pgx.ErrNoRows {
+	// 			_, err := queries.CreateTrack(ctx, database.CreateTrackParams{
+	// 				ID:                trackId,
+	// 				TrackNumber:       0,
+	// 				Name:              track.Name,
+	// 				CoverArt:          "TODO",
+	// 				BestQualityFile:   "TODO",
+	// 				MobileQualityFile: "TODO",
+	// 				AlbumID:           "",
+	// 				ArtistID:          "",
+	// 			})
+	//
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	//
+	// 			continue
+	// 		}
+	//
+	// 		return err
+	// 	} else {
+	// 		// updateReq := ArtistUpdateRequest{}
+	// 		// if dbArtist.Name != artist.Name {
+	// 		// 	updateReq.Name = &artist.Name
+	// 		// }
+	// 		//
+	// 		// if !reflect.DeepEqual(updateReq, ArtistUpdateRequest{}) {
+	// 		// 	RunArtistUpdate(ctx, db, &updateReq)
+	// 		// }
+	// 		//
+	// 		_ = dbAlbum
+	// 	}
+	//
+	// }
+
 	return nil
 }

@@ -177,8 +177,9 @@ func main() {
 				tracks = append(tracks, collection.TrackMetadata{
 					Id:       utils.CreateId(),
 					Name:     trackName,
+					Number:   trackIndex + 1,
 					FileName: name,
-					// Artist:   artistName,
+					// ArtistId: "",
 				})
 			}
 
