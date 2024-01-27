@@ -31,8 +31,9 @@ type ArtistMetadata struct {
 
 type Track struct {
 	Id       string
+	Number   int
 	Name     string
-	FileName string
+	FilePath string
 	AlbumId  string
 	ArtistId string
 }
@@ -40,20 +41,23 @@ type Track struct {
 type Album struct {
 	Id       string
 	Name     string
+	Dir      string
 	TrackIds []string
 	ArtistId string
 }
 
 type Artist struct {
 	Id       string
+	Dir      string
 	Name     string
 	AlbumIds []string
 }
 
 type Collection struct {
-	Artists map[string]*Artist
-	Albums  map[string]*Album
-	Tracks  map[string]*Track
+	BasePath string
+	Artists  map[string]*Artist
+	Albums   map[string]*Album
+	Tracks   map[string]*Track
 }
 
 func ReadEntryFromDir(dir string) (*ArtistMetadata, error) {
@@ -81,6 +85,10 @@ func ReadFromDir(dir string) (*Collection, error) {
 
 	var artists []*ArtistMetadata
 
+	artistMap := make(map[string]*Artist)
+	albumMap := make(map[string]*Album)
+	trackMap := make(map[string]*Track)
+
 	for _, entry := range entries {
 		p := path.Join(dir, entry.Name())
 		fmt.Printf("Path: %v\n", p)
@@ -91,24 +99,14 @@ func ReadFromDir(dir string) (*Collection, error) {
 			continue
 		}
 
-		artists = append(artists, artist)
-	}
-
-	artistMap := make(map[string]*Artist)
-	albumMap := make(map[string]*Album)
-	trackMap := make(map[string]*Track)
-
-	for _, artist := range artists {
-		if _, ok := artistMap[artist.Id]; ok {
-			// TODO(patrik): Better error message
-			log.Fatalf("Duplicated artist ids: %v\n", artist.Id)
-		}
-
 		artistMap[artist.Id] = &Artist{
 			Id:       artist.Id,
+			Dir:      entry.Name(),
 			Name:     artist.Name,
 			AlbumIds: []string{},
 		}
+
+		artists = append(artists, artist)
 	}
 
 	for _, artistMetadata := range artists {
@@ -121,6 +119,7 @@ func ReadFromDir(dir string) (*Collection, error) {
 			album := &Album{
 				Id:       albumMetadata.Id,
 				Name:     albumMetadata.Name,
+				Dir:      albumMetadata.Dir,
 				TrackIds: []string{},
 				ArtistId: artistMetadata.Id,
 			}
@@ -135,10 +134,13 @@ func ReadFromDir(dir string) (*Collection, error) {
 			artist.AlbumIds = append(artist.AlbumIds, albumMetadata.Id)
 
 			for _, trackMetadata := range albumMetadata.Tracks {
+				filePath := path.Join(artist.Dir, album.Dir, trackMetadata.FileName)
+
 				track := &Track{
 					Id:       trackMetadata.Id,
+					Number:   trackMetadata.Number,
 					Name:     trackMetadata.Name,
-					FileName: trackMetadata.FileName,
+					FilePath: filePath,
 					AlbumId:  album.Id,
 					ArtistId: artist.Id,
 				}
@@ -155,8 +157,9 @@ func ReadFromDir(dir string) (*Collection, error) {
 	}
 
 	return &Collection{
-		Artists: artistMap,
-		Albums:  albumMap,
-		Tracks:  trackMap,
+		BasePath: dir,
+		Artists:  artistMap,
+		Albums:   albumMap,
+		Tracks:   trackMap,
 	}, nil
 }

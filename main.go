@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -18,18 +17,6 @@ import (
 
 	_ "github.com/nanoteck137/dwebble/docs"
 )
-
-type WorkDir string
-
-func (d WorkDir) TracksDir() string {
-	dir := string(d)
-	return path.Join(dir, "tracks")
-}
-
-func (d WorkDir) ImagesDir() string {
-	dir := string(d)
-	return path.Join(dir, "images")
-}
 
 func main() {
 	err := godotenv.Load()

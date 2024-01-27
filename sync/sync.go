@@ -2,6 +2,10 @@ package sync
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"path"
+	"path/filepath"
 	"reflect"
 
 	"github.com/doug-martin/goqu/v9"
@@ -11,6 +15,7 @@ import (
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/collection"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/types"
 )
 
 // rootdir/
@@ -18,18 +23,16 @@ import (
 //     [Albums]/
 //     artist.json
 
-
 var dialect = goqu.Dialect("postgres")
 
 type ArtistUpdateRequest struct {
-	Id string `goqu:"skipupdate"`
 	Name *string `db:"name" goqu:"omitnil"`
 }
 
-func RunArtistUpdate(ctx context.Context, db *pgxpool.Pool, req *ArtistUpdateRequest) error {
+func RunArtistUpdate(ctx context.Context, db *pgxpool.Pool, artistId string, req *ArtistUpdateRequest) error {
 	sql, params, err := dialect.Update("artists").
 		Set(req).
-		Where(goqu.C("id").Eq(req.Id)).
+		Where(goqu.C("id").Eq(artistId)).
 		Prepared(true).ToSQL()
 	if err != nil {
 		return err
@@ -43,17 +46,32 @@ func RunArtistUpdate(ctx context.Context, db *pgxpool.Pool, req *ArtistUpdateReq
 	return nil
 }
 
-func SyncCollection(col *collection.Collection, db *pgxpool.Pool) error {
+type AlbumUpdateRequest struct {
+	Name     *string `db:"name" goqu:"omitnil"`
+	ArtistId *string `db:"artist_id" goqu:"omitnil"`
+}
+
+func RunAlbumUpdate(ctx context.Context, db *pgxpool.Pool, albumId string, req *AlbumUpdateRequest) error {
+	sql, params, err := dialect.Update("albums").
+		Set(req).
+		Where(goqu.C("id").Eq(albumId)).
+		Prepared(true).ToSQL()
+	if err != nil {
+		return err
+	}
+
+	pretty.Println(sql)
+	pretty.Println(params)
+
+	_, err = db.Exec(ctx, sql, params...)
+
+	return nil
+}
+
+func SyncCollection(col *collection.Collection, db *pgxpool.Pool, workDir types.WorkDir) error {
 	queries := database.New(db)
 
 	ctx := context.Background()
-
-	// artists, err := queries.GetAllArtists(ctx)
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// pretty.Println(artists)
 
 	sql, _, err := dialect.From("artists").Select(goqu.C("id")).ToSQL()
 	if err != nil {
@@ -102,7 +120,7 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool) error {
 			}
 
 			if !reflect.DeepEqual(updateReq, ArtistUpdateRequest{}) {
-				RunArtistUpdate(ctx, db, &updateReq)
+				RunArtistUpdate(ctx, db, dbArtist.ID, &updateReq)
 			}
 
 			_ = dbArtist
@@ -129,6 +147,93 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool) error {
 
 			return err
 		} else {
+			updateReq := AlbumUpdateRequest{}
+			if dbAlbum.Name != album.Name {
+				updateReq.Name = &album.Name
+			}
+
+			if dbAlbum.ArtistID != album.ArtistId {
+				updateReq.ArtistId = &album.ArtistId
+			}
+
+			pretty.Println(updateReq)
+
+			if !reflect.DeepEqual(updateReq, ArtistUpdateRequest{}) {
+				RunAlbumUpdate(ctx, db, dbAlbum.ID, &updateReq)
+			}
+
+			_ = dbAlbum
+		}
+
+	}
+
+	for trackId, track := range col.Tracks {
+		dbTrack, err := queries.GetTrack(ctx, trackId)
+		if err != nil {
+			if err == pgx.ErrNoRows {
+				album, exists := col.Albums[track.AlbumId]
+				if !exists {
+					return fmt.Errorf("Failed to create track: album with id '%v' don't exist", track.AlbumId)
+				}
+
+				_ = album
+
+				p := path.Join(col.BasePath, track.FilePath)
+				fmt.Printf("Path: %v\n", p)
+
+				dst := workDir.OriginalTracksDir()
+				err := os.MkdirAll(dst, 0755)
+				if err != nil {
+					return err
+				}
+
+				ext := path.Ext(p)[1:]
+				fileDst := path.Join(dst, fmt.Sprintf("%v.%v", track.Id, ext))
+				test, err := filepath.Rel(dst, p)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("Test: %v\n", test)
+
+				err = os.Symlink(test, fileDst)
+				if err != nil {
+					if os.IsExist(err) {
+						err := os.Remove(fileDst)
+						if err != nil {
+							return err
+						}
+
+						err = os.Symlink(test, fileDst)
+						if err != nil {
+							return err
+						}
+					} else {
+						return err
+					}
+				}
+
+				// track.FileName
+
+				_, err = queries.CreateTrack(ctx, database.CreateTrackParams{
+					ID:                trackId,
+					TrackNumber:       int32(track.Number),
+					Name:              track.Name,
+					CoverArt:          "TODO",
+					BestQualityFile:   "TODO",
+					MobileQualityFile: "TODO",
+					AlbumID:           track.AlbumId,
+					ArtistID:          track.ArtistId,
+				})
+
+				if err != nil {
+					return err
+				}
+
+				continue
+			}
+
+			return err
+		} else {
 			// updateReq := ArtistUpdateRequest{}
 			// if dbArtist.Name != artist.Name {
 			// 	updateReq.Name = &artist.Name
@@ -138,48 +243,10 @@ func SyncCollection(col *collection.Collection, db *pgxpool.Pool) error {
 			// 	RunArtistUpdate(ctx, db, &updateReq)
 			// }
 			//
-			_ = dbAlbum
+			_ = dbTrack
 		}
 
 	}
-
-	// for trackId, track := range col.Tracks {
-	// 	dbAlbum, err := queries.GetAlbum(ctx, trackId)
-	// 	if err != nil {
-	// 		if err == pgx.ErrNoRows {
-	// 			_, err := queries.CreateTrack(ctx, database.CreateTrackParams{
-	// 				ID:                trackId,
-	// 				TrackNumber:       0,
-	// 				Name:              track.Name,
-	// 				CoverArt:          "TODO",
-	// 				BestQualityFile:   "TODO",
-	// 				MobileQualityFile: "TODO",
-	// 				AlbumID:           "",
-	// 				ArtistID:          "",
-	// 			})
-	//
-	// 			if err != nil {
-	// 				return err
-	// 			}
-	//
-	// 			continue
-	// 		}
-	//
-	// 		return err
-	// 	} else {
-	// 		// updateReq := ArtistUpdateRequest{}
-	// 		// if dbArtist.Name != artist.Name {
-	// 		// 	updateReq.Name = &artist.Name
-	// 		// }
-	// 		//
-	// 		// if !reflect.DeepEqual(updateReq, ArtistUpdateRequest{}) {
-	// 		// 	RunArtistUpdate(ctx, db, &updateReq)
-	// 		// }
-	// 		//
-	// 		_ = dbAlbum
-	// 	}
-	//
-	// }
 
 	return nil
 }
