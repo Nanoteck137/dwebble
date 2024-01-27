@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -120,6 +122,28 @@ func getDir() (string, error) {
 	return dir, nil
 }
 
+func fetchPlaceholderImage(dst string) error {
+	url := "https://placehold.co/500x500.png"
+	res, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	file, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, res.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func main() {
 	// numArtists := randRange(2, 5)
 	numArtists := 4
@@ -133,6 +157,19 @@ func main() {
 
 	audioFile := path.Join(dir, "testaudio.flac")
 	utils.RunFFmpeg(false, "-f", "lavfi", "-i", "sine=frequency=1000:duration=5", audioFile)
+
+	imageFile := path.Join(dir, "image.png")
+	_, err = os.Stat(imageFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = fetchPlaceholderImage(imageFile)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			log.Fatal(err)
+		}
+	}
 
 	for artistIndex := 0; artistIndex < numArtists; artistIndex++ {
 		artistName := randomArtistName()
@@ -148,6 +185,11 @@ func main() {
 		}
 
 		audioFilePath, err := filepath.Abs(audioFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		imageFilePath, err := filepath.Abs(imageFile)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -171,7 +213,7 @@ func main() {
 			for trackIndex := 0; trackIndex < 4; trackIndex++ {
 				trackName := randomTrackName()
 
-				name := fmt.Sprintf("%v.flac", strconv.Itoa(trackIndex + 1))
+				name := fmt.Sprintf("%v.flac", strconv.Itoa(trackIndex+1))
 				os.Symlink(audioFilePath, path.Join(albumDir, name))
 
 				tracks = append(tracks, collection.TrackMetadata{
@@ -191,10 +233,13 @@ func main() {
 			})
 		}
 
+		os.Symlink(imageFilePath, path.Join(artistDir, "picture.png"))
+
 		artist := collection.ArtistMetadata{
-			Id:     utils.CreateId(),
-			Name:   artistName,
-			Albums: albums,
+			Id:      utils.CreateId(),
+			Name:    artistName,
+			Picture: "picture.png",
+			Albums:  albums,
 		}
 
 		data, err := json.MarshalIndent(artist, "", "  ")

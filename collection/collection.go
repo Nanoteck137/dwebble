@@ -24,9 +24,10 @@ type AlbumMetadata struct {
 }
 
 type ArtistMetadata struct {
-	Id     string          `json:"id"`
-	Name   string          `json:"name"`
-	Albums []AlbumMetadata `json:"albums"`
+	Id      string          `json:"id"`
+	Name    string          `json:"name"`
+	Picture string          `json:"picture"`
+	Albums  []AlbumMetadata `json:"albums"`
 }
 
 type Track struct {
@@ -47,10 +48,11 @@ type Album struct {
 }
 
 type Artist struct {
-	Id       string
-	Dir      string
-	Name     string
-	AlbumIds []string
+	Id          string
+	Dir         string
+	Name        string
+	PicturePath string
+	AlbumIds    []string
 }
 
 type Collection struct {
@@ -100,10 +102,11 @@ func ReadFromDir(dir string) (*Collection, error) {
 		}
 
 		artistMap[artist.Id] = &Artist{
-			Id:       artist.Id,
-			Dir:      entry.Name(),
-			Name:     artist.Name,
-			AlbumIds: []string{},
+			Id:          artist.Id,
+			Dir:         entry.Name(),
+			Name:        artist.Name,
+			PicturePath: path.Join(entry.Name(), artist.Picture),
+			AlbumIds:    []string{},
 		}
 
 		artists = append(artists, artist)
