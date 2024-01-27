@@ -13,6 +13,7 @@ import (
 	"strconv"
 
 	"github.com/kennygrant/sanitize"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/collection"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -144,32 +145,8 @@ func fetchPlaceholderImage(dst string) error {
 	return nil
 }
 
-func main() {
-	// numArtists := randRange(2, 5)
+func generateRaw(dir string, audioFile string, imageFile string) {
 	numArtists := 4
-
-	dir, err := getDir()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// ffmpeg -f lavfi -i "sine=frequency=1000:duration=5" test.flac
-
-	audioFile := path.Join(dir, "testaudio.flac")
-	utils.RunFFmpeg(false, "-f", "lavfi", "-i", "sine=frequency=1000:duration=5", audioFile)
-
-	imageFile := path.Join(dir, "image.png")
-	_, err = os.Stat(imageFile)
-	if err != nil {
-		if os.IsNotExist(err) {
-			err = fetchPlaceholderImage(imageFile)
-			if err != nil {
-				log.Fatal(err)
-			}
-		} else {
-			log.Fatal(err)
-		}
-	}
 
 	for artistIndex := 0; artistIndex < numArtists; artistIndex++ {
 		artistName := randomArtistName()
@@ -254,5 +231,65 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
+}
+
+func main() {
+	// numArtists := randRange(2, 5)
+
+	dir, err := getDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// ffmpeg -f lavfi -i "sine=frequency=1000:duration=5" test.flac
+
+	audioFile := path.Join(dir, "testaudio.flac")
+	utils.RunFFmpeg(false, "-f", "lavfi", "-i", "sine=frequency=1000:duration=5", audioFile)
+
+	imageFile := path.Join(dir, "image.png")
+	_, err = os.Stat(imageFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = fetchPlaceholderImage(imageFile)
+			if err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			log.Fatal(err)
+		}
+	}
+
+	image, err := os.Open(imageFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer image.Close()
+
+	col := collection.NewEmpty(dir)
+	artist, err := col.CreateArtist("Test Artist", collection.File{
+		Content:     image,
+		ContentType: "image/png",
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pretty.Println(artist)
+
+	album, err := col.CreateAlbum("Test Album", collection.File{
+		Content:     image,
+		ContentType: "image/png",
+	}, artist)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pretty.Println(album)
+	pretty.Println(col)
+
+	err = col.FlushToDisk()
+	if err != nil {
+		log.Fatal(err)
 	}
 }

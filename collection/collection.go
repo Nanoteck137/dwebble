@@ -2,10 +2,15 @@ package collection
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path"
+
+	"github.com/kennygrant/sanitize"
+	"github.com/nanoteck137/dwebble/utils"
 )
 
 type TrackMetadata struct {
@@ -168,4 +173,190 @@ func ReadFromDir(dir string) (*Collection, error) {
 		Albums:   albumMap,
 		Tracks:   trackMap,
 	}, nil
+}
+
+func NewEmpty(dir string) *Collection {
+	return &Collection{
+		BasePath: dir,
+		Artists:  map[string]*Artist{},
+		Albums:   map[string]*Album{},
+		Tracks:   map[string]*Track{},
+	}
+}
+
+type File struct {
+	Content io.Reader
+	ContentType string
+}
+
+var ErrUnsupportedContentType = errors.New("Unsupported content type")
+
+func (file *File) Ext() (string, error) {
+	switch file.ContentType {
+	case "image/png":
+		return "png", nil
+	case "image/jpeg":
+		return "jpg", nil
+	}
+
+	return "", ErrUnsupportedContentType
+}
+
+func (col *Collection) CreateArtist(name string, picture File) (*Artist, error) {
+	newId := utils.CreateId()
+	a, exists := col.Artists[newId]
+	if exists {
+		return nil, fmt.Errorf("Failed to create new artist: Generated id '%v' matched with '%v' id", newId, a.Name)
+	}
+
+	for _, artist := range col.Artists {
+		if artist.Name == name {
+			return nil, fmt.Errorf("Failed to create new artist: Artist with name '%v' already exists", name)
+		}
+	}
+
+	dirName := sanitize.Name(name)
+	p := path.Join(col.BasePath, dirName)
+
+	_, err := os.Stat(p)
+	if err == nil {
+		return nil, fmt.Errorf("Failed to create new artist: Directory with name '%v' already exists", dirName)
+	}
+
+	err = os.MkdirAll(p, 0755)
+	if err != nil {
+		return nil, err
+	}
+
+	ext, err := picture.Ext()
+	if err != nil {
+		return nil, err
+	}
+
+	fileName := fmt.Sprintf("picture.%v", ext)
+	dstFile, err := os.Create(path.Join(p, fileName))
+	if err != nil {
+		return nil, err
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, picture.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	artist := new(Artist)
+	*artist = Artist{
+		Id:          newId,
+		Dir:         dirName,
+		Name:        name,
+		PicturePath: path.Join(dirName, fileName),
+		AlbumIds:    []string{},
+	}
+
+	col.Artists[newId] = artist
+
+	return artist, nil
+}
+
+func (col *Collection) CreateAlbum(name string, coverArt File, artist *Artist) (*Album, error) {
+	newId := utils.CreateId()
+	a, exists := col.Albums[newId]
+	if exists {
+		return nil, fmt.Errorf("Failed to create new album: Generated id '%v' matched with '%v' id", newId, a.Name)
+	}
+
+	for _, artist := range col.Albums {
+		if artist.Name == name {
+			return nil, fmt.Errorf("Failed to create new album: '%v' already exists", name)
+		}
+	}
+
+	dirName := sanitize.Name(name)
+	p := path.Join(col.BasePath, artist.Dir, dirName)
+
+	_, err := os.Stat(p)
+	if err == nil {
+		return nil, fmt.Errorf("Failed to create new album: Directory with name '%v' already exists", dirName)
+	}
+
+	err = os.MkdirAll(p, 0755)
+	if err != nil {
+		return nil, err
+	}
+
+	ext, err := coverArt.Ext()
+	if err != nil {
+		return nil, err
+	}
+
+	fileName := fmt.Sprintf("coverart.%v", ext)
+	dstFile, err := os.Create(path.Join(p, fileName))
+	if err != nil {
+		return nil, err
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, coverArt.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	album := new(Album)
+	*album = Album{
+		Id:           newId,
+		Name:         name,
+		CoverArtPath: path.Join(artist.Dir, dirName, fileName),
+		Dir:          dirName,
+		TrackIds:     []string{},
+		ArtistId:     artist.Id,
+	}
+
+	artist.AlbumIds = append(artist.AlbumIds, album.Id)
+
+	fmt.Printf("%v\n", album.CoverArtPath)
+
+	col.Albums[newId] = album
+
+	return album, nil
+}
+
+func (col *Collection) FlushToDisk() error {
+	for _, artist := range col.Artists {
+		var albums []AlbumMetadata
+		for _, albumId := range artist.AlbumIds {
+			// TODO(patrik): Check if it exists
+			album := col.Albums[albumId]
+
+			albums = append(albums, AlbumMetadata{
+				Id:       albumId,
+				Name:     album.Name,
+				CoverArt: path.Base(album.CoverArtPath),
+				Dir:      album.Dir,
+				Tracks:   []TrackMetadata{},
+			})
+		}
+
+		metadata := ArtistMetadata{
+			Id:      artist.Id,
+			Name:    artist.Name,
+			Picture: path.Base(artist.PicturePath),
+			Albums:  albums,
+		}
+
+		data, err := json.MarshalIndent(metadata, "", "  ")
+		if err != nil {
+			return err
+		}
+
+		fmt.Println(string(data))
+		p := path.Join(col.BasePath, artist.Dir, "artist.json")
+
+		err = os.WriteFile(p, data, 0644)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
