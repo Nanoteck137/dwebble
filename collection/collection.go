@@ -17,10 +17,11 @@ type TrackMetadata struct {
 }
 
 type AlbumMetadata struct {
-	Id     string          `json:"id"`
-	Name   string          `json:"name"`
-	Dir    string          `json:"dir"`
-	Tracks []TrackMetadata `json:"tracks"`
+	Id       string          `json:"id"`
+	Name     string          `json:"name"`
+	CoverArt string          `json:"coverArt"`
+	Dir      string          `json:"dir"`
+	Tracks   []TrackMetadata `json:"tracks"`
 }
 
 type ArtistMetadata struct {
@@ -40,11 +41,12 @@ type Track struct {
 }
 
 type Album struct {
-	Id       string
-	Name     string
-	Dir      string
-	TrackIds []string
-	ArtistId string
+	Id           string
+	Name         string
+	CoverArtPath string
+	Dir          string
+	TrackIds     []string
+	ArtistId     string
 }
 
 type Artist struct {
@@ -120,11 +122,12 @@ func ReadFromDir(dir string) (*Collection, error) {
 
 		for _, albumMetadata := range artistMetadata.Albums {
 			album := &Album{
-				Id:       albumMetadata.Id,
-				Name:     albumMetadata.Name,
-				Dir:      albumMetadata.Dir,
-				TrackIds: []string{},
-				ArtistId: artistMetadata.Id,
+				Id:           albumMetadata.Id,
+				Name:         albumMetadata.Name,
+				CoverArtPath: path.Join(artist.Dir, albumMetadata.Dir, "picture.png"),
+				Dir:          albumMetadata.Dir,
+				TrackIds:     []string{},
+				ArtistId:     artistMetadata.Id,
 			}
 
 			_, exists := albumMap[albumMetadata.Id]

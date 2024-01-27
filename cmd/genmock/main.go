@@ -225,11 +225,14 @@ func main() {
 				})
 			}
 
+			os.Symlink(imageFilePath, path.Join(albumDir, "picture.png"))
+
 			albums = append(albums, collection.AlbumMetadata{
-				Id:     utils.CreateId(),
-				Name:   albumName,
-				Dir:    name,
-				Tracks: tracks,
+				Id:       utils.CreateId(),
+				Name:     albumName,
+				CoverArt: "picture.png",
+				Dir:      name,
+				Tracks:   tracks,
 			})
 		}
 
