@@ -36,7 +36,7 @@ CREATE TABLE tracks (
 
     CONSTRAINT tracks_pk PRIMARY KEY(id),
 
-    CONSTRAINT tracks_track_number_unique UNIQUE(track_number, album_id),
+    CONSTRAINT tracks_track_number_unique UNIQUE(track_number, album_id) INITIALLY DEFERRED,
 
     CONSTRAINT tracks_album_id_fk FOREIGN KEY (album_id)
         REFERENCES albums(id),
