@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -65,8 +66,14 @@ type Album struct {
 	Tracks     []Track
 }
 
+type Artist struct {
+	Name        string
+	PicturePath string
+	Albums      []Album
+}
+
 type Library struct {
-	Albums []Album
+	Artists map[string]*Artist
 }
 
 func ReadFromFS(fsys fs.FS) (*Library, error) {
@@ -139,7 +146,26 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 		return tracks, nil
 	}
 
-	var albums []Album
+	artists := make(map[string]*Artist)
+
+	for _, entry := range entries {
+		p := path.Join(dir, entry.Name())
+		if entry.IsDir() {
+			entries, err := fs.ReadDir(fsys, p)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if !hasMusic(entries) && !isMultiDisc(entries) {
+				name := entry.Name()
+				artists[name] = &Artist{
+					Name: name,
+				}
+			}
+		}
+	}
+
+	pretty.Println(artists)
 
 	for _, entry := range entries {
 		p := path.Join(dir, entry.Name())
@@ -161,8 +187,10 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 					log.Fatal(err)
 				}
 
+				artist := artists[artistName]
+
 				albumName := entry.Name()
-				albums = append(albums, Album{
+				artist.Albums = append(artist.Albums, Album{
 					Name:       albumName,
 					ArtistName: artistName,
 					Tracks:     tracks,
@@ -170,12 +198,12 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 			} else if isMultiDisc(entries) {
 				fmt.Printf("%v is an multidisc album\n", p)
 
-				albumName := entry.Name()
-				albums = append(albums, Album{
-					Name:       albumName,
-					ArtistName: artistName,
-					Tracks:     []Track{},
-				})
+				// albumName := entry.Name()
+				// albums = append(albums, Album{
+				// 	Name:       albumName,
+				// 	ArtistName: artistName,
+				// 	Tracks:     []Track{},
+				// })
 			} else {
 				artistName = entry.Name()
 				fmt.Printf("%v is an artist\n", p)
@@ -199,19 +227,21 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 							log.Fatal(err)
 						}
 
+						artist := artists[artistName]
+
 						albumName := entry.Name()
-						albums = append(albums, Album{
+						artist.Albums = append(artist.Albums, Album{
 							Name:       albumName,
 							ArtistName: artistName,
 							Tracks:     tracks,
 						})
 					} else if isMultiDisc(entries) {
-						albumName := entry.Name()
-						albums = append(albums, Album{
-							Name:       albumName,
-							ArtistName: artistName,
-							Tracks:     []Track{},
-						})
+						// albumName := entry.Name()
+						// albums = append(albums, Album{
+						// 	Name:       albumName,
+						// 	ArtistName: artistName,
+						// 	Tracks:     []Track{},
+						// })
 					} else {
 						log.Printf("Warning: No music found at '%v'", p)
 					}
@@ -226,7 +256,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 	// pretty.Println(albums)
 
 	return &Library{
-		Albums: albums,
+		Artists: artists,
 	}, nil
 }
 
@@ -258,49 +288,50 @@ func GetOrCreateArtist(queries *database.Queries, name string) (database.Artist,
 		return database.Artist{}, fmt.Errorf("Returned multiple artists for '%v'", name)
 	}
 
-	return artist, nil 
+	return artist, nil
 }
 
 func (lib *Library) Sync(db *pgxpool.Pool) error {
 	queries := database.New(db)
 	ctx := context.Background()
 
-	for _, album := range lib.Albums {
-		_ = album
+	_ = ctx
+	_ = queries
 
-		name := album.ArtistName
-		artist, err := GetOrCreateArtist(queries, name)
-		if err != nil {
-			return err
-		}
-
-		dbAlbum, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
-			ID:       utils.CreateId(),
-			Name:     album.Name,
-			CoverArt: "TODO",
-			ArtistID: artist.ID,
-		})
-		if err != nil {
-			return err
-		}
-
-		for _, track := range album.Tracks {
-			_, err := queries.CreateTrack(ctx, database.CreateTrackParams{
-				ID:                utils.CreateId(),
-				TrackNumber:       int32(track.Number),
-				Name:              track.Name,
-				CoverArt:          "TODO",
-				BestQualityFile:   "TODO",
-				MobileQualityFile: "TODO",
-				AlbumID:           dbAlbum.ID,
-				ArtistID:          artist.ID,
-			})
-
-			if err != nil {
-				return err
-			}
-		}
-	}
+	// for _, album := range lib.Albums {
+	// 	name := album.ArtistName
+	// 	artist, err := GetOrCreateArtist(queries, name)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	//
+	// 	dbAlbum, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
+	// 		ID:       utils.CreateId(),
+	// 		Name:     album.Name,
+	// 		CoverArt: "TODO",
+	// 		ArtistID: artist.ID,
+	// 	})
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	//
+	// 	for _, track := range album.Tracks {
+	// 		_, err := queries.CreateTrack(ctx, database.CreateTrackParams{
+	// 			ID:                utils.CreateId(),
+	// 			TrackNumber:       int32(track.Number),
+	// 			Name:              track.Name,
+	// 			CoverArt:          "TODO",
+	// 			BestQualityFile:   "TODO",
+	// 			MobileQualityFile: "TODO",
+	// 			AlbumID:           dbAlbum.ID,
+	// 			ArtistID:          artist.ID,
+	// 		})
+	//
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// }
 
 	return nil
 }

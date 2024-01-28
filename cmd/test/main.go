@@ -43,10 +43,12 @@ func main() {
 		log.Fatal(err)
 	}
 
+	_ = lib
+
 	pretty.Println(lib)
 
-	err = lib.Sync(db)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// err = lib.Sync(db)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 }
