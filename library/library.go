@@ -1,6 +1,7 @@
 package library
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"log"
@@ -9,7 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kr/pretty"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/utils"
 )
 
 var validExts = []string{
@@ -50,19 +53,20 @@ func isMultiDiscName(name string) bool {
 	return false
 }
 
-type RawTrack struct {
+type Track struct {
 	Name     string
 	Number   int
 	FileName string
 }
 
-type RawAlbum struct {
+type Album struct {
 	Name       string
 	ArtistName string
-	Tracks     []RawTrack
+	Tracks     []Track
 }
 
 type Library struct {
+	Albums []Album
 }
 
 func ReadFromFS(fsys fs.FS) (*Library, error) {
@@ -94,13 +98,13 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 		return false
 	}
 
-	getAllTrackFromDir := func(fss fs.FS, dir string) ([]RawTrack, error) {
+	getAllTrackFromDir := func(fss fs.FS, dir string) ([]Track, error) {
 		entries, err := fs.ReadDir(fss, dir)
 		if err != nil {
 			return nil, err
 		}
 
-		var tracks []RawTrack
+		var tracks []Track
 
 		for _, entry := range entries {
 			p := path.Join(dir, entry.Name())
@@ -124,7 +128,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 					log.Fatal(err)
 				}
 
-				tracks = append(tracks, RawTrack{
+				tracks = append(tracks, Track{
 					Name:     name,
 					Number:   trackNum,
 					FileName: p,
@@ -135,7 +139,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 		return tracks, nil
 	}
 
-	var albums []RawAlbum
+	var albums []Album
 
 	for _, entry := range entries {
 		p := path.Join(dir, entry.Name())
@@ -158,7 +162,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 				}
 
 				albumName := entry.Name()
-				albums = append(albums, RawAlbum{
+				albums = append(albums, Album{
 					Name:       albumName,
 					ArtistName: artistName,
 					Tracks:     tracks,
@@ -167,10 +171,10 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 				fmt.Printf("%v is an multidisc album\n", p)
 
 				albumName := entry.Name()
-				albums = append(albums, RawAlbum{
+				albums = append(albums, Album{
 					Name:       albumName,
 					ArtistName: artistName,
-					Tracks:     []RawTrack{},
+					Tracks:     []Track{},
 				})
 			} else {
 				artistName = entry.Name()
@@ -196,17 +200,17 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 						}
 
 						albumName := entry.Name()
-						albums = append(albums, RawAlbum{
+						albums = append(albums, Album{
 							Name:       albumName,
 							ArtistName: artistName,
 							Tracks:     tracks,
 						})
 					} else if isMultiDisc(entries) {
 						albumName := entry.Name()
-						albums = append(albums, RawAlbum{
+						albums = append(albums, Album{
 							Name:       albumName,
 							ArtistName: artistName,
-							Tracks:     []RawTrack{},
+							Tracks:     []Track{},
 						})
 					} else {
 						log.Printf("Warning: No music found at '%v'", p)
@@ -219,7 +223,84 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 		}
 	}
 
-	pretty.Println(albums)
+	// pretty.Println(albums)
 
-	return &Library{}, nil
+	return &Library{
+		Albums: albums,
+	}, nil
+}
+
+func GetOrCreateArtist(queries *database.Queries, name string) (database.Artist, error) {
+	ctx := context.Background()
+
+	artists, err := queries.GetArtistByName(ctx, name)
+	if err != nil {
+		return database.Artist{}, err
+	}
+
+	var artist database.Artist
+
+	if len(artists) == 0 {
+		a, err := queries.CreateArtist(ctx, database.CreateArtistParams{
+			ID:      utils.CreateId(),
+			Name:    name,
+			Picture: "TODO",
+		})
+
+		if err != nil {
+			return database.Artist{}, err
+		}
+
+		artist = a
+	} else if len(artists) == 1 {
+		artist = artists[0]
+	} else {
+		return database.Artist{}, fmt.Errorf("Returned multiple artists for '%v'", name)
+	}
+
+	return artist, nil 
+}
+
+func (lib *Library) Sync(db *pgxpool.Pool) error {
+	queries := database.New(db)
+	ctx := context.Background()
+
+	for _, album := range lib.Albums {
+		_ = album
+
+		name := album.ArtistName
+		artist, err := GetOrCreateArtist(queries, name)
+		if err != nil {
+			return err
+		}
+
+		dbAlbum, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
+			ID:       utils.CreateId(),
+			Name:     album.Name,
+			CoverArt: "TODO",
+			ArtistID: artist.ID,
+		})
+		if err != nil {
+			return err
+		}
+
+		for _, track := range album.Tracks {
+			_, err := queries.CreateTrack(ctx, database.CreateTrackParams{
+				ID:                utils.CreateId(),
+				TrackNumber:       int32(track.Number),
+				Name:              track.Name,
+				CoverArt:          "TODO",
+				BestQualityFile:   "TODO",
+				MobileQualityFile: "TODO",
+				AlbumID:           dbAlbum.ID,
+				ArtistID:          artist.ID,
+			})
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

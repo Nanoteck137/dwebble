@@ -44,4 +44,9 @@ func main() {
 	}
 
 	pretty.Println(lib)
+
+	err = lib.Sync(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
