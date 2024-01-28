@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"mime/multipart"
 	"os"
@@ -311,4 +312,61 @@ func GetSingleFile(form *multipart.Form, name string) (*multipart.FileHeader, er
 	}
 
 	return nil, errors.New("Missing file")
+}
+
+var validMusicExts = []string{
+	"flac",
+	"opus",
+	"mp3",
+}
+
+func IsMusicFile(p string) bool {
+	ext := path.Ext(p)
+	if ext == "" {
+		return false
+	}
+
+	ext = strings.ToLower(ext[1:])
+
+	for _, validExt := range validMusicExts {
+		if ext == validExt {
+			return true
+		}
+	}
+
+	return false
+}
+
+var validMultiDiscPrefix = []string{
+	"cd",
+	"disc",
+}
+
+func IsMultiDiscName(name string) bool {
+	for _, prefix := range validMultiDiscPrefix {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func HasMusic(entries []fs.DirEntry) bool {
+	for _, entry := range entries {
+		if isMusicFile(entry.Name()) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func IsMultiDisc(entries []fs.DirEntry) bool {
+	for _, entry := range entries {
+		if isMultiDiscName(entry.Name()) {
+			return true
+		}
+	}
+	return false
 }

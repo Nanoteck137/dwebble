@@ -16,44 +16,6 @@ import (
 	"github.com/nanoteck137/dwebble/utils"
 )
 
-var validExts = []string{
-	"flac",
-	"opus",
-	"mp3",
-}
-
-func isMusicFile(p string) bool {
-	ext := path.Ext(p)
-	if ext == "" {
-		return false
-	}
-
-	ext = strings.ToLower(ext[1:])
-
-	for _, validExt := range validExts {
-		if ext == validExt {
-			return true
-		}
-	}
-
-	return false
-}
-
-var validMultiDiscPrefix = []string{
-	"cd",
-	"disc",
-}
-
-func isMultiDiscName(name string) bool {
-	for _, prefix := range validMultiDiscPrefix {
-		if strings.HasPrefix(name, prefix) {
-			return true
-		}
-	}
-
-	return false
-}
-
 type Track struct {
 	Name     string
 	Number   int
@@ -86,24 +48,6 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 		log.Fatal(err)
 	}
 
-	hasMusic := func(entries []fs.DirEntry) bool {
-		for _, entry := range entries {
-			if isMusicFile(entry.Name()) {
-				return true
-			}
-		}
-
-		return false
-	}
-
-	isMultiDisc := func(entries []fs.DirEntry) bool {
-		for _, entry := range entries {
-			if isMultiDiscName(entry.Name()) {
-				return true
-			}
-		}
-		return false
-	}
 
 	getAllTrackFromDir := func(fss fs.FS, dir string) ([]Track, error) {
 		entries, err := fs.ReadDir(fss, dir)
@@ -116,7 +60,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 		for _, entry := range entries {
 			p := path.Join(dir, entry.Name())
 
-			if isMusicFile(p) {
+			if utils.IsMusicFile(p) {
 				ext := path.Ext(p)
 				name := strings.TrimSuffix(entry.Name(), ext)
 				// reg.FindAllStringSubmatchIndex
@@ -156,7 +100,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 				log.Fatal(err)
 			}
 
-			if !hasMusic(entries) && !isMultiDisc(entries) {
+			if !utils.HasMusic(entries) && !utils.IsMultiDisc(entries) {
 				name := entry.Name()
 				artists[name] = &Artist{
 					Name: name,
@@ -179,7 +123,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 
 			artistName := "Various Artists"
 
-			if hasMusic(entries) {
+			if utils.HasMusic(entries) {
 				fmt.Printf("%v is an album\n", p)
 
 				tracks, err := getAllTrackFromDir(fsys, p)
@@ -195,7 +139,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 					ArtistName: artistName,
 					Tracks:     tracks,
 				})
-			} else if isMultiDisc(entries) {
+			} else if utils.IsMultiDisc(entries) {
 				fmt.Printf("%v is an multidisc album\n", p)
 
 				// albumName := entry.Name()
@@ -221,7 +165,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 						log.Fatal(err)
 					}
 
-					if hasMusic(entries) {
+					if utils.HasMusic(entries) {
 						tracks, err := getAllTrackFromDir(fsys, p)
 						if err != nil {
 							log.Fatal(err)
@@ -235,7 +179,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 							ArtistName: artistName,
 							Tracks:     tracks,
 						})
-					} else if isMultiDisc(entries) {
+					} else if utils.IsMultiDisc(entries) {
 						// albumName := entry.Name()
 						// albums = append(albums, Album{
 						// 	Name:       albumName,
