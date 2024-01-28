@@ -8,7 +8,9 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/library"
 )
 
 func main() {
@@ -34,4 +36,12 @@ func main() {
 	queries.DeleteAllTracks(ctx)
 	queries.DeleteAllAlbums(ctx)
 	queries.DeleteAllArtists(ctx)
+
+	fsys := os.DirFS("/Volumes/media/music")
+	lib, err := library.ReadFromFS(fsys)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pretty.Println(lib)
 }
