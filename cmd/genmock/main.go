@@ -266,6 +266,12 @@ func main() {
 	}
 	defer image.Close()
 
+	audio, err := os.Open(audioFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer audio.Close()
+
 	col := collection.NewEmpty(dir)
 	artist, err := col.CreateArtist("Test Artist", collection.File{
 		Content:     image,
@@ -285,7 +291,24 @@ func main() {
 		log.Fatal(err)
 	}
 
+	track, err := col.CreateTrack("Testing Track", 1, collection.File{
+		Content:     audio,
+		ContentType: "audio/flac",
+	}, album, artist)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	track, err = col.CreateTrack("Super cool", 1, collection.File{
+		Content:     audio,
+		ContentType: "audio/flac",
+	}, album, artist)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	pretty.Println(album)
+	pretty.Println(track)
 	pretty.Println(col)
 
 	err = col.FlushToDisk()

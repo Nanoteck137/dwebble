@@ -197,6 +197,8 @@ func (file *File) Ext() (string, error) {
 		return "png", nil
 	case "image/jpeg":
 		return "jpg", nil
+	case "audio/flac":
+		return "flac", nil
 	}
 
 	return "", ErrUnsupportedContentType
@@ -319,6 +321,68 @@ func (col *Collection) CreateAlbum(name string, coverArt File, artist *Artist) (
 	col.Albums[newId] = album
 
 	return album, nil
+}
+
+func (col* Collection) GetAllTrackFromAlbum(album *Album) []*Track {
+	var result []*Track
+
+	for _, trackId := range album.TrackIds {
+		// TODO(patrik): Check if it exists
+		track := col.Tracks[trackId]
+		result = append(result, track)
+	}
+
+	return result
+}
+
+func (col *Collection) CreateTrack(name string, number int, trackFile File, album *Album, artist *Artist) (*Track, error) {
+	newId := utils.CreateId()
+	t, exists := col.Tracks[newId]
+	if exists {
+		return nil, fmt.Errorf("Generated id '%v' matched with '%v' id", newId, t.Name)
+	}
+
+	for _, t := range col.GetAllTrackFromAlbum(album) {
+		if t.Number == number {
+			return nil, fmt.Errorf("Track with number '%v' already exists '%v' inside '%v'", number, t.Name, album.Name)
+		}
+	}
+
+	p := path.Join(col.BasePath, artist.Dir, album.Dir)
+
+	ext, err := trackFile.Ext()
+	if err != nil {
+		return nil, err
+	}
+
+	fileName := fmt.Sprintf("%v.%v", number, ext)
+	filePath := path.Join(p, fileName)
+	dstFile, err := os.Create(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer dstFile.Close()
+
+	_, err = io.Copy(dstFile, trackFile.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	track := new(Track)
+	*track = Track{
+		Id:       newId,
+		Number:   number,
+		Name:     name,
+		FilePath: filePath,
+		AlbumId:  album.Id,
+		ArtistId: artist.Id,
+	}
+
+	album.TrackIds = append(album.TrackIds, track.Id)
+
+	col.Tracks[newId] = track
+
+	return track, nil
 }
 
 func (col *Collection) FlushToDisk() error {
