@@ -255,11 +255,40 @@ func (lib *Library) Sync(db *pgxpool.Pool) error {
 	_ = queries
 
 	for _, artist := range lib.Artists {
-		artist, err := GetOrCreateArtist(queries, artist)
+		dbArtist, err := GetOrCreateArtist(queries, artist)
 		if err != nil {
 			return err
 		}
-		_ = artist
+		_ = dbArtist
+
+		for _, album := range artist.Albums {
+			dbAlbum, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
+				ID:       utils.CreateId(),
+				Name:     album.Name,
+				CoverArt: "TODO",
+				ArtistID: dbArtist.ID,
+			})
+			if err != nil {
+				return err
+			}
+
+			for _, track := range album.Tracks {
+				queries.CreateTrack(ctx, database.CreateTrackParams{
+					ID:                utils.CreateId(),
+					TrackNumber:       int32(track.Number),
+					Name:              track.Name,
+					CoverArt:          "TODO",
+					BestQualityFile:   "TODO",
+					MobileQualityFile: "TODO",
+					AlbumID:           dbAlbum.ID,
+					ArtistID:          dbArtist.ID,
+				})
+			}
+
+
+			_ = dbAlbum
+		}
+
 	}
 
 	// for _, album := range lib.Albums {
