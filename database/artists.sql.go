@@ -10,19 +10,30 @@ import (
 )
 
 const createArtist = `-- name: CreateArtist :one
-INSERT INTO artists (id, name, picture) VALUES ($1, $2, $3) RETURNING id, name, picture
+INSERT INTO artists (id, path, name, picture) VALUES ($1, $2, $3, $4) RETURNING id, name, picture, path
 `
 
 type CreateArtistParams struct {
 	ID      string `json:"id"`
+	Path    string `json:"path"`
 	Name    string `json:"name"`
 	Picture string `json:"picture"`
 }
 
 func (q *Queries) CreateArtist(ctx context.Context, arg CreateArtistParams) (Artist, error) {
-	row := q.db.QueryRow(ctx, createArtist, arg.ID, arg.Name, arg.Picture)
+	row := q.db.QueryRow(ctx, createArtist,
+		arg.ID,
+		arg.Path,
+		arg.Name,
+		arg.Picture,
+	)
 	var i Artist
-	err := row.Scan(&i.ID, &i.Name, &i.Picture)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Picture,
+		&i.Path,
+	)
 	return i, err
 }
 
@@ -36,7 +47,7 @@ func (q *Queries) DeleteAllArtists(ctx context.Context) error {
 }
 
 const getAllArtists = `-- name: GetAllArtists :many
-SELECT id, name, picture FROM artists ORDER BY name
+SELECT id, name, picture, path FROM artists ORDER BY name
 `
 
 func (q *Queries) GetAllArtists(ctx context.Context) ([]Artist, error) {
@@ -48,7 +59,12 @@ func (q *Queries) GetAllArtists(ctx context.Context) ([]Artist, error) {
 	items := []Artist{}
 	for rows.Next() {
 		var i Artist
-		if err := rows.Scan(&i.ID, &i.Name, &i.Picture); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Picture,
+			&i.Path,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -60,18 +76,23 @@ func (q *Queries) GetAllArtists(ctx context.Context) ([]Artist, error) {
 }
 
 const getArtist = `-- name: GetArtist :one
-SELECT id, name, picture FROM artists WHERE id=$1
+SELECT id, name, picture, path FROM artists WHERE id=$1
 `
 
 func (q *Queries) GetArtist(ctx context.Context, id string) (Artist, error) {
 	row := q.db.QueryRow(ctx, getArtist, id)
 	var i Artist
-	err := row.Scan(&i.ID, &i.Name, &i.Picture)
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Picture,
+		&i.Path,
+	)
 	return i, err
 }
 
 const getArtistByName = `-- name: GetArtistByName :many
-SELECT id, name, picture FROM artists WHERE name LIKE $1
+SELECT id, name, picture, path FROM artists WHERE name LIKE $1
 `
 
 func (q *Queries) GetArtistByName(ctx context.Context, name string) ([]Artist, error) {
@@ -83,7 +104,12 @@ func (q *Queries) GetArtistByName(ctx context.Context, name string) ([]Artist, e
 	items := []Artist{}
 	for rows.Next() {
 		var i Artist
-		if err := rows.Scan(&i.ID, &i.Name, &i.Picture); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Picture,
+			&i.Path,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -92,4 +118,20 @@ func (q *Queries) GetArtistByName(ctx context.Context, name string) ([]Artist, e
 		return nil, err
 	}
 	return items, nil
+}
+
+const getArtistByPath = `-- name: GetArtistByPath :one
+SELECT id, name, picture, path FROM artists WHERE path=$1
+`
+
+func (q *Queries) GetArtistByPath(ctx context.Context, path string) (Artist, error) {
+	row := q.db.QueryRow(ctx, getArtistByPath, path)
+	var i Artist
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Picture,
+		&i.Path,
+	)
+	return i, err
 }

@@ -10,12 +10,13 @@ import (
 )
 
 const createAlbum = `-- name: CreateAlbum :one
-INSERT INTO albums (id, name, cover_art, artist_id) VALUES ($1, $2, $3, $4) RETURNING id, name, cover_art, artist_id
+INSERT INTO albums (id, name, path, cover_art, artist_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, cover_art, artist_id, path
 `
 
 type CreateAlbumParams struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
+	Path     string `json:"path"`
 	CoverArt string `json:"coverArt"`
 	ArtistID string `json:"artistId"`
 }
@@ -24,6 +25,7 @@ func (q *Queries) CreateAlbum(ctx context.Context, arg CreateAlbumParams) (Album
 	row := q.db.QueryRow(ctx, createAlbum,
 		arg.ID,
 		arg.Name,
+		arg.Path,
 		arg.CoverArt,
 		arg.ArtistID,
 	)
@@ -33,6 +35,7 @@ func (q *Queries) CreateAlbum(ctx context.Context, arg CreateAlbumParams) (Album
 		&i.Name,
 		&i.CoverArt,
 		&i.ArtistID,
+		&i.Path,
 	)
 	return i, err
 }
@@ -47,7 +50,7 @@ func (q *Queries) DeleteAllAlbums(ctx context.Context) error {
 }
 
 const getAlbum = `-- name: GetAlbum :one
-SELECT id, name, cover_art, artist_id FROM albums WHERE id=$1
+SELECT id, name, cover_art, artist_id, path FROM albums WHERE id=$1
 `
 
 func (q *Queries) GetAlbum(ctx context.Context, id string) (Album, error) {
@@ -58,12 +61,30 @@ func (q *Queries) GetAlbum(ctx context.Context, id string) (Album, error) {
 		&i.Name,
 		&i.CoverArt,
 		&i.ArtistID,
+		&i.Path,
+	)
+	return i, err
+}
+
+const getAlbumByPath = `-- name: GetAlbumByPath :one
+SELECT id, name, cover_art, artist_id, path FROM albums WHERE path=$1
+`
+
+func (q *Queries) GetAlbumByPath(ctx context.Context, path string) (Album, error) {
+	row := q.db.QueryRow(ctx, getAlbumByPath, path)
+	var i Album
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CoverArt,
+		&i.ArtistID,
+		&i.Path,
 	)
 	return i, err
 }
 
 const getAlbumsByArtist = `-- name: GetAlbumsByArtist :many
-SELECT id, name, cover_art, artist_id FROM albums WHERE artist_id=$1
+SELECT id, name, cover_art, artist_id, path FROM albums WHERE artist_id=$1
 `
 
 func (q *Queries) GetAlbumsByArtist(ctx context.Context, artistID string) ([]Album, error) {
@@ -80,6 +101,7 @@ func (q *Queries) GetAlbumsByArtist(ctx context.Context, artistID string) ([]Alb
 			&i.Name,
 			&i.CoverArt,
 			&i.ArtistID,
+			&i.Path,
 		); err != nil {
 			return nil, err
 		}
@@ -92,7 +114,7 @@ func (q *Queries) GetAlbumsByArtist(ctx context.Context, artistID string) ([]Alb
 }
 
 const getAlbumsByArtistAndName = `-- name: GetAlbumsByArtistAndName :many
-SELECT id, name, cover_art, artist_id FROM albums WHERE artist_id=$1 AND name LIKE $2
+SELECT id, name, cover_art, artist_id, path FROM albums WHERE artist_id=$1 AND name LIKE $2
 `
 
 type GetAlbumsByArtistAndNameParams struct {
@@ -114,6 +136,7 @@ func (q *Queries) GetAlbumsByArtistAndName(ctx context.Context, arg GetAlbumsByA
 			&i.Name,
 			&i.CoverArt,
 			&i.ArtistID,
+			&i.Path,
 		); err != nil {
 			return nil, err
 		}
@@ -126,7 +149,7 @@ func (q *Queries) GetAlbumsByArtistAndName(ctx context.Context, arg GetAlbumsByA
 }
 
 const getAllAlbums = `-- name: GetAllAlbums :many
-SELECT id, name, cover_art, artist_id FROM albums
+SELECT id, name, cover_art, artist_id, path FROM albums
 `
 
 func (q *Queries) GetAllAlbums(ctx context.Context) ([]Album, error) {
@@ -143,6 +166,7 @@ func (q *Queries) GetAllAlbums(ctx context.Context) ([]Album, error) {
 			&i.Name,
 			&i.CoverArt,
 			&i.ArtistID,
+			&i.Path,
 		); err != nil {
 			return nil, err
 		}

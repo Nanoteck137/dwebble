@@ -4,6 +4,8 @@ CREATE TABLE artists (
     name TEXT NOT NULL,
     picture TEXT NOT NULL,
 
+    path TEXT NOT NULL,
+
     CONSTRAINT artists_pk PRIMARY KEY (id)
 );
 
@@ -14,12 +16,14 @@ CREATE TABLE albums (
 
     artist_id TEXT NOT NULL,
 
+    path TEXT NOT NULL,
+
     CONSTRAINT albums_pk PRIMARY KEY(id),
 
     CONSTRAINT albums_artist_id_fk FOREIGN KEY (artist_id)
         REFERENCES artists(id),
 
-    CONSTRAINT albums_name_unique UNIQUE(name, artist_id)
+    CONSTRAINT albums_unique_path UNIQUE(path)
 );
 
 CREATE TABLE tracks (
@@ -27,6 +31,8 @@ CREATE TABLE tracks (
     track_number INT NOT NULL,
     name TEXT NOT NULL,
     cover_art TEXT NOT NULL,
+
+    path TEXT NOT NULL,
 
     best_quality_file TEXT NOT NULL,
     mobile_quality_file TEXT NOT NULL,
@@ -36,7 +42,7 @@ CREATE TABLE tracks (
 
     CONSTRAINT tracks_pk PRIMARY KEY(id),
 
-    CONSTRAINT tracks_track_number_unique UNIQUE(track_number, album_id) INITIALLY DEFERRED,
+    -- CONSTRAINT tracks_track_number_unique UNIQUE(track_number, album_id) INITIALLY DEFERRED,
 
     CONSTRAINT tracks_album_id_fk FOREIGN KEY (album_id)
         REFERENCES albums(id),

@@ -8,10 +8,9 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/nanoteck137/dwebble/collection"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/sync"
-	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/dwebble/library"
 )
 
 func main() {
@@ -32,82 +31,29 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_ = db
-
 	queries := database.New(db)
-	_ = queries
 
-	queries.DeleteAllTracks(ctx)
-	queries.DeleteAllAlbums(ctx)
-	queries.DeleteAllArtists(ctx)
+	if false {
+		queries.DeleteAllTracks(ctx)
+		queries.DeleteAllAlbums(ctx)
+		queries.DeleteAllArtists(ctx)
+	}
 
-	col, err := collection.ReadFromDir("./mockdata")
+	fsys := os.DirFS("/Volumes/media/music")
+	lib, err := library.ReadFromFS(fsys)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_ = col
+	_ = lib
 
-	err = sync.SyncCollection(col, db, types.WorkDir("./work"))
+	err = lib.Sync(db)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return
+	pretty.Println(lib)
 
-	// otherartist := collection.ArtistMetadata{
-	// 	Id:     utils.CreateId(),
-	// 	Name:   "Some Other Artist",
-	// 	Albums: []collection.AlbumMetadata{},
-	// }
+	// pretty.Println(queries.GetAllArtists(ctx))
 
-	// artist := collection.ArtistMetadata{
-	// 	Id:   utils.CreateId(),
-	// 	Name: "Ado",
-	// 	Albums: []collection.AlbumMetadata{
-	// 		{
-	// 			Id:   utils.CreateId(),
-	// 			Name: "unravel",
-	// 			Tracks: []collection.TrackMetadata{
-	// 				{
-	// 					Id:       utils.CreateId(),
-	// 					Name:     "unravel",
-	// 					FilePath: "unravel/01 - unravel.flac",
-	// 				},
-	// 			},
-	// 		},
-	// 		{
-	// 			Id:   utils.CreateId(),
-	// 			Name: "Kura Kura",
-	// 			Tracks: []collection.TrackMetadata{
-	// 				{
-	// 					Id:       utils.CreateId(),
-	// 					Name:     "Kura Kura",
-	// 					FilePath: "Kura Kura/01. クラクラ.flac",
-	// 				},
-	// 			},
-	// 		},
-	// 	},
-	// }
-	//
-	// data, err := json.MarshalIndent(artist, "", "  ")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	//
-	// fmt.Println(string(data))
-	//
-	// err = os.WriteFile("../testcol/Ado/artist.json", data, 0644)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// col := collection.New()
-	//
-	// data, err := json.Marshal(col)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	//
-	// fmt.Println(string(data))
 }

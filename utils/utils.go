@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"mime/multipart"
 	"os"
@@ -28,8 +29,12 @@ func createIdGenerator() func() string {
 	return res
 }
 
-func RunFFprobe(args ...string) ([]byte, error) {
+func RunFFprobe(stdin io.Reader, args ...string) ([]byte, error) {
 	cmd := exec.Command("ffprobe", args...)
+	cmd.Stdin = stdin
+	if true {
+		cmd.Stderr = os.Stderr
+	}
 
 	data, err := cmd.Output()
 	if err != nil {
@@ -172,10 +177,15 @@ var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)\.`)
 var test2 = regexp.MustCompile(`track(\d+).+`)
 
 // TODO(patrik): Fix this function
-func CheckFile(filepath string) (FileResult, error) {
+func CheckFile(fsys fs.FS, filepath string) (FileResult, error) {
 	// ffprobe -v quiet -print_format json -show_format -show_streams input
 
-	data, err := RunFFprobe("-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filepath)
+	file, err := fsys.Open(filepath)
+	if err != nil {
+		return FileResult{}, err
+	}
+
+	data, err := RunFFprobe(file, "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", "-")
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return FileResult{}, err
@@ -311,4 +321,65 @@ func GetSingleFile(form *multipart.Form, name string) (*multipart.FileHeader, er
 	}
 
 	return nil, errors.New("Missing file")
+}
+
+var validMusicExts = []string{
+	"flac",
+	"opus",
+	"mp3",
+}
+
+func IsMusicFile(p string) bool {
+	if path.Base(p)[0] == '.' {
+		return false
+	}
+
+	ext := path.Ext(p)
+	if ext == "" {
+		return false
+	}
+
+	ext = strings.ToLower(ext[1:])
+
+	for _, validExt := range validMusicExts {
+		if ext == validExt {
+			return true
+		}
+	}
+
+	return false
+}
+
+var validMultiDiscPrefix = []string{
+	"cd",
+	"disc",
+}
+
+func IsMultiDiscName(name string) bool {
+	for _, prefix := range validMultiDiscPrefix {
+		if strings.HasPrefix(name, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func HasMusic(entries []fs.DirEntry) bool {
+	for _, entry := range entries {
+		if IsMusicFile(entry.Name()) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func IsMultiDisc(entries []fs.DirEntry) bool {
+	for _, entry := range entries {
+		if IsMultiDiscName(entry.Name()) {
+			return true
+		}
+	}
+	return false
 }
