@@ -242,6 +242,64 @@ func GetOrCreateArtist(queries *database.Queries, artist *Artist) (database.Arti
 	return dbArtist, nil
 }
 
+func GetOrCreateAlbum(queries *database.Queries, album *Album, artistId string) (database.Album, error) {
+	ctx := context.Background()
+
+	dbAlbum, err := queries.GetAlbumByPath(ctx, album.Path)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			album, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
+				ID:       utils.CreateId(),
+				Name:     album.Name,
+				Path:     album.Path,
+				CoverArt: "TODO",
+				ArtistID: artistId,
+			})
+
+			if err != nil {
+				return database.Album{}, err
+			}
+
+			return album, nil
+		} else {
+			return database.Album{}, err
+		}
+	}
+
+	return dbAlbum, nil
+}
+
+func GetOrCreateTrack(queries *database.Queries, track *Track, albumId string, artistId string) (database.Track, error) {
+	ctx := context.Background()
+
+	dbTrack, err := queries.GetTrackByPath(ctx, track.Path)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			track, err := queries.CreateTrack(ctx, database.CreateTrackParams{
+				ID:                utils.CreateId(),
+				TrackNumber:       int32(track.Number),
+				Name:              track.Name,
+				Path:              track.Path,
+				CoverArt:          "TODO",
+				BestQualityFile:   "TODO",
+				MobileQualityFile: "TODO",
+				AlbumID:           albumId,
+				ArtistID:          artistId,
+			})
+
+			if err != nil {
+				return database.Track{}, err
+			}
+
+			return track, nil
+		} else {
+			return database.Track{}, err
+		}
+	}
+
+	return dbTrack, nil
+}
+
 func (lib *Library) Sync(db *pgxpool.Pool) error {
 	queries := database.New(db)
 	ctx := context.Background()
@@ -257,28 +315,13 @@ func (lib *Library) Sync(db *pgxpool.Pool) error {
 		_ = dbArtist
 
 		for _, album := range artist.Albums {
-			dbAlbum, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
-				ID:       utils.CreateId(),
-				Name:     album.Name,
-				Path:     album.Path,
-				CoverArt: "TODO",
-				ArtistID: dbArtist.ID,
-			})
+			dbAlbum, err := GetOrCreateAlbum(queries, &album, dbArtist.ID)
 			if err != nil {
 				return err
 			}
 
 			for _, track := range album.Tracks {
-				dbTrack, err := queries.CreateTrack(ctx, database.CreateTrackParams{
-					ID:                utils.CreateId(),
-					TrackNumber:       int32(track.Number),
-					Name:              track.Name,
-					CoverArt:          "TODO",
-					BestQualityFile:   "TODO",
-					MobileQualityFile: "TODO",
-					AlbumID:           dbAlbum.ID,
-					ArtistID:          dbArtist.ID,
-				})
+				dbTrack, err := GetOrCreateTrack(queries, &track, dbAlbum.ID, dbArtist.ID)
 				if err != nil {
 					return err
 				}

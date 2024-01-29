@@ -7,6 +7,9 @@ SELECT * FROM albums WHERE id=$1;
 -- name: GetAlbumsByArtist :many
 SELECT * FROM albums WHERE artist_id=$1;
 
+-- name: GetAlbumByPath :one
+SELECT * FROM albums WHERE path=$1;
+
 -- name: GetAlbumsByArtistAndName :many
 SELECT * FROM albums WHERE artist_id=$1 AND name LIKE $2;
 

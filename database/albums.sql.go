@@ -66,6 +66,23 @@ func (q *Queries) GetAlbum(ctx context.Context, id string) (Album, error) {
 	return i, err
 }
 
+const getAlbumByPath = `-- name: GetAlbumByPath :one
+SELECT id, name, cover_art, artist_id, path FROM albums WHERE path=$1
+`
+
+func (q *Queries) GetAlbumByPath(ctx context.Context, path string) (Album, error) {
+	row := q.db.QueryRow(ctx, getAlbumByPath, path)
+	var i Album
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CoverArt,
+		&i.ArtistID,
+		&i.Path,
+	)
+	return i, err
+}
+
 const getAlbumsByArtist = `-- name: GetAlbumsByArtist :many
 SELECT id, name, cover_art, artist_id, path FROM albums WHERE artist_id=$1
 `

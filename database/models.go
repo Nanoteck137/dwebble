@@ -26,6 +26,7 @@ type Track struct {
 	TrackNumber       int32  `json:"trackNumber"`
 	Name              string `json:"name"`
 	CoverArt          string `json:"coverArt"`
+	Path              string `json:"path"`
 	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumID           string `json:"albumId"`

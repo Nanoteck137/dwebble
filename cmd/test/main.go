@@ -33,9 +33,11 @@ func main() {
 
 	queries := database.New(db)
 
-	queries.DeleteAllTracks(ctx)
-	queries.DeleteAllAlbums(ctx)
-	queries.DeleteAllArtists(ctx)
+	if false {
+		queries.DeleteAllTracks(ctx)
+		queries.DeleteAllAlbums(ctx)
+		queries.DeleteAllArtists(ctx)
+	}
 
 	fsys := os.DirFS("/Volumes/media/music")
 	lib, err := library.ReadFromFS(fsys)

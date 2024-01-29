@@ -10,13 +10,14 @@ import (
 )
 
 const createTrack = `-- name: CreateTrack :one
-INSERT INTO tracks (id, track_number, name, cover_art, best_quality_file, mobile_quality_file, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, track_number, name, cover_art, best_quality_file, mobile_quality_file, album_id, artist_id
+INSERT INTO tracks (id, track_number, name, path, cover_art, best_quality_file, mobile_quality_file, album_id, artist_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, track_number, name, cover_art, path, best_quality_file, mobile_quality_file, album_id, artist_id
 `
 
 type CreateTrackParams struct {
 	ID                string `json:"id"`
 	TrackNumber       int32  `json:"trackNumber"`
 	Name              string `json:"name"`
+	Path              string `json:"path"`
 	CoverArt          string `json:"coverArt"`
 	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
@@ -29,6 +30,7 @@ func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) (Track
 		arg.ID,
 		arg.TrackNumber,
 		arg.Name,
+		arg.Path,
 		arg.CoverArt,
 		arg.BestQualityFile,
 		arg.MobileQualityFile,
@@ -41,6 +43,7 @@ func (q *Queries) CreateTrack(ctx context.Context, arg CreateTrackParams) (Track
 		&i.TrackNumber,
 		&i.Name,
 		&i.CoverArt,
+		&i.Path,
 		&i.BestQualityFile,
 		&i.MobileQualityFile,
 		&i.AlbumID,
@@ -60,7 +63,7 @@ func (q *Queries) DeleteAllTracks(ctx context.Context) error {
 
 const getAllTracks = `-- name: GetAllTracks :many
 SELECT
-    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.path, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks
@@ -73,6 +76,7 @@ type GetAllTracksRow struct {
 	TrackNumber       int32  `json:"trackNumber"`
 	Name              string `json:"name"`
 	CoverArt          string `json:"coverArt"`
+	Path              string `json:"path"`
 	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumID           string `json:"albumId"`
@@ -95,6 +99,7 @@ func (q *Queries) GetAllTracks(ctx context.Context) ([]GetAllTracksRow, error) {
 			&i.TrackNumber,
 			&i.Name,
 			&i.CoverArt,
+			&i.Path,
 			&i.BestQualityFile,
 			&i.MobileQualityFile,
 			&i.AlbumID,
@@ -114,7 +119,7 @@ func (q *Queries) GetAllTracks(ctx context.Context) ([]GetAllTracksRow, error) {
 
 const getTrack = `-- name: GetTrack :one
 SELECT
-    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.path, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks 
@@ -128,6 +133,7 @@ type GetTrackRow struct {
 	TrackNumber       int32  `json:"trackNumber"`
 	Name              string `json:"name"`
 	CoverArt          string `json:"coverArt"`
+	Path              string `json:"path"`
 	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumID           string `json:"albumId"`
@@ -144,6 +150,7 @@ func (q *Queries) GetTrack(ctx context.Context, id string) (GetTrackRow, error) 
 		&i.TrackNumber,
 		&i.Name,
 		&i.CoverArt,
+		&i.Path,
 		&i.BestQualityFile,
 		&i.MobileQualityFile,
 		&i.AlbumID,
@@ -154,9 +161,30 @@ func (q *Queries) GetTrack(ctx context.Context, id string) (GetTrackRow, error) 
 	return i, err
 }
 
+const getTrackByPath = `-- name: GetTrackByPath :one
+SELECT id, track_number, name, cover_art, path, best_quality_file, mobile_quality_file, album_id, artist_id FROM tracks WHERE path=$1
+`
+
+func (q *Queries) GetTrackByPath(ctx context.Context, path string) (Track, error) {
+	row := q.db.QueryRow(ctx, getTrackByPath, path)
+	var i Track
+	err := row.Scan(
+		&i.ID,
+		&i.TrackNumber,
+		&i.Name,
+		&i.CoverArt,
+		&i.Path,
+		&i.BestQualityFile,
+		&i.MobileQualityFile,
+		&i.AlbumID,
+		&i.ArtistID,
+	)
+	return i, err
+}
+
 const getTracksByAlbum = `-- name: GetTracksByAlbum :many
 SELECT 
-    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
+    tracks.id, tracks.track_number, tracks.name, tracks.cover_art, tracks.path, tracks.best_quality_file, tracks.mobile_quality_file, tracks.album_id, tracks.artist_id, 
     albums.name as album_name,
     artists.name as artist_name
 FROM tracks 
@@ -171,6 +199,7 @@ type GetTracksByAlbumRow struct {
 	TrackNumber       int32  `json:"trackNumber"`
 	Name              string `json:"name"`
 	CoverArt          string `json:"coverArt"`
+	Path              string `json:"path"`
 	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumID           string `json:"albumId"`
@@ -193,6 +222,7 @@ func (q *Queries) GetTracksByAlbum(ctx context.Context, albumID string) ([]GetTr
 			&i.TrackNumber,
 			&i.Name,
 			&i.CoverArt,
+			&i.Path,
 			&i.BestQualityFile,
 			&i.MobileQualityFile,
 			&i.AlbumID,
