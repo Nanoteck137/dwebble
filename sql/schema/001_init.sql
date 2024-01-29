@@ -4,6 +4,8 @@ CREATE TABLE artists (
     name TEXT NOT NULL,
     picture TEXT NOT NULL,
 
+    path TEXT NOT NULL,
+
     CONSTRAINT artists_pk PRIMARY KEY (id)
 );
 

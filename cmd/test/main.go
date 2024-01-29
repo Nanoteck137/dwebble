@@ -45,10 +45,13 @@ func main() {
 
 	_ = lib
 
-	pretty.Println(lib)
+	err = lib.Sync(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// err = lib.Sync(db)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	// pretty.Println(lib)
+
+	pretty.Println(queries.GetAllArtists(ctx))
+
 }

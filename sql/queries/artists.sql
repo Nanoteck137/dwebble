@@ -8,7 +8,7 @@ SELECT * FROM artists WHERE id=$1;
 SELECT * FROM artists WHERE name LIKE $1;
 
 -- name: CreateArtist :one
-INSERT INTO artists (id, name, picture) VALUES ($1, $2, $3) RETURNING *;
+INSERT INTO artists (id, path, name, picture) VALUES ($1, $2, $3, $4) RETURNING *;
 
 -- name: DeleteAllArtists :exec
 DELETE FROM artists;

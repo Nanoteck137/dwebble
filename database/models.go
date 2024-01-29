@@ -17,6 +17,7 @@ type Artist struct {
 	ID      string `json:"id"`
 	Name    string `json:"name"`
 	Picture string `json:"picture"`
+	Path    string `json:"path"`
 }
 
 type Track struct {

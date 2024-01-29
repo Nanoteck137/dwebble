@@ -29,6 +29,7 @@ type Album struct {
 }
 
 type Artist struct {
+	Path        string
 	Name        string
 	PicturePath string
 	Albums      []Album
@@ -38,56 +39,65 @@ type Library struct {
 	Artists map[string]*Artist
 }
 
-func ReadFromFS(fsys fs.FS) (*Library, error) {
-	reg := regexp.MustCompile(`(\d*).*`)
-	_ = reg
+var fileReg = regexp.MustCompile(`(\d*).*`)
 
+func getAllTrackFromDir(fss fs.FS, dir string) ([]Track, error) {
+	entries, err := fs.ReadDir(fss, dir)
+	if err != nil {
+		return nil, err
+	}
+
+	var tracks []Track
+
+	for _, entry := range entries {
+		p := path.Join(dir, entry.Name())
+
+		if utils.IsMusicFile(p) {
+			res, err := utils.CheckFile(fss, p)
+			if err != nil {
+				continue
+			}
+
+			pretty.Println(res)
+
+			captures := fileReg.FindStringSubmatch(entry.Name())
+			if captures == nil {
+				continue
+			}
+
+			if captures[1] == "" {
+				continue
+			}
+
+			trackNum, err := strconv.Atoi(captures[1])
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			name := ""
+			if res.Probe.Title != "" {
+				name = res.Probe.Title
+			} else {
+				ext := path.Ext(p)
+				name = strings.TrimSuffix(entry.Name(), ext)
+			}
+
+			tracks = append(tracks, Track{
+				Name:     name,
+				Number:   trackNum,
+				FileName: p,
+			})
+		}
+	}
+
+	return tracks, nil
+}
+
+func ReadFromFS(fsys fs.FS) (*Library, error) {
 	dir := "."
 	entries, err := fs.ReadDir(fsys, dir)
 	if err != nil {
 		log.Fatal(err)
-	}
-
-
-	getAllTrackFromDir := func(fss fs.FS, dir string) ([]Track, error) {
-		entries, err := fs.ReadDir(fss, dir)
-		if err != nil {
-			return nil, err
-		}
-
-		var tracks []Track
-
-		for _, entry := range entries {
-			p := path.Join(dir, entry.Name())
-
-			if utils.IsMusicFile(p) {
-				ext := path.Ext(p)
-				name := strings.TrimSuffix(entry.Name(), ext)
-				// reg.FindAllStringSubmatchIndex
-
-				captures := reg.FindStringSubmatch(entry.Name())
-				if captures == nil {
-					continue
-				}
-
-				if captures[1] == "" {
-					continue
-				}
-
-				trackNum, err := strconv.Atoi(captures[1])
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				tracks = append(tracks, Track{
-					Name:     name,
-					Number:   trackNum,
-					FileName: p,
-				})
-			}
-		}
-
-		return tracks, nil
 	}
 
 	artists := make(map[string]*Artist)
@@ -103,6 +113,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 			if !utils.HasMusic(entries) && !utils.IsMultiDisc(entries) {
 				name := entry.Name()
 				artists[name] = &Artist{
+					Path: p,
 					Name: name,
 				}
 			}
@@ -204,20 +215,21 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 	}, nil
 }
 
-func GetOrCreateArtist(queries *database.Queries, name string) (database.Artist, error) {
+func GetOrCreateArtist(queries *database.Queries, artist *Artist) (database.Artist, error) {
 	ctx := context.Background()
 
-	artists, err := queries.GetArtistByName(ctx, name)
+	artists, err := queries.GetArtistByName(ctx, artist.Name)
 	if err != nil {
 		return database.Artist{}, err
 	}
 
-	var artist database.Artist
+	var dbArtist database.Artist
 
 	if len(artists) == 0 {
 		a, err := queries.CreateArtist(ctx, database.CreateArtistParams{
 			ID:      utils.CreateId(),
-			Name:    name,
+			Path:    artist.Path,
+			Name:    artist.Name,
 			Picture: "TODO",
 		})
 
@@ -225,14 +237,14 @@ func GetOrCreateArtist(queries *database.Queries, name string) (database.Artist,
 			return database.Artist{}, err
 		}
 
-		artist = a
+		dbArtist = a
 	} else if len(artists) == 1 {
-		artist = artists[0]
+		dbArtist = artists[0]
 	} else {
-		return database.Artist{}, fmt.Errorf("Returned multiple artists for '%v'", name)
+		return database.Artist{}, fmt.Errorf("Returned multiple artists for '%v'", artist.Name)
 	}
 
-	return artist, nil
+	return dbArtist, nil
 }
 
 func (lib *Library) Sync(db *pgxpool.Pool) error {
@@ -241,6 +253,14 @@ func (lib *Library) Sync(db *pgxpool.Pool) error {
 
 	_ = ctx
 	_ = queries
+
+	for _, artist := range lib.Artists {
+		artist, err := GetOrCreateArtist(queries, artist)
+		if err != nil {
+			return err
+		}
+		_ = artist
+	}
 
 	// for _, album := range lib.Albums {
 	// 	name := album.ArtistName
