@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/dwebble"
+  bin = "./tmp/dwebble serve"
   cmd = "go build -o ./tmp/dwebble ./main.go"
   delay = 1000
   exclude_dir = ["tmp", "vendor", "mockdata", "work"]
