@@ -55,6 +55,10 @@ func main() {
 		Root: http.Dir(workDir.OriginalTracksDir()),
 	}))
 
+	app.Use("/tracks", filesystem.New(filesystem.Config{
+		Root: http.Dir(workDir.MobileTracksDir()),
+	}))
+
 	app.Use("/images", filesystem.New(filesystem.Config{
 		Root: http.Dir(workDir.ImagesDir()),
 	}))
