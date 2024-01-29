@@ -354,7 +354,7 @@ func IsMultiDiscName(name string) bool {
 
 func HasMusic(entries []fs.DirEntry) bool {
 	for _, entry := range entries {
-		if isMusicFile(entry.Name()) {
+		if IsMusicFile(entry.Name()) {
 			return true
 		}
 	}
@@ -364,7 +364,7 @@ func HasMusic(entries []fs.DirEntry) bool {
 
 func IsMultiDisc(entries []fs.DirEntry) bool {
 	for _, entry := range entries {
-		if isMultiDiscName(entry.Name()) {
+		if IsMultiDiscName(entry.Name()) {
 			return true
 		}
 	}
