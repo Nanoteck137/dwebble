@@ -11,7 +11,7 @@ SELECT * FROM albums WHERE artist_id=$1;
 SELECT * FROM albums WHERE artist_id=$1 AND name LIKE $2;
 
 -- name: CreateAlbum :one
-INSERT INTO albums (id, name, cover_art, artist_id) VALUES ($1, $2, $3, $4) RETURNING *;
+INSERT INTO albums (id, name, path, cover_art, artist_id) VALUES ($1, $2, $3, $4, $5) RETURNING *;
 
 -- name: DeleteAllAlbums :exec
 DELETE FROM albums;

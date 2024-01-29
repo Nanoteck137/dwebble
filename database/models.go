@@ -11,6 +11,7 @@ type Album struct {
 	Name     string `json:"name"`
 	CoverArt string `json:"coverArt"`
 	ArtistID string `json:"artistId"`
+	Path     string `json:"path"`
 }
 
 type Artist struct {

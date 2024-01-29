@@ -16,6 +16,8 @@ CREATE TABLE albums (
 
     artist_id TEXT NOT NULL,
 
+    path TEXT NOT NULL,
+
     CONSTRAINT albums_pk PRIMARY KEY(id),
 
     CONSTRAINT albums_artist_id_fk FOREIGN KEY (artist_id)

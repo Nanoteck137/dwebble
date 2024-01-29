@@ -50,8 +50,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// pretty.Println(lib)
+	pretty.Println(lib)
 
-	pretty.Println(queries.GetAllArtists(ctx))
+	// pretty.Println(queries.GetAllArtists(ctx))
 
 }

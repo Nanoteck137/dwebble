@@ -4,6 +4,9 @@ SELECT * FROM artists ORDER BY name;
 -- name: GetArtist :one
 SELECT * FROM artists WHERE id=$1;
 
+-- name: GetArtistByPath :one
+SELECT * FROM artists WHERE path=$1;
+
 -- name: GetArtistByName :many
 SELECT * FROM artists WHERE name LIKE $1;
 

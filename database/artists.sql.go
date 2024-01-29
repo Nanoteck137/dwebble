@@ -119,3 +119,19 @@ func (q *Queries) GetArtistByName(ctx context.Context, name string) ([]Artist, e
 	}
 	return items, nil
 }
+
+const getArtistByPath = `-- name: GetArtistByPath :one
+SELECT id, name, picture, path FROM artists WHERE path=$1
+`
+
+func (q *Queries) GetArtistByPath(ctx context.Context, path string) (Artist, error) {
+	row := q.db.QueryRow(ctx, getArtistByPath, path)
+	var i Artist
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Picture,
+		&i.Path,
+	)
+	return i, err
+}

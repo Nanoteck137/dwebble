@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
@@ -17,12 +18,13 @@ import (
 )
 
 type Track struct {
-	Name     string
-	Number   int
-	FileName string
+	Path   string
+	Name   string
+	Number int
 }
 
 type Album struct {
+	Path       string
 	Name       string
 	ArtistName string
 	Tracks     []Track
@@ -58,8 +60,6 @@ func getAllTrackFromDir(fss fs.FS, dir string) ([]Track, error) {
 				continue
 			}
 
-			pretty.Println(res)
-
 			captures := fileReg.FindStringSubmatch(entry.Name())
 			if captures == nil {
 				continue
@@ -83,9 +83,9 @@ func getAllTrackFromDir(fss fs.FS, dir string) ([]Track, error) {
 			}
 
 			tracks = append(tracks, Track{
-				Name:     name,
-				Number:   trackNum,
-				FileName: p,
+				Path:   p,
+				Name:   name,
+				Number: trackNum,
 			})
 		}
 	}
@@ -146,6 +146,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 
 				albumName := entry.Name()
 				artist.Albums = append(artist.Albums, Album{
+					Path:       p,
 					Name:       albumName,
 					ArtistName: artistName,
 					Tracks:     tracks,
@@ -165,7 +166,6 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 
 				for _, entry := range entries {
 					p := path.Join(p, entry.Name())
-					fmt.Printf("p: %v\n", p)
 
 					if !entry.IsDir() {
 						continue
@@ -186,6 +186,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 
 						albumName := entry.Name()
 						artist.Albums = append(artist.Albums, Album{
+							Path:       p,
 							Name:       albumName,
 							ArtistName: artistName,
 							Tracks:     tracks,
@@ -218,30 +219,24 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 func GetOrCreateArtist(queries *database.Queries, artist *Artist) (database.Artist, error) {
 	ctx := context.Background()
 
-	artists, err := queries.GetArtistByName(ctx, artist.Name)
+	dbArtist, err := queries.GetArtistByPath(ctx, artist.Name)
 	if err != nil {
-		return database.Artist{}, err
-	}
+		if err == pgx.ErrNoRows {
+			artist, err := queries.CreateArtist(ctx, database.CreateArtistParams{
+				ID:      utils.CreateId(),
+				Path:    artist.Path,
+				Name:    artist.Name,
+				Picture: "TODO",
+			})
 
-	var dbArtist database.Artist
+			if err != nil {
+				return database.Artist{}, err
+			}
 
-	if len(artists) == 0 {
-		a, err := queries.CreateArtist(ctx, database.CreateArtistParams{
-			ID:      utils.CreateId(),
-			Path:    artist.Path,
-			Name:    artist.Name,
-			Picture: "TODO",
-		})
-
-		if err != nil {
+			return artist, nil
+		} else {
 			return database.Artist{}, err
 		}
-
-		dbArtist = a
-	} else if len(artists) == 1 {
-		dbArtist = artists[0]
-	} else {
-		return database.Artist{}, fmt.Errorf("Returned multiple artists for '%v'", artist.Name)
 	}
 
 	return dbArtist, nil
@@ -265,6 +260,7 @@ func (lib *Library) Sync(db *pgxpool.Pool) error {
 			dbAlbum, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
 				ID:       utils.CreateId(),
 				Name:     album.Name,
+				Path:     album.Path,
 				CoverArt: "TODO",
 				ArtistID: dbArtist.ID,
 			})
@@ -273,7 +269,7 @@ func (lib *Library) Sync(db *pgxpool.Pool) error {
 			}
 
 			for _, track := range album.Tracks {
-				queries.CreateTrack(ctx, database.CreateTrackParams{
+				dbTrack, err := queries.CreateTrack(ctx, database.CreateTrackParams{
 					ID:                utils.CreateId(),
 					TrackNumber:       int32(track.Number),
 					Name:              track.Name,
@@ -283,8 +279,12 @@ func (lib *Library) Sync(db *pgxpool.Pool) error {
 					AlbumID:           dbAlbum.ID,
 					ArtistID:          dbArtist.ID,
 				})
-			}
+				if err != nil {
+					return err
+				}
 
+				_ = dbTrack
+			}
 
 			_ = dbAlbum
 		}
