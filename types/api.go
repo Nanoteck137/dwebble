@@ -78,7 +78,6 @@ type ApiGetArtistsData struct {
 	Artists []ApiArtist `json:"artists"`
 }
 
-type ApiPostArtistData ApiArtist
 type ApiGetArtistByIdData ApiArtist
 
 type ApiGetArtistAlbumsByIdData struct {
@@ -91,7 +90,6 @@ type ApiGetAlbumsData struct {
 	Albums []ApiAlbum `json:"albums"`
 }
 
-type ApiPostAlbumData ApiAlbum
 type ApiGetAlbumByIdData ApiAlbum
 
 type ApiGetAlbumTracksByIdData struct {
@@ -109,5 +107,4 @@ type ApiGetTracksData struct {
 	Tracks []ApiGetTracksDataTrackItem `json:"tracks"`
 }
 
-type ApiPostTrackData ApiTrack
 type ApiGetTrackByIdData ApiTrack
