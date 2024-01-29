@@ -302,17 +302,12 @@ func GetOrCreateTrack(queries *database.Queries, track *Track, albumId string, a
 
 func (lib *Library) Sync(db *pgxpool.Pool) error {
 	queries := database.New(db)
-	ctx := context.Background()
-
-	_ = ctx
-	_ = queries
 
 	for _, artist := range lib.Artists {
 		dbArtist, err := GetOrCreateArtist(queries, artist)
 		if err != nil {
 			return err
 		}
-		_ = dbArtist
 
 		for _, album := range artist.Albums {
 			dbAlbum, err := GetOrCreateAlbum(queries, &album, dbArtist.ID)
@@ -321,53 +316,13 @@ func (lib *Library) Sync(db *pgxpool.Pool) error {
 			}
 
 			for _, track := range album.Tracks {
-				dbTrack, err := GetOrCreateTrack(queries, &track, dbAlbum.ID, dbArtist.ID)
+				_, err := GetOrCreateTrack(queries, &track, dbAlbum.ID, dbArtist.ID)
 				if err != nil {
 					return err
 				}
-
-				_ = dbTrack
 			}
-
-			_ = dbAlbum
 		}
-
 	}
-
-	// for _, album := range lib.Albums {
-	// 	name := album.ArtistName
-	// 	artist, err := GetOrCreateArtist(queries, name)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	//
-	// 	dbAlbum, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
-	// 		ID:       utils.CreateId(),
-	// 		Name:     album.Name,
-	// 		CoverArt: "TODO",
-	// 		ArtistID: artist.ID,
-	// 	})
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	//
-	// 	for _, track := range album.Tracks {
-	// 		_, err := queries.CreateTrack(ctx, database.CreateTrackParams{
-	// 			ID:                utils.CreateId(),
-	// 			TrackNumber:       int32(track.Number),
-	// 			Name:              track.Name,
-	// 			CoverArt:          "TODO",
-	// 			BestQualityFile:   "TODO",
-	// 			MobileQualityFile: "TODO",
-	// 			AlbumID:           dbAlbum.ID,
-	// 			ArtistID:          artist.ID,
-	// 		})
-	//
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 	}
-	// }
 
 	return nil
 }
