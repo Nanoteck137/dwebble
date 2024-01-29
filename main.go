@@ -14,12 +14,16 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/nanoteck137/dwebble/api"
+	"github.com/nanoteck137/dwebble/cmd"
 	"github.com/nanoteck137/dwebble/types"
 
 	_ "github.com/nanoteck137/dwebble/docs"
 )
 
 func main() {
+	cmd.Execute()
+
+	return
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal(err)

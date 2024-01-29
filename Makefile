@@ -1,8 +1,14 @@
 SWAG=swag
 
-.PHONY: sqlc
+.PHONY: sqlc build swagger
 
-generate: sqlc
+all: build
+
+build:
+	go build -o build/dwebble main.go 
+
+build-dev:
+	go build -tags dev -o build/dwebble main.go 
 
 sqlc:
 	sqlc generate

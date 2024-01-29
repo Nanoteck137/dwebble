@@ -1,8 +1,9 @@
 node_modules/
-tmp/
+/tmp/
 /test/
-work/
-mockdata/
+/work/
+/mockdata/
+/build/
 
 .env*
 
