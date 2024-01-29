@@ -30,7 +30,6 @@ var upCmd = &cobra.Command{
 			log.Fatalf("goose: failed to open DB: %v\n", err)
 		}
 
-		goose.SetBaseFS(schema.Migrations)
 		goose.Up(db, ".")
 	},
 }
@@ -49,12 +48,13 @@ var downCmd = &cobra.Command{
 			log.Fatalf("goose: failed to open DB: %v\n", err)
 		}
 
-		goose.SetBaseFS(schema.Migrations)
 		goose.Down(db, ".")
 	},
 }
 
 func init() {
+	goose.SetBaseFS(schema.Migrations)
+
 	migrateCmd.AddCommand(upCmd)
 	migrateCmd.AddCommand(downCmd)
 	rootCmd.AddCommand(migrateCmd)
