@@ -7,7 +7,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
-	"github.com/nanoteck137/dwebble/utils"
 )
 
 // HandleGetArtists godoc
@@ -53,51 +52,6 @@ func (api *ApiConfig) HandleGetArtists(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(types.NewApiResponse(result))
-}
-
-type CreateArtistBody struct {
-	Name string `json:"name" form:"name" validate:"required"`
-}
-
-// HandlePostArtist godoc
-//
-//	@Summary		Create new artist
-//	@Description	Create new artist
-//	@Tags			artists
-//	@Accept			mpfd
-//	@Produce		json
-//	@Param			name	formData	string	true	"Artist name"
-//	@Success		200		{object}	types.ApiResponse[types.ApiPostArtistData]
-//	@Failure		400		{object}	types.ApiError
-//	@Failure		500		{object}	types.ApiError
-//	@Router			/artists [post]
-func (api *ApiConfig) HandlePostArtist(c *fiber.Ctx) error {
-	var body CreateArtistBody
-	err := c.BodyParser(&body)
-	if err != nil {
-		return types.ApiBadRequestError("Failed to create artist: " + err.Error())
-	}
-
-	errs := api.validateBody(body)
-	if errs != nil {
-		return types.ApiBadRequestError("Failed to create artist", errs)
-	}
-
-	artist, err := api.queries.CreateArtist(c.UserContext(), database.CreateArtistParams{
-		ID:      utils.CreateId(),
-		Name:    body.Name,
-		Picture: "TODO",
-	})
-
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(types.NewApiResponse(types.ApiPostArtistData{
-		Id:      artist.ID,
-		Name:    artist.Name,
-		Picture: ConvertURL(c, "/images/"+artist.Picture),
-	}))
 }
 
 // HandleGetArtistById godoc
@@ -168,7 +122,6 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c *fiber.Ctx) error {
 		albums = a
 	}
 
-
 	result := types.ApiGetArtistAlbumsByIdData{
 		Albums: make([]types.ApiAlbum, len(albums)),
 	}
@@ -187,8 +140,6 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c *fiber.Ctx) error {
 
 func InstallArtistHandlers(router *fiber.App, apiConfig *ApiConfig) {
 	router.Get("/artists", apiConfig.HandleGetArtists)
-	router.Post("/artists", apiConfig.HandlePostArtist)
-
 	router.Get("/artists/:id", apiConfig.HandleGetArtistById)
 	router.Get("/artists/:id/albums", apiConfig.HandleGetArtistAlbumsById)
 }
