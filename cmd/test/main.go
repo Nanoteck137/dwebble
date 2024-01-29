@@ -8,9 +8,9 @@ import (
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/library"
+	"github.com/nanoteck137/dwebble/types"
 )
 
 func main() {
@@ -39,6 +39,8 @@ func main() {
 		queries.DeleteAllArtists(ctx)
 	}
 
+	workDir := types.WorkDir("./work")
+
 	fsys := os.DirFS("/Volumes/media/music")
 	lib, err := library.ReadFromFS(fsys)
 	if err != nil {
@@ -47,12 +49,12 @@ func main() {
 
 	_ = lib
 
-	err = lib.Sync(db)
+	err = lib.Sync(workDir, "/Volumes/media/music", db)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pretty.Println(lib)
+	// pretty.Println(lib)
 
 	// pretty.Println(queries.GetAllArtists(ctx))
 
