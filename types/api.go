@@ -108,3 +108,9 @@ type ApiGetTracksData struct {
 }
 
 type ApiGetTrackByIdData ApiTrack
+
+type ApiGetSyncData struct {
+	Syncing bool `json:"syncing"`
+}
+
+type ApiPostSyncData struct {}

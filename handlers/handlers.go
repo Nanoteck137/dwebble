@@ -9,17 +9,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/types"
 )
 
 type ApiConfig struct {
-	workDir  string
+	workDir  types.WorkDir
 	validate *validator.Validate
 
 	db      *pgxpool.Pool
 	queries *database.Queries
 }
 
-func New(db *pgxpool.Pool, queries *database.Queries, workDir string) ApiConfig {
+func New(db *pgxpool.Pool, queries *database.Queries, workDir types.WorkDir) ApiConfig {
 	var validate = validator.New()
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
