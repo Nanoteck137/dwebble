@@ -24,39 +24,20 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 	}
 
 	return c.JSON(200, types.NewApiResponse(res))
+}
 
-	// var artists []database.Artist
-	//
-	// name := c.Query("name")
-	// if name != "" {
-	// 	a, err := api.queries.GetArtistByName(c.UserContext(), name)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	//
-	// 	artists = a
-	// } else {
-	// 	a, err := api.queries.GetAllArtists(c.UserContext())
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	//
-	// 	artists = a
-	// }
-	//
-	// result := types.ApiGetArtistsData{
-	// 	Artists: make([]types.ApiArtist, len(artists)),
-	// }
-	//
-	// for i, artist := range artists {
-	// 	result.Artists[i] = types.ApiArtist{
-	// 		Id:      artist.ID,
-	// 		Name:    artist.Name,
-	// 		Picture: ConvertURL(c, "/images/"+artist.Picture),
-	// 	}
-	// }
-	//
-	// return c.JSON(types.NewApiResponse(result))
+func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
+	id := c.Param("id")
+	artist, err := api.db.GetArtistById(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, types.NewApiResponse(types.ApiGetArtistByIdData{
+		Id:      artist.Id,
+		Name:    artist.Name,
+		Picture: artist.Picture,
+	}))
 }
 
 // func (api *ApiConfig) HandleGetArtistById(c *fiber.Ctx) error {
@@ -122,6 +103,6 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 
 func InstallArtistHandlers(group *echo.Group, apiConfig *ApiConfig) {
 	group.GET("/artists", apiConfig.HandleGetArtists)
-	// e.GET("/artists/:id", apiConfig.HandleGetArtistById)
+	group.GET("/artists/:id", apiConfig.HandleGetArtistById)
 	// e.GET("/artists/:id/albums", apiConfig.HandleGetArtistAlbumsById)
 }
