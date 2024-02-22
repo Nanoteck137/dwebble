@@ -27,6 +27,21 @@ func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
 	return c.JSON(200, types.NewApiResponse(res))
 }
 
+func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
+	id := c.Param("id")
+	album, err := api.db.GetAlbumById(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, types.NewApiResponse(types.ApiGetAlbumByIdData{
+		Id:       album.Id,
+		Name:     album.Name,
+		CoverArt: album.CoverArt,
+		ArtistId: album.ArtistId,
+	}))
+}
+
 // func (api *ApiConfig) HandleGetAlbums(c *fiber.Ctx) error {
 // 	albums, err := api.queries.GetAllAlbums(c.UserContext())
 // 	if err != nil {
@@ -130,6 +145,7 @@ func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
 
 func InstallAlbumHandlers(group *echo.Group, apiConfig *ApiConfig) {
 	group.GET("/albums", apiConfig.HandleGetAlbums)
+	group.GET("/albums/:id", apiConfig.HandleGetAlbumById)
 	// router.Get("/albums", apiConfig.HandleGetAlbums)
 	// router.Get("/albums/:id", apiConfig.HandleGetAlbumById)
 	// router.Get("/albums/:id/tracks", apiConfig.HandleGetAlbumTracksById)

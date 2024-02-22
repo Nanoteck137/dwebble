@@ -1,6 +1,10 @@
 package database
 
-import "context"
+import (
+	"context"
+
+	"github.com/doug-martin/goqu/v9"
+)
 
 type Artist struct {
 	Id      string
@@ -32,7 +36,10 @@ func (db *Database) GetAllArtists(ctx context.Context) ([]Artist, error) {
 }
 
 func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error) {
-	ds := dialect.From("artists").Select("id", "name", "picture", "path")
+	ds := dialect.From("artists").
+		Select("id", "name", "picture", "path").
+		Where(goqu.C("id").Eq(id)).
+		Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
 	if err != nil {
