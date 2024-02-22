@@ -10,6 +10,12 @@ import (
 func New(db *database.Database, workDir types.WorkDir) *echo.Echo {
 	e := echo.New()
 
+	e.HTTPErrorHandler = func(err error, c echo.Context) {
+		c.JSON(500, map[string]any{
+			"message": err.Error(),
+		})
+	}
+
 	apiConfig := handlers.New(db, workDir)
 
 	_ = apiConfig
@@ -18,6 +24,7 @@ func New(db *database.Database, workDir types.WorkDir) *echo.Echo {
 
 	handlers.InstallArtistHandlers(apiGroup, apiConfig)
 	handlers.InstallAlbumHandlers(apiGroup, apiConfig)
+	handlers.InstallTrackHandlers(apiGroup, apiConfig)
 	// handlers.InstallAlbumHandlers(router, &apiConfig)
 	// handlers.InstallTrackHandlers(router, &apiConfig)
 	// handlers.InstallSyncHandlers(router, &apiConfig)
