@@ -1,8 +1,31 @@
 package handlers
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/labstack/echo/v4"
+	"github.com/nanoteck137/dwebble/types"
 )
+
+func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
+	albums, err := api.db.GetAllAlbums(c.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	res := types.ApiGetAlbumsData{
+		Albums: make([]types.ApiAlbum, len(albums)),
+	}
+
+	for i, album := range albums {
+		res.Albums[i] = types.ApiAlbum{
+			Id:       album.Id,
+			Name:     album.Name,
+			CoverArt: album.CoverArt,
+			ArtistId: album.ArtistId,
+		}
+	}
+
+	return c.JSON(200, types.NewApiResponse(res))
+}
 
 // func (api *ApiConfig) HandleGetAlbums(c *fiber.Ctx) error {
 // 	albums, err := api.queries.GetAllAlbums(c.UserContext())
@@ -105,7 +128,8 @@ import (
 // 	return c.JSON(types.NewApiResponse(result))
 // }
 
-func InstallAlbumHandlers(router *fiber.App, apiConfig *ApiConfig) {
+func InstallAlbumHandlers(group *echo.Group, apiConfig *ApiConfig) {
+	group.GET("/albums", apiConfig.HandleGetAlbums)
 	// router.Get("/albums", apiConfig.HandleGetAlbums)
 	// router.Get("/albums/:id", apiConfig.HandleGetAlbumById)
 	// router.Get("/albums/:id/tracks", apiConfig.HandleGetAlbumTracksById)

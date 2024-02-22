@@ -17,6 +17,7 @@ func New(db *database.Database, workDir types.WorkDir) *echo.Echo {
 	apiGroup := e.Group("/api/v1")
 
 	handlers.InstallArtistHandlers(apiGroup, apiConfig)
+	handlers.InstallAlbumHandlers(apiGroup, apiConfig)
 	// handlers.InstallAlbumHandlers(router, &apiConfig)
 	// handlers.InstallTrackHandlers(router, &apiConfig)
 	// handlers.InstallSyncHandlers(router, &apiConfig)
