@@ -52,9 +52,13 @@ var serveCmd = &cobra.Command{
 		}
 		workDir := types.WorkDir(workDirPath)
 
-		app.Use("/tracks", filesystem.New(filesystem.Config{
-			Root: http.Dir(workDir.OriginalTracksDir()),
-		}))
+		app.Static("/tracks", workDir.OriginalTracksDir(), fiber.Static{
+			ByteRange: true,
+		})
+
+		// app.Use("/tracks", filesystem.New(filesystem.Config{
+		// 	Root: http.Dir(workDir.OriginalTracksDir()),
+		// }))
 
 		app.Use("/tracks", filesystem.New(filesystem.Config{
 			Root: http.Dir(workDir.MobileTracksDir()),

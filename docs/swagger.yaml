@@ -77,6 +77,11 @@ definitions:
           $ref: '#/definitions/types.ApiArtist'
         type: array
     type: object
+  types.ApiGetSyncData:
+    properties:
+      syncing:
+        type: boolean
+    type: object
   types.ApiGetTrackByIdData:
     properties:
       albumId:
@@ -126,44 +131,7 @@ definitions:
       number:
         type: integer
     type: object
-  types.ApiPostAlbumData:
-    properties:
-      artistId:
-        type: string
-      coverArt:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  types.ApiPostArtistData:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      picture:
-        type: string
-    type: object
-  types.ApiPostTrackData:
-    properties:
-      albumId:
-        type: string
-      artistId:
-        type: string
-      bestQualityFile:
-        type: string
-      coverArt:
-        type: string
-      id:
-        type: string
-      mobileQualityFile:
-        type: string
-      name:
-        type: string
-      number:
-        type: integer
+  types.ApiPostSyncData:
     type: object
   types.ApiResponse-types_ApiGetAlbumByIdData:
     properties:
@@ -213,6 +181,14 @@ definitions:
         example: 200
         type: integer
     type: object
+  types.ApiResponse-types_ApiGetSyncData:
+    properties:
+      data:
+        $ref: '#/definitions/types.ApiGetSyncData'
+      status:
+        example: 200
+        type: integer
+    type: object
   types.ApiResponse-types_ApiGetTrackByIdData:
     properties:
       data:
@@ -229,26 +205,10 @@ definitions:
         example: 200
         type: integer
     type: object
-  types.ApiResponse-types_ApiPostAlbumData:
+  types.ApiResponse-types_ApiPostSyncData:
     properties:
       data:
-        $ref: '#/definitions/types.ApiPostAlbumData'
-      status:
-        example: 200
-        type: integer
-    type: object
-  types.ApiResponse-types_ApiPostArtistData:
-    properties:
-      data:
-        $ref: '#/definitions/types.ApiPostArtistData'
-      status:
-        example: 200
-        type: integer
-    type: object
-  types.ApiResponse-types_ApiPostTrackData:
-    properties:
-      data:
-        $ref: '#/definitions/types.ApiPostTrackData'
+        $ref: '#/definitions/types.ApiPostSyncData'
       status:
         example: 200
         type: integer
@@ -274,7 +234,7 @@ definitions:
     type: object
 info:
   contact: {}
-  title: Testing Testing
+  title: Dwebble API
 paths:
   /albums:
     get:
@@ -295,39 +255,6 @@ paths:
           schema:
             $ref: '#/definitions/types.ApiError'
       summary: Get all albums
-      tags:
-      - albums
-    post:
-      consumes:
-      - multipart/form-data
-      description: Create new album
-      parameters:
-      - description: Album name
-        in: formData
-        name: name
-        required: true
-        type: string
-      - description: Artist Id
-        in: formData
-        name: artistId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.ApiResponse-types_ApiPostAlbumData'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.ApiError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/types.ApiError'
-      summary: Create new album
       tags:
       - albums
   /albums/{id}:
@@ -409,34 +336,6 @@ paths:
       summary: Get all artists
       tags:
       - artists
-    post:
-      consumes:
-      - multipart/form-data
-      description: Create new artist
-      parameters:
-      - description: Artist name
-        in: formData
-        name: name
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.ApiResponse-types_ApiPostArtistData'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.ApiError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/types.ApiError'
-      summary: Create new artist
-      tags:
-      - artists
   /artists/{id}:
     get:
       description: Get artist by id
@@ -495,6 +394,47 @@ paths:
       summary: Get all albums by artist
       tags:
       - artists
+  /sync:
+    get:
+      description: Get sync status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ApiResponse-types_ApiGetSyncData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ApiError'
+      summary: Get sync status
+      tags:
+      - sync
+    post:
+      description: Sync Library
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ApiResponse-types_ApiPostSyncData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.ApiError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.ApiError'
+      summary: Sync Library
+      tags:
+      - sync
   /tracks:
     get:
       description: Get all tracks
@@ -514,64 +454,6 @@ paths:
           schema:
             $ref: '#/definitions/types.ApiError'
       summary: Get all tracks
-      tags:
-      - tracks
-    post:
-      consumes:
-      - multipart/form-data
-      description: Create new track
-      parameters:
-      - description: Track name
-        in: formData
-        name: name
-        required: true
-        type: string
-      - description: Track number
-        in: formData
-        name: number
-        required: true
-        type: string
-      - description: Album Id
-        in: formData
-        name: album
-        required: true
-        type: string
-      - description: Artist Id
-        in: formData
-        name: artist
-        required: true
-        type: string
-      - description: Best Quality File
-        in: formData
-        name: bestQualityFile
-        required: true
-        type: file
-      - description: Mobile Quality File
-        in: formData
-        name: mobileQualityFile
-        required: true
-        type: file
-      - description: Cover Art
-        in: formData
-        name: coverArt
-        required: true
-        type: file
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.ApiResponse-types_ApiPostTrackData'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.ApiError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/types.ApiError'
-      summary: Create new track
       tags:
       - tracks
   /tracks/{id}:

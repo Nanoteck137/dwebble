@@ -13,7 +13,7 @@ import (
 type Api struct {
 }
 
-//	@title		Testing Testing
+//	@title		Dwebble API
 //	@BasePath	/api/v1
 func New(db *pgxpool.Pool) *fiber.App {
 	router := fiber.New(fiber.Config{
