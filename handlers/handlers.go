@@ -6,8 +6,6 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -15,12 +13,10 @@ import (
 type ApiConfig struct {
 	workDir  types.WorkDir
 	validate *validator.Validate
-
-	db      *pgxpool.Pool
-	queries *database.Queries
+	db       *database.Database
 }
 
-func New(db *pgxpool.Pool, queries *database.Queries, workDir types.WorkDir) ApiConfig {
+func New(db *database.Database, workDir types.WorkDir) *ApiConfig {
 	var validate = validator.New()
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
@@ -32,11 +28,10 @@ func New(db *pgxpool.Pool, queries *database.Queries, workDir types.WorkDir) Api
 		return name
 	})
 
-	return ApiConfig{
+	return &ApiConfig{
 		workDir:  workDir,
-		queries:  queries,
-		db:       db,
 		validate: validate,
+		db:       db,
 	}
 }
 
@@ -60,32 +55,28 @@ func (api *ApiConfig) validateBody(body any) map[string]string {
 	return nil
 }
 
-func ConvertURL(c *fiber.Ctx, path string) string {
-	return c.BaseURL() + path
-}
-
-func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {
-	body := struct {
-		AlbumId string `json:"albumId"`
-	}{}
-
-	fmt.Println("Hello")
-
-	err := c.BodyParser(&body)
-	if err != nil {
-		return err
-	}
-
-	tracks, err := apiConfig.queries.GetTracksByAlbum(c.UserContext(), body.AlbumId)
-	if err != nil {
-		return err
-	}
-
-	res := struct {
-		Queue []database.GetTracksByAlbumRow `json:"queue"`
-	}{
-		Queue: tracks,
-	}
-
-	return c.JSON(res)
-}
+// func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {
+// 	body := struct {
+// 		AlbumId string `json:"albumId"`
+// 	}{}
+//
+// 	fmt.Println("Hello")
+//
+// 	err := c.BodyParser(&body)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	tracks, err := apiConfig.queries.GetTracksByAlbum(c.UserContext(), body.AlbumId)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	res := struct {
+// 		Queue []database.GetTracksByAlbumRow `json:"queue"`
+// 	}{
+// 		Queue: tracks,
+// 	}
+//
+// 	return c.JSON(res)
+// }

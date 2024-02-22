@@ -1,23 +1,17 @@
 package library
 
 import (
-	"context"
 	"fmt"
 	"io/fs"
 	"log"
-	"os"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/doug-martin/goqu/v9"
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kr/pretty"
-	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -221,211 +215,213 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 	}, nil
 }
 
-func GetOrCreateArtist(queries *database.Queries, artist *Artist) (database.Artist, error) {
-	ctx := context.Background()
-
-	dbArtist, err := queries.GetArtistByPath(ctx, artist.Name)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			artist, err := queries.CreateArtist(ctx, database.CreateArtistParams{
-				ID:      utils.CreateId(),
-				Path:    artist.Path,
-				Name:    artist.Name,
-				Picture: "TODO",
-			})
-
-			if err != nil {
-				return database.Artist{}, err
-			}
-
-			return artist, nil
-		} else {
-			return database.Artist{}, err
-		}
-	}
-
-	return dbArtist, nil
-}
-
-func GetOrCreateAlbum(queries *database.Queries, album *Album, artistId string) (database.Album, error) {
-	ctx := context.Background()
-
-	dbAlbum, err := queries.GetAlbumByPath(ctx, album.Path)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			album, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
-				ID:       utils.CreateId(),
-				Name:     album.Name,
-				Path:     album.Path,
-				CoverArt: "TODO",
-				ArtistID: artistId,
-			})
-
-			if err != nil {
-				return database.Album{}, err
-			}
-
-			return album, nil
-		} else {
-			return database.Album{}, err
-		}
-	}
-
-	return dbAlbum, nil
-}
-
-func GetOrCreateTrack(queries *database.Queries, track *Track, albumId string, artistId string) (database.Track, error) {
-	ctx := context.Background()
-
-	dbTrack, err := queries.GetTrackByPath(ctx, track.Path)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			track, err := queries.CreateTrack(ctx, database.CreateTrackParams{
-				ID:                utils.CreateId(),
-				TrackNumber:       int32(track.Number),
-				Name:              track.Name,
-				Path:              track.Path,
-				CoverArt:          "TODO",
-				BestQualityFile:   "TODO",
-				MobileQualityFile: "TODO",
-				AlbumID:           albumId,
-				ArtistID:          artistId,
-			})
-
-			if err != nil {
-				return database.Track{}, err
-			}
-
-			return track, nil
-		} else {
-			return database.Track{}, err
-		}
-	}
-
-	return dbTrack, nil
-}
+// func GetOrCreateArtist(queries *database.Queries, artist *Artist) (database.Artist, error) {
+// 	ctx := context.Background()
+//
+// 	dbArtist, err := queries.GetArtistByPath(ctx, artist.Name)
+// 	if err != nil {
+// 		if err == pgx.ErrNoRows {
+// 			artist, err := queries.CreateArtist(ctx, database.CreateArtistParams{
+// 				ID:      utils.CreateId(),
+// 				Path:    artist.Path,
+// 				Name:    artist.Name,
+// 				Picture: "TODO",
+// 			})
+//
+// 			if err != nil {
+// 				return database.Artist{}, err
+// 			}
+//
+// 			return artist, nil
+// 		} else {
+// 			return database.Artist{}, err
+// 		}
+// 	}
+//
+// 	return dbArtist, nil
+// }
+//
+// func GetOrCreateAlbum(queries *database.Queries, album *Album, artistId string) (database.Album, error) {
+// 	ctx := context.Background()
+//
+// 	dbAlbum, err := queries.GetAlbumByPath(ctx, album.Path)
+// 	if err != nil {
+// 		if err == pgx.ErrNoRows {
+// 			album, err := queries.CreateAlbum(ctx, database.CreateAlbumParams{
+// 				ID:       utils.CreateId(),
+// 				Name:     album.Name,
+// 				Path:     album.Path,
+// 				CoverArt: "TODO",
+// 				ArtistID: artistId,
+// 			})
+//
+// 			if err != nil {
+// 				return database.Album{}, err
+// 			}
+//
+// 			return album, nil
+// 		} else {
+// 			return database.Album{}, err
+// 		}
+// 	}
+//
+// 	return dbAlbum, nil
+// }
+//
+// func GetOrCreateTrack(queries *database.Queries, track *Track, albumId string, artistId string) (database.Track, error) {
+// 	ctx := context.Background()
+//
+// 	dbTrack, err := queries.GetTrackByPath(ctx, track.Path)
+// 	if err != nil {
+// 		if err == pgx.ErrNoRows {
+// 			track, err := queries.CreateTrack(ctx, database.CreateTrackParams{
+// 				ID:                utils.CreateId(),
+// 				TrackNumber:       int32(track.Number),
+// 				Name:              track.Name,
+// 				Path:              track.Path,
+// 				CoverArt:          "TODO",
+// 				BestQualityFile:   "TODO",
+// 				MobileQualityFile: "TODO",
+// 				AlbumID:           albumId,
+// 				ArtistID:          artistId,
+// 			})
+//
+// 			if err != nil {
+// 				return database.Track{}, err
+// 			}
+//
+// 			return track, nil
+// 		} else {
+// 			return database.Track{}, err
+// 		}
+// 	}
+//
+// 	return dbTrack, nil
+// }
 
 func (lib *Library) Sync(workDir types.WorkDir, dir string, db *pgxpool.Pool) error {
-	queries := database.New(db)
-
-	dialect := goqu.Dialect("postgres")
-
-	trackDir := workDir.OriginalTracksDir()
-	err := os.MkdirAll(trackDir, 0755)
-	if err != nil {
-		return err
-	}
-
-	mobileTrackDir := workDir.MobileTracksDir()
-	err = os.MkdirAll(mobileTrackDir, 0755)
-	if err != nil {
-		return err
-	}
-
-	transcodeDir := workDir.TranscodeDir()
-	err = os.MkdirAll(transcodeDir, 0755)
-	if err != nil {
-		return err
-	}
-
-	for _, artist := range lib.Artists {
-		dbArtist, err := GetOrCreateArtist(queries, artist)
-		if err != nil {
-			return err
-		}
-
-		for _, album := range artist.Albums {
-			dbAlbum, err := GetOrCreateAlbum(queries, &album, dbArtist.ID)
-			if err != nil {
-				return err
-			}
-
-			for _, track := range album.Tracks {
-				dbTrack, err := GetOrCreateTrack(queries, &track, dbAlbum.ID, dbArtist.ID)
-				if err != nil {
-					return err
-				}
-
-				_ = dbTrack
-
-				p := path.Join(dir, track.Path)
-				ext := path.Ext(p)
-				name := fmt.Sprintf("%v%v", dbTrack.ID, ext)
-				dst := path.Join(trackDir, name)
-				fmt.Printf("p: %v\n", p)
-
-				err = os.Symlink(p, dst)
-				if err != nil {
-					if os.IsExist(err) {
-						err := os.Remove(dst)
-						if err != nil {
-							return err
-						}
-
-						err = os.Symlink(p, dst)
-						if err != nil {
-							return err
-						}
-					} else {
-						return err
-					}
-				}
-
-				transcodeName := fmt.Sprintf("%v.mp3", dbTrack.ID)
-				dstTranscode := path.Join(transcodeDir, transcodeName)
-
-				_, err = os.Stat(dstTranscode)
-				if err != nil {
-					if os.IsNotExist(err) {
-						err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
-						if err != nil {
-							return err
-						}
-					} else {
-						return err
-					}
-				}
-
-				src, err := filepath.Rel(mobileTrackDir, dstTranscode)
-				if err != nil {
-					return err
-				}
-
-				dst = path.Join(mobileTrackDir, transcodeName)
-				err = os.Symlink(src, dst)
-				if err != nil {
-					if os.IsExist(err) {
-						err := os.Remove(dst)
-						if err != nil {
-							return err
-						}
-
-						err = os.Symlink(src, dst)
-						if err != nil {
-							return err
-						}
-					} else {
-						return err
-					}
-				}
-
-				sql, params, err := dialect.Update("tracks").Set(goqu.Record{
-					"best_quality_file": name,
-					"mobile_quality_file": transcodeName,
-				}).Where(goqu.C("id").Eq(dbTrack.ID)).Prepared(true).ToSQL()
-				if err != nil {
-					return err
-				}
-
-				tag, err := db.Exec(context.Background(), sql, params...)
-				if err != nil {
-					return err
-				}
-
-				fmt.Printf("tag: %v\n", tag)
-			}
-		}
-	}
-
 	return nil
+
+	// queries := database.New(db)
+	//
+	// dialect := goqu.Dialect("postgres")
+	//
+	// trackDir := workDir.OriginalTracksDir()
+	// err := os.MkdirAll(trackDir, 0755)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// mobileTrackDir := workDir.MobileTracksDir()
+	// err = os.MkdirAll(mobileTrackDir, 0755)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// transcodeDir := workDir.TranscodeDir()
+	// err = os.MkdirAll(transcodeDir, 0755)
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// for _, artist := range lib.Artists {
+	// 	dbArtist, err := GetOrCreateArtist(queries, artist)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	//
+	// 	for _, album := range artist.Albums {
+	// 		dbAlbum, err := GetOrCreateAlbum(queries, &album, dbArtist.ID)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	//
+	// 		for _, track := range album.Tracks {
+	// 			dbTrack, err := GetOrCreateTrack(queries, &track, dbAlbum.ID, dbArtist.ID)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	//
+	// 			_ = dbTrack
+	//
+	// 			p := path.Join(dir, track.Path)
+	// 			ext := path.Ext(p)
+	// 			name := fmt.Sprintf("%v%v", dbTrack.ID, ext)
+	// 			dst := path.Join(trackDir, name)
+	// 			fmt.Printf("p: %v\n", p)
+	//
+	// 			err = os.Symlink(p, dst)
+	// 			if err != nil {
+	// 				if os.IsExist(err) {
+	// 					err := os.Remove(dst)
+	// 					if err != nil {
+	// 						return err
+	// 					}
+	//
+	// 					err = os.Symlink(p, dst)
+	// 					if err != nil {
+	// 						return err
+	// 					}
+	// 				} else {
+	// 					return err
+	// 				}
+	// 			}
+	//
+	// 			transcodeName := fmt.Sprintf("%v.mp3", dbTrack.ID)
+	// 			dstTranscode := path.Join(transcodeDir, transcodeName)
+	//
+	// 			_, err = os.Stat(dstTranscode)
+	// 			if err != nil {
+	// 				if os.IsNotExist(err) {
+	// 					err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
+	// 					if err != nil {
+	// 						return err
+	// 					}
+	// 				} else {
+	// 					return err
+	// 				}
+	// 			}
+	//
+	// 			src, err := filepath.Rel(mobileTrackDir, dstTranscode)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	//
+	// 			dst = path.Join(mobileTrackDir, transcodeName)
+	// 			err = os.Symlink(src, dst)
+	// 			if err != nil {
+	// 				if os.IsExist(err) {
+	// 					err := os.Remove(dst)
+	// 					if err != nil {
+	// 						return err
+	// 					}
+	//
+	// 					err = os.Symlink(src, dst)
+	// 					if err != nil {
+	// 						return err
+	// 					}
+	// 				} else {
+	// 					return err
+	// 				}
+	// 			}
+	//
+	// 			sql, params, err := dialect.Update("tracks").Set(goqu.Record{
+	// 				"best_quality_file": name,
+	// 				"mobile_quality_file": transcodeName,
+	// 			}).Where(goqu.C("id").Eq(dbTrack.ID)).Prepared(true).ToSQL()
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	//
+	// 			tag, err := db.Exec(context.Background(), sql, params...)
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	//
+	// 			fmt.Printf("tag: %v\n", tag)
+	// 		}
+	// 	}
+	// }
+	//
+	// return nil
 }
