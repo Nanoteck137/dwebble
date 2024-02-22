@@ -35,6 +35,25 @@ func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
 	return c.JSON(200, types.NewApiResponse(res))
 }
 
+func (api *ApiConfig) HandleGetTrackById(c echo.Context) error {
+	id := c.Param("id")
+	track, err := api.db.GetTrackById(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, types.NewApiResponse(types.ApiGetTrackByIdData{
+		Id:                track.Id,
+		Number:            int32(track.Number),
+		Name:              track.Name,
+		CoverArt:          track.CoverArt,
+		BestQualityFile:   track.BestQualityFile,
+		MobileQualityFile: track.MobileQualityFile,
+		AlbumId:           track.AlbumId,
+		ArtistId:          track.ArtistId,
+	}))
+}
+
 // // HandleGetTracks godoc
 // //
 // //	@Summary		Get all tracks
@@ -113,5 +132,6 @@ func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
 
 func InstallTrackHandlers(group *echo.Group, apiConfig *ApiConfig) {
 	group.GET("/tracks", apiConfig.HandleGetTracks)
+	group.GET("/tracks/:id", apiConfig.HandleGetTrackById)
 	// router.Get("/tracks/:id", apiConfig.HandleGetTrackById)
 }
