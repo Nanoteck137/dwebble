@@ -240,7 +240,12 @@ func GetOrCreateAlbum(ctx context.Context, db *database.Database, album *Album, 
 	dbAlbum, err := db.GetAlbumByPath(ctx, album.Path)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			album, err := db.CreateAlbum(ctx, album.Name, "", artistId, album.Path)
+			album, err := db.CreateAlbum(ctx, database.CreateAlbumParams{
+				Name:     album.Name,
+				CoverArt: "",
+				ArtistId: artistId,
+				Path:     album.Path,
+			})
 
 			if err != nil {
 				return database.Album{}, err

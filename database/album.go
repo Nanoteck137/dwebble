@@ -77,14 +77,21 @@ func (db *Database) GetAlbumByPath(ctx context.Context, path string) (Album, err
 	return item, nil
 }
 
-func (db *Database) CreateAlbum(ctx context.Context, name, coverArt, artistId, path string) (Album, error) {
+type CreateAlbumParams struct {
+	Name     string
+	CoverArt string
+	ArtistId string
+	Path     string
+}
+
+func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (Album, error) {
 	ds := dialect.Insert("albums").
 		Rows(goqu.Record{
-			"id": utils.CreateId(),
-			"name": name,
-			"cover_art": coverArt,
-			"artist_id": artistId,
-			"path": path,
+			"id":        utils.CreateId(),
+			"name":      params.Name,
+			"cover_art": params.CoverArt,
+			"artist_id": params.ArtistId,
+			"path":      params.Path,
 		}).
 		Returning("id", "name", "cover_art", "artist_id", "path").
 		Prepared(true)
