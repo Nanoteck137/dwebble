@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/dwebble/utils"
 )
 
 type Artist struct {
@@ -40,6 +41,48 @@ func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error
 		Select("id", "name", "picture", "path").
 		Where(goqu.C("id").Eq(id)).
 		Prepared(true)
+
+	row, err := db.QueryRow(ctx, ds)
+	if err != nil {
+		return Artist{}, err
+	}
+
+	var item Artist
+	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
+	if err != nil {
+		return Artist{}, err
+	}
+
+	return item, nil
+}
+
+func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, error) {
+	ds := dialect.From("artists").
+		Select("id", "name", "picture", "path").
+		Where(goqu.C("path").Eq(path)).
+		Prepared(true)
+
+	row, err := db.QueryRow(ctx, ds)
+	if err != nil {
+		return Artist{}, err
+	}
+
+	var item Artist
+	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
+	if err != nil {
+		return Artist{}, err
+	}
+
+	return item, nil
+}
+
+func (db *Database) CreateArtist(ctx context.Context, name, picture, path string) (Artist, error) {
+	ds := dialect.Insert("artists").Rows(goqu.Record{
+		"id":      utils.CreateId(),
+		"name":    name,
+		"picture": picture,
+		"path":    path,
+	}).Returning("id", "name", "picture", "path").Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
 	if err != nil {
