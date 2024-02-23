@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -53,6 +54,12 @@ func (api *ApiConfig) validateBody(body any) map[string]string {
 	}
 
 	return nil
+}
+
+func ConvertURL(c echo.Context, path string) string {
+	host := c.Request().Host
+
+	return fmt.Sprintf("http://%s%s", host, path)
 }
 
 // func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {

@@ -17,13 +17,13 @@ func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
 
 	for i, track := range tracks {
 		res.Tracks[i] = types.ApiGetTracksDataTrackItem{
-			ApiTrack:   types.ApiTrack{
+			ApiTrack: types.ApiTrack{
 				Id:                track.Id,
 				Number:            int32(track.Number),
 				Name:              track.Name,
 				CoverArt:          track.CoverArt,
-				BestQualityFile:   track.BestQualityFile,
-				MobileQualityFile: track.MobileQualityFile,
+				BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+				MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 				AlbumId:           track.AlbumId,
 				ArtistId:          track.ArtistId,
 			},
@@ -47,8 +47,8 @@ func (api *ApiConfig) HandleGetTrackById(c echo.Context) error {
 		Number:            int32(track.Number),
 		Name:              track.Name,
 		CoverArt:          track.CoverArt,
-		BestQualityFile:   track.BestQualityFile,
-		MobileQualityFile: track.MobileQualityFile,
+		BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+		MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 		AlbumId:           track.AlbumId,
 		ArtistId:          track.ArtistId,
 	}))
