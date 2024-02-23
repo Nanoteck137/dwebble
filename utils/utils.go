@@ -383,3 +383,24 @@ func IsMultiDisc(entries []fs.DirEntry) bool {
 	}
 	return false
 }
+
+func SymlinkReplace(src, dst string) error {
+	err := os.Symlink(src, dst)
+	if err != nil {
+		if os.IsExist(err) {
+			err := os.Remove(dst)
+			if err != nil {
+				return err
+			}
+
+			err = os.Symlink(src, dst)
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
+	return nil
+}
