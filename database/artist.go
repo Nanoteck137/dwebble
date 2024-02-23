@@ -76,12 +76,18 @@ func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, e
 	return item, nil
 }
 
-func (db *Database) CreateArtist(ctx context.Context, name, picture, path string) (Artist, error) {
+type CreateArtistParams struct {
+	Name    string
+	Picture string
+	Path    string
+}
+
+func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams) (Artist, error) {
 	ds := dialect.Insert("artists").Rows(goqu.Record{
 		"id":      utils.CreateId(),
-		"name":    name,
-		"picture": picture,
-		"path":    path,
+		"name":    params.Name,
+		"picture": params.Picture,
+		"path":    params.Path,
 	}).Returning("id", "name", "picture", "path").Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)

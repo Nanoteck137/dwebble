@@ -222,7 +222,11 @@ func GetOrCreateArtist(ctx context.Context, db *database.Database, artist *Artis
 	dbArtist, err := db.GetArtistByPath(ctx, artist.Path)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			artist, err := db.CreateArtist(ctx, artist.Name, "", artist.Path)
+			artist, err := db.CreateArtist(ctx, database.CreateArtistParams{
+				Name:    artist.Name,
+				Picture: "",
+				Path:    artist.Path,
+			})
 			if err != nil {
 				return database.Artist{}, err
 			}
