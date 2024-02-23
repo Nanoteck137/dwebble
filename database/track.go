@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/utils"
@@ -130,4 +131,22 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	}
 
 	return item, nil
+}
+
+func (db *Database) UpdateTrack(ctx context.Context, id, bestQualityFile, mobileQualityFile string) error {
+	ds := dialect.Update("tracks").Set(goqu.Record{
+		"best_quality_file":   bestQualityFile,
+		"mobile_quality_file": mobileQualityFile,
+	}).
+	Where(goqu.C("id").Eq(id)).
+	Prepared(true)
+
+	tag, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("tag: %v\n", tag)
+
+	return nil
 }

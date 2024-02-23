@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -333,83 +334,41 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 					return err
 				}
 
-				_ = dbTrack
+				p := path.Join(dir, track.Path)
+				ext := path.Ext(p)
+				name := fmt.Sprintf("%v%v", dbTrack.Id, ext)
+				dst := path.Join(trackDir, name)
+				fmt.Printf("p: %v\n", p)
 
-				// p := path.Join(dir, track.Path)
-				// ext := path.Ext(p)
-				// name := fmt.Sprintf("%v%v", dbTrack.ID, ext)
-				// dst := path.Join(trackDir, name)
-				// fmt.Printf("p: %v\n", p)
-				//
-				// err = os.Symlink(p, dst)
-				// if err != nil {
-				// 	if os.IsExist(err) {
-				// 		err := os.Remove(dst)
-				// 		if err != nil {
-				// 			return err
-				// 		}
-				//
-				// 		err = os.Symlink(p, dst)
-				// 		if err != nil {
-				// 			return err
-				// 		}
-				// 	} else {
-				// 		return err
-				// 	}
-				// }
-				//
-				// transcodeName := fmt.Sprintf("%v.mp3", dbTrack.ID)
-				// dstTranscode := path.Join(transcodeDir, transcodeName)
-				//
-				// _, err = os.Stat(dstTranscode)
-				// if err != nil {
-				// 	if os.IsNotExist(err) {
-				// 		err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
-				// 		if err != nil {
-				// 			return err
-				// 		}
-				// 	} else {
-				// 		return err
-				// 	}
-				// }
-				//
-				// src, err := filepath.Rel(mobileTrackDir, dstTranscode)
-				// if err != nil {
-				// 	return err
-				// }
-				//
-				// dst = path.Join(mobileTrackDir, transcodeName)
-				// err = os.Symlink(src, dst)
-				// if err != nil {
-				// 	if os.IsExist(err) {
-				// 		err := os.Remove(dst)
-				// 		if err != nil {
-				// 			return err
-				// 		}
-				//
-				// 		err = os.Symlink(src, dst)
-				// 		if err != nil {
-				// 			return err
-				// 		}
-				// 	} else {
-				// 		return err
-				// 	}
-				// }
-				//
-				// sql, params, err := dialect.Update("tracks").Set(goqu.Record{
-				// 	"best_quality_file": name,
-				// 	"mobile_quality_file": transcodeName,
-				// }).Where(goqu.C("id").Eq(dbTrack.ID)).Prepared(true).ToSQL()
-				// if err != nil {
-				// 	return err
-				// }
-				//
-				// tag, err := db.Exec(context.Background(), sql, params...)
-				// if err != nil {
-				// 	return err
-				// }
+				err = utils.SymlinkReplace(p, dst)
 
-				// fmt.Printf("tag: %v\n", tag)
+				transcodeName := fmt.Sprintf("%v.mp3", dbTrack.Id)
+				dstTranscode := path.Join(transcodeDir, transcodeName)
+
+				_, err = os.Stat(dstTranscode)
+				if err != nil {
+					if os.IsNotExist(err) {
+						err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
+						if err != nil {
+							return err
+						}
+					} else {
+						return err
+					}
+				}
+
+				src, err := filepath.Rel(mobileTrackDir, dstTranscode)
+				if err != nil {
+					return err
+				}
+
+				dst = path.Join(mobileTrackDir, transcodeName)
+				err = utils.SymlinkReplace(src, dst)
+
+				err = db.UpdateTrack(ctx, dbTrack.Id, name, transcodeName)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
