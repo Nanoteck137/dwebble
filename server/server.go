@@ -16,6 +16,10 @@ func New(db *database.Database, workDir types.WorkDir) *echo.Echo {
 		})
 	}
 
+	e.Static("/tracks/mobile", workDir.MobileTracksDir())
+	e.Static("/tracks/original", workDir.OriginalTracksDir())
+	e.Static("/images", workDir.ImagesDir())
+
 	apiConfig := handlers.New(db, workDir)
 
 	_ = apiConfig
