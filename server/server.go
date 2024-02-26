@@ -1,6 +1,8 @@
 package server
 
 import (
+	"github.com/MadAppGang/httplog/echolog"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/handlers"
@@ -15,6 +17,10 @@ func New(db *database.Database, workDir types.WorkDir) *echo.Echo {
 			"message": err.Error(),
 		})
 	}
+
+	e.Use(echolog.LoggerWithName("Dwebble"))
+	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
 
 	e.Static("/tracks/mobile", workDir.MobileTracksDir())
 	e.Static("/tracks/original", workDir.OriginalTracksDir())
