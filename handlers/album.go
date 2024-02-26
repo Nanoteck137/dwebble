@@ -42,6 +42,39 @@ func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
 	}))
 }
 
+func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
+	id := c.Param("id")
+
+	album, err := api.db.GetAlbumById(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+
+	tracks, err := api.db.GetTracksByAlbum(c.Request().Context(), album.Id)
+	if err != nil {
+		return err
+	}
+
+	res := types.ApiGetAlbumTracksByIdData{
+		Tracks: make([]types.ApiTrack, len(tracks)),
+	}
+
+	for i, track := range tracks {
+		res.Tracks[i] = types.ApiTrack{
+			Id:                track.Id,
+			Number:            int32(track.Number),
+			Name:              track.Name,
+			CoverArt:          track.CoverArt,
+			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			AlbumId:           track.AlbumId,
+			ArtistId:          track.ArtistId,
+		}
+	}
+
+	return c.JSON(200, types.NewApiResponse(res))
+}
+
 // func (api *ApiConfig) HandleGetAlbums(c *fiber.Ctx) error {
 // 	albums, err := api.queries.GetAllAlbums(c.UserContext())
 // 	if err != nil {
@@ -146,6 +179,7 @@ func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
 func InstallAlbumHandlers(group *echo.Group, apiConfig *ApiConfig) {
 	group.GET("/albums", apiConfig.HandleGetAlbums)
 	group.GET("/albums/:id", apiConfig.HandleGetAlbumById)
+	group.GET("/albums/:id/tracks", apiConfig.HandleGetAlbumTracksById)
 	// router.Get("/albums", apiConfig.HandleGetAlbums)
 	// router.Get("/albums/:id", apiConfig.HandleGetAlbumById)
 	// router.Get("/albums/:id/tracks", apiConfig.HandleGetAlbumTracksById)
