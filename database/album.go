@@ -37,6 +37,30 @@ func (db *Database) GetAllAlbums(ctx context.Context) ([]Album, error) {
 	return items, nil
 }
 
+func (db *Database) GetAlbumsByArtist(ctx context.Context, artistId string) ([]Album, error) {
+	ds := dialect.From("albums").
+		Select("id", "name", "cover_art", "artist_id", "path").
+		Where(goqu.C("artist_id").Eq(artistId))
+
+	rows, err := db.Query(ctx, ds)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []Album
+	for rows.Next() {
+		var item Album
+		err := rows.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
 func (db *Database) GetAlbumById(ctx context.Context, id string) (Album, error) {
 	ds := dialect.From("albums").
 		Select("id", "name", "cover_art", "artist_id", "path").

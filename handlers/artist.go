@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -38,6 +39,38 @@ func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
 		Name:    artist.Name,
 		Picture: artist.Picture,
 	}))
+}
+
+func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
+	id := c.Param("id")
+
+	artist, err := api.db.GetArtistById(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+
+	albums, err := api.db.GetAlbumsByArtist(c.Request().Context(), artist.Id);
+	if err != nil {
+		return err
+	}
+
+	pretty.Println(albums)
+
+	res := types.ApiGetArtistAlbumsByIdData{
+		Albums: make([]types.ApiAlbum, len(albums)),
+	}
+
+	for i, album := range albums {
+		res.Albums[i] = types.ApiAlbum{
+			Id:       album.Id,
+			Name:     album.Name,
+			CoverArt: album.CoverArt,
+			ArtistId: album.ArtistId,
+		}
+	}
+
+
+	return c.JSON(200, types.NewApiResponse(res))
 }
 
 // func (api *ApiConfig) HandleGetArtistById(c *fiber.Ctx) error {
@@ -104,5 +137,5 @@ func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
 func InstallArtistHandlers(group *echo.Group, apiConfig *ApiConfig) {
 	group.GET("/artists", apiConfig.HandleGetArtists)
 	group.GET("/artists/:id", apiConfig.HandleGetArtistById)
-	// e.GET("/artists/:id/albums", apiConfig.HandleGetArtistAlbumsById)
+	group.GET("/artists/:id/albums", apiConfig.HandleGetArtistAlbumsById)
 }
