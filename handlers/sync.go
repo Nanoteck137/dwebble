@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"log"
-	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/library"
@@ -22,9 +21,8 @@ func (api *ApiConfig) HandlePostSync(c echo.Context) error {
 		syncing = true
 		defer func() { syncing = false }()
 
-		dir := "/Volumes/media/music"
-		fsys := os.DirFS(dir)
-		lib, err := library.ReadFromFS(fsys)
+		dir := "/Volumes/media/musictest"
+		lib, err := library.ReadFromDir(dir)
 		if err != nil {
 			log.Printf("Failed to sync: %v", err)
 			return

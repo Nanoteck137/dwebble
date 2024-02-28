@@ -3,7 +3,6 @@ package library
 import (
 	"context"
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"path"
@@ -46,8 +45,8 @@ type Library struct {
 
 var fileReg = regexp.MustCompile(`(\d*).*`)
 
-func getAllTrackFromDir(fss fs.FS, dir string) ([]Track, error) {
-	entries, err := fs.ReadDir(fss, dir)
+func getAllTrackFromDir(dir string) ([]Track, error) {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +57,7 @@ func getAllTrackFromDir(fss fs.FS, dir string) ([]Track, error) {
 		p := path.Join(dir, entry.Name())
 
 		if utils.IsMusicFile(p) {
-			res, err := utils.CheckFile(fss, p)
+			res, err := utils.CheckFile(p)
 			if err != nil {
 				continue
 			}
@@ -96,9 +95,8 @@ func getAllTrackFromDir(fss fs.FS, dir string) ([]Track, error) {
 	return tracks, nil
 }
 
-func ReadFromFS(fsys fs.FS) (*Library, error) {
-	dir := "."
-	entries, err := fs.ReadDir(fsys, dir)
+func ReadFromDir(dir string) (*Library, error) {
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,7 +106,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 	for _, entry := range entries {
 		p := path.Join(dir, entry.Name())
 		if entry.IsDir() {
-			entries, err := fs.ReadDir(fsys, p)
+			entries, err := os.ReadDir(p)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -130,7 +128,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 		if entry.IsDir() {
 			fmt.Printf("Valid: %v\n", p)
 
-			entries, err := fs.ReadDir(fsys, p)
+			entries, err := os.ReadDir(p)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -140,7 +138,7 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 			if utils.HasMusic(entries) {
 				fmt.Printf("%v is an album\n", p)
 
-				tracks, err := getAllTrackFromDir(fsys, p)
+				tracks, err := getAllTrackFromDir(p)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -174,13 +172,13 @@ func ReadFromFS(fsys fs.FS) (*Library, error) {
 						continue
 					}
 
-					entries, err := fs.ReadDir(fsys, p)
+					entries, err := os.ReadDir(p)
 					if err != nil {
 						log.Fatal(err)
 					}
 
 					if utils.HasMusic(entries) {
-						tracks, err := getAllTrackFromDir(fsys, p)
+						tracks, err := getAllTrackFromDir(p)
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -334,7 +332,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 					return err
 				}
 
-				p := path.Join(dir, track.Path)
+				p := track.Path
 				ext := path.Ext(p)
 				name := fmt.Sprintf("%v%v", dbTrack.Id, ext)
 				dst := path.Join(trackDir, name)

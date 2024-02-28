@@ -29,9 +29,8 @@ func createIdGenerator() func() string {
 	return res
 }
 
-func RunFFprobe(stdin io.Reader, args ...string) ([]byte, error) {
+func RunFFprobe(args ...string) ([]byte, error) {
 	cmd := exec.Command("ffprobe", args...)
-	cmd.Stdin = stdin
 	if true {
 		cmd.Stderr = os.Stderr
 	}
@@ -177,15 +176,9 @@ var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)\.`)
 var test2 = regexp.MustCompile(`track(\d+).+`)
 
 // TODO(patrik): Fix this function
-func CheckFile(fsys fs.FS, filepath string) (FileResult, error) {
+func CheckFile(filepath string) (FileResult, error) {
 	// ffprobe -v quiet -print_format json -show_format -show_streams input
-
-	file, err := fsys.Open(filepath)
-	if err != nil {
-		return FileResult{}, err
-	}
-
-	data, err := RunFFprobe(file, "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", "-")
+	data, err := RunFFprobe("-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filepath)
 	if err != nil {
 		fmt.Printf("%v\n", err)
 		return FileResult{}, err
