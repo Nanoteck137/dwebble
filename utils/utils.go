@@ -72,20 +72,13 @@ type FileResult struct {
 	Number int
 	Name   string
 
-	Probe ProbeResult
+	Tags map[string]string
 }
 
 type probeFormat struct {
-	BitRate string `json:"bit_rate"`
-	Tags    struct {
-		Album       string `json:"album"`
-		AlbumArtist string `json:"album_artist"`
-		Artist      string `json:"artist"`
-		Disc        string `json:"disc"`
-		Title       string `json:"title"`
-		Track       string `json:"track"`
-		// "encoder": "Lavf58.29.100",
-	} `json:"tags"`
+	BitRate  string            `json:"bit_rate"`
+	Tags     map[string]string `json:"tags"`
+	Duration string            `json:"duration"`
 
 	// "filename": "/Volumes/media/music/Various Artists/Cyberpunk 2077/cd1/19 - P.T. Adamczyk - Rite Of Passage.mp3",
 	// "nb_streams": 2,
@@ -93,7 +86,6 @@ type probeFormat struct {
 	// "format_name": "mp3",
 	// "format_long_name": "MP2/3 (MPEG audio layer 2/3)",
 	// "start_time": "0.025056",
-	// "duration": "334.915918",
 	// "size": "13898147",
 	// "probe_score": 51,
 }
@@ -171,6 +163,15 @@ func getNumberFromFormatString(s string) int {
 	return num
 }
 
+func convertMapKeysToLowercase(m map[string]string) map[string]string {
+	res := make(map[string]string)
+	for k, v := range m {
+		res[strings.ToLower(k)] = v
+	}
+
+	return res
+}
+
 // TODO(patrik): Update to not include file extentions
 var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)\.`)
 var test2 = regexp.MustCompile(`track(\d+).+`)
@@ -195,17 +196,19 @@ func CheckFile(filepath string) (FileResult, error) {
 	// fmt.Printf("probe: %+v\n", probe)
 	// probe.Format.Tags.Track
 
-	track := getNumberFromFormatString(probe.Format.Tags.Track)
-	disc := getNumberFromFormatString(probe.Format.Tags.Disc)
+	// track := getNumberFromFormatString(probe.Format.Tags.Track)
+	// disc := getNumberFromFormatString(probe.Format.Tags.Disc)
+	//
+	// probeResult := ProbeResult{
+	// 	Artist:      probe.Format.Tags.Artist,
+	// 	AlbumArtist: probe.Format.Tags.AlbumArtist,
+	// 	Title:       probe.Format.Tags.Title,
+	// 	Album:       probe.Format.Tags.Album,
+	// 	Track:       track,
+	// 	Disc:        disc,
+	// }
 
-	probeResult := ProbeResult{
-		Artist:      probe.Format.Tags.Artist,
-		AlbumArtist: probe.Format.Tags.AlbumArtist,
-		Title:       probe.Format.Tags.Title,
-		Album:       probe.Format.Tags.Album,
-		Track:       track,
-		Disc:        disc,
-	}
+	tags := convertMapKeysToLowercase(probe.Format.Tags)
 
 	name := path.Base(filepath)
 	res := test1.FindStringSubmatch(name)
@@ -224,7 +227,7 @@ func CheckFile(filepath string) (FileResult, error) {
 			Path:   filepath,
 			Number: num,
 			Name:   "",
-			Probe:  probeResult,
+			Tags:  tags,
 		}, nil
 	} else {
 		num, err := strconv.Atoi(string(res[1]))
@@ -237,7 +240,7 @@ func CheckFile(filepath string) (FileResult, error) {
 			Path:   filepath,
 			Number: num,
 			Name:   name,
-			Probe:  probeResult,
+			Tags:  tags,
 		}, nil
 	}
 }

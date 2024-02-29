@@ -62,6 +62,8 @@ func getAllTrackFromDir(dir string) ([]Track, error) {
 				continue
 			}
 
+			pretty.Println(res)
+
 			captures := fileReg.FindStringSubmatch(entry.Name())
 			if captures == nil {
 				continue
@@ -77,8 +79,9 @@ func getAllTrackFromDir(dir string) ([]Track, error) {
 			}
 
 			name := ""
-			if res.Probe.Title != "" {
-				name = res.Probe.Title
+			tagTitle := res.Tags["title"]
+			if tagTitle != "" {
+				name = tagTitle
 			} else {
 				ext := path.Ext(p)
 				name = strings.TrimSuffix(entry.Name(), ext)
@@ -112,7 +115,15 @@ func ReadFromDir(dir string) (*Library, error) {
 			}
 
 			if !utils.HasMusic(entries) && !utils.IsMultiDisc(entries) {
+				override := path.Join(p, "override.txt")
+
 				name := entry.Name()
+
+				data, err := os.ReadFile(override)
+				if err == nil {
+					name = strings.TrimSpace(string(data))
+				}
+
 				artists[name] = &Artist{
 					Path: p,
 					Name: name,
@@ -163,6 +174,11 @@ func ReadFromDir(dir string) (*Library, error) {
 				// })
 			} else {
 				artistName = entry.Name()
+
+				data, err := os.ReadFile(path.Join(p, "override.txt"))
+				if err == nil {
+					artistName = strings.TrimSpace(string(data))
+				}
 				fmt.Printf("%v is an artist\n", p)
 
 				for _, entry := range entries {
