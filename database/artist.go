@@ -76,6 +76,10 @@ func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, e
 	var item Artist
 	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return Artist{}, types.ErrNoArtist
+		}
+
 		return Artist{}, err
 	}
 

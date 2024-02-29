@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/jackc/pgx/v5"
+	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
 
@@ -93,6 +95,10 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 	var item Track
 	err = row.Scan(&item.Id, &item.Number, &item.Name, &item.CoverArt, &item.Path, &item.BestQualityFile, &item.MobileQualityFile, &item.AlbumId, &item.ArtistId, &item.AlbumName, &item.ArtistName)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return Track{}, types.ErrNoTrack
+		}
+
 		return Track{}, err
 	}
 
@@ -113,6 +119,10 @@ func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, err
 	var item Track
 	err = row.Scan(&item.Id, &item.Number, &item.Name, &item.CoverArt, &item.Path, &item.BestQualityFile, &item.MobileQualityFile, &item.AlbumId, &item.ArtistId)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return Track{}, types.ErrNoTrack
+		}
+
 		return Track{}, err
 	}
 
