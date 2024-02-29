@@ -16,8 +16,6 @@ var libraryCmd = &cobra.Command{
 var libraryPrint = &cobra.Command{
 	Use: "print",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hello World")
-
 		libraryDir := os.Getenv("LIBRARY_DIR")
 		if libraryDir == "" {
 			log.Fatal("LIBRARY_DIR not set")
