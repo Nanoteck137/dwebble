@@ -47,11 +47,6 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	handlers.InstallAlbumHandlers(apiGroup, apiConfig)
 	handlers.InstallTrackHandlers(apiGroup, apiConfig)
 	handlers.InstallSyncHandlers(apiGroup, apiConfig)
-	// handlers.InstallAlbumHandlers(router, &apiConfig)
-	// handlers.InstallTrackHandlers(router, &apiConfig)
-	// handlers.InstallSyncHandlers(router, &apiConfig)
-	//
-	// router.Post("/queue/album", apiConfig.HandlerCreateQueueFromAlbum)
 
 	return e
 }
