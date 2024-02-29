@@ -30,7 +30,7 @@ func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewSuccessRes(res))
+	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
 func (api *ApiConfig) HandleGetTrackById(c echo.Context) error {
@@ -40,7 +40,7 @@ func (api *ApiConfig) HandleGetTrackById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewSuccessRes(types.GetTrackById{
+	return c.JSON(200, types.NewApiSuccessResponse(types.GetTrackById{
 		Id:                track.Id,
 		Number:            track.Number,
 		Name:              track.Name,

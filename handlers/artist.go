@@ -23,7 +23,7 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewSuccessRes(res))
+	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
 func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
@@ -33,7 +33,7 @@ func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewSuccessRes(types.GetArtistById{
+	return c.JSON(200, types.NewApiSuccessResponse(types.GetArtistById{
 		Id:      artist.Id,
 		Name:    artist.Name,
 		Picture: artist.Picture,
@@ -67,7 +67,7 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
 	}
 
 
-	return c.JSON(200, types.NewSuccessRes(res))
+	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
 func InstallArtistHandlers(group *echo.Group, apiConfig *ApiConfig) {

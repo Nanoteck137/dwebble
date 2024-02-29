@@ -24,7 +24,7 @@ func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewSuccessRes(res))
+	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
 func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
@@ -34,7 +34,7 @@ func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewSuccessRes(types.GetAlbumById{
+	return c.JSON(200, types.NewApiSuccessResponse(types.GetAlbumById{
 		Id:       album.Id,
 		Name:     album.Name,
 		CoverArt: album.CoverArt,
@@ -72,7 +72,7 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewSuccessRes(res))
+	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
 func InstallAlbumHandlers(group *echo.Group, apiConfig *ApiConfig) {

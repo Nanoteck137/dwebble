@@ -12,7 +12,7 @@ import (
 var syncing = false
 
 func (api *ApiConfig) HandleGetSync(c echo.Context) error {
-	return c.JSON(200, types.NewSuccessRes(types.GetSync{
+	return c.JSON(200, types.NewApiSuccessResponse(types.GetSync{
 		IsSyncing: syncing,
 	}))
 }

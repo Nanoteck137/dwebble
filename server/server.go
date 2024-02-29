@@ -15,12 +15,12 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
 		switch err := err.(type) {
 		case *types.ApiError:
-			c.JSON(err.Code, types.Res{
+			c.JSON(err.Code, types.ApiResponse{
 				Status: types.StatusError,
 				Error:  err,
 			})
 		default:
-			c.JSON(500, types.Res{
+			c.JSON(500, types.ApiResponse{
 				Status: types.StatusError,
 				Error:  &types.ApiError{
 					Code:    500,
