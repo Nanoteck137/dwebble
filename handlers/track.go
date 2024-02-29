@@ -11,28 +11,26 @@ func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
 		return err
 	}
 
-	res := types.ApiGetTracksData{
-		Tracks: make([]types.ApiGetTracksDataTrackItem, len(tracks)),
+	res := types.GetTracks{
+		Tracks: make([]types.GetTracksItem, len(tracks)),
 	}
 
 	for i, track := range tracks {
-		res.Tracks[i] = types.ApiGetTracksDataTrackItem{
-			ApiTrack: types.ApiTrack{
-				Id:                track.Id,
-				Number:            int32(track.Number),
-				Name:              track.Name,
-				CoverArt:          track.CoverArt,
-				BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-				MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
-				AlbumId:           track.AlbumId,
-				ArtistId:          track.ArtistId,
-			},
-			AlbumName:  track.AlbumName,
-			ArtistName: track.ArtistName,
+		res.Tracks[i] = types.GetTracksItem{
+			Id:                track.Id,
+			Number:            track.Number,
+			Name:              track.Name,
+			CoverArt:          track.CoverArt,
+			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			AlbumId:           track.AlbumId,
+			ArtistId:          track.ArtistId,
+			AlbumName:         track.AlbumName,
+			ArtistName:        track.ArtistName,
 		}
 	}
 
-	return c.JSON(200, types.NewApiResponse(res))
+	return c.JSON(200, types.NewSuccessRes(res))
 }
 
 func (api *ApiConfig) HandleGetTrackById(c echo.Context) error {
@@ -42,9 +40,9 @@ func (api *ApiConfig) HandleGetTrackById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewApiResponse(types.ApiGetTrackByIdData{
+	return c.JSON(200, types.NewSuccessRes(types.GetTrackById{
 		Id:                track.Id,
-		Number:            int32(track.Number),
+		Number:            track.Number,
 		Name:              track.Name,
 		CoverArt:          track.CoverArt,
 		BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
