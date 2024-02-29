@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v5"
@@ -12,7 +13,7 @@ import (
 type Artist struct {
 	Id      string
 	Name    string
-	Picture string
+	Picture sql.NullString
 	Path    string
 }
 
@@ -88,7 +89,7 @@ func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, e
 
 type CreateArtistParams struct {
 	Name    string
-	Picture string
+	Picture sql.NullString
 	Path    string
 }
 

@@ -2,7 +2,7 @@
 CREATE TABLE artists (
     id TEXT,
     name TEXT NOT NULL,
-    picture TEXT NOT NULL,
+    picture TEXT,
 
     path TEXT NOT NULL,
 
@@ -12,7 +12,7 @@ CREATE TABLE artists (
 CREATE TABLE albums (
     id TEXT,
     name TEXT NOT NULL,
-    cover_art TEXT NOT NULL,
+    cover_art TEXT,
 
     artist_id TEXT NOT NULL,
 
@@ -30,7 +30,7 @@ CREATE TABLE tracks (
     id TEXT,
     track_number INT NOT NULL,
     name TEXT NOT NULL,
-    cover_art TEXT NOT NULL,
+    cover_art TEXT,
 
     path TEXT NOT NULL,
 

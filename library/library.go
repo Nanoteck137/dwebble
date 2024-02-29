@@ -238,7 +238,6 @@ func GetOrCreateArtist(ctx context.Context, db *database.Database, artist *Artis
 		if err == types.ErrNoArtist {
 			artist, err := db.CreateArtist(ctx, database.CreateArtistParams{
 				Name:    artist.Name,
-				Picture: "",
 				Path:    artist.Path,
 			})
 			if err != nil {
@@ -260,7 +259,6 @@ func GetOrCreateAlbum(ctx context.Context, db *database.Database, album *Album, 
 		if err == types.ErrNoAlbum {
 			album, err := db.CreateAlbum(ctx, database.CreateAlbumParams{
 				Name:     album.Name,
-				CoverArt: "",
 				ArtistId: artistId,
 				Path:     album.Path,
 			})
@@ -286,7 +284,6 @@ func GetOrCreateTrack(ctx context.Context, db *database.Database, track *Track, 
 				TrackNumber:       track.Number,
 				Name:              track.Name,
 				Path:              track.Path,
-				CoverArt:          "",
 				BestQualityFile:   "",
 				MobileQualityFile: "",
 				AlbumId:           albumId,
@@ -361,10 +358,11 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				_, err = os.Stat(dstTranscode)
 				if err != nil {
 					if os.IsNotExist(err) {
-						err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
-						if err != nil {
-							return err
-						}
+						// TODO(patrik): Temp
+						// err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
+						// if err != nil {
+						// 	return err
+						// }
 					} else {
 						return err
 					}

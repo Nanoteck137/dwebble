@@ -19,7 +19,7 @@ func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
 		res.Albums[i] = types.GetAlbumsItem{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: album.CoverArt,
+			CoverArt: album.CoverArt.String,
 			ArtistId: album.ArtistId,
 		}
 	}
@@ -37,7 +37,7 @@ func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetAlbumById{
 		Id:       album.Id,
 		Name:     album.Name,
-		CoverArt: album.CoverArt,
+		CoverArt: album.CoverArt.String,
 		ArtistId: album.ArtistId,
 	}))
 }
@@ -64,7 +64,7 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          track.CoverArt,
+			CoverArt:          track.CoverArt.String,
 			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
 			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,

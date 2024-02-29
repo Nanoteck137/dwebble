@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
@@ -14,7 +15,7 @@ type Track struct {
 	Id       string
 	Number   int
 	Name     string
-	CoverArt string
+	CoverArt sql.NullString
 
 	Path string
 
@@ -132,7 +133,7 @@ func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, err
 type CreateTrackParams struct {
 	TrackNumber       int
 	Name              string
-	CoverArt          string
+	CoverArt          sql.NullString
 	Path              string
 	BestQualityFile   string
 	MobileQualityFile string
@@ -174,8 +175,8 @@ func (db *Database) UpdateTrack(ctx context.Context, id, bestQualityFile, mobile
 		"best_quality_file":   bestQualityFile,
 		"mobile_quality_file": mobileQualityFile,
 	}).
-	Where(goqu.C("id").Eq(id)).
-	Prepared(true)
+		Where(goqu.C("id").Eq(id)).
+		Prepared(true)
 
 	tag, err := db.Exec(ctx, ds)
 	if err != nil {

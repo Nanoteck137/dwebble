@@ -19,7 +19,7 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 		res.Artists[i] = types.GetArtistsItem{
 			Id:      artist.Id,
 			Name:    artist.Name,
-			Picture: artist.Picture,
+			Picture: artist.Picture.String,
 		}
 	}
 
@@ -36,7 +36,7 @@ func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetArtistById{
 		Id:      artist.Id,
 		Name:    artist.Name,
-		Picture: artist.Picture,
+		Picture: artist.Picture.String,
 	}))
 }
 
@@ -61,7 +61,7 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
 		res.Albums[i] = types.GetArtistAlbumsByIdItem{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: album.CoverArt,
+			CoverArt: album.CoverArt.String,
 			ArtistId: album.ArtistId,
 		}
 	}

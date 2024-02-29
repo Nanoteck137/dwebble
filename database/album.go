@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v5"
@@ -12,7 +13,7 @@ import (
 type Album struct {
 	Id       string
 	Name     string
-	CoverArt string
+	CoverArt sql.NullString
 	ArtistId string
 	Path     string
 }
@@ -113,7 +114,7 @@ func (db *Database) GetAlbumByPath(ctx context.Context, path string) (Album, err
 
 type CreateAlbumParams struct {
 	Name     string
-	CoverArt string
+	CoverArt sql.NullString
 	ArtistId string
 	Path     string
 }
