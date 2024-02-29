@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/spf13/cobra"
@@ -17,8 +18,12 @@ var libraryPrint = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Hello World")
 
-		dir := "/Volumes/media/music"
-		lib, err := library.ReadFromDir(dir)
+		libraryDir := os.Getenv("LIBRARY_DIR")
+		if libraryDir == "" {
+			log.Fatal("LIBRARY_DIR not set")
+		}
+
+		lib, err := library.ReadFromDir(libraryDir)
 		if err != nil {
 			log.Fatal(err)
 		}
