@@ -236,7 +236,7 @@ func ReadFromDir(dir string) (*Library, error) {
 func GetOrCreateArtist(ctx context.Context, db *database.Database, artist *Artist) (database.Artist, error) {
 	dbArtist, err := db.GetArtistByPath(ctx, artist.Path)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == types.ErrNoArtist {
 			artist, err := db.CreateArtist(ctx, database.CreateArtistParams{
 				Name:    artist.Name,
 				Picture: "",
@@ -258,7 +258,7 @@ func GetOrCreateArtist(ctx context.Context, db *database.Database, artist *Artis
 func GetOrCreateAlbum(ctx context.Context, db *database.Database, album *Album, artistId string) (database.Album, error) {
 	dbAlbum, err := db.GetAlbumByPath(ctx, album.Path)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == types.ErrNoAlbum {
 			album, err := db.CreateAlbum(ctx, database.CreateAlbumParams{
 				Name:     album.Name,
 				CoverArt: "",
@@ -282,7 +282,7 @@ func GetOrCreateAlbum(ctx context.Context, db *database.Database, album *Album, 
 func GetOrCreateTrack(ctx context.Context, db *database.Database, track *Track, albumId string, artistId string) (database.Track, error) {
 	dbTrack, err := db.GetTrackByPath(ctx, track.Path)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == types.ErrNoTrack {
 			track, err := db.CreateTrack(ctx, database.CreateTrackParams{
 				TrackNumber:       track.Number,
 				Name:              track.Name,
