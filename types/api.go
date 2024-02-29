@@ -4,6 +4,43 @@ import (
 	"net/http"
 )
 
+var (
+	ErrNoArtist = NewResError(http.StatusNotFound, "No artist found")
+)
+
+const (
+	StatusSuccess = "success"
+)
+
+type ResError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Errors  any    `json:"errors,omitempty"`
+}
+
+func (err *ResError) Error() string {
+	return err.Message
+}
+
+func NewResError(code int, message string, errors ...any) *ResError {
+	var e any 
+	if len(errors) > 0 {
+		e = errors[0]
+	}
+
+	return &ResError{
+		Code:    code,
+		Message: message,
+		Errors:  e,
+	}
+}
+
+type Res struct {
+	Status string    `json:"status"`
+	Data   any       `json:"data,omitempty"`
+	Error  *ResError `json:"error,omitempty"`
+}
+
 type ApiError struct {
 	Status  int    `json:"status" example:"400"`
 	Message string `json:"message"`
@@ -113,4 +150,4 @@ type ApiGetSyncData struct {
 	Syncing bool `json:"syncing"`
 }
 
-type ApiPostSyncData struct {}
+type ApiPostSyncData struct{}
