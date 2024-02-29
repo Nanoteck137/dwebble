@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/spf13/cobra"
 )
@@ -16,6 +17,8 @@ var libraryCmd = &cobra.Command{
 var libraryPrint = &cobra.Command{
 	Use: "print",
 	Run: func(cmd *cobra.Command, args []string) {
+		godotenv.Load()
+
 		libraryDir := os.Getenv("LIBRARY_DIR")
 		if libraryDir == "" {
 			log.Fatal("LIBRARY_DIR not set")
