@@ -41,15 +41,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 
 	apiConfig := handlers.New(db, libraryDir, workDir)
 
-	_ = apiConfig
-
 	apiGroup := e.Group("/api/v1")
-
-	apiGroup.GET("/test", func(c echo.Context) error {
-		return c.JSON(200, types.Res{
-			Status: types.StatusSuccess,
-		})
-	})
 
 	handlers.InstallArtistHandlers(apiGroup, apiConfig)
 	handlers.InstallAlbumHandlers(apiGroup, apiConfig)
