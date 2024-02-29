@@ -90,6 +90,39 @@ type GetArtistAlbumsById struct {
 	Albums []GetArtistAlbumsByIdItem `json:"albums"`
 }
 
+type GetAlbumsItem struct {
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	CoverArt string `json:"coverArt"`
+	ArtistId string `json:"artistId"`
+}
+
+type GetAlbums struct {
+	Albums []GetAlbumsItem `json:"albums"`
+}
+
+type GetAlbumById struct {
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	CoverArt string `json:"coverArt"`
+	ArtistId string `json:"artistId"`
+}
+
+type GetAlbumTracksByIdItem struct {
+	Id                string `json:"id"`
+	Number            int    `json:"number"`
+	Name              string `json:"name"`
+	CoverArt          string `json:"coverArt"`
+	BestQualityFile   string `json:"bestQualityFile"`
+	MobileQualityFile string `json:"mobileQualityFile"`
+	AlbumId           string `json:"albumId"`
+	ArtistId          string `json:"artistId"`
+}
+
+type GetAlbumTracksById struct {
+	Tracks []GetAlbumTracksByIdItem `json:"tracks"`
+}
+
 // NOTE(patrik): Old
 
 type ApiArtist struct {

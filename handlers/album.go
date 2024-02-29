@@ -11,12 +11,12 @@ func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
 		return err
 	}
 
-	res := types.ApiGetAlbumsData{
-		Albums: make([]types.ApiAlbum, len(albums)),
+	res := types.GetAlbums{
+		Albums: make([]types.GetAlbumsItem, len(albums)),
 	}
 
 	for i, album := range albums {
-		res.Albums[i] = types.ApiAlbum{
+		res.Albums[i] = types.GetAlbumsItem{
 			Id:       album.Id,
 			Name:     album.Name,
 			CoverArt: album.CoverArt,
@@ -24,7 +24,7 @@ func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewApiResponse(res))
+	return c.JSON(200, types.NewSuccessRes(res))
 }
 
 func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
@@ -34,7 +34,7 @@ func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewApiResponse(types.ApiGetAlbumByIdData{
+	return c.JSON(200, types.NewSuccessRes(types.GetAlbumById{
 		Id:       album.Id,
 		Name:     album.Name,
 		CoverArt: album.CoverArt,
@@ -55,14 +55,14 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
 		return err
 	}
 
-	res := types.ApiGetAlbumTracksByIdData{
-		Tracks: make([]types.ApiTrack, len(tracks)),
+	res := types.GetAlbumTracksById{
+		Tracks: make([]types.GetAlbumTracksByIdItem, len(tracks)),
 	}
 
 	for i, track := range tracks {
-		res.Tracks[i] = types.ApiTrack{
+		res.Tracks[i] = types.GetAlbumTracksByIdItem{
 			Id:                track.Id,
-			Number:            int32(track.Number),
+			Number:            track.Number,
 			Name:              track.Name,
 			CoverArt:          track.CoverArt,
 			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
@@ -72,7 +72,7 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewApiResponse(res))
+	return c.JSON(200, types.NewSuccessRes(res))
 }
 
 func InstallAlbumHandlers(group *echo.Group, apiConfig *ApiConfig) {
