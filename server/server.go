@@ -16,12 +16,12 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 		switch err := err.(type) {
 		case *types.ApiError:
 			c.JSON(err.Code, types.Res{
-				Status: "error",
+				Status: types.StatusError,
 				Error:  err,
 			})
 		default:
 			c.JSON(500, types.Res{
-				Status: "error",
+				Status: types.StatusError,
 				Error:  &types.ApiError{
 					Code:    500,
 					Message: err.Error(),

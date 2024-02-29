@@ -6,12 +6,13 @@ import (
 
 var (
 	ErrNoArtist = NewApiError(http.StatusNotFound, "Artist not found")
-	ErrNoAlbum = NewApiError(http.StatusNotFound, "Album not found")
-	ErrNoTrack = NewApiError(http.StatusNotFound, "Track not found")
+	ErrNoAlbum  = NewApiError(http.StatusNotFound, "Album not found")
+	ErrNoTrack  = NewApiError(http.StatusNotFound, "Track not found")
 )
 
 const (
 	StatusSuccess = "success"
+	StatusError   = "error"
 )
 
 type ApiError struct {
@@ -25,7 +26,7 @@ func (err *ApiError) Error() string {
 }
 
 func NewApiError(code int, message string, errors ...any) *ApiError {
-	var e any 
+	var e any
 	if len(errors) > 0 {
 		e = errors[0]
 	}
