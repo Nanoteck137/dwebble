@@ -44,6 +44,13 @@ type Res struct {
 	Error  *ApiError `json:"error,omitempty"`
 }
 
+func NewSuccessRes(data any) Res {
+	return Res{
+		Status: StatusSuccess,
+		Data:   data,
+	}
+}
+
 type ApiResponse[T any] struct {
 	Status int `json:"status" example:"200"`
 	Data   T   `json:"data"`
@@ -55,6 +62,35 @@ func NewApiResponse[T any](data T) ApiResponse[T] {
 		Data:   data,
 	}
 }
+
+type GetArtistsItem struct {
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
+}
+
+type GetArtists struct {
+	Artists []GetArtistsItem `json:"artists"`
+}
+
+type GetArtistById struct {
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
+}
+
+type GetArtistAlbumsByIdItem struct {
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	CoverArt string `json:"coverArt"`
+	ArtistId string `json:"artistId"`
+}
+
+type GetArtistAlbumsById struct {
+	Albums []GetArtistAlbumsByIdItem `json:"albums"`
+}
+
+// NOTE(patrik): Old
 
 type ApiArtist struct {
 	Id      string `json:"id"`

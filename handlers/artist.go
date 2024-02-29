@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -12,19 +11,19 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 		return err
 	}
 
-	res := types.ApiGetArtistsData{
-		Artists: make([]types.ApiArtist, len(artists)),
+	res := types.GetArtists{
+		Artists: make([]types.GetArtistsItem, len(artists)),
 	}
 
 	for i, artist := range artists {
-		res.Artists[i] = types.ApiArtist{
+		res.Artists[i] = types.GetArtistsItem{
 			Id:      artist.Id,
 			Name:    artist.Name,
 			Picture: artist.Picture,
 		}
 	}
 
-	return c.JSON(200, types.NewApiResponse(res))
+	return c.JSON(200, types.NewSuccessRes(res))
 }
 
 func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
@@ -34,7 +33,7 @@ func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewApiResponse(types.ApiGetArtistByIdData{
+	return c.JSON(200, types.NewSuccessRes(types.GetArtistById{
 		Id:      artist.Id,
 		Name:    artist.Name,
 		Picture: artist.Picture,
@@ -54,14 +53,12 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
 		return err
 	}
 
-	pretty.Println(albums)
-
-	res := types.ApiGetArtistAlbumsByIdData{
-		Albums: make([]types.ApiAlbum, len(albums)),
+	res := types.GetArtistAlbumsById{
+		Albums: make([]types.GetArtistAlbumsByIdItem, len(albums)),
 	}
 
 	for i, album := range albums {
-		res.Albums[i] = types.ApiAlbum{
+		res.Albums[i] = types.GetArtistAlbumsByIdItem{
 			Id:       album.Id,
 			Name:     album.Name,
 			CoverArt: album.CoverArt,
@@ -70,7 +67,7 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
 	}
 
 
-	return c.JSON(200, types.NewApiResponse(res))
+	return c.JSON(200, types.NewSuccessRes(res))
 }
 
 func InstallArtistHandlers(group *echo.Group, apiConfig *ApiConfig) {
