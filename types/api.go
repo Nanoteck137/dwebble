@@ -151,6 +151,10 @@ type GetTrackById struct {
 	ArtistId          string `json:"artistId"`
 }
 
+type GetSync struct {
+	IsSyncing bool `json:"isSyncing"`
+}
+
 // NOTE(patrik): Old
 
 type ApiArtist struct {

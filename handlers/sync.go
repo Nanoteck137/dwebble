@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/library"
@@ -11,8 +12,8 @@ import (
 var syncing = false
 
 func (api *ApiConfig) HandleGetSync(c echo.Context) error {
-	return c.JSON(200, types.NewApiResponse(types.ApiGetSyncData{
-		Syncing: syncing,
+	return c.JSON(200, types.NewSuccessRes(types.GetSync{
+		IsSyncing: syncing,
 	}))
 }
 
@@ -34,7 +35,7 @@ func (api *ApiConfig) HandlePostSync(c echo.Context) error {
 		}
 	}()
 
-	return nil
+	return c.NoContent(http.StatusNoContent);
 }
 
 func InstallSyncHandlers(group *echo.Group, apiConfig *ApiConfig) {
