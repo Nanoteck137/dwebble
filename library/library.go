@@ -237,8 +237,8 @@ func GetOrCreateArtist(ctx context.Context, db *database.Database, artist *Artis
 	if err != nil {
 		if err == types.ErrNoArtist {
 			artist, err := db.CreateArtist(ctx, database.CreateArtistParams{
-				Name:    artist.Name,
-				Path:    artist.Path,
+				Name: artist.Name,
+				Path: artist.Path,
 			})
 			if err != nil {
 				return database.Artist{}, err
@@ -328,6 +328,15 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 		fmt.Println("Syncing:", artist.Name)
 
 		dbArtist, err := GetOrCreateArtist(ctx, db, artist)
+		if err != nil {
+			return err
+		}
+
+		var artistChanges database.ArtistChanges
+		artistChanges.Name.String = artist.Name
+		artistChanges.Name.Valid = dbArtist.Name != artist.Name
+
+		err = db.UpdateArtist(ctx, dbArtist.Id, artistChanges)
 		if err != nil {
 			return err
 		}
