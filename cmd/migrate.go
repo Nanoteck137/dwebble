@@ -6,7 +6,7 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/joho/godotenv"
-	"github.com/nanoteck137/dwebble/sql/schema"
+	"github.com/nanoteck137/dwebble/migrations"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
@@ -70,19 +70,19 @@ var createCmd = &cobra.Command{
 		}
 
 		name := args[0]
-		goose.Create(db, "./sql/schema", name, "sql")
+		goose.Create(db, "./migrations", name, "sql")
 	},
 }
 
 var fixCmd = &cobra.Command{
 	Use: "fix",
 	Run: func(cmd *cobra.Command, args []string) {
-		goose.Fix("./sql/schema")
+		goose.Fix("./migrations")
 	},
 }
 
 func init() {
-	goose.SetBaseFS(schema.Migrations)
+	goose.SetBaseFS(migrations.Migrations)
 
 	migrateCmd.AddCommand(upCmd)
 	migrateCmd.AddCommand(downCmd)
