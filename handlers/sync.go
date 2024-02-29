@@ -21,14 +21,13 @@ func (api *ApiConfig) HandlePostSync(c echo.Context) error {
 		syncing = true
 		defer func() { syncing = false }()
 
-		dir := "/Volumes/media/musictest"
-		lib, err := library.ReadFromDir(dir)
+		lib, err := library.ReadFromDir(api.libraryDir)
 		if err != nil {
 			log.Printf("Failed to sync: %v", err)
 			return
 		}
 
-		err = lib.Sync(api.workDir, dir, api.db)
+		err = lib.Sync(api.workDir, api.libraryDir, api.db)
 		if err != nil {
 			log.Printf("Failed to sync: %v", err)
 			return

@@ -12,12 +12,13 @@ import (
 )
 
 type ApiConfig struct {
-	workDir  types.WorkDir
-	validate *validator.Validate
-	db       *database.Database
+	libraryDir string
+	workDir    types.WorkDir
+	validate   *validator.Validate
+	db         *database.Database
 }
 
-func New(db *database.Database, workDir types.WorkDir) *ApiConfig {
+func New(db *database.Database, libraryDir string, workDir types.WorkDir) *ApiConfig {
 	var validate = validator.New()
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
@@ -30,9 +31,10 @@ func New(db *database.Database, workDir types.WorkDir) *ApiConfig {
 	})
 
 	return &ApiConfig{
-		workDir:  workDir,
-		validate: validate,
-		db:       db,
+		libraryDir: libraryDir,
+		workDir:    workDir,
+		validate:   validate,
+		db:         db,
 	}
 }
 

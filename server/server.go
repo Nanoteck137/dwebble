@@ -9,7 +9,7 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func New(db *database.Database, workDir types.WorkDir) *echo.Echo {
+func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.Echo {
 	e := echo.New()
 
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
@@ -26,7 +26,7 @@ func New(db *database.Database, workDir types.WorkDir) *echo.Echo {
 	e.Static("/tracks/original", workDir.OriginalTracksDir())
 	e.Static("/images", workDir.ImagesDir())
 
-	apiConfig := handlers.New(db, workDir)
+	apiConfig := handlers.New(db, libraryDir, workDir)
 
 	_ = apiConfig
 

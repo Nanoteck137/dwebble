@@ -38,10 +38,15 @@ var serveCmd = &cobra.Command{
 		}
 		workDir := types.WorkDir(workDirPath)
 
-		db := database.New(conn)
-		e := server.New(db, workDir)
+		libraryDir := os.Getenv("LIBRARY_DIR")
+		if libraryDir == "" {
+			log.Fatal("LIBRARY_DIR not set")
+		}
 
-		err = e.Start(":3001")
+		db := database.New(conn)
+		e := server.New(db, libraryDir, workDir)
+
+		err = e.Start(":3000")
 		if err != nil {
 			log.Fatal(err)
 		}
