@@ -5,30 +5,32 @@ import (
 )
 
 var (
-	ErrNoArtist = NewResError(http.StatusNotFound, "No artist found")
+	ErrNoArtist = NewApiError(http.StatusNotFound, "Artist not found")
+	ErrNoAlbum = NewApiError(http.StatusNotFound, "Album not found")
+	ErrNoTrack = NewApiError(http.StatusNotFound, "Track not found")
 )
 
 const (
 	StatusSuccess = "success"
 )
 
-type ResError struct {
+type ApiError struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 	Errors  any    `json:"errors,omitempty"`
 }
 
-func (err *ResError) Error() string {
+func (err *ApiError) Error() string {
 	return err.Message
 }
 
-func NewResError(code int, message string, errors ...any) *ResError {
+func NewApiError(code int, message string, errors ...any) *ApiError {
 	var e any 
 	if len(errors) > 0 {
 		e = errors[0]
 	}
 
-	return &ResError{
+	return &ApiError{
 		Code:    code,
 		Message: message,
 		Errors:  e,
@@ -38,39 +40,7 @@ func NewResError(code int, message string, errors ...any) *ResError {
 type Res struct {
 	Status string    `json:"status"`
 	Data   any       `json:"data,omitempty"`
-	Error  *ResError `json:"error,omitempty"`
-}
-
-type ApiError struct {
-	Status  int    `json:"status" example:"400"`
-	Message string `json:"message"`
-	Data    any    `json:"data,omitempty"`
-}
-
-func (err ApiError) Error() string {
-	return err.Message
-}
-
-func NewApiError(status int, message string, data ...any) ApiError {
-	var d any = nil
-
-	if data != nil && len(data) > 0 && data[0] != nil {
-		d = data[0]
-	}
-
-	return ApiError{
-		Status:  status,
-		Message: message,
-		Data:    d,
-	}
-}
-
-func ApiBadRequestError(message string, data ...any) ApiError {
-	return NewApiError(http.StatusBadRequest, message, data...)
-}
-
-func ApiNotFoundError(message string, data ...any) ApiError {
-	return NewApiError(http.StatusNotFound, message, data...)
+	Error  *ApiError `json:"error,omitempty"`
 }
 
 type ApiResponse[T any] struct {
