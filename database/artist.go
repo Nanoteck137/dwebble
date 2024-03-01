@@ -90,6 +90,30 @@ func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, e
 	return item, nil
 }
 
+func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, error) {
+	ds := dialect.From("artists").
+		Select("id", "name", "picture", "path").
+		Where(goqu.C("name").Eq(name)).
+		Prepared(true)
+
+	row, err := db.QueryRow(ctx, ds)
+	if err != nil {
+		return Artist{}, err
+	}
+
+	var item Artist
+	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return Artist{}, types.ErrNoArtist
+		}
+
+		return Artist{}, err
+	}
+
+	return item, nil
+}
+
 type CreateArtistParams struct {
 	Name    string
 	Picture sql.NullString
