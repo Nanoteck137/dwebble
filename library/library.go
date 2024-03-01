@@ -136,7 +136,7 @@ func ReadFromDir(dir string) (*Library, error) {
 				log.Fatal(err)
 			}
 
-			if !utils.HasMusic(entries) && !utils.IsMultiDisc(entries) {
+			if !utils.HasMusic(entries) {
 				override := path.Join(p, "override.txt")
 
 				name := entry.Name()
@@ -197,14 +197,34 @@ func ReadFromDir(dir string) (*Library, error) {
 
 			artistName := "Various Artists"
 
-			if utils.HasMusic(entries) {
-				fmt.Printf("%v is an album\n", p)
+			artistName = entry.Name()
 
-				artist := artists[artistName]
+			data, err := os.ReadFile(path.Join(p, "override.txt"))
+			if err == nil {
+				artistName = strings.TrimSpace(string(data))
+			}
+			fmt.Printf("%v is an artist\n", p)
 
-				tracks, err := getAllTrackFromDir(p, artist.Name)
+			for _, entry := range entries {
+				p := path.Join(p, entry.Name())
+
+				if !entry.IsDir() {
+					continue
+				}
+
+				entries, err := os.ReadDir(p)
 				if err != nil {
 					log.Fatal(err)
+				}
+
+				if !utils.HasMusic(entries) {
+					continue
+				}
+
+				albumName := entry.Name()
+				data, err := os.ReadFile(path.Join(p, "override.txt"))
+				if err == nil {
+					albumName = strings.TrimSpace(string(data))
 				}
 
 				var coverArt string
@@ -230,7 +250,13 @@ func ReadFromDir(dir string) (*Library, error) {
 					}
 				}
 
-				albumName := entry.Name()
+				tracks, err := getAllTrackFromDir(p, artistName)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				artist := artists[artistName]
+
 				artist.Albums = append(artist.Albums, Album{
 					Path:       p,
 					Name:       albumName,
@@ -238,91 +264,6 @@ func ReadFromDir(dir string) (*Library, error) {
 					CoverArt:   coverArt,
 					Tracks:     tracks,
 				})
-			} else if utils.IsMultiDisc(entries) {
-				fmt.Printf("%v is an multidisc album\n", p)
-
-				// albumName := entry.Name()
-				// albums = append(albums, Album{
-				// 	Name:       albumName,
-				// 	ArtistName: artistName,
-				// 	Tracks:     []Track{},
-				// })
-			} else {
-				artistName = entry.Name()
-
-				data, err := os.ReadFile(path.Join(p, "override.txt"))
-				if err == nil {
-					artistName = strings.TrimSpace(string(data))
-				}
-				fmt.Printf("%v is an artist\n", p)
-
-				for _, entry := range entries {
-					p := path.Join(p, entry.Name())
-
-					if !entry.IsDir() {
-						continue
-					}
-
-					entries, err := os.ReadDir(p)
-					if err != nil {
-						log.Fatal(err)
-					}
-
-					if utils.HasMusic(entries) {
-						albumName := entry.Name()
-						data, err := os.ReadFile(path.Join(p, "override.txt"))
-						if err == nil {
-							albumName = strings.TrimSpace(string(data))
-						}
-
-						var coverArt string
-						for _, entry := range entries {
-							if entry.IsDir() {
-								continue
-							}
-
-							name := entry.Name()
-							ext := path.Ext(name)
-							if ext == "" {
-								continue
-							}
-
-							name = strings.TrimSuffix(name, ext)
-							if name != "cover" {
-								continue
-							}
-
-							if utils.IsValidImageExt(ext[1:]) {
-								coverArt = entry.Name()
-								break
-							}
-						}
-
-						tracks, err := getAllTrackFromDir(p, artistName)
-						if err != nil {
-							log.Fatal(err)
-						}
-
-						artist := artists[artistName]
-
-						artist.Albums = append(artist.Albums, Album{
-							Path:       p,
-							Name:       albumName,
-							ArtistName: artistName,
-							CoverArt:   coverArt,
-							Tracks:     tracks,
-						})
-					} else if utils.IsMultiDisc(entries) {
-						// albumName := entry.Name()
-						// albums = append(albums, Album{
-						// 	Name:       albumName,
-						// 	ArtistName: artistName,
-						// 	Tracks:     []Track{},
-						// })
-					} else {
-						log.Printf("Warning: No music found at '%v'", p)
-					}
-				}
 			}
 
 			fmt.Printf("artistName: %v\n", artistName)
@@ -450,6 +391,8 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 		return err
 	}
 
+	artists := make(map[string]database.Artist)
+
 	for _, artist := range lib.Artists {
 		fmt.Println("Syncing:", artist.Name)
 
@@ -486,6 +429,12 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 			return err
 		}
 
+		artists[artist.Name] = dbArtist
+	}
+
+	for _, artist := range lib.Artists {
+		dbArtist := artists[artist.Name]
+
 		for _, album := range artist.Albums {
 			dbAlbum, err := GetOrCreateAlbum(ctx, db, &album, dbArtist.Id)
 			if err != nil {
@@ -521,7 +470,8 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 			}
 
 			for _, track := range album.Tracks {
-				dbTrack, err := GetOrCreateTrack(ctx, db, &track, dbAlbum.Id, dbArtist.Id)
+				artist := artists[track.Artist]
+				dbTrack, err := GetOrCreateTrack(ctx, db, &track, dbAlbum.Id, artist.Id)
 				if err != nil {
 					return err
 				}
