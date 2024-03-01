@@ -59,7 +59,8 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 		Select("tracks.id", "tracks.track_number", "tracks.name", "tracks.cover_art", "tracks.path", "tracks.best_quality_file", "tracks.mobile_quality_file", "tracks.album_id", "tracks.artist_id", "albums.name", "artists.name").
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
-		Where(goqu.I("tracks.album_id").Eq(albumId))
+		Where(goqu.And(goqu.I("tracks.available").Eq(true), goqu.I("tracks.album_id").Eq(albumId))).
+		Prepared(true)
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {
@@ -147,11 +148,12 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"track_number":        params.TrackNumber,
 		"name":                params.Name,
 		"cover_art":           params.CoverArt,
-		"path":                params.Path,
 		"best_quality_file":   params.BestQualityFile,
 		"mobile_quality_file": params.MobileQualityFile,
 		"album_id":            params.AlbumId,
 		"artist_id":           params.ArtistId,
+		"path":                params.Path,
+		"available":           false,
 	}).
 		Returning("id", "track_number", "name", "cover_art", "path", "best_quality_file", "mobile_quality_file", "album_id", "artist_id").
 		Prepared(true)
@@ -175,10 +177,13 @@ type TrackChanges struct {
 	Name              types.Change[string]
 	BestQualityFile   types.Change[string]
 	MobileQualityFile types.Change[string]
+	Available bool
 }
 
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
-	record := goqu.Record{}
+	record := goqu.Record{
+		"available": changes.Available,
+	}
 
 	if changes.Number.Changed {
 		record["track_number"] = changes.Number.Value
@@ -196,14 +201,25 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 		record["mobile_quality_file"] = changes.MobileQualityFile.Value
 	}
 
-	if len(record) == 0 {
-		return nil
-	}
-
 	ds := dialect.Update("tracks").
 		Set(record).
 		Where(goqu.I("id").Eq(id)).
 		Prepared(true)
+
+	tag, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("tag: %v\n", tag)
+
+	return nil
+}
+
+func (db *Database) MarkAllTracksUnavailable(ctx context.Context) error {
+	ds := dialect.Update("tracks").Set(goqu.Record{
+		"available": false,
+	})
 
 	tag, err := db.Exec(ctx, ds)
 	if err != nil {

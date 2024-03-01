@@ -5,6 +5,7 @@ CREATE TABLE artists (
     picture TEXT,
 
     path TEXT NOT NULL,
+    available BOOL NOT NULL,
 
     CONSTRAINT artists_pk PRIMARY KEY (id)
 );
@@ -17,6 +18,7 @@ CREATE TABLE albums (
     artist_id TEXT NOT NULL,
 
     path TEXT NOT NULL,
+    available BOOL NOT NULL,
 
     CONSTRAINT albums_pk PRIMARY KEY(id),
 
@@ -32,13 +34,14 @@ CREATE TABLE tracks (
     name TEXT NOT NULL,
     cover_art TEXT,
 
-    path TEXT NOT NULL,
-
     best_quality_file TEXT NOT NULL,
     mobile_quality_file TEXT NOT NULL,
 
     album_id TEXT NOT NULL,
     artist_id TEXT NOT NULL,
+
+    path TEXT NOT NULL,
+    available BOOL NOT NULL,
 
     CONSTRAINT tracks_pk PRIMARY KEY(id),
 

@@ -19,7 +19,9 @@ type Artist struct {
 }
 
 func (db *Database) GetAllArtists(ctx context.Context) ([]Artist, error) {
-	ds := dialect.From("artists").Select("id", "name", "picture", "path")
+	ds := dialect.From("artists").
+		Select("id", "name", "picture", "path").
+		Where(goqu.I("available").Eq(true))
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {
@@ -100,6 +102,7 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 		"name":    params.Name,
 		"picture": params.Picture,
 		"path":    params.Path,
+		"available": false,
 	}).Returning("id", "name", "picture", "path").Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
@@ -118,23 +121,37 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 
 type ArtistChanges struct {
 	Name types.Change[string]
+	Available bool
 }
 
 func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistChanges) error {
-	record := goqu.Record{}
+	record := goqu.Record{
+		"available": changes.Available,
+	}
 
 	if changes.Name.Changed {
 		record["name"] = changes.Name.Value
-	}
-
-	if len(record) == 0 {
-		return nil
 	}
 
 	ds := dialect.Update("artists").
 		Set(record).
 		Where(goqu.I("id").Eq(id)).
 		Prepared(true)
+
+	tag, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("tag: %v\n", tag)
+
+	return nil
+}
+
+func (db *Database) MarkAllArtistsUnavailable(ctx context.Context) error {
+	ds := dialect.Update("artists").Set(goqu.Record{
+		"available": false,
+	})
 
 	tag, err := db.Exec(ctx, ds)
 	if err != nil {

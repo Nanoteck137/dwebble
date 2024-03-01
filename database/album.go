@@ -20,7 +20,9 @@ type Album struct {
 }
 
 func (db *Database) GetAllAlbums(ctx context.Context) ([]Album, error) {
-	ds := dialect.From("albums").Select("id", "name", "cover_art", "artist_id", "path")
+	ds := dialect.From("albums").
+		Select("id", "name", "cover_art", "artist_id", "path").
+		Where(goqu.I("available").Eq(true))
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {
@@ -44,7 +46,7 @@ func (db *Database) GetAllAlbums(ctx context.Context) ([]Album, error) {
 func (db *Database) GetAlbumsByArtist(ctx context.Context, artistId string) ([]Album, error) {
 	ds := dialect.From("albums").
 		Select("id", "name", "cover_art", "artist_id", "path").
-		Where(goqu.C("artist_id").Eq(artistId))
+		Where(goqu.And(goqu.I("available").Eq(true), goqu.C("artist_id").Eq(artistId)))
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {
@@ -128,6 +130,7 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 			"cover_art": params.CoverArt,
 			"artist_id": params.ArtistId,
 			"path":      params.Path,
+			"available": false,
 		}).
 		Returning("id", "name", "cover_art", "artist_id", "path").
 		Prepared(true)
@@ -148,23 +151,37 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 
 type AlbumChanges struct {
 	Name types.Change[string]
+	Available bool
 }
 
 func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumChanges) error {
-	record := goqu.Record{}
+	record := goqu.Record{
+		"available": changes.Available,
+	}
 
 	if changes.Name.Changed {
 		record["name"] = changes.Name.Value
-	}
-
-	if len(record) == 0 {
-		return nil
 	}
 
 	ds := dialect.Update("albums").
 		Set(record).
 		Where(goqu.I("id").Eq(id)).
 		Prepared(true)
+
+	tag, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("tag: %v\n", tag)
+
+	return nil
+}
+
+func (db *Database) MarkAllAlbumsUnavailable(ctx context.Context) error {
+	ds := dialect.Update("albums").Set(goqu.Record{
+		"available": false,
+	})
 
 	tag, err := db.Exec(ctx, ds)
 	if err != nil {

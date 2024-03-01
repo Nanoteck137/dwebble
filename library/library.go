@@ -329,6 +329,21 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 
 	ctx := context.Background()
 
+	err = db.MarkAllTracksUnavailable(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = db.MarkAllAlbumsUnavailable(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = db.MarkAllArtistsUnavailable(ctx)
+	if err != nil {
+		return err
+	}
+
 	for _, artist := range lib.Artists {
 		fmt.Println("Syncing:", artist.Name)
 
@@ -338,6 +353,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 		}
 
 		var artistChanges database.ArtistChanges
+		artistChanges.Available = true
 		artistChanges.Name.Value = artist.Name
 		artistChanges.Name.Changed = dbArtist.Name != artist.Name
 
@@ -353,6 +369,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 			}
 
 			var albumChanges database.AlbumChanges
+			albumChanges.Available = true
 			albumChanges.Name.Value = album.Name
 			albumChanges.Name.Changed = dbAlbum.Name != album.Name
 
@@ -368,6 +385,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				}
 
 				var trackChanges database.TrackChanges
+				trackChanges.Available = true
 				trackChanges.Number.Value = track.Number
 				trackChanges.Number.Changed = dbTrack.Number != track.Number
 				trackChanges.Name.Value = track.Name
