@@ -23,6 +23,7 @@ type Track struct {
 	Path   string
 	Name   string
 	Number int
+	Artist string
 	Tags   []string
 }
 
@@ -47,7 +48,7 @@ type Library struct {
 
 var fileReg = regexp.MustCompile(`(\d*).*`)
 
-func getAllTrackFromDir(dir string) ([]Track, error) {
+func getAllTrackFromDir(dir string, albumArtist string) ([]Track, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -89,6 +90,12 @@ func getAllTrackFromDir(dir string) ([]Track, error) {
 				name = strings.TrimSuffix(entry.Name(), ext)
 			}
 
+			artist := albumArtist
+			tagArtist := res.Tags["artist"]
+			if tagArtist != "" {
+				artist = tagArtist
+			}
+
 			tags := strings.Split(res.Tags["tags"], ",")
 
 			var realTags []string
@@ -104,6 +111,7 @@ func getAllTrackFromDir(dir string) ([]Track, error) {
 				Path:   p,
 				Name:   name,
 				Number: trackNum,
+				Artist: artist,
 				Tags:   realTags,
 			})
 		}
@@ -192,12 +200,12 @@ func ReadFromDir(dir string) (*Library, error) {
 			if utils.HasMusic(entries) {
 				fmt.Printf("%v is an album\n", p)
 
-				tracks, err := getAllTrackFromDir(p)
+				artist := artists[artistName]
+
+				tracks, err := getAllTrackFromDir(p, artist.Name)
 				if err != nil {
 					log.Fatal(err)
 				}
-
-				artist := artists[artistName]
 
 				var coverArt string
 				for _, entry := range entries {
@@ -290,7 +298,7 @@ func ReadFromDir(dir string) (*Library, error) {
 							}
 						}
 
-						tracks, err := getAllTrackFromDir(p)
+						tracks, err := getAllTrackFromDir(p, artistName)
 						if err != nil {
 							log.Fatal(err)
 						}

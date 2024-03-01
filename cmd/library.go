@@ -36,6 +36,7 @@ var libraryPrint = &cobra.Command{
 				fmt.Printf(" - %s\n", album.Name)
 				for _, track := range album.Tracks {
 					fmt.Printf("   - %02v. %s\n", track.Number, track.Name)
+					fmt.Printf("     Artist: %s\n", track.Artist)
 					fmt.Printf("     Tags: %s\n", strings.Join(track.Tags, ", "))
 				}
 			}
