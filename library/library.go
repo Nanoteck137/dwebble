@@ -23,6 +23,7 @@ type Track struct {
 	Path   string
 	Name   string
 	Number int
+	Tags   []string
 }
 
 type Album struct {
@@ -88,10 +89,22 @@ func getAllTrackFromDir(dir string) ([]Track, error) {
 				name = strings.TrimSuffix(entry.Name(), ext)
 			}
 
+			tags := strings.Split(res.Tags["tags"], ",")
+
+			var realTags []string
+			for _, tag := range tags {
+				if tag == "" {
+					continue
+				}
+
+				realTags = append(realTags, strings.TrimSpace(tag))
+			}
+
 			tracks = append(tracks, Track{
 				Path:   p,
 				Name:   name,
 				Number: trackNum,
+				Tags:   realTags,
 			})
 		}
 	}
