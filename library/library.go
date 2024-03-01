@@ -14,9 +14,9 @@ import (
 	"strings"
 
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
@@ -24,11 +24,12 @@ import (
 )
 
 type Track struct {
-	Path   string
-	Name   string
-	Number int
-	Artist string
-	Tags   []string
+	Path     string
+	Name     string
+	Number   int
+	Artist   string
+	Duration int
+	Tags     []string
 }
 
 type Album struct {
@@ -111,12 +112,15 @@ func getAllTrackFromDir(dir string, albumArtist string) ([]Track, error) {
 				realTags = append(realTags, strings.TrimSpace(tag))
 			}
 
+			duration := res.Duration
+
 			tracks = append(tracks, Track{
-				Path:   p,
-				Name:   name,
-				Number: trackNum,
-				Artist: artist,
-				Tags:   realTags,
+				Path:     p,
+				Name:     name,
+				Number:   trackNum,
+				Artist:   artist,
+				Duration: duration,
+				Tags:     realTags,
 			})
 		}
 	}
@@ -517,7 +521,6 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				if err != nil {
 					return err
 				}
-
 
 				for _, tag := range track.Tags {
 					tag, err := GetOrCreateTag(ctx, db, tag)

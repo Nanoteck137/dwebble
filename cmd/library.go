@@ -8,6 +8,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/nanoteck137/dwebble/library"
+	"github.com/nanoteck137/dwebble/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -38,6 +39,7 @@ var libraryPrint = &cobra.Command{
 					fmt.Printf("   - %02v. %s\n", track.Number, track.Name)
 					fmt.Printf("     Artist: %s\n", track.Artist)
 					fmt.Printf("     Tags: %s\n", strings.Join(track.Tags, ", "))
+					fmt.Printf("     Duration: %v\n", utils.FormatTime(track.Duration))
 				}
 			}
 		}

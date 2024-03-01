@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"math"
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -72,7 +73,8 @@ type FileResult struct {
 	Number int
 	Name   string
 
-	Tags map[string]string
+	Duration int
+	Tags     map[string]string
 }
 
 type probeFormat struct {
@@ -94,6 +96,8 @@ type probeStream struct {
 	Index     int    `json:"index"`
 	CodecName string `json:"codec_name"`
 	CodecType string `json:"codec_type"`
+
+	Duration string `json:"duration"`
 
 	// Video
 	Width  int `json:"width"`
@@ -209,6 +213,22 @@ func CheckFile(filepath string) (FileResult, error) {
 	// }
 
 	tags := convertMapKeysToLowercase(probe.Format.Tags)
+	duration := 0
+
+	for _, s := range probe.Streams {
+		if s.CodecType == "audio" {
+			dur, err := strconv.ParseFloat(s.Duration, 32)
+			if err != nil {
+				return FileResult{}, err
+			}
+
+			fmt.Printf("dur: %v\n", dur)
+
+			fmt.Printf("math.Round(dur): %v\n", math.Round(dur))
+
+			duration = int(dur)
+		}
+	}
 
 	name := path.Base(filepath)
 	res := test1.FindStringSubmatch(name)
@@ -224,10 +244,11 @@ func CheckFile(filepath string) (FileResult, error) {
 		}
 
 		return FileResult{
-			Path:   filepath,
-			Number: num,
-			Name:   "",
-			Tags:  tags,
+			Path:     filepath,
+			Number:   num,
+			Name:     "",
+			Duration: duration,
+			Tags:     tags,
 		}, nil
 	} else {
 		num, err := strconv.Atoi(string(res[1]))
@@ -237,10 +258,11 @@ func CheckFile(filepath string) (FileResult, error) {
 
 		name := string(res[2])
 		return FileResult{
-			Path:   filepath,
-			Number: num,
-			Name:   name,
-			Tags:  tags,
+			Path:     filepath,
+			Number:   num,
+			Name:     name,
+			Duration: duration,
+			Tags:     tags,
 		}, nil
 	}
 }
@@ -415,4 +437,11 @@ func IsValidImageExt(ext string) bool {
 	}
 
 	return false
+}
+
+func FormatTime(t int) string {
+	s := t % 60
+	m := t / 60
+
+	return fmt.Sprintf("%v:%v", m, s)
 }
