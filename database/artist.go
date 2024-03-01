@@ -117,14 +117,14 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 }
 
 type ArtistChanges struct {
-	Name sql.NullString
+	Name types.Change[string]
 }
 
 func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistChanges) error {
 	record := goqu.Record{}
 
-	if changes.Name.Valid {
-		record["name"] = changes.Name
+	if changes.Name.Changed {
+		record["name"] = changes.Name.Value
 	}
 
 	if len(record) == 0 {

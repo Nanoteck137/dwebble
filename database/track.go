@@ -171,29 +171,29 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 }
 
 type TrackChanges struct {
-	Number            sql.NullInt32
-	Name              sql.NullString
-	BestQualityFile   sql.NullString
-	MobileQualityFile sql.NullString
+	Number            types.Change[int]
+	Name              types.Change[string]
+	BestQualityFile   types.Change[string]
+	MobileQualityFile types.Change[string]
 }
 
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
 	record := goqu.Record{}
 
-	if changes.Number.Valid {
-		record["track_number"] = changes.Number
+	if changes.Number.Changed {
+		record["track_number"] = changes.Number.Value
 	}
 
-	if changes.Name.Valid {
-		record["name"] = changes.Name
+	if changes.Name.Changed {
+		record["name"] = changes.Name.Value
 	}
 
-	if changes.BestQualityFile.Valid {
-		record["best_quality_file"] = changes.BestQualityFile
+	if changes.BestQualityFile.Changed {
+		record["best_quality_file"] = changes.BestQualityFile.Value
 	}
 
-	if changes.MobileQualityFile.Valid {
-		record["mobile_quality_file"] = changes.MobileQualityFile
+	if changes.MobileQualityFile.Changed {
+		record["mobile_quality_file"] = changes.MobileQualityFile.Value
 	}
 
 	if len(record) == 0 {

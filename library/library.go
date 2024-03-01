@@ -338,8 +338,8 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 		}
 
 		var artistChanges database.ArtistChanges
-		artistChanges.Name.String = artist.Name
-		artistChanges.Name.Valid = dbArtist.Name != artist.Name
+		artistChanges.Name.Value = artist.Name
+		artistChanges.Name.Changed = dbArtist.Name != artist.Name
 
 		err = db.UpdateArtist(ctx, dbArtist.Id, artistChanges)
 		if err != nil {
@@ -353,8 +353,8 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 			}
 
 			var albumChanges database.AlbumChanges
-			albumChanges.Name.String = album.Name
-			albumChanges.Name.Valid = dbAlbum.Name != album.Name
+			albumChanges.Name.Value = album.Name
+			albumChanges.Name.Changed = dbAlbum.Name != album.Name
 
 			err = db.UpdateAlbum(ctx, dbAlbum.Id, albumChanges)
 			if err != nil {
@@ -368,10 +368,10 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				}
 
 				var trackChanges database.TrackChanges
-				trackChanges.Number.Int32 = int32(track.Number)
-				trackChanges.Number.Valid = dbTrack.Number != track.Number
-				trackChanges.Name.String = track.Name
-				trackChanges.Name.Valid = dbTrack.Name != track.Name
+				trackChanges.Number.Value = track.Number
+				trackChanges.Number.Changed = dbTrack.Number != track.Number
+				trackChanges.Name.Value = track.Name
+				trackChanges.Name.Changed = dbTrack.Name != track.Name
 
 				p := track.Path
 				ext := path.Ext(p)
@@ -405,10 +405,10 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				dst = path.Join(mobileTrackDir, transcodeName)
 				err = utils.SymlinkReplace(src, dst)
 
-				trackChanges.BestQualityFile.String = name
-				trackChanges.BestQualityFile.Valid = dbTrack.BestQualityFile != name
-				trackChanges.MobileQualityFile.String = transcodeName
-				trackChanges.MobileQualityFile.Valid = dbTrack.MobileQualityFile != transcodeName
+				trackChanges.BestQualityFile.Value = name
+				trackChanges.BestQualityFile.Changed = dbTrack.BestQualityFile != name
+				trackChanges.MobileQualityFile.Value = transcodeName
+				trackChanges.MobileQualityFile.Changed = dbTrack.MobileQualityFile != transcodeName
 
 				err = db.UpdateTrack(ctx, dbTrack.Id, trackChanges)
 				if err != nil {

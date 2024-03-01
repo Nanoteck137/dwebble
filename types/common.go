@@ -25,3 +25,8 @@ func (d WorkDir) TranscodeDir() string {
 func (d WorkDir) ImagesDir() string {
 	return path.Join(d.String(), "images")
 }
+
+type Change[T any] struct {
+	Value T
+	Changed bool 
+}

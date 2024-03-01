@@ -147,14 +147,14 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 }
 
 type AlbumChanges struct {
-	Name sql.NullString
+	Name types.Change[string]
 }
 
 func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumChanges) error {
 	record := goqu.Record{}
 
-	if changes.Name.Valid {
-		record["name"] = changes.Name
+	if changes.Name.Changed {
+		record["name"] = changes.Name.Value
 	}
 
 	if len(record) == 0 {
