@@ -255,6 +255,14 @@ func ReadFromDir(dir string) (*Library, error) {
 					log.Fatal(err)
 				}
 
+				for _, track := range tracks {
+					if _, exists := artists[track.Artist]; !exists {
+						artists[track.Artist] = &Artist{
+							Name:    track.Artist,
+						}
+					}
+				}
+
 				artist := artists[artistName]
 
 				artist.Albums = append(artist.Albums, Album{
@@ -271,7 +279,7 @@ func ReadFromDir(dir string) (*Library, error) {
 		}
 	}
 
-	// pretty.Println(albums)
+	pretty.Println(artists)
 
 	return &Library{
 		Artists: artists,
@@ -279,7 +287,15 @@ func ReadFromDir(dir string) (*Library, error) {
 }
 
 func GetOrCreateArtist(ctx context.Context, db *database.Database, artist *Artist) (database.Artist, error) {
-	dbArtist, err := db.GetArtistByPath(ctx, artist.Path)
+	var dbArtist database.Artist
+	var err error
+
+	if artist.Path != "" {
+		dbArtist, err = db.GetArtistByPath(ctx, artist.Path)
+	} else {
+		dbArtist, err = db.GetArtistByName(ctx, artist.Name)
+	}
+
 	if err != nil {
 		if err == types.ErrNoArtist {
 			artist, err := db.CreateArtist(ctx, database.CreateArtistParams{
@@ -471,6 +487,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 
 			for _, track := range album.Tracks {
 				artist := artists[track.Artist]
+
 				dbTrack, err := GetOrCreateTrack(ctx, db, &track, dbAlbum.Id, artist.Id)
 				if err != nil {
 					return err
@@ -514,11 +531,16 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 
 				dst = path.Join(mobileTrackDir, transcodeName)
 				err = utils.SymlinkReplace(src, dst)
+				if err != nil {
+					return err
+				}
 
 				trackChanges.BestQualityFile.Value = name
 				trackChanges.BestQualityFile.Changed = dbTrack.BestQualityFile != name
 				trackChanges.MobileQualityFile.Value = transcodeName
 				trackChanges.MobileQualityFile.Changed = dbTrack.MobileQualityFile != transcodeName
+				trackChanges.ArtistId.Value = artist.Id
+				trackChanges.ArtistId.Changed = dbTrack.ArtistId != artist.Id
 
 				err = db.UpdateTrack(ctx, dbTrack.Id, trackChanges)
 				if err != nil {
