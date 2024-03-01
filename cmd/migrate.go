@@ -30,7 +30,10 @@ var upCmd = &cobra.Command{
 			log.Fatalf("goose: failed to open DB: %v\n", err)
 		}
 
-		goose.Up(db, ".")
+		err = goose.Up(db, ".")
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
@@ -49,7 +52,10 @@ var downCmd = &cobra.Command{
 			log.Fatalf("goose: failed to open DB: %v\n", err)
 		}
 
-		goose.Down(db, ".")
+		err = goose.Down(db, ".")
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 
