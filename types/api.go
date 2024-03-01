@@ -106,6 +106,8 @@ type GetAlbumTracksByIdItem struct {
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumId           string `json:"albumId"`
 	ArtistId          string `json:"artistId"`
+	AlbumName         string `json:"albumName"`
+	ArtistName        string `json:"artistName"`
 }
 
 type GetAlbumTracksById struct {

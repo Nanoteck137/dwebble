@@ -70,6 +70,8 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
 			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
+			AlbumName:         track.AlbumName,
+			ArtistName:        track.ArtistName,
 		}
 	}
 
