@@ -193,6 +193,12 @@ func ReadFromDir(dir string) (*Library, error) {
 					}
 
 					if utils.HasMusic(entries) {
+						albumName := entry.Name()
+						data, err := os.ReadFile(path.Join(p, "override.txt"))
+						if err == nil {
+							albumName = strings.TrimSpace(string(data))
+						}
+
 						tracks, err := getAllTrackFromDir(p)
 						if err != nil {
 							log.Fatal(err)
@@ -200,7 +206,6 @@ func ReadFromDir(dir string) (*Library, error) {
 
 						artist := artists[artistName]
 
-						albumName := entry.Name()
 						artist.Albums = append(artist.Albums, Album{
 							Path:       p,
 							Name:       albumName,
@@ -347,11 +352,26 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				return err
 			}
 
+			var albumChanges database.AlbumChanges
+			albumChanges.Name.String = album.Name
+			albumChanges.Name.Valid = dbAlbum.Name != album.Name
+
+			err = db.UpdateAlbum(ctx, dbAlbum.Id, albumChanges)
+			if err != nil {
+				return err
+			}
+
 			for _, track := range album.Tracks {
 				dbTrack, err := GetOrCreateTrack(ctx, db, &track, dbAlbum.Id, dbArtist.Id)
 				if err != nil {
 					return err
 				}
+
+				var trackChanges database.TrackChanges
+				trackChanges.Number.Int32 = int32(track.Number)
+				trackChanges.Number.Valid = dbTrack.Number != track.Number
+				trackChanges.Name.String = track.Name
+				trackChanges.Name.Valid = dbTrack.Name != track.Name
 
 				p := track.Path
 				ext := path.Ext(p)
@@ -385,7 +405,12 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				dst = path.Join(mobileTrackDir, transcodeName)
 				err = utils.SymlinkReplace(src, dst)
 
-				err = db.UpdateTrack(ctx, dbTrack.Id, name, transcodeName)
+				trackChanges.BestQualityFile.String = name
+				trackChanges.BestQualityFile.Valid = dbTrack.BestQualityFile != name
+				trackChanges.MobileQualityFile.String = transcodeName
+				trackChanges.MobileQualityFile.Valid = dbTrack.MobileQualityFile != transcodeName
+
+				err = db.UpdateTrack(ctx, dbTrack.Id, trackChanges)
 				if err != nil {
 					return err
 				}

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jackc/pgx/v5"
@@ -143,4 +144,34 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 	}
 
 	return item, nil
+}
+
+type AlbumChanges struct {
+	Name sql.NullString
+}
+
+func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumChanges) error {
+	record := goqu.Record{}
+
+	if changes.Name.Valid {
+		record["name"] = changes.Name
+	}
+
+	if len(record) == 0 {
+		return nil
+	}
+
+	ds := dialect.Update("albums").
+		Set(record).
+		Where(goqu.I("id").Eq(id)).
+		Prepared(true)
+
+	tag, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("tag: %v\n", tag)
+
+	return nil
 }

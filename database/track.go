@@ -170,12 +170,39 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	return item, nil
 }
 
-func (db *Database) UpdateTrack(ctx context.Context, id, bestQualityFile, mobileQualityFile string) error {
-	ds := dialect.Update("tracks").Set(goqu.Record{
-		"best_quality_file":   bestQualityFile,
-		"mobile_quality_file": mobileQualityFile,
-	}).
-		Where(goqu.C("id").Eq(id)).
+type TrackChanges struct {
+	Number            sql.NullInt32
+	Name              sql.NullString
+	BestQualityFile   sql.NullString
+	MobileQualityFile sql.NullString
+}
+
+func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
+	record := goqu.Record{}
+
+	if changes.Number.Valid {
+		record["track_number"] = changes.Number
+	}
+
+	if changes.Name.Valid {
+		record["name"] = changes.Name
+	}
+
+	if changes.BestQualityFile.Valid {
+		record["best_quality_file"] = changes.BestQualityFile
+	}
+
+	if changes.MobileQualityFile.Valid {
+		record["mobile_quality_file"] = changes.MobileQualityFile
+	}
+
+	if len(record) == 0 {
+		return nil
+	}
+
+	ds := dialect.Update("tracks").
+		Set(record).
+		Where(goqu.I("id").Eq(id)).
 		Prepared(true)
 
 	tag, err := db.Exec(ctx, ds)
