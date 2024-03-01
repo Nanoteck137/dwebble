@@ -177,7 +177,8 @@ type TrackChanges struct {
 	Name              types.Change[string]
 	BestQualityFile   types.Change[string]
 	MobileQualityFile types.Change[string]
-	Available bool
+	ArtistId          types.Change[string]
+	Available         bool
 }
 
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
@@ -199,6 +200,10 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 
 	if changes.MobileQualityFile.Changed {
 		record["mobile_quality_file"] = changes.MobileQualityFile.Value
+	}
+
+	if changes.ArtistId.Changed {
+		record["artist_id"] = changes.ArtistId.Value
 	}
 
 	ds := dialect.Update("tracks").
