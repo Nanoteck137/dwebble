@@ -150,7 +150,8 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 }
 
 type AlbumChanges struct {
-	Name types.Change[string]
+	Name      types.Change[string]
+	CoverArt  types.Change[sql.NullString]
 	Available bool
 }
 
@@ -161,6 +162,10 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 
 	if changes.Name.Changed {
 		record["name"] = changes.Name.Value
+	}
+
+	if changes.CoverArt.Changed {
+		record["cover_art"] = changes.CoverArt.Value
 	}
 
 	ds := dialect.Update("albums").

@@ -2,6 +2,7 @@ package library
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -28,14 +29,15 @@ type Album struct {
 	Path       string
 	Name       string
 	ArtistName string
+	CoverArt   string
 	Tracks     []Track
 }
 
 type Artist struct {
-	Path        string
-	Name        string
-	PicturePath string
-	Albums      []Album
+	Path    string
+	Name    string
+	Picture string
+	Albums  []Album
 }
 
 type Library struct {
@@ -123,9 +125,38 @@ func ReadFromDir(dir string) (*Library, error) {
 					name = strings.TrimSpace(string(data))
 				}
 
+				entries, err := os.ReadDir(p)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				var picture string
+				for _, entry := range entries {
+					if entry.IsDir() {
+						continue
+					}
+
+					name := entry.Name()
+					ext := path.Ext(name)
+					if ext == "" {
+						continue
+					}
+
+					name = strings.TrimSuffix(name, ext)
+					if name != "picture" {
+						continue
+					}
+
+					if utils.IsValidImageExt(ext[1:]) {
+						picture = entry.Name()
+						break
+					}
+				}
+
 				artists[name] = &Artist{
-					Path: p,
-					Name: name,
+					Path:    p,
+					Name:    name,
+					Picture: picture,
 				}
 			}
 		}
@@ -155,11 +186,35 @@ func ReadFromDir(dir string) (*Library, error) {
 
 				artist := artists[artistName]
 
+				var coverArt string
+				for _, entry := range entries {
+					if entry.IsDir() {
+						continue
+					}
+
+					name := entry.Name()
+					ext := path.Ext(name)
+					if ext == "" {
+						continue
+					}
+
+					name = strings.TrimSuffix(name, ext)
+					if name != "cover" {
+						continue
+					}
+
+					if utils.IsValidImageExt(ext[1:]) {
+						coverArt = entry.Name()
+						break
+					}
+				}
+
 				albumName := entry.Name()
 				artist.Albums = append(artist.Albums, Album{
 					Path:       p,
 					Name:       albumName,
 					ArtistName: artistName,
+					CoverArt:   coverArt,
 					Tracks:     tracks,
 				})
 			} else if utils.IsMultiDisc(entries) {
@@ -199,6 +254,29 @@ func ReadFromDir(dir string) (*Library, error) {
 							albumName = strings.TrimSpace(string(data))
 						}
 
+						var coverArt string
+						for _, entry := range entries {
+							if entry.IsDir() {
+								continue
+							}
+
+							name := entry.Name()
+							ext := path.Ext(name)
+							if ext == "" {
+								continue
+							}
+
+							name = strings.TrimSuffix(name, ext)
+							if name != "cover" {
+								continue
+							}
+
+							if utils.IsValidImageExt(ext[1:]) {
+								coverArt = entry.Name()
+								break
+							}
+						}
+
 						tracks, err := getAllTrackFromDir(p)
 						if err != nil {
 							log.Fatal(err)
@@ -210,6 +288,7 @@ func ReadFromDir(dir string) (*Library, error) {
 							Path:       p,
 							Name:       albumName,
 							ArtistName: artistName,
+							CoverArt:   coverArt,
 							Tracks:     tracks,
 						})
 					} else if utils.IsMultiDisc(entries) {
@@ -327,6 +406,12 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 		return err
 	}
 
+	imageDir := workDir.ImagesDir()
+	err = os.MkdirAll(imageDir, 0755)
+	if err != nil {
+		return err
+	}
+
 	ctx := context.Background()
 
 	err = db.MarkAllTracksUnavailable(ctx)
@@ -357,6 +442,24 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 		artistChanges.Name.Value = artist.Name
 		artistChanges.Name.Changed = dbArtist.Name != artist.Name
 
+		if artist.Picture != "" {
+			p := path.Join(artist.Path, artist.Picture)
+			ext := path.Ext(artist.Picture)
+			name := "artist_" + dbArtist.Id + ext
+			dst := path.Join(imageDir, name)
+			err := utils.SymlinkReplace(p, dst)
+			if err != nil {
+				return err
+			}
+
+			artistChanges.Picture.Value = sql.NullString{
+				String: name,
+				Valid:  true,
+			}
+
+			artistChanges.Picture.Changed = true
+		}
+
 		err = db.UpdateArtist(ctx, dbArtist.Id, artistChanges)
 		if err != nil {
 			return err
@@ -372,6 +475,24 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 			albumChanges.Available = true
 			albumChanges.Name.Value = album.Name
 			albumChanges.Name.Changed = dbAlbum.Name != album.Name
+
+			if album.CoverArt != "" {
+				p := path.Join(album.Path, album.CoverArt)
+				ext := path.Ext(album.CoverArt)
+				name := "album_" + dbAlbum.Id + ext
+				dst := path.Join(imageDir, name)
+				err := utils.SymlinkReplace(p, dst)
+				if err != nil {
+					return err
+				}
+
+				albumChanges.CoverArt.Value = sql.NullString{
+					String: name,
+					Valid:  true,
+				}
+
+				albumChanges.CoverArt.Changed = true
+			}
 
 			err = db.UpdateAlbum(ctx, dbAlbum.Id, albumChanges)
 			if err != nil {
@@ -406,10 +527,10 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				if err != nil {
 					if os.IsNotExist(err) {
 						// TODO(patrik): Temp
-						// err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
-						// if err != nil {
-						// 	return err
-						// }
+						err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
+						if err != nil {
+							return err
+						}
 					} else {
 						return err
 					}

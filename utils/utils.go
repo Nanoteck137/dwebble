@@ -400,3 +400,19 @@ func SymlinkReplace(src, dst string) error {
 
 	return nil
 }
+
+var validImageExts = []string{
+	"png",
+	"jpg",
+	"jpeg",
+}
+
+func IsValidImageExt(ext string) bool {
+	for _, e := range validImageExts {
+		if ext == e {
+			return true
+		}
+	}
+
+	return false
+}

@@ -16,10 +16,15 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 	}
 
 	for i, artist := range artists {
+		pictureName := "default_artist.png"
+		if artist.Picture.Valid {
+			pictureName = artist.Picture.String
+		}
+
 		res.Artists[i] = types.GetArtistsItem{
 			Id:      artist.Id,
 			Name:    artist.Name,
-			Picture: artist.Picture.String,
+			Picture: ConvertURL(c, "/images/"+pictureName),
 		}
 	}
 

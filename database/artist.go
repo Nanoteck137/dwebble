@@ -98,10 +98,10 @@ type CreateArtistParams struct {
 
 func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams) (Artist, error) {
 	ds := dialect.Insert("artists").Rows(goqu.Record{
-		"id":      utils.CreateId(),
-		"name":    params.Name,
-		"picture": params.Picture,
-		"path":    params.Path,
+		"id":        utils.CreateId(),
+		"name":      params.Name,
+		"picture":   params.Picture,
+		"path":      params.Path,
 		"available": false,
 	}).Returning("id", "name", "picture", "path").Prepared(true)
 
@@ -120,7 +120,8 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 }
 
 type ArtistChanges struct {
-	Name types.Change[string]
+	Name      types.Change[string]
+	Picture   types.Change[sql.NullString]
 	Available bool
 }
 
@@ -131,6 +132,10 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 
 	if changes.Name.Changed {
 		record["name"] = changes.Name.Value
+	}
+
+	if changes.Picture.Changed {
+		record["picture"] = changes.Picture.Value
 	}
 
 	ds := dialect.Update("artists").
