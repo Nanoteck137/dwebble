@@ -6,6 +6,7 @@ require (
 	github.com/MadAppGang/httplog/echolog v1.3.0
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/go-playground/validator/v10 v10.16.0
+	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
 	github.com/jackc/pgx/v5 v5.5.1
 	github.com/joho/godotenv v1.5.1
 	github.com/kr/pretty v0.3.1

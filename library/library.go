@@ -3,6 +3,7 @@ package library
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,6 +14,9 @@ import (
 	"strings"
 
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
@@ -258,7 +262,7 @@ func ReadFromDir(dir string) (*Library, error) {
 				for _, track := range tracks {
 					if _, exists := artists[track.Artist]; !exists {
 						artists[track.Artist] = &Artist{
-							Name:    track.Artist,
+							Name: track.Artist,
 						}
 					}
 				}
@@ -363,6 +367,22 @@ func GetOrCreateTrack(ctx context.Context, db *database.Database, track *Track, 
 	}
 
 	return dbTrack, nil
+}
+
+func GetOrCreateTag(ctx context.Context, db *database.Database, name string) (database.Tag, error) {
+	tag, err := db.GetTagByName(ctx, name)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			tag, err = db.CreateTag(ctx, name)
+			if err != nil {
+				return database.Tag{}, err
+			}
+		} else {
+			return database.Tag{}, err
+		}
+	}
+
+	return tag, nil
 }
 
 func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Database) error {
@@ -493,6 +513,52 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 					return err
 				}
 
+				tags, err := db.GetTrackTags(ctx, dbTrack.Id)
+				if err != nil {
+					return err
+				}
+
+
+				for _, tag := range track.Tags {
+					tag, err := GetOrCreateTag(ctx, db, tag)
+					if err != nil {
+						return err
+					}
+
+					pretty.Println(tag)
+
+					err = db.AddTagToTrack(ctx, tag.Id, dbTrack.Id)
+					if err != nil {
+						var pgErr *pgconn.PgError
+						if errors.As(err, &pgErr) {
+							if pgErr.Code == pgerrcode.UniqueViolation {
+								continue
+							}
+						}
+
+						return err
+					}
+				}
+
+				hasTag := func(tag string) bool {
+					for _, t := range track.Tags {
+						if tag == t {
+							return true
+						}
+					}
+
+					return false
+				}
+
+				for _, tag := range tags {
+					if !hasTag(tag.Name) {
+						err := db.RemoveTagFromTrack(ctx, tag.Id, dbTrack.Id)
+						if err != nil {
+							return err
+						}
+					}
+				}
+
 				var trackChanges database.TrackChanges
 				trackChanges.Available = true
 				trackChanges.Number.Value = track.Number
@@ -515,10 +581,10 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				if err != nil {
 					if os.IsNotExist(err) {
 						// TODO(patrik): Temp
-						err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
-						if err != nil {
-							return err
-						}
+						// err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
+						// if err != nil {
+						// 	return err
+						// }
 					} else {
 						return err
 					}
