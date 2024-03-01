@@ -101,6 +101,7 @@ type GetAlbumTracksByIdItem struct {
 	Number            int    `json:"number"`
 	Name              string `json:"name"`
 	CoverArt          string `json:"coverArt"`
+	Duration          int    `json:"duration"`
 	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumId           string `json:"albumId"`
@@ -116,6 +117,7 @@ type GetTracksItem struct {
 	Number            int    `json:"number"`
 	Name              string `json:"name"`
 	CoverArt          string `json:"coverArt"`
+	Duration          int    `json:"duration"`
 	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumId           string `json:"albumId"`
@@ -133,6 +135,7 @@ type GetTrackById struct {
 	Number            int    `json:"number"`
 	Name              string `json:"name"`
 	CoverArt          string `json:"coverArt"`
+	Duration          int    `json:"duration"`
 	BestQualityFile   string `json:"bestQualityFile"`
 	MobileQualityFile string `json:"mobileQualityFile"`
 	AlbumId           string `json:"albumId"`

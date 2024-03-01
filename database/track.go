@@ -16,6 +16,7 @@ type Track struct {
 	Number   int
 	Name     string
 	CoverArt sql.NullString
+	Duration int
 
 	Path string
 
@@ -31,7 +32,20 @@ type Track struct {
 
 func (db *Database) GetAllTracks(ctx context.Context) ([]Track, error) {
 	ds := dialect.From("tracks").
-		Select("tracks.id", "tracks.track_number", "tracks.name", "tracks.cover_art", "tracks.path", "tracks.best_quality_file", "tracks.mobile_quality_file", "tracks.album_id", "tracks.artist_id", "albums.name", "artists.name").
+		Select(
+			"tracks.id",
+			"tracks.track_number",
+			"tracks.name",
+			"tracks.cover_art",
+			"tracks.duration",
+			"tracks.path",
+			"tracks.best_quality_file",
+			"tracks.mobile_quality_file",
+			"tracks.album_id",
+			"tracks.artist_id",
+			"albums.name",
+			"artists.name",
+		).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))))
 
@@ -43,7 +57,20 @@ func (db *Database) GetAllTracks(ctx context.Context) ([]Track, error) {
 	var items []Track
 	for rows.Next() {
 		var item Track
-		err := rows.Scan(&item.Id, &item.Number, &item.Name, &item.CoverArt, &item.Path, &item.BestQualityFile, &item.MobileQualityFile, &item.AlbumId, &item.ArtistId, &item.AlbumName, &item.ArtistName)
+		err := rows.Scan(
+			&item.Id,
+			&item.Number,
+			&item.Name,
+			&item.CoverArt,
+			&item.Duration,
+			&item.Path,
+			&item.BestQualityFile,
+			&item.MobileQualityFile,
+			&item.AlbumId,
+			&item.ArtistId,
+			&item.AlbumName,
+			&item.ArtistName,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +83,20 @@ func (db *Database) GetAllTracks(ctx context.Context) ([]Track, error) {
 
 func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
 	ds := dialect.From("tracks").
-		Select("tracks.id", "tracks.track_number", "tracks.name", "tracks.cover_art", "tracks.path", "tracks.best_quality_file", "tracks.mobile_quality_file", "tracks.album_id", "tracks.artist_id", "albums.name", "artists.name").
+		Select(
+			"tracks.id",
+			"tracks.track_number",
+			"tracks.name",
+			"tracks.cover_art",
+			"tracks.duration",
+			"tracks.path",
+			"tracks.best_quality_file",
+			"tracks.mobile_quality_file",
+			"tracks.album_id",
+			"tracks.artist_id",
+			"albums.name",
+			"artists.name",
+		).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
 		Where(goqu.And(goqu.I("tracks.available").Eq(true), goqu.I("tracks.album_id").Eq(albumId))).
@@ -70,7 +110,20 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 	var items []Track
 	for rows.Next() {
 		var item Track
-		err := rows.Scan(&item.Id, &item.Number, &item.Name, &item.CoverArt, &item.Path, &item.BestQualityFile, &item.MobileQualityFile, &item.AlbumId, &item.ArtistId, &item.AlbumName, &item.ArtistName)
+		err := rows.Scan(
+			&item.Id,
+			&item.Number,
+			&item.Name,
+			&item.CoverArt,
+			&item.Duration,
+			&item.Path,
+			&item.BestQualityFile,
+			&item.MobileQualityFile,
+			&item.AlbumId,
+			&item.ArtistId,
+			&item.AlbumName,
+			&item.ArtistName,
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -83,7 +136,20 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 
 func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) {
 	ds := dialect.From("tracks").
-		Select("tracks.id", "tracks.track_number", "tracks.name", "tracks.cover_art", "tracks.path", "tracks.best_quality_file", "tracks.mobile_quality_file", "tracks.album_id", "tracks.artist_id", "albums.name", "artists.name").
+		Select(
+			"tracks.id",
+			"tracks.track_number",
+			"tracks.name",
+			"tracks.cover_art",
+			"tracks.duration",
+			"tracks.path",
+			"tracks.best_quality_file",
+			"tracks.mobile_quality_file",
+			"tracks.album_id",
+			"tracks.artist_id",
+			"albums.name",
+			"artists.name",
+		).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
 		Where(goqu.I("tracks.id").Eq(id)).
@@ -95,7 +161,20 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 	}
 
 	var item Track
-	err = row.Scan(&item.Id, &item.Number, &item.Name, &item.CoverArt, &item.Path, &item.BestQualityFile, &item.MobileQualityFile, &item.AlbumId, &item.ArtistId, &item.AlbumName, &item.ArtistName)
+	err = row.Scan(
+		&item.Id,
+		&item.Number,
+		&item.Name,
+		&item.CoverArt,
+		&item.Duration,
+		&item.Path,
+		&item.BestQualityFile,
+		&item.MobileQualityFile,
+		&item.AlbumId,
+		&item.ArtistId,
+		&item.AlbumName,
+		&item.ArtistName,
+	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return Track{}, types.ErrNoTrack
@@ -109,7 +188,18 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 
 func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, error) {
 	ds := dialect.From("tracks").
-		Select("id", "track_number", "name", "cover_art", "path", "best_quality_file", "mobile_quality_file", "album_id", "artist_id").
+		Select(
+			"id",
+			"track_number",
+			"name",
+			"cover_art",
+			"duration",
+			"path",
+			"best_quality_file",
+			"mobile_quality_file",
+			"album_id",
+			"artist_id",
+		).
 		Where(goqu.C("path").Eq(path)).
 		Prepared(true)
 
@@ -119,7 +209,18 @@ func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, err
 	}
 
 	var item Track
-	err = row.Scan(&item.Id, &item.Number, &item.Name, &item.CoverArt, &item.Path, &item.BestQualityFile, &item.MobileQualityFile, &item.AlbumId, &item.ArtistId)
+	err = row.Scan(
+		&item.Id,
+		&item.Number,
+		&item.Name,
+		&item.CoverArt,
+		&item.Duration,
+		&item.Path,
+		&item.BestQualityFile,
+		&item.MobileQualityFile,
+		&item.AlbumId,
+		&item.ArtistId,
+	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return Track{}, types.ErrNoTrack
@@ -136,6 +237,7 @@ type CreateTrackParams struct {
 	Name              string
 	CoverArt          sql.NullString
 	Path              string
+	Duration          int
 	BestQualityFile   string
 	MobileQualityFile string
 	AlbumId           string
@@ -148,6 +250,7 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"track_number":        params.TrackNumber,
 		"name":                params.Name,
 		"cover_art":           params.CoverArt,
+		"duration":            params.Duration,
 		"best_quality_file":   params.BestQualityFile,
 		"mobile_quality_file": params.MobileQualityFile,
 		"album_id":            params.AlbumId,
@@ -155,7 +258,18 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"path":                params.Path,
 		"available":           false,
 	}).
-		Returning("id", "track_number", "name", "cover_art", "path", "best_quality_file", "mobile_quality_file", "album_id", "artist_id").
+		Returning(
+			"id",
+			"track_number",
+			"name",
+			"cover_art",
+			"duration",
+			"path",
+			"best_quality_file",
+			"mobile_quality_file",
+			"album_id",
+			"artist_id",
+		).
 		Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
@@ -164,7 +278,18 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	}
 
 	var item Track
-	err = row.Scan(&item.Id, &item.Number, &item.Name, &item.CoverArt, &item.Path, &item.BestQualityFile, &item.MobileQualityFile, &item.AlbumId, &item.ArtistId)
+	err = row.Scan(
+		&item.Id,
+		&item.Number,
+		&item.Name,
+		&item.CoverArt,
+		&item.Duration,
+		&item.Path,
+		&item.BestQualityFile,
+		&item.MobileQualityFile,
+		&item.AlbumId,
+		&item.ArtistId,
+	)
 	if err != nil {
 		return Track{}, err
 	}
@@ -175,6 +300,7 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 type TrackChanges struct {
 	Number            types.Change[int]
 	Name              types.Change[string]
+	Duration          types.Change[int]
 	BestQualityFile   types.Change[string]
 	MobileQualityFile types.Change[string]
 	ArtistId          types.Change[string]
@@ -192,6 +318,10 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 
 	if changes.Name.Changed {
 		record["name"] = changes.Name.Value
+	}
+
+	if changes.Duration.Changed {
+		record["duration"] = changes.Duration.Value
 	}
 
 	if changes.BestQualityFile.Changed {

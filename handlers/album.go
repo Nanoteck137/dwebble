@@ -65,6 +65,7 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
 			Number:            track.Number,
 			Name:              track.Name,
 			CoverArt:          track.CoverArt.String,
+			Duration:          track.Duration,
 			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
 			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,

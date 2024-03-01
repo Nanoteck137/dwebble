@@ -34,6 +34,8 @@ CREATE TABLE tracks (
     name TEXT NOT NULL,
     cover_art TEXT,
 
+    duration INT,
+
     best_quality_file TEXT NOT NULL,
     mobile_quality_file TEXT NOT NULL,
 

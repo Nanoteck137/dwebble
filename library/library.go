@@ -354,8 +354,7 @@ func GetOrCreateTrack(ctx context.Context, db *database.Database, track *Track, 
 				TrackNumber:       track.Number,
 				Name:              track.Name,
 				Path:              track.Path,
-				BestQualityFile:   "",
-				MobileQualityFile: "",
+				Duration:          track.Duration,
 				AlbumId:           albumId,
 				ArtistId:          artistId,
 			})
@@ -568,6 +567,9 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				trackChanges.Number.Changed = dbTrack.Number != track.Number
 				trackChanges.Name.Value = track.Name
 				trackChanges.Name.Changed = dbTrack.Name != track.Name
+				trackChanges.Duration.Value = track.Duration
+				trackChanges.Duration.Changed = dbTrack.Duration != track.Duration
+				trackChanges.Name.Changed = dbTrack.Name != track.Name
 
 				p := track.Path
 				ext := path.Ext(p)
@@ -584,10 +586,10 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				if err != nil {
 					if os.IsNotExist(err) {
 						// TODO(patrik): Temp
-						// err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
-						// if err != nil {
-						// 	return err
-						// }
+						err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
+						if err != nil {
+							return err
+						}
 					} else {
 						return err
 					}
