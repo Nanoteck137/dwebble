@@ -175,11 +175,9 @@ func convertMapKeysToLowercase(m map[string]string) map[string]string {
 	return res
 }
 
-// TODO(patrik): Update to not include file extentions
 var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)\.`)
 var test2 = regexp.MustCompile(`track(\d+).+`)
 
-// TODO(patrik): Fix this function
 func CheckFile(filepath string) (FileResult, error) {
 	// ffprobe -v quiet -print_format json -show_format -show_streams input
 	data, err := RunFFprobe("-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filepath)
