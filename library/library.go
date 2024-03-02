@@ -351,12 +351,12 @@ func GetOrCreateTrack(ctx context.Context, db *database.Database, track *Track, 
 	if err != nil {
 		if err == types.ErrNoTrack {
 			track, err := db.CreateTrack(ctx, database.CreateTrackParams{
-				TrackNumber:       track.Number,
-				Name:              track.Name,
-				Path:              track.Path,
-				Duration:          track.Duration,
-				AlbumId:           albumId,
-				ArtistId:          artistId,
+				TrackNumber: track.Number,
+				Name:        track.Name,
+				Path:        track.Path,
+				Duration:    track.Duration,
+				AlbumId:     albumId,
+				ArtistId:    artistId,
 			})
 
 			if err != nil {

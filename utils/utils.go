@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/fs"
 	"log"
-	"math"
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -189,28 +188,11 @@ func CheckFile(filepath string) (FileResult, error) {
 		return FileResult{}, err
 	}
 
-	// fmt.Printf("string(data): %v\n", string(data))
-
 	var probe probe
 	err = json.Unmarshal(data, &probe)
 	if err != nil {
 		return FileResult{}, err
 	}
-
-	// fmt.Printf("probe: %+v\n", probe)
-	// probe.Format.Tags.Track
-
-	// track := getNumberFromFormatString(probe.Format.Tags.Track)
-	// disc := getNumberFromFormatString(probe.Format.Tags.Disc)
-	//
-	// probeResult := ProbeResult{
-	// 	Artist:      probe.Format.Tags.Artist,
-	// 	AlbumArtist: probe.Format.Tags.AlbumArtist,
-	// 	Title:       probe.Format.Tags.Title,
-	// 	Album:       probe.Format.Tags.Album,
-	// 	Track:       track,
-	// 	Disc:        disc,
-	// }
 
 	tags := convertMapKeysToLowercase(probe.Format.Tags)
 	duration := 0
@@ -221,10 +203,6 @@ func CheckFile(filepath string) (FileResult, error) {
 			if err != nil {
 				return FileResult{}, err
 			}
-
-			fmt.Printf("dur: %v\n", dur)
-
-			fmt.Printf("math.Round(dur): %v\n", math.Round(dur))
 
 			duration = int(dur)
 		}
