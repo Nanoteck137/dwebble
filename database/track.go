@@ -100,6 +100,7 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
 		Where(goqu.And(goqu.I("tracks.available").Eq(true), goqu.I("tracks.album_id").Eq(albumId))).
+		Order(goqu.I("tracks.track_number").Asc(), goqu.I("tracks.name").Asc()).
 		Prepared(true)
 
 	rows, err := db.Query(ctx, ds)
