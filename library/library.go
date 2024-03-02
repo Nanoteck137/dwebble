@@ -569,7 +569,6 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				trackChanges.Name.Changed = dbTrack.Name != track.Name
 				trackChanges.Duration.Value = track.Duration
 				trackChanges.Duration.Changed = dbTrack.Duration != track.Duration
-				trackChanges.Name.Changed = dbTrack.Name != track.Name
 
 				p := track.Path
 				ext := path.Ext(p)
