@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
@@ -9,6 +10,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
+)
+
+const (
+	DefaultArtistPictureName = "default_artist.png"
+	DefaultAlbumCoverArtName = "default_album.png"
+	DefaultTrackCoverArtName = "default_album.png"
 )
 
 type ApiConfig struct {
@@ -62,6 +69,27 @@ func ConvertURL(c echo.Context, path string) string {
 	host := c.Request().Host
 
 	return fmt.Sprintf("http://%s%s", host, path)
+}
+
+func ConvertImageURL(c echo.Context, val sql.NullString, def string) string {
+	coverArt := def
+	if val.Valid && val.String != "" {
+		coverArt = val.String
+	}
+
+	return ConvertURL(c, "/images/"+coverArt)
+}
+
+func ConvertArtistPictureURL(c echo.Context, val sql.NullString) string {
+	return ConvertImageURL(c, val, DefaultArtistPictureName)
+}
+
+func ConvertAlbumCoverURL(c echo.Context, val sql.NullString) string {
+	return ConvertImageURL(c, val, DefaultAlbumCoverArtName)
+}
+
+func ConvertTrackCoverURL(c echo.Context, val sql.NullString) string {
+	return ConvertImageURL(c, val, DefaultTrackCoverArtName)
 }
 
 // func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {

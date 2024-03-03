@@ -16,15 +16,10 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 	}
 
 	for i, artist := range artists {
-		pictureName := "default_artist.png"
-		if artist.Picture.Valid {
-			pictureName = artist.Picture.String
-		}
-
 		res.Artists[i] = types.GetArtistsItem{
 			Id:      artist.Id,
 			Name:    artist.Name,
-			Picture: ConvertURL(c, "/images/"+pictureName),
+			Picture: ConvertArtistPictureURL(c, artist.Picture),
 		}
 	}
 
@@ -41,7 +36,7 @@ func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetArtistById{
 		Id:      artist.Id,
 		Name:    artist.Name,
-		Picture: artist.Picture.String,
+		Picture: ConvertArtistPictureURL(c, artist.Picture),
 	}))
 }
 
@@ -53,7 +48,7 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
 		return err
 	}
 
-	albums, err := api.db.GetAlbumsByArtist(c.Request().Context(), artist.Id);
+	albums, err := api.db.GetAlbumsByArtist(c.Request().Context(), artist.Id)
 	if err != nil {
 		return err
 	}
@@ -66,11 +61,10 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
 		res.Albums[i] = types.GetArtistAlbumsByIdItem{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: album.CoverArt.String,
+			CoverArt: ConvertAlbumCoverURL(c, album.CoverArt),
 			ArtistId: album.ArtistId,
 		}
 	}
-
 
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
