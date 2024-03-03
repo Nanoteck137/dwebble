@@ -511,6 +511,8 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 			for _, track := range album.Tracks {
 				artist := artists[track.Artist]
 
+				coverArt := dbAlbum.CoverArt
+
 				dbTrack, err := GetOrCreateTrack(ctx, db, &track, dbAlbum.Id, artist.Id)
 				if err != nil {
 					return err
@@ -567,6 +569,8 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				trackChanges.Number.Changed = dbTrack.Number != track.Number
 				trackChanges.Name.Value = track.Name
 				trackChanges.Name.Changed = dbTrack.Name != track.Name
+				trackChanges.CoverArt.Value = coverArt
+				trackChanges.CoverArt.Changed = dbTrack.CoverArt != coverArt
 				trackChanges.Duration.Value = track.Duration
 				trackChanges.Duration.Changed = dbTrack.Duration != track.Duration
 

@@ -301,6 +301,7 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 type TrackChanges struct {
 	Number            types.Change[int]
 	Name              types.Change[string]
+	CoverArt          types.Change[sql.NullString]
 	Duration          types.Change[int]
 	BestQualityFile   types.Change[string]
 	MobileQualityFile types.Change[string]
@@ -319,6 +320,10 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 
 	if changes.Name.Changed {
 		record["name"] = changes.Name.Value
+	}
+
+	if changes.CoverArt.Changed {
+		record["cover_art"] = changes.CoverArt.Value
 	}
 
 	if changes.Duration.Changed {
