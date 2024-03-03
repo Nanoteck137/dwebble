@@ -17,7 +17,6 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
@@ -69,8 +68,6 @@ func getAllTrackFromDir(dir string, albumArtist string) ([]Track, error) {
 			if err != nil {
 				continue
 			}
-
-			pretty.Println(res)
 
 			captures := fileReg.FindStringSubmatch(entry.Name())
 			if captures == nil {
@@ -191,13 +188,9 @@ func ReadFromDir(dir string) (*Library, error) {
 		}
 	}
 
-	pretty.Println(artists)
-
 	for _, entry := range entries {
 		p := path.Join(dir, entry.Name())
 		if entry.IsDir() {
-			fmt.Printf("Valid: %v\n", p)
-
 			entries, err := os.ReadDir(p)
 			if err != nil {
 				log.Fatal(err)
@@ -211,7 +204,6 @@ func ReadFromDir(dir string) (*Library, error) {
 			if err == nil {
 				artistName = strings.TrimSpace(string(data))
 			}
-			fmt.Printf("%v is an artist\n", p)
 
 			for _, entry := range entries {
 				p := path.Join(p, entry.Name())
@@ -281,13 +273,8 @@ func ReadFromDir(dir string) (*Library, error) {
 					Tracks:     tracks,
 				})
 			}
-
-			fmt.Printf("artistName: %v\n", artistName)
-			fmt.Println()
 		}
 	}
-
-	pretty.Println(artists)
 
 	return &Library{
 		Artists: artists,
@@ -529,8 +516,6 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 						return err
 					}
 
-					pretty.Println(tag)
-
 					err = db.AddTagToTrack(ctx, tag.Id, dbTrack.Id)
 					if err != nil {
 						var pgErr *pgconn.PgError
@@ -578,7 +563,6 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				ext := path.Ext(p)
 				name := fmt.Sprintf("%v%v", dbTrack.Id, ext)
 				dst := path.Join(trackDir, name)
-				fmt.Printf("p: %v\n", p)
 
 				err = utils.SymlinkReplace(p, dst)
 
