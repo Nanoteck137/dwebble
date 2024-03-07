@@ -12,11 +12,11 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 	}
 
 	res := types.GetArtists{
-		Artists: make([]types.GetArtistsItem, len(artists)),
+		Artists: make([]types.Artist, len(artists)),
 	}
 
 	for i, artist := range artists {
-		res.Artists[i] = types.GetArtistsItem{
+		res.Artists[i] = types.Artist{
 			Id:      artist.Id,
 			Name:    artist.Name,
 			Picture: ConvertArtistPictureURL(c, artist.Picture),
@@ -54,11 +54,11 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
 	}
 
 	res := types.GetArtistAlbumsById{
-		Albums: make([]types.GetArtistAlbumsByIdItem, len(albums)),
+		Albums: make([]types.Album, len(albums)),
 	}
 
 	for i, album := range albums {
-		res.Albums[i] = types.GetArtistAlbumsByIdItem{
+		res.Albums[i] = types.Album{
 			Id:       album.Id,
 			Name:     album.Name,
 			CoverArt: ConvertAlbumCoverURL(c, album.CoverArt),

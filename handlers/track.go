@@ -12,11 +12,11 @@ func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
 	}
 
 	res := types.GetTracks{
-		Tracks: make([]types.GetTracksItem, len(tracks)),
+		Tracks: make([]types.Track, len(tracks)),
 	}
 
 	for i, track := range tracks {
-		res.Tracks[i] = types.GetTracksItem{
+		res.Tracks[i] = types.Track{
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
