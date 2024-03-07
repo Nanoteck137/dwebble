@@ -46,7 +46,7 @@ var serveCmd = &cobra.Command{
 		db := database.New(conn)
 		e := server.New(db, libraryDir, workDir)
 
-		err = e.Start(":3000")
+		err = e.Start("0.0.0.0:3000")
 		if err != nil {
 			log.Fatal(err)
 		}
