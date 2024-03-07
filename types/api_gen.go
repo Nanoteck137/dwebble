@@ -55,5 +55,5 @@ type GetTracks struct {
 type GetTrackById Track
 
 type GetSync struct {
-	IsSyncing bool `json:"IsSyncing"`
+	IsSyncing bool `json:"isSyncing"`
 }

@@ -52,5 +52,5 @@ GetTracks {
 GetTrackById :: Track {}
 
 GetSync {
-    IsSyncing bool;
+    isSyncing bool;
 }
