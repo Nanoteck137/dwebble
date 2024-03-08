@@ -6,7 +6,7 @@ import (
 )
 
 func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
-	tracks, err := api.db.GetAllTracks(c.Request().Context())
+	tracks, err := api.db.GetAllTracks(c.Request().Context(), false)
 	if err != nil {
 		return err
 	}

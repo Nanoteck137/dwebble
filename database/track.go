@@ -30,7 +30,7 @@ type Track struct {
 	ArtistName string
 }
 
-func (db *Database) GetAllTracks(ctx context.Context) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, random bool) ([]Track, error) {
 	ds := dialect.From("tracks").
 		Select(
 			"tracks.id",
@@ -48,6 +48,10 @@ func (db *Database) GetAllTracks(ctx context.Context) ([]Track, error) {
 		).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))))
+
+	if random {
+		ds = ds.Order(goqu.Func("RANDOM").Asc())
+	}
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {

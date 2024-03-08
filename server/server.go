@@ -47,6 +47,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	handlers.InstallAlbumHandlers(apiGroup, apiConfig)
 	handlers.InstallTrackHandlers(apiGroup, apiConfig)
 	handlers.InstallSyncHandlers(apiGroup, apiConfig)
+	handlers.InstallQueueHandlers(apiGroup, apiConfig)
 
 	return e
 }

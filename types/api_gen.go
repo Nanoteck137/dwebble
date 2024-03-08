@@ -57,3 +57,7 @@ type GetTrackById Track
 type GetSync struct {
 	IsSyncing bool `json:"isSyncing"`
 }
+
+type PostQueue struct {
+	Tracks []Track `json:"tracks"`
+}
