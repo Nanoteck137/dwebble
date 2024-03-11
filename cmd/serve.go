@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/joho/godotenv"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/server"
 	"github.com/nanoteck137/dwebble/types"
@@ -15,25 +14,25 @@ import (
 	"github.com/spf13/viper"
 )
 
+func getDatabaseUrl() string {
+	if !viper.IsSet("database_url") {
+		log.Fatal("'database_url' not set")
+	}
+
+	return viper.GetString("database_url")
+}
+
 var serveCmd = &cobra.Command{
 	Use: "serve",
 	Run: func(cmd *cobra.Command, args []string) {
-		err := godotenv.Load()
-		if err != nil {
-			log.Fatal(err)
-		}
-
-
-		if !viper.IsSet("database_url") {
-			log.Fatal("'database_url' not set")
-		}
-
-		dbUrl := viper.GetString("database_url")
-		fmt.Printf("dbUrl: %v\n", dbUrl)
+		dbUrl := getDatabaseUrl()
 		conn, err := pgxpool.New(context.Background(), dbUrl)
 		if err != nil {
 			log.Fatal(err)
 		}
+
+		dataDir := viper.GetString("data_dir")
+		fmt.Printf("dataDir: %v\n", dataDir)
 
 		workDirPath := os.Getenv("WORK_DIR")
 		if workDirPath == "" {

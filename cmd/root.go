@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,10 +29,28 @@ func init() {
 	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "Config File")
+	rootCmd.PersistentFlags().StringP("data-dir", "d", "", "Data Dir")
+	viper.BindPFlag("data_dir", rootCmd.PersistentFlags().Lookup("data-dir"))
+}
+
+func setDefaults() {
+	viper.SetDefault("listen_addr", ":3000")
+
+	stateHome := os.Getenv("XDG_STATE_HOME")
+	if stateHome == "" {
+		userHome, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+		stateHome = path.Join(userHome, ".local", "state")
+	} 
+
+	dataDir := path.Join(stateHome, "dwebble")
+	viper.SetDefault("data_dir", dataDir)
 }
 
 func initConfig() {
-	viper.SetDefault("listen_addr", ":3000")
+	setDefaults()
 
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
