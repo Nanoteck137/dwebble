@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/nanoteck137/dwebble/server"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var serveCmd = &cobra.Command{
@@ -21,11 +23,13 @@ var serveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		dbUrl := os.Getenv("DB_URL")
-		if dbUrl == "" {
-			log.Fatal("DB_URL not set")
+
+		if !viper.IsSet("database_url") {
+			log.Fatal("'database_url' not set")
 		}
 
+		dbUrl := viper.GetString("database_url")
+		fmt.Printf("dbUrl: %v\n", dbUrl)
 		conn, err := pgxpool.New(context.Background(), dbUrl)
 		if err != nil {
 			log.Fatal(err)
@@ -46,7 +50,9 @@ var serveCmd = &cobra.Command{
 		db := database.New(conn)
 		e := server.New(db, libraryDir, workDir)
 
-		err = e.Start("0.0.0.0:3000")
+		listenAddr := viper.GetString("listen_addr")
+		fmt.Printf("listenAddr: %v\n", listenAddr)
+		err = e.Start(listenAddr)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -54,5 +60,8 @@ var serveCmd = &cobra.Command{
 }
 
 func init() {
+	// serveCmd.Flags().IntP("port", "p", 3000, "Server Port")
+	// viper.BindPFlag("port", serveCmd.Flags().Lookup("port"))
+
 	rootCmd.AddCommand(serveCmd)
 }
