@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nanoteck137/dwebble/database"
@@ -32,19 +31,13 @@ var serveCmd = &cobra.Command{
 		}
 
 		dataDir := viper.GetString("data_dir")
-		fmt.Printf("dataDir: %v\n", dataDir)
+		workDir := types.WorkDir(dataDir)
 
-		workDirPath := os.Getenv("WORK_DIR")
-		if workDirPath == "" {
-			log.Println("Warning: WORK_DIR not set, using cwd")
-			workDirPath = "./"
+		if !viper.IsSet("library_dir") {
+			log.Fatal("'library_dir' not set")
 		}
-		workDir := types.WorkDir(workDirPath)
 
-		libraryDir := os.Getenv("LIBRARY_DIR")
-		if libraryDir == "" {
-			log.Fatal("LIBRARY_DIR not set")
-		}
+		libraryDir := viper.GetString("library_dir")
 
 		db := database.New(conn)
 		e := server.New(db, libraryDir, workDir)

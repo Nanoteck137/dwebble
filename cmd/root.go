@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path"
@@ -63,6 +62,6 @@ func initConfig() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		log.Println("Failed to load config: ", err)
 	}
 }
