@@ -28,6 +28,11 @@ type Track struct {
 	ArtistName        string `json:"artistName"`
 }
 
+type Tag struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type GetArtists struct {
 	Artists []Artist `json:"artists"`
 }
@@ -60,4 +65,8 @@ type GetSync struct {
 
 type PostQueue struct {
 	Tracks []Track `json:"tracks"`
+}
+
+type GetTags struct {
+	Tags []Tag `json:"tags"`
 }

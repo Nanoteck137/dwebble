@@ -25,6 +25,11 @@ Track {
     artistName string;
 }
 
+Tag {
+    id string;
+    name string;
+}
+
 GetArtists {
     artists []Artist;
 }
@@ -57,4 +62,8 @@ GetSync {
 
 PostQueue {
     tracks []Track;
+}
+
+GetTags {
+    tags []Tag;
 }

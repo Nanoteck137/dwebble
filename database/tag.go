@@ -13,6 +13,30 @@ type Tag struct {
 	Name string
 }
 
+func (db *Database) GetAllTags(ctx context.Context) ([]Tag, error) {
+	ds := dialect.From("tags").
+		Select("id", "name")
+
+	rows, err := db.Query(ctx, ds)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []Tag
+
+	for rows.Next() {
+		var item Tag
+		err := rows.Scan(&item.Id, &item.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
 func (db *Database) GetTagByName(ctx context.Context, name string) (Tag, error) {
 	ds := dialect.From("tags").
 		Select("id", "name").
