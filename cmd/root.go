@@ -10,8 +10,8 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: "dwebble",
-	Short: "Custom music server",
+	Use:     "dwebble",
+	Short:   "Custom music server",
 	Version: "v0.3.0",
 }
 
@@ -42,7 +42,7 @@ func setDefaults() {
 			log.Fatal(err)
 		}
 		stateHome = path.Join(userHome, ".local", "state")
-	} 
+	}
 
 	dataDir := path.Join(stateHome, "dwebble")
 	viper.SetDefault("data_dir", dataDir)
@@ -54,7 +54,22 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
+		configHome := os.Getenv("XDG_CONFIG_HOME")
+		if configHome == "" {
+			userHome, err := os.UserHomeDir()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			configHome = path.Join(userHome, ".config")
+		}
+
+		configPath := path.Join(configHome, "dwebble")
+
+		viper.AddConfigPath(configPath)
+		viper.AddConfigPath("/etc/dwebble")
 		viper.AddConfigPath(".")
+
 		viper.SetConfigName("config")
 	}
 
