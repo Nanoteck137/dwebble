@@ -22,7 +22,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 		default:
 			c.JSON(500, types.ApiResponse{
 				Status: types.StatusError,
-				Error:  &types.ApiError{
+				Error: &types.ApiError{
 					Code:    500,
 					Message: err.Error(),
 				},
@@ -39,15 +39,14 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	e.Static("/tracks/original", workDir.OriginalTracksDir())
 	e.Static("/images", workDir.ImagesDir())
 
-	apiConfig := handlers.New(db, libraryDir, workDir)
-
+	h := handlers.New(db, libraryDir, workDir)
 	apiGroup := e.Group("/api/v1")
 
-	handlers.InstallArtistHandlers(apiGroup, apiConfig)
-	handlers.InstallAlbumHandlers(apiGroup, apiConfig)
-	handlers.InstallTrackHandlers(apiGroup, apiConfig)
-	handlers.InstallSyncHandlers(apiGroup, apiConfig)
-	handlers.InstallQueueHandlers(apiGroup, apiConfig)
+	h.InstallArtistHandlers(apiGroup)
+	h.InstallAlbumHandlers(apiGroup)
+	h.InstallTrackHandlers(apiGroup)
+	h.InstallSyncHandlers(apiGroup)
+	h.InstallQueueHandlers(apiGroup)
 
 	return e
 }

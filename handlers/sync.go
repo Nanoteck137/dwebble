@@ -11,24 +11,24 @@ import (
 
 var syncing = false
 
-func (api *ApiConfig) HandleGetSync(c echo.Context) error {
+func (h *Handlers) HandleGetSync(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetSync{
 		IsSyncing: syncing,
 	}))
 }
 
-func (api *ApiConfig) HandlePostSync(c echo.Context) error {
+func (h *Handlers) HandlePostSync(c echo.Context) error {
 	go func() {
 		syncing = true
 		defer func() { syncing = false }()
 
-		lib, err := library.ReadFromDir(api.libraryDir)
+		lib, err := library.ReadFromDir(h.libraryDir)
 		if err != nil {
 			log.Printf("Failed to sync: %v", err)
 			return
 		}
 
-		err = lib.Sync(api.workDir, api.libraryDir, api.db)
+		err = lib.Sync(h.workDir, h.libraryDir, h.db)
 		if err != nil {
 			log.Printf("Failed to sync: %v", err)
 			return
@@ -38,7 +38,7 @@ func (api *ApiConfig) HandlePostSync(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent);
 }
 
-func InstallSyncHandlers(group *echo.Group, apiConfig *ApiConfig) {
-	group.GET("/sync", apiConfig.HandleGetSync)
-	group.POST("/sync", apiConfig.HandlePostSync)
+func (h *Handlers) InstallSyncHandlers(group *echo.Group) {
+	group.GET("/sync", h.HandleGetSync)
+	group.POST("/sync", h.HandlePostSync)
 }

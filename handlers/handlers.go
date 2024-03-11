@@ -18,14 +18,14 @@ const (
 	DefaultTrackCoverArtName = "default_album.png"
 )
 
-type ApiConfig struct {
+type Handlers struct {
 	libraryDir string
 	workDir    types.WorkDir
 	validate   *validator.Validate
 	db         *database.Database
 }
 
-func New(db *database.Database, libraryDir string, workDir types.WorkDir) *ApiConfig {
+func New(db *database.Database, libraryDir string, workDir types.WorkDir) *Handlers {
 	var validate = validator.New()
 	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
 		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
@@ -37,7 +37,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *ApiCo
 		return name
 	})
 
-	return &ApiConfig{
+	return &Handlers{
 		libraryDir: libraryDir,
 		workDir:    workDir,
 		validate:   validate,
@@ -45,7 +45,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *ApiCo
 	}
 }
 
-func (api *ApiConfig) validateBody(body any) map[string]string {
+func (api *Handlers) validateBody(body any) map[string]string {
 	err := api.validate.Struct(body)
 	if err != nil {
 		type ValidationError struct {

@@ -5,8 +5,8 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
-	albums, err := api.db.GetAllAlbums(c.Request().Context())
+func (h *Handlers) HandleGetAlbums(c echo.Context) error {
+	albums, err := h.db.GetAllAlbums(c.Request().Context())
 	if err != nil {
 		return err
 	}
@@ -27,9 +27,9 @@ func (api *ApiConfig) HandleGetAlbums(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
+func (h *Handlers) HandleGetAlbumById(c echo.Context) error {
 	id := c.Param("id")
-	album, err := api.db.GetAlbumById(c.Request().Context(), id)
+	album, err := h.db.GetAlbumById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
@@ -42,15 +42,15 @@ func (api *ApiConfig) HandleGetAlbumById(c echo.Context) error {
 	}))
 }
 
-func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
+func (h *Handlers) HandleGetAlbumTracksById(c echo.Context) error {
 	id := c.Param("id")
 
-	album, err := api.db.GetAlbumById(c.Request().Context(), id)
+	album, err := h.db.GetAlbumById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
 
-	tracks, err := api.db.GetTracksByAlbum(c.Request().Context(), album.Id)
+	tracks, err := h.db.GetTracksByAlbum(c.Request().Context(), album.Id)
 	if err != nil {
 		return err
 	}
@@ -78,8 +78,8 @@ func (api *ApiConfig) HandleGetAlbumTracksById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func InstallAlbumHandlers(group *echo.Group, apiConfig *ApiConfig) {
-	group.GET("/albums", apiConfig.HandleGetAlbums)
-	group.GET("/albums/:id", apiConfig.HandleGetAlbumById)
-	group.GET("/albums/:id/tracks", apiConfig.HandleGetAlbumTracksById)
+func (h *Handlers) InstallAlbumHandlers(group *echo.Group) {
+	group.GET("/albums", h.HandleGetAlbums)
+	group.GET("/albums/:id", h.HandleGetAlbumById)
+	group.GET("/albums/:id/tracks", h.HandleGetAlbumTracksById)
 }

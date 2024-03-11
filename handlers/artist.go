@@ -5,8 +5,8 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
-	artists, err := api.db.GetAllArtists(c.Request().Context())
+func (h *Handlers) HandleGetArtists(c echo.Context) error {
+	artists, err := h.db.GetAllArtists(c.Request().Context())
 	if err != nil {
 		return err
 	}
@@ -26,9 +26,9 @@ func (api *ApiConfig) HandleGetArtists(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
+func (h *Handlers) HandleGetArtistById(c echo.Context) error {
 	id := c.Param("id")
-	artist, err := api.db.GetArtistById(c.Request().Context(), id)
+	artist, err := h.db.GetArtistById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
@@ -40,15 +40,15 @@ func (api *ApiConfig) HandleGetArtistById(c echo.Context) error {
 	}))
 }
 
-func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
+func (h *Handlers) HandleGetArtistAlbumsById(c echo.Context) error {
 	id := c.Param("id")
 
-	artist, err := api.db.GetArtistById(c.Request().Context(), id)
+	artist, err := h.db.GetArtistById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
 
-	albums, err := api.db.GetAlbumsByArtist(c.Request().Context(), artist.Id)
+	albums, err := h.db.GetAlbumsByArtist(c.Request().Context(), artist.Id)
 	if err != nil {
 		return err
 	}
@@ -69,8 +69,8 @@ func (api *ApiConfig) HandleGetArtistAlbumsById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func InstallArtistHandlers(group *echo.Group, apiConfig *ApiConfig) {
-	group.GET("/artists", apiConfig.HandleGetArtists)
-	group.GET("/artists/:id", apiConfig.HandleGetArtistById)
-	group.GET("/artists/:id/albums", apiConfig.HandleGetArtistAlbumsById)
+func (h *Handlers) InstallArtistHandlers(group *echo.Group) {
+	group.GET("/artists", h.HandleGetArtists)
+	group.GET("/artists/:id", h.HandleGetArtistById)
+	group.GET("/artists/:id/albums", h.HandleGetArtistAlbumsById)
 }

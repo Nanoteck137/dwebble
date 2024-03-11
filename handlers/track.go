@@ -5,8 +5,8 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
-	tracks, err := api.db.GetAllTracks(c.Request().Context(), false)
+func (h *Handlers) HandleGetTracks(c echo.Context) error {
+	tracks, err := h.db.GetAllTracks(c.Request().Context(), false)
 	if err != nil {
 		return err
 	}
@@ -34,9 +34,9 @@ func (api *ApiConfig) HandleGetTracks(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (api *ApiConfig) HandleGetTrackById(c echo.Context) error {
+func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 	id := c.Param("id")
-	track, err := api.db.GetTrackById(c.Request().Context(), id)
+	track, err := h.db.GetTrackById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (api *ApiConfig) HandleGetTrackById(c echo.Context) error {
 	}))
 }
 
-func InstallTrackHandlers(group *echo.Group, apiConfig *ApiConfig) {
-	group.GET("/tracks", apiConfig.HandleGetTracks)
-	group.GET("/tracks/:id", apiConfig.HandleGetTrackById)
+func (h *Handlers) InstallTrackHandlers(group *echo.Group) {
+	group.GET("/tracks", h.HandleGetTracks)
+	group.GET("/tracks/:id", h.HandleGetTrackById)
 }

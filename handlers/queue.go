@@ -5,8 +5,8 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func (api *ApiConfig) HandlePostQueue(c echo.Context) error {
-	tracks, err := api.db.GetAllTracks(c.Request().Context(), true)
+func (h *Handlers) HandlePostQueue(c echo.Context) error {
+	tracks, err := h.db.GetAllTracks(c.Request().Context(), true)
 	if err != nil {
 		return err
 	}
@@ -34,6 +34,6 @@ func (api *ApiConfig) HandlePostQueue(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func InstallQueueHandlers(group *echo.Group, apiConfig *ApiConfig) {
-	group.POST("/queue", apiConfig.HandlePostQueue)
+func (h *Handlers) InstallQueueHandlers(group *echo.Group) {
+	group.POST("/queue", h.HandlePostQueue)
 }
