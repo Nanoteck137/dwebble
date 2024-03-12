@@ -32,9 +32,7 @@ func init() {
 	viper.BindPFlag("data_dir", rootCmd.PersistentFlags().Lookup("data-dir"))
 }
 
-func setDefaults() {
-	viper.SetDefault("listen_addr", ":3000")
-
+func getDefaultDataDir() string {
 	stateHome := os.Getenv("XDG_STATE_HOME")
 	if stateHome == "" {
 		userHome, err := os.UserHomeDir()
@@ -44,7 +42,27 @@ func setDefaults() {
 		stateHome = path.Join(userHome, ".local", "state")
 	}
 
-	dataDir := path.Join(stateHome, "dwebble")
+	return path.Join(stateHome, "dwebble")
+}
+
+func getDefaultConfigDir() string {
+	configHome := os.Getenv("XDG_CONFIG_HOME")
+	if configHome == "" {
+		userHome, err := os.UserHomeDir()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		configHome = path.Join(userHome, ".config")
+	}
+
+	return path.Join(configHome, "dwebble")
+}
+
+func setDefaults() {
+	viper.SetDefault("listen_addr", ":3000")
+
+	dataDir := getDefaultDataDir()
 	viper.SetDefault("data_dir", dataDir)
 }
 
@@ -54,18 +72,7 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
-		configHome := os.Getenv("XDG_CONFIG_HOME")
-		if configHome == "" {
-			userHome, err := os.UserHomeDir()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			configHome = path.Join(userHome, ".config")
-		}
-
-		configPath := path.Join(configHome, "dwebble")
-
+		configPath := getDefaultConfigDir()
 		viper.AddConfigPath(configPath)
 		viper.AddConfigPath("/etc/dwebble")
 		viper.AddConfigPath(".")
