@@ -178,32 +178,48 @@ func convertMapKeysToLowercase(m map[string]string) map[string]string {
 var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)\.`)
 var test2 = regexp.MustCompile(`track(\d+).+`)
 
-func CheckFile(filepath string) (FileResult, error) {
+type Info struct {
+	Tags map[string]string
+	Duration int
+}
+
+func GetInfo(filepath string) (Info, error) {
 	// ffprobe -v quiet -print_format json -show_format -show_streams input
 	data, err := RunFFprobe("-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filepath)
 	if err != nil {
-		fmt.Printf("%v\n", err)
-		return FileResult{}, err
+		return Info{}, err
 	}
 
 	var probe probe
 	err = json.Unmarshal(data, &probe)
 	if err != nil {
-		return FileResult{}, err
+		return Info{}, err
 	}
 
 	tags := convertMapKeysToLowercase(probe.Format.Tags)
-	duration := 0
 
+	duration := 0
 	for _, s := range probe.Streams {
 		if s.CodecType == "audio" {
 			dur, err := strconv.ParseFloat(s.Duration, 32)
 			if err != nil {
-				return FileResult{}, err
+				return Info{}, err
 			}
 
 			duration = int(dur)
 		}
+	}
+
+	return Info{
+		Tags:     tags,
+		Duration: duration,
+	}, nil
+}
+
+func CheckFile(filepath string) (FileResult, error) {
+	info, err := GetInfo(filepath)
+	if err != nil {
+		return FileResult{}, err
 	}
 
 	name := path.Base(filepath)
@@ -223,8 +239,8 @@ func CheckFile(filepath string) (FileResult, error) {
 			Path:     filepath,
 			Number:   num,
 			Name:     "",
-			Duration: duration,
-			Tags:     tags,
+			Duration: info.Duration,
+			Tags:     info.Tags,
 		}, nil
 	} else {
 		num, err := strconv.Atoi(string(res[1]))
@@ -237,8 +253,8 @@ func CheckFile(filepath string) (FileResult, error) {
 			Path:     filepath,
 			Number:   num,
 			Name:     name,
-			Duration: duration,
-			Tags:     tags,
+			Duration: info.Duration,
+			Tags:     info.Tags,
 		}, nil
 	}
 }
