@@ -77,9 +77,10 @@ type FileResult struct {
 }
 
 type probeFormat struct {
-	BitRate  string            `json:"bit_rate"`
-	Tags     map[string]string `json:"tags"`
-	Duration string            `json:"duration"`
+	BitRate    string            `json:"bit_rate"`
+	Tags       map[string]string `json:"tags"`
+	Duration   string            `json:"duration"`
+	FormatName string            `json:"format_name"`
 
 	// "filename": "/Volumes/media/music/Various Artists/Cyberpunk 2077/cd1/19 - P.T. Adamczyk - Rite Of Passage.mp3",
 	// "nb_streams": 2,
@@ -122,10 +123,7 @@ type probeStream struct {
 		// "still_image": 0
 	} `json:"disposition"`
 
-	Tags struct {
-		Comment string `json:"comment"`
-		// "comment": "Cover (front)"
-	} `json:"tags"`
+	Tags map[string]string `json:"tags"`
 
 	// "codec_long_name": "PNG (Portable Network Graphics) image",
 	// "codec_tag_string": "[0][0][0][0]",
@@ -179,7 +177,7 @@ var test1 = regexp.MustCompile(`(^\d+)[-\s]*(.+)\.`)
 var test2 = regexp.MustCompile(`track(\d+).+`)
 
 type Info struct {
-	Tags map[string]string
+	Tags     map[string]string
 	Duration int
 }
 
@@ -196,7 +194,13 @@ func GetInfo(filepath string) (Info, error) {
 		return Info{}, err
 	}
 
-	tags := convertMapKeysToLowercase(probe.Format.Tags)
+	hasGlobalTags := probe.Format.FormatName != "ogg"
+
+	var tags map[string]string
+
+	if hasGlobalTags {
+		tags = convertMapKeysToLowercase(probe.Format.Tags)
+	}
 
 	duration := 0
 	for _, s := range probe.Streams {
@@ -207,6 +211,9 @@ func GetInfo(filepath string) (Info, error) {
 			}
 
 			duration = int(dur)
+			if !hasGlobalTags {
+				tags = convertMapKeysToLowercase(s.Tags)
+			}
 		}
 	}
 
