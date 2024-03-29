@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -20,6 +21,7 @@ import (
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
+	"github.com/nanoteck137/parasect"
 )
 
 type Track struct {
@@ -64,7 +66,7 @@ func getAllTrackFromDir(dir string, albumArtist string) ([]Track, error) {
 		p := path.Join(dir, entry.Name())
 
 		if utils.IsMusicFile(p) {
-			res, err := utils.CheckFile(p)
+			info, err := parasect.GetTrackInfo(p)
 			if err != nil {
 				continue
 			}
@@ -84,7 +86,7 @@ func getAllTrackFromDir(dir string, albumArtist string) ([]Track, error) {
 			}
 
 			name := ""
-			tagTitle := res.Tags["title"]
+			tagTitle := info.Tags["title"]
 			if tagTitle != "" {
 				name = tagTitle
 			} else {
@@ -93,12 +95,12 @@ func getAllTrackFromDir(dir string, albumArtist string) ([]Track, error) {
 			}
 
 			artist := albumArtist
-			tagArtist := res.Tags["artist"]
+			tagArtist := info.Tags["artist"]
 			if tagArtist != "" {
 				artist = tagArtist
 			}
 
-			tags := strings.Split(res.Tags["tags"], ",")
+			tags := strings.Split(info.Tags["tags"], ",")
 
 			var realTags []string
 			for _, tag := range tags {
@@ -109,7 +111,7 @@ func getAllTrackFromDir(dir string, albumArtist string) ([]Track, error) {
 				realTags = append(realTags, strings.TrimSpace(tag))
 			}
 
-			duration := res.Duration
+			duration := info.Duration
 
 			tracks = append(tracks, Track{
 				Path:     p,
@@ -375,6 +377,51 @@ func GetOrCreateTag(ctx context.Context, db *database.Database, name string) (da
 	return tag, nil
 }
 
+func (lib *Library) syncArtists(ctx context.Context, db *database.Database, imageDir string) (map[string]database.Artist, error) {
+	artists := make(map[string]database.Artist)
+
+	for _, artist := range lib.Artists {
+		fmt.Println("Syncing:", artist.Name)
+
+		dbArtist, err := GetOrCreateArtist(ctx, db, artist)
+		if err != nil {
+			return nil, err
+		}
+
+		var artistChanges database.ArtistChanges
+		artistChanges.Available = true
+		artistChanges.Name.Value = artist.Name
+		artistChanges.Name.Changed = dbArtist.Name != artist.Name
+
+		if artist.Picture != "" {
+			p := path.Join(artist.Path, artist.Picture)
+			ext := path.Ext(artist.Picture)
+			name := "artist_" + dbArtist.Id + ext
+			dst := path.Join(imageDir, name)
+			err := utils.SymlinkReplace(p, dst)
+			if err != nil {
+				return nil, err
+			}
+
+			artistChanges.Picture.Value = sql.NullString{
+				String: name,
+				Valid:  true,
+			}
+
+			artistChanges.Picture.Changed = true
+		}
+
+		err = db.UpdateArtist(ctx, dbArtist.Id, artistChanges)
+		if err != nil {
+			return nil, err
+		}
+
+		artists[artist.Name] = dbArtist
+	}
+
+	return artists, nil
+}
+
 func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Database) error {
 	trackDir := workDir.OriginalTracksDir()
 	err := os.MkdirAll(trackDir, 0755)
@@ -417,46 +464,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 		return err
 	}
 
-	artists := make(map[string]database.Artist)
-
-	for _, artist := range lib.Artists {
-		fmt.Println("Syncing:", artist.Name)
-
-		dbArtist, err := GetOrCreateArtist(ctx, db, artist)
-		if err != nil {
-			return err
-		}
-
-		var artistChanges database.ArtistChanges
-		artistChanges.Available = true
-		artistChanges.Name.Value = artist.Name
-		artistChanges.Name.Changed = dbArtist.Name != artist.Name
-
-		if artist.Picture != "" {
-			p := path.Join(artist.Path, artist.Picture)
-			ext := path.Ext(artist.Picture)
-			name := "artist_" + dbArtist.Id + ext
-			dst := path.Join(imageDir, name)
-			err := utils.SymlinkReplace(p, dst)
-			if err != nil {
-				return err
-			}
-
-			artistChanges.Picture.Value = sql.NullString{
-				String: name,
-				Valid:  true,
-			}
-
-			artistChanges.Picture.Changed = true
-		}
-
-		err = db.UpdateArtist(ctx, dbArtist.Id, artistChanges)
-		if err != nil {
-			return err
-		}
-
-		artists[artist.Name] = dbArtist
-	}
+	artists, err := lib.syncArtists(ctx, db, imageDir)
 
 	for _, artist := range lib.Artists {
 		dbArtist := artists[artist.Name]
@@ -472,12 +480,12 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 			albumChanges.Name.Value = album.Name
 			albumChanges.Name.Changed = dbAlbum.Name != album.Name
 
+			albumCoverRealPath := path.Join(album.Path, album.CoverArt)
 			if album.CoverArt != "" {
-				p := path.Join(album.Path, album.CoverArt)
 				ext := path.Ext(album.CoverArt)
 				name := "album_" + dbAlbum.Id + ext
 				dst := path.Join(imageDir, name)
-				err := utils.SymlinkReplace(p, dst)
+				err := utils.SymlinkReplace(albumCoverRealPath, dst)
 				if err != nil {
 					return err
 				}
@@ -488,6 +496,11 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				}
 
 				albumChanges.CoverArt.Changed = true
+
+				dbAlbum.CoverArt = sql.NullString{
+					String: name,
+					Valid:  true,
+				}
 			}
 
 			err = db.UpdateAlbum(ctx, dbAlbum.Id, albumChanges)
@@ -566,14 +579,13 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 
 				err = utils.SymlinkReplace(p, dst)
 
-				transcodeName := fmt.Sprintf("%v.mp3", dbTrack.Id)
+				transcodeName := fmt.Sprintf("%v.opus", dbTrack.Id)
 				dstTranscode := path.Join(transcodeDir, transcodeName)
 
 				_, err = os.Stat(dstTranscode)
 				if err != nil {
 					if os.IsNotExist(err) {
-						// TODO(patrik): Temp
-						err := utils.RunFFmpeg(true, "-y", "-i", p, dstTranscode)
+						err := parasect.RunFFmpeg(true, "-y", "-i", p, "-vbr", "on", "-b:a", "128k", dstTranscode)
 						if err != nil {
 							return err
 						}
