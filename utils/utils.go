@@ -11,6 +11,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/nanoteck137/parasect"
 	"github.com/nrednav/cuid2"
 )
 
@@ -24,7 +25,6 @@ func createIdGenerator() func() string {
 
 	return res
 }
-
 
 var validExts []string = []string{
 	"wav",
@@ -197,6 +197,15 @@ func IsValidImageExt(ext string) bool {
 	}
 
 	return false
+}
+
+var lossyFormatExts = []string{
+	"opus",
+	"mp3",
+}
+
+func IsLossyFormatExt(ext string) bool {
+	return parasect.IsValidExt(lossyFormatExts, ext)
 }
 
 func FormatTime(t int) string {

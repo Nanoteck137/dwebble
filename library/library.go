@@ -583,7 +583,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 
 				var mobileSrc string
 
-				if trackExt == ".opus" || trackExt == ".mp3" {
+				if utils.IsLossyFormatExt(trackExt) {
 					mobileSrc = trackPath
 				} else {
 					transcodeName := fmt.Sprintf("%v.opus", dbTrack.Id)
