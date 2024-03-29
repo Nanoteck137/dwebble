@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -572,43 +571,56 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				trackChanges.Duration.Value = track.Duration
 				trackChanges.Duration.Changed = dbTrack.Duration != track.Duration
 
-				p := track.Path
-				ext := path.Ext(p)
-				name := fmt.Sprintf("%v%v", dbTrack.Id, ext)
+				trackPath := track.Path
+				trackExt := path.Ext(trackPath)
+				name := dbTrack.Id + trackExt
 				dst := path.Join(trackDir, name)
 
-				err = utils.SymlinkReplace(p, dst)
-
-				transcodeName := fmt.Sprintf("%v.opus", dbTrack.Id)
-				dstTranscode := path.Join(transcodeDir, transcodeName)
-
-				_, err = os.Stat(dstTranscode)
-				if err != nil {
-					if os.IsNotExist(err) {
-						err := parasect.RunFFmpeg(true, "-y", "-i", p, "-vbr", "on", "-b:a", "128k", dstTranscode)
-						if err != nil {
-							return err
-						}
-					} else {
-						return err
-					}
-				}
-
-				src, err := filepath.Rel(mobileTrackDir, dstTranscode)
+				err = utils.SymlinkReplace(trackPath, dst)
 				if err != nil {
 					return err
 				}
 
-				dst = path.Join(mobileTrackDir, transcodeName)
-				err = utils.SymlinkReplace(src, dst)
+				var mobileSrc string
+
+				if trackExt == ".opus" || trackExt == ".mp3" {
+					mobileSrc = trackPath
+				} else {
+					transcodeName := fmt.Sprintf("%v.opus", dbTrack.Id)
+					dstTranscode := path.Join(transcodeDir, transcodeName)
+
+					_, err = os.Stat(dstTranscode)
+					if err != nil {
+						if os.IsNotExist(err) {
+							err := parasect.RunFFmpeg(true, "-y", "-i", trackPath, "-vbr", "on", "-b:a", "128k", dstTranscode)
+							if err != nil {
+								return err
+							}
+						} else {
+							return err
+						}
+					}
+
+					src, err := filepath.Abs(dstTranscode)
+					if err != nil {
+						return err
+					}
+
+					mobileSrc = src
+				}
+
+				mobileSrcExt := filepath.Ext(mobileSrc)
+				mobileSrcName := dbTrack.Id + mobileSrcExt
+				dst = path.Join(mobileTrackDir, mobileSrcName)
+				err = utils.SymlinkReplace(mobileSrc, dst)
 				if err != nil {
 					return err
 				}
 
 				trackChanges.BestQualityFile.Value = name
 				trackChanges.BestQualityFile.Changed = dbTrack.BestQualityFile != name
-				trackChanges.MobileQualityFile.Value = transcodeName
-				trackChanges.MobileQualityFile.Changed = dbTrack.MobileQualityFile != transcodeName
+				trackChanges.MobileQualityFile.Value = mobileSrcName
+				trackChanges.MobileQualityFile.Changed = dbTrack.MobileQualityFile != mobileSrcName
 				trackChanges.ArtistId.Value = artist.Id
 				trackChanges.ArtistId.Changed = dbTrack.ArtistId != artist.Id
 
