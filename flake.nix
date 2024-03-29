@@ -21,6 +21,7 @@
             ffmpeg
             air
             go
+            opusTools
             pyrin.packages.${system}.default
           ];
         };
