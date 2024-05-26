@@ -68,7 +68,14 @@ func (api *Handlers) validateBody(body any) map[string]string {
 func ConvertURL(c echo.Context, path string) string {
 	host := c.Request().Host
 
-	return fmt.Sprintf("http://%s%s", host, path)
+	scheme := "http"
+
+	h := c.Request().Header.Get("X-Forwarded-Proto")
+	if h != "" {
+		scheme = h
+	}
+
+	return fmt.Sprintf("%s://%s%s", scheme, host, path)
 }
 
 func ConvertImageURL(c echo.Context, val sql.NullString, def string) string {
