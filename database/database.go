@@ -2,55 +2,93 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
-	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgxpool"
+	goqusqlite3 "github.com/doug-martin/goqu/v9/dialect/sqlite3"
+	"github.com/nanoteck137/dwebble/types"
+
+	_ "github.com/mattn/go-sqlite3"
 )
+
+var dialect = goqu.Dialect("sqlite_returning")
 
 type ToSQL interface {
 	ToSQL() (string, []interface{}, error)
 }
 
+type Connection interface {
+	Query(query string, args ...any) (*sql.Rows, error)
+	QueryRow(query string, args ...any) *sql.Row
+	Exec(query string, args ...any) (sql.Result, error)
+}
+
 type Database struct {
-	conn *pgxpool.Pool
+	RawConn *sql.DB
+	Conn Connection
 }
 
-func (db *Database) Query(ctx context.Context, s ToSQL) (pgx.Rows, error) {
+func New(conn *sql.DB) *Database {
+	return &Database{
+		RawConn: conn,
+		Conn: conn,
+	}
+}
+
+func Open(workDir types.WorkDir) (*Database, error) {
+	dbUrl := fmt.Sprintf("file:%s?_foreign_keys=true", workDir.DatabaseFile())
+
+	conn, err := sql.Open("sqlite3", dbUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return New(conn), nil
+}
+
+func (db *Database) Begin() (*Database, *sql.Tx, error) {
+	tx, err := db.RawConn.Begin()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &Database{
+		RawConn: db.RawConn,
+		Conn: tx,
+	}, tx, nil
+}
+
+func (db *Database) Query(ctx context.Context, s ToSQL) (*sql.Rows, error) {
 	sql, params, err := s.ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
-	return db.conn.Query(ctx, sql, params...)
+	return db.Conn.Query(sql, params...)
 }
 
-func (db *Database) QueryRow(ctx context.Context, s ToSQL) (pgx.Row, error) {
+func (db *Database) QueryRow(ctx context.Context, s ToSQL) (*sql.Row, error) {
 	sql, params, err := s.ToSQL()
 	if err != nil {
 		return nil, err
 	}
 
-	row := db.conn.QueryRow(ctx, sql, params...)
+	row := db.Conn.QueryRow(sql, params...)
 	return row, nil
 }
 
-func (db *Database) Exec(ctx context.Context, s ToSQL) (pgconn.CommandTag, error) {
+func (db *Database) Exec(ctx context.Context, s ToSQL) (sql.Result, error) {
 	sql, params, err := s.ToSQL()
 	if err != nil {
-		return pgconn.NewCommandTag(""), err
+		return nil, err
 	}
 
-	return db.conn.Exec(ctx, sql, params...)
+	return db.Conn.Exec(sql, params...)
 }
 
-var dialect = goqu.Dialect("postgres")
-
-func New(conn *pgxpool.Pool) *Database {
-	return &Database{
-		conn: conn,
-	}
+func init() {
+	opts := goqusqlite3.DialectOptions()
+	opts.SupportsReturn = true
+	goqu.RegisterDialect("sqlite_returning", opts)
 }
-

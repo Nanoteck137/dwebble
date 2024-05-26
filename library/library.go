@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	_ "image/jpeg"
+	_ "image/png"
 	"log"
 	"os"
 	"path"
@@ -509,23 +511,22 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 
 			for _, track := range album.Tracks {
 				artist := artists[track.Artist]
-
 				coverArt := dbAlbum.CoverArt
 
 				dbTrack, err := GetOrCreateTrack(ctx, db, &track, dbAlbum.Id, artist.Id)
 				if err != nil {
-					return err
+					log.Fatal(err)
 				}
 
 				tags, err := db.GetTrackTags(ctx, dbTrack.Id)
 				if err != nil {
-					return err
+					log.Fatal(err)
 				}
 
 				for _, tag := range track.Tags {
 					tag, err := GetOrCreateTag(ctx, db, tag)
 					if err != nil {
-						return err
+						log.Fatal(err)
 					}
 
 					err = db.AddTagToTrack(ctx, tag.Id, dbTrack.Id)
@@ -537,7 +538,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 							}
 						}
 
-						return err
+						log.Fatal(err)
 					}
 				}
 
@@ -555,7 +556,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 					if !hasTag(tag.Name) {
 						err := db.RemoveTagFromTrack(ctx, tag.Id, dbTrack.Id)
 						if err != nil {
-							return err
+							log.Fatal(err)
 						}
 					}
 				}
@@ -578,7 +579,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 
 				err = utils.SymlinkReplace(trackPath, dst)
 				if err != nil {
-					return err
+					log.Fatal(err)
 				}
 
 				var mobileSrc string
@@ -592,18 +593,18 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 					_, err = os.Stat(dstTranscode)
 					if err != nil {
 						if os.IsNotExist(err) {
-							err := parasect.RunFFmpeg(true, "-y", "-i", trackPath, "-vbr", "on", "-b:a", "128k", dstTranscode)
+							err = parasect.RunFFmpeg(true, "-y", "-i", trackPath, "-vbr", "on", "-b:a", "128k", dstTranscode)
 							if err != nil {
-								return err
+								log.Fatal(err)
 							}
 						} else {
-							return err
+							log.Fatal(err)
 						}
 					}
 
 					src, err := filepath.Abs(dstTranscode)
 					if err != nil {
-						return err
+						log.Fatal(err)
 					}
 
 					mobileSrc = src
@@ -614,7 +615,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 				dst = path.Join(mobileTrackDir, mobileSrcName)
 				err = utils.SymlinkReplace(mobileSrc, dst)
 				if err != nil {
-					return err
+					log.Fatal(err)
 				}
 
 				trackChanges.BestQualityFile.Value = name
@@ -626,7 +627,7 @@ func (lib *Library) Sync(workDir types.WorkDir, dir string, db *database.Databas
 
 				err = db.UpdateTrack(ctx, dbTrack.Id, trackChanges)
 				if err != nil {
-					return err
+					log.Fatal(err)
 				}
 			}
 		}

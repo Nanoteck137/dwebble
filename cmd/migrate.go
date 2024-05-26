@@ -4,6 +4,7 @@ import (
 	"log"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/migrations"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
@@ -13,73 +14,86 @@ var migrateCmd = &cobra.Command{
 	Use: "migrate",
 }
 
-var migrateUpCmd = &cobra.Command{
+func runMigrateUp(db *database.Database) error {
+	return goose.Up(db.RawConn, ".")
+}
+
+var upCmd = &cobra.Command{
 	Use: "up",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbUrl := getDatabaseUrl()
+		workDir, err := config.BootstrapDataDir()
 
-		db, err := goose.OpenDBWithDriver("pgx", dbUrl)
+		db, err := database.Open(workDir)
 		if err != nil {
-			log.Fatalf("migrate: failed to open database: %v", err)
+			log.Fatal(err)
 		}
 
-		err = goose.Up(db, ".")
+
+		err = runMigrateUp(db)
 		if err != nil {
-			log.Fatalf("migrate: failed to upgrade migrations: %v", err)
+			log.Fatal(err)
 		}
 	},
 }
 
-var migrateDownCmd = &cobra.Command{
+var downCmd = &cobra.Command{
 	Use: "down",
 	Run: func(cmd *cobra.Command, args []string) {
-		dbUrl := getDatabaseUrl()
+		workDir, err := config.BootstrapDataDir()
 
-		db, err := goose.OpenDBWithDriver("pgx", dbUrl)
+		db, err := database.Open(workDir)
 		if err != nil {
-			log.Fatalf("migrate: failed to open database: %v", err)
+			log.Fatal(err)
 		}
 
-		err = goose.Down(db, ".")
+		err = goose.Down(db.RawConn, ".")
 		if err != nil {
-			log.Fatalf("migrate: failed to downgrade migrations: %v", err)
+			log.Fatal(err)
 		}
 	},
 }
 
-var migrateCreateCmd = &cobra.Command{
-	Use:  "create <MIGRATION_NAME>",
+// TODO(patrik): Move to dev cmd
+var createCmd = &cobra.Command{
+	Use: "create <MIGRATION_NAME>",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		dbUrl := getDatabaseUrl()
+		name := args[0]
 
-		db, err := goose.OpenDBWithDriver("pgx", dbUrl)
+		workDir, err := config.BootstrapDataDir()
+
+		db, err := database.Open(workDir)
 		if err != nil {
-			log.Fatalf("migrate: failed to open database: %v", err)
+			log.Fatal(err)
 		}
 
-		name := args[0]
-		err = goose.Create(db, "./migrations", name, "sql")
+		err = goose.Create(db.RawConn, "./migrations", name, "sql")
 		if err != nil {
-			log.Fatalf("migrate: failed to create new migration: %v", err)
+			log.Fatal(err)
 		}
 	},
 }
 
-var migrateFixCmd = &cobra.Command{
+// TODO(patrik): Move to dev cmd?
+var fixCmd = &cobra.Command{
 	Use: "fix",
 	Run: func(cmd *cobra.Command, args []string) {
 		err := goose.Fix("./migrations")
 		if err != nil {
-			log.Fatalf("migrate: failed to fix migrations: %v", err)
+			log.Fatal(err)
 		}
 	},
 }
 
 func init() {
+	// TODO(patrik): Move?
 	goose.SetBaseFS(migrations.Migrations)
+	goose.SetDialect("sqlite3")
 
-	migrateCmd.AddCommand(migrateUpCmd, migrateDownCmd, migrateCreateCmd, migrateFixCmd)
+	migrateCmd.AddCommand(upCmd)
+	migrateCmd.AddCommand(downCmd)
+	migrateCmd.AddCommand(createCmd)
+	migrateCmd.AddCommand(fixCmd)
 
 	rootCmd.AddCommand(migrateCmd)
 }
