@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/server"
 	"github.com/spf13/cobra"
 )
 
@@ -28,13 +29,12 @@ var serveCmd = &cobra.Command{
 
 		_ = db
 
-		// e := server.New(db, libraryDir, workDir)
-		//
-		// listenAddr := viper.GetString("listen_addr")
-		// err = e.Start(listenAddr)
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
+		e := server.New(db, config.LibraryDir, workDir)
+
+		err = e.Start(config.ListenAddr)
+		if err != nil {
+			log.Fatal(err)
+		}
 	},
 }
 

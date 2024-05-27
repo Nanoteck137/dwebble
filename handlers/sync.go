@@ -28,7 +28,7 @@ func (h *Handlers) HandlePostSync(c echo.Context) error {
 			return
 		}
 
-		err = lib.Sync(h.workDir, h.libraryDir, h.db)
+		err = lib.Sync(h.workDir, h.db)
 		if err != nil {
 			log.Printf("Failed to sync: %v", err)
 			return
