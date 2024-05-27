@@ -7,7 +7,7 @@ import (
 var (
 	ErrNoArtist = NewApiError(http.StatusNotFound, "Artist not found")
 	ErrNoAlbum  = NewApiError(http.StatusNotFound, "Album not found")
-	ErrNoTrack  = NewApiError(http.StatusNotFound, "Track not f	und")
+	ErrNoTrack  = NewApiError(http.StatusNotFound, "Track not found")
 
 	ErrInvalidAuthHeader = NewApiError(http.StatusUnauthorized, "Invalid Auth Header")
 	ErrInvalidToken      = NewApiError(http.StatusUnauthorized, "Invalid Token")
