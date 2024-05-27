@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
@@ -106,6 +107,30 @@ func (db *Database) GetAlbumByPath(ctx context.Context, path string) (Album, err
 	err = row.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
 	if err != nil {
 		if err == pgx.ErrNoRows {
+			return Album{}, types.ErrNoAlbum
+		}
+
+		return Album{}, err
+	}
+
+	return item, nil
+}
+
+func (db *Database) GetAlbumByName(ctx context.Context, name string) (Album, error) {
+	ds := dialect.From("albums").
+		Select("id", "name", "cover_art", "artist_id", "path").
+		Where(goqu.C("name").Eq(name)).
+		Prepared(true)
+
+	row, err := db.QueryRow(ctx, ds)
+	if err != nil {
+		return Album{}, err
+	}
+
+	var item Album
+	err = row.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
 			return Album{}, types.ErrNoAlbum
 		}
 

@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
@@ -104,7 +105,7 @@ func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, e
 	var item Artist
 	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return Artist{}, types.ErrNoArtist
 		}
 

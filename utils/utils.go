@@ -208,6 +208,10 @@ func IsLossyFormatExt(ext string) bool {
 	return parasect.IsValidExt(lossyFormatExts, ext)
 }
 
+func IsFileLossyFormat(file string) bool {
+	return IsLossyFormatExt(path.Ext(file))
+}
+
 func FormatTime(t int) string {
 	s := t % 60
 	m := t / 60
