@@ -10,7 +10,6 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
@@ -845,17 +844,34 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 		AlbumMapping:  make(map[*LibraryAlbum]database.Album),
 	}
 
+	err := db.MarkAllArtistsUnavailable(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = db.MarkAllAlbumsUnavailable(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = db.MarkAllTracksUnavailable(ctx)
+	if err != nil {
+		return err
+	}
+
 	for _, artist := range lib.Artists {
 		dbArtist, err := syncContext.GetOrCreateArtist(ctx, db, artist)
 		if err != nil {
 			return err
 		}
 
-		pretty.Println(dbArtist)
-		_ = artist
+		err = db.UpdateArtist(ctx, dbArtist.Id, database.ArtistChanges{
+			Available: true,
+		})
+		if err != nil {
+			return err
+		}
 	}
-
-	pretty.Println(syncContext)
 
 	for _, artist := range lib.Artists {
 		for _, album := range artist.Albums {
@@ -863,8 +879,6 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 			if err != nil {
 				return err
 			}
-
-			_ = dbAlbum
 
 			for _, track := range album.Tracks {
 				dbTrack, err := syncContext.GetOrCreateTrack(ctx, db, track)
@@ -911,7 +925,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				fmt.Printf("originalMedia: %v\n", originalMedia)
 				fmt.Printf("mobileMedia: %v\n", mobileMedia)
 
-				originalMediaSymlink := path.Join(workDir.OriginalTracksDir(), dbTrack.Id+path.Ext(originalMedia)) 
+				originalMediaSymlink := path.Join(workDir.OriginalTracksDir(), dbTrack.Id+path.Ext(originalMedia))
 				err = utils.SymlinkReplace(originalMedia, originalMediaSymlink)
 				if err != nil {
 					return err
@@ -930,8 +944,19 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				changes.MobileQualityFile.Changed = true
 				changes.Duration.Value = trackInfo.Duration
 				changes.Duration.Changed = true
+				changes.Available = true
 
-				db.UpdateTrack(ctx, dbTrack.Id, changes)
+				err = db.UpdateTrack(ctx, dbTrack.Id, changes)
+				if err != nil {
+					return err
+				}
+			}
+
+			err = db.UpdateAlbum(ctx, dbAlbum.Id, database.AlbumChanges{
+				Available: true,
+			})
+			if err != nil {
+				return err
 			}
 		}
 	}
