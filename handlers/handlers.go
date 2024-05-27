@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
@@ -23,6 +24,8 @@ type Handlers struct {
 	workDir    types.WorkDir
 	validate   *validator.Validate
 	db         *database.Database
+
+	jwtValidator *jwt.Validator
 }
 
 func New(db *database.Database, libraryDir string, workDir types.WorkDir) *Handlers {
@@ -42,6 +45,8 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *Handl
 		workDir:    workDir,
 		validate:   validate,
 		db:         db,
+
+		jwtValidator: jwt.NewValidator(jwt.WithIssuedAt()),
 	}
 }
 

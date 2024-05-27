@@ -5,15 +5,17 @@ go 1.21.5
 require (
 	github.com/MadAppGang/httplog/echolog v1.3.0
 	github.com/doug-martin/goqu/v9 v9.19.0
+	github.com/faceair/jio v1.0.1
 	github.com/go-playground/validator/v10 v10.16.0
-	github.com/jackc/pgerrcode v0.0.0-20220416144525-469b46aa5efa
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/jackc/pgx/v5 v5.5.1
-	github.com/joho/godotenv v1.5.1
 	github.com/kr/pretty v0.3.1
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/mattn/go-sqlite3 v1.14.7
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nanoteck137/parasect v0.2.1
 	github.com/nrednav/cuid2 v1.0.0
+	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/pressly/goose/v3 v3.17.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
@@ -42,8 +44,6 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
