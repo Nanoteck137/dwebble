@@ -875,6 +875,11 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				originalMedia := track.FilePath
 				mobileMedia := track.FilePath
 
+				trackInfo, err := parasect.GetTrackInfo(originalMedia)
+				if err != nil {
+					return err
+				}
+
 				if !utils.IsFileLossyFormat(originalMedia) {
 					trackTranscode := path.Join(workDir.TranscodeDir(), dbTrack.Id+".opus")
 
@@ -918,13 +923,13 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					return err
 				}
 
-				_ = dbTrack
-
 				changes := database.TrackChanges{}
 				changes.BestQualityFile.Value = path.Base(originalMediaSymlink)
 				changes.BestQualityFile.Changed = true
 				changes.MobileQualityFile.Value = path.Base(mobileMediaSymlink)
 				changes.MobileQualityFile.Changed = true
+				changes.Duration.Value = trackInfo.Duration
+				changes.Duration.Changed = true
 
 				db.UpdateTrack(ctx, dbTrack.Id, changes)
 			}
