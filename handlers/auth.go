@@ -58,7 +58,7 @@ func Body[T any](c echo.Context, schema jio.Schema) (T, error) {
 
 // TODO(patrik): Check confirmPassword
 func (h *Handlers) HandlePostSignup(c echo.Context) error {
-	body, err := Body[types.PostAuthSignupBody](c, types.PostAuthSignupBodySchema); 
+	body, err := Body[types.PostAuthSignupBody](c, types.PostAuthSignupBodySchema)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (h *Handlers) HandlePostSignup(c echo.Context) error {
 }
 
 func (h *Handlers) HandlePostSignin(c echo.Context) error {
-	body, err := Body[types.PostAuthSigninBody](c, types.PostAuthSigninBodySchema); 
+	body, err := Body[types.PostAuthSigninBody](c, types.PostAuthSigninBodySchema)
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,6 @@ func (h *Handlers) HandleGetMe(c echo.Context) error {
 		Username: user.Username,
 	}))
 }
-
 
 func (h *Handlers) InstallAuthHandlers(group *echo.Group) {
 	group.POST("/auth/signup", h.HandlePostSignup)

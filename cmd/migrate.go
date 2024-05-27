@@ -28,7 +28,6 @@ var upCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-
 		err = runMigrateUp(db)
 		if err != nil {
 			log.Fatal(err)
@@ -55,7 +54,7 @@ var downCmd = &cobra.Command{
 
 // TODO(patrik): Move to dev cmd
 var createCmd = &cobra.Command{
-	Use: "create <MIGRATION_NAME>",
+	Use:  "create <MIGRATION_NAME>",
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]

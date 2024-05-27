@@ -31,6 +31,6 @@ func (d WorkDir) ImagesDir() string {
 }
 
 type Change[T any] struct {
-	Value T
-	Changed bool 
+	Value   T
+	Changed bool
 }

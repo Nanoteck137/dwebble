@@ -1,3 +1,4 @@
+//go:build dev
 // +build dev
 
 package cmd
@@ -5,9 +6,9 @@ package cmd
 import "github.com/spf13/cobra"
 
 var mockCmd = &cobra.Command{
-	Use: "mock",
+	Use:   "mock",
 	Short: "Generate mock data",
-	Run: func(cmd *cobra.Command, args []string) {},
+	Run:   func(cmd *cobra.Command, args []string) {},
 }
 
 func init() {

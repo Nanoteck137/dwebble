@@ -26,13 +26,13 @@ type Connection interface {
 
 type Database struct {
 	RawConn *sql.DB
-	Conn Connection
+	Conn    Connection
 }
 
 func New(conn *sql.DB) *Database {
 	return &Database{
 		RawConn: conn,
-		Conn: conn,
+		Conn:    conn,
 	}
 }
 
@@ -55,7 +55,7 @@ func (db *Database) Begin() (*Database, *sql.Tx, error) {
 
 	return &Database{
 		RawConn: db.RawConn,
-		Conn: tx,
+		Conn:    tx,
 	}, tx, nil
 }
 

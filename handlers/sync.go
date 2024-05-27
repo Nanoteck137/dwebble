@@ -35,7 +35,7 @@ func (h *Handlers) HandlePostSync(c echo.Context) error {
 		}
 	}()
 
-	return c.NoContent(http.StatusNoContent);
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (h *Handlers) InstallSyncHandlers(group *echo.Group) {

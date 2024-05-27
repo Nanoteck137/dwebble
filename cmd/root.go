@@ -55,7 +55,6 @@ func (c *Config) WorkDir() types.WorkDir {
 func (c *Config) BootstrapDataDir() (types.WorkDir, error) {
 	workDir := c.WorkDir()
 
-
 	err := os.MkdirAll(workDir.OriginalTracksDir(), 0755)
 	if err != nil {
 		return workDir, err
