@@ -5,7 +5,7 @@ CREATE TABLE playlists (
 
     owner_id TEXT NOT NULL,
 
-    CONSTRAINT users_pk PRIMARY KEY(id),
+    CONSTRAINT playlists_pk PRIMARY KEY(id),
 
     CONSTRAINT playlists_owner_id_fk FOREIGN KEY (owner_id)
         REFERENCES users(id)
