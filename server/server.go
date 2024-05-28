@@ -49,6 +49,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	h.InstallQueueHandlers(apiGroup)
 	h.InstallTagHandlers(apiGroup)
 	h.InstallAuthHandlers(apiGroup)
+	h.InstallPlaylistHandlers(apiGroup)
 
 	return e
 }

@@ -35,6 +35,11 @@ type Tag struct {
 	Name string `json:"name"`
 }
 
+type Playlist struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type GetArtists struct {
 	Artists []Artist `json:"artists"`
 }
@@ -107,4 +112,28 @@ type PostAuthSignin struct {
 type GetAuthMe struct {
 	Id       string `json:"id"`
 	Username string `json:"username"`
+}
+
+type PostPlaylist Playlist
+
+type PostPlaylistBody struct {
+	Name string `json:"name"`
+}
+
+var PostPlaylistBodySchema = jio.Object().Keys(jio.K{
+	"name": jio.String().Required(),
+})
+
+type PostPlaylistItemsByIdBody struct {
+	Tracks []string `json:"tracks"`
+}
+
+var PostPlaylistItemsByIdBodySchema = jio.Object().Keys(jio.K{
+	"tracks": jio.Array().Items(jio.String()).Min(1).Required(),
+})
+
+type GetPlaylistById struct {
+	Playlist
+
+	Items []Track `json:"items"`
 }
