@@ -5,10 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"sort"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -70,6 +68,7 @@ func (db *Database) GetPlaylistById(ctx context.Context, id string) (Playlist, e
 }
 
 type PlaylistItem struct {
+	Id         string
 	PlaylistId string
 	TrackId    string
 	ItemIndex  int
@@ -77,8 +76,9 @@ type PlaylistItem struct {
 
 func (db *Database) GetPlaylistItems(ctx context.Context, id string) ([]PlaylistItem, error) {
 	ds := dialect.From("playlist_items").
-		Select("playlist_id", "track_id", "item_index").
+		Select("id", "playlist_id", "track_id", "item_index").
 		Where(goqu.I("playlist_id").Eq(id)).
+		Order(goqu.I("item_index").Asc()).
 		Prepared(true)
 
 	rows, err := db.Query(ctx, ds)
@@ -90,7 +90,7 @@ func (db *Database) GetPlaylistItems(ctx context.Context, id string) ([]Playlist
 	var items []PlaylistItem
 	for rows.Next() {
 		var item PlaylistItem
-		err := rows.Scan(&item.PlaylistId, &item.TrackId, &item.ItemIndex)
+		err := rows.Scan(&item.Id, &item.PlaylistId, &item.TrackId, &item.ItemIndex)
 		if err != nil {
 			return nil, err
 		}
@@ -137,16 +137,8 @@ func (db *Database) AddItemsToPlaylist(ctx context.Context, playlistId string, t
 	}
 
 	for i := range items {
-		items[i].ItemIndex = i
+		items[i].ItemIndex = i + 1
 	}
-
-	pretty.Println(items)
-
-	sort.Slice(items, func(i, j int) bool {
-		return items[i].ItemIndex > items[j].ItemIndex
-	})
-
-	pretty.Println(items)
 
 	maxIndex := 0
 	for _, item := range items {
@@ -157,18 +149,35 @@ func (db *Database) AddItemsToPlaylist(ctx context.Context, playlistId string, t
 
 	fmt.Printf("nextIndex: %v\n", nextIndex)
 
-	// ds := dialect.Insert("playlist_items").
-	// 	Rows(goqu.Record{
-	// 		"playlist_id": playlistId,
-	// 		"track_id":    trackIds[0],
-	// 		"item_index":  0,
-	// 	}).
-	// 	Prepared(true)
-	//
-	// _, err := db.Exec(ctx, ds)
-	// if err != nil {
-	// 	return err
-	// }
+	for i, trackId := range trackIds {
+		ds := dialect.Insert("playlist_items").
+			Rows(goqu.Record{
+				"id":          utils.CreateId(),
+				"playlist_id": playlistId,
+				"track_id":    trackId,
+				"item_index":  nextIndex + i,
+			}).
+			Prepared(true)
+
+		_, err = db.Exec(ctx, ds)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, item := range items {
+		ds := dialect.Update("playlist_items").
+			Set(goqu.Record{
+				"item_index": item.ItemIndex,
+			}).
+			Where(goqu.I("id").Eq(item.Id)).
+			Prepared(true)
+
+		_, err := db.Exec(ctx, ds)
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
