@@ -1,0 +1,27 @@
+-- +goose Up
+CREATE TABLE playlists (
+    id TEXT,
+    name TEXT NOT NULL,
+
+    owner_id TEXT NOT NULL,
+
+    CONSTRAINT users_pk PRIMARY KEY(id),
+
+    CONSTRAINT playlists_owner_id_fk FOREIGN KEY (owner_id)
+        REFERENCES users(id)
+);
+
+CREATE TABLE playlist_items (
+    playlist_id TEXT NOT NULL,
+    track_id TEXT NOT NULL,
+
+    CONSTRAINT playlist_items_playlist_id_fk FOREIGN KEY (playlist_id)
+        REFERENCES playlist(id),
+
+    CONSTRAINT playlist_items_track_id_fk FOREIGN KEY (track_id)
+        REFERENCES tracks(id)
+);
+
+-- +goose Down
+DROP TABLE playlists;
+DROP TABLE playlist_items;
