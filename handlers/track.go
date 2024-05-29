@@ -42,15 +42,17 @@ func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 	}
 
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetTrackById{
-		Id:                track.Id,
-		Number:            track.Number,
-		Name:              track.Name,
-		CoverArt:          ConvertTrackCoverURL(c, track.CoverArt),
-		Duration:          track.Duration,
-		BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-		MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
-		AlbumId:           track.AlbumId,
-		ArtistId:          track.ArtistId,
+		Track: types.Track{
+			Id:                track.Id,
+			Number:            track.Number,
+			Name:              track.Name,
+			CoverArt:          ConvertTrackCoverURL(c, track.CoverArt),
+			Duration:          track.Duration,
+			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			AlbumId:           track.AlbumId,
+			ArtistId:          track.ArtistId,
+		},
 	}))
 }
 

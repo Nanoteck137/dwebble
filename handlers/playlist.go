@@ -6,6 +6,31 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
+func (h *Handlers) HandleGetPlaylists(c echo.Context) error {
+	user, err := h.User(c)
+	if err != nil {
+		return err
+	}
+
+	playlists, err := h.db.GetPlaylistsByUser(c.Request().Context(), user.Id)
+	if err != nil {
+		return err
+	}
+
+	res := types.GetPlaylists{
+		Playlists: make([]types.Playlist, len(playlists)),
+	}
+
+	for i, playlist := range playlists {
+		res.Playlists[i] = types.Playlist{
+			Id:   playlist.Id,
+			Name: playlist.Name,
+		}
+	}
+
+	return c.JSON(200, types.NewApiSuccessResponse(res))
+}
+
 func (h *Handlers) HandlePostPlaylist(c echo.Context) error {
 	user, err := h.User(c)
 	if err != nil {
@@ -29,36 +54,6 @@ func (h *Handlers) HandlePostPlaylist(c echo.Context) error {
 		Id:   playlist.Id,
 		Name: playlist.Name,
 	}))
-}
-
-func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
-	playlistId := c.Param("id")
-
-	user, err := h.User(c)
-	if err != nil {
-		return err
-	}
-
-	body, err := Body[types.PostPlaylistItemsByIdBody](c, types.PostPlaylistItemsByIdBodySchema)
-	if err != nil {
-		return err
-	}
-
-	playlist, err := h.db.GetPlaylistById(c.Request().Context(), playlistId)
-	if err != nil {
-		return err
-	}
-
-	if playlist.OwnerId != user.Id {
-		return types.ErrNoPlaylist
-	}
-
-	err = h.db.AddItemsToPlaylist(c.Request().Context(), playlist.Id, body.Tracks)
-	if err != nil {
-		return err
-	}
-
-	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
 func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
@@ -115,8 +110,39 @@ func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
 	}))
 }
 
+func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
+	playlistId := c.Param("id")
+
+	user, err := h.User(c)
+	if err != nil {
+		return err
+	}
+
+	body, err := Body[types.PostPlaylistItemsByIdBody](c, types.PostPlaylistItemsByIdBodySchema)
+	if err != nil {
+		return err
+	}
+
+	playlist, err := h.db.GetPlaylistById(c.Request().Context(), playlistId)
+	if err != nil {
+		return err
+	}
+
+	if playlist.OwnerId != user.Id {
+		return types.ErrNoPlaylist
+	}
+
+	err = h.db.AddItemsToPlaylist(c.Request().Context(), playlist.Id, body.Tracks)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, types.NewApiSuccessResponse(nil))
+}
+
 func (h *Handlers) InstallPlaylistHandlers(group *echo.Group) {
-	group.POST("/playlist", h.HandlePostPlaylist)
-	group.POST("/playlist/:id/items", h.HandlePostPlaylistItemsById)
-	group.GET("/playlist/:id", h.HandleGetPlaylistById)
+	group.GET("/playlists", h.HandleGetPlaylists)
+	group.POST("/playlists", h.HandlePostPlaylist)
+	group.GET("/playlists/:id", h.HandleGetPlaylistById)
+	group.POST("/playlists/:id/items", h.HandlePostPlaylistItemsById)
 }

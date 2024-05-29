@@ -34,9 +34,11 @@ func (h *Handlers) HandleGetArtistById(c echo.Context) error {
 	}
 
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetArtistById{
-		Id:      artist.Id,
-		Name:    artist.Name,
-		Picture: ConvertArtistPictureURL(c, artist.Picture),
+		Artist: types.Artist{
+			Id:      artist.Id,
+			Name:    artist.Name,
+			Picture: ConvertArtistPictureURL(c, artist.Picture),
+		},
 	}))
 }
 

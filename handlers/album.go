@@ -35,10 +35,12 @@ func (h *Handlers) HandleGetAlbumById(c echo.Context) error {
 	}
 
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetAlbumById{
-		Id:       album.Id,
-		Name:     album.Name,
-		CoverArt: ConvertAlbumCoverURL(c, album.CoverArt),
-		ArtistId: album.ArtistId,
+		Album: types.Album{
+			Id:       album.Id,
+			Name:     album.Name,
+			CoverArt: ConvertAlbumCoverURL(c, album.CoverArt),
+			ArtistId: album.ArtistId,
+		},
 	}))
 }
 

@@ -44,7 +44,9 @@ type GetArtists struct {
 	Artists []Artist `json:"artists"`
 }
 
-type GetArtistById Artist
+type GetArtistById struct {
+	Artist
+}
 
 type GetArtistAlbumsById struct {
 	Albums []Album `json:"albums"`
@@ -54,7 +56,9 @@ type GetAlbums struct {
 	Albums []Album `json:"albums"`
 }
 
-type GetAlbumById Album
+type GetAlbumById struct {
+	Album
+}
 
 type GetAlbumTracksById struct {
 	Tracks []Track `json:"tracks"`
@@ -64,7 +68,9 @@ type GetTracks struct {
 	Tracks []Track `json:"tracks"`
 }
 
-type GetTrackById Track
+type GetTrackById struct {
+	Track
+}
 
 type GetSync struct {
 	IsSyncing bool `json:"isSyncing"`
@@ -136,4 +142,8 @@ type GetPlaylistById struct {
 	Playlist
 
 	Items []Track `json:"items"`
+}
+
+type GetPlaylists struct {
+	Playlists []Playlist `json:"playlists"`
 }
