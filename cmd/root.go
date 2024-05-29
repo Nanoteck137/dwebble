@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 
 	"github.com/kr/pretty"
+	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -71,6 +73,38 @@ func (c *Config) BootstrapDataDir() (types.WorkDir, error) {
 	}
 
 	err = os.MkdirAll(workDir.ImagesDir(), 0755)
+	if err != nil {
+		return workDir, err
+	}
+
+	writeImage := func(filename string) error {
+		dst := path.Join(workDir.ImagesDir(), filename)
+
+		if _, err := os.Stat(dst); err != nil {
+			if !os.IsNotExist(err) {
+				return err
+			} 
+		}
+
+		data, err := assets.AssetsFS.ReadFile(filename)
+		if err != nil {
+			return err
+		}
+
+		err = os.WriteFile(dst, data, 0644)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err = writeImage("default_album.png")
+	if err != nil {
+		return workDir, err
+	}
+
+	err = writeImage("default_artist.png")
 	if err != nil {
 		return workDir, err
 	}
