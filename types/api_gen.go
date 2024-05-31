@@ -156,10 +156,6 @@ var DeletePlaylistItemsByIdBodySchema = jio.Object().Keys(jio.K{
 	"trackIndices": jio.Array().Items(jio.Number().Integer()).Min(1).Required(),
 })
 
-type PostPlaylistsItemMoveById struct {
-	Items []Track
-}
-
 type PostPlaylistsItemMoveByIdBody struct {
 	ItemIndex   int `json:"itemIndex"`
 	BeforeIndex int `json:"beforeIndex"`
