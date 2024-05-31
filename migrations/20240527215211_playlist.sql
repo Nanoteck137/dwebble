@@ -28,5 +28,5 @@ CREATE TABLE playlist_items (
 );
 
 -- +goose Down
-DROP TABLE playlists;
 DROP TABLE playlist_items;
+DROP TABLE playlists;
