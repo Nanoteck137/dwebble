@@ -147,3 +147,25 @@ type GetPlaylistById struct {
 type GetPlaylists struct {
 	Playlists []Playlist `json:"playlists"`
 }
+
+type DeletePlaylistItemsByIdBody struct {
+	TrackIndices []int `json:"trackIndices"`
+}
+
+var DeletePlaylistItemsByIdBodySchema = jio.Object().Keys(jio.K{
+	"trackIndices": jio.Array().Items(jio.Number().Integer()).Min(1).Required(),
+})
+
+type PostPlaylistsItemMoveById struct {
+	Items []Track
+}
+
+type PostPlaylistsItemMoveByIdBody struct {
+	ItemIndex   int `json:"itemIndex"`
+	BeforeIndex int `json:"beforeIndex"`
+}
+
+var PostPlaylistsItemMoveByIdBodySchema = jio.Object().Keys(jio.K{
+	"itemIndex": jio.Number().Integer().Required(),
+	"beforeIndex": jio.Number().Integer().Required(),
+})

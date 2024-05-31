@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -163,6 +164,94 @@ func (db *Database) AddItemsToPlaylist(ctx context.Context, playlistId string, t
 		if err != nil {
 			return err
 		}
+	}
+
+	for _, item := range items {
+		ds := dialect.Update("playlist_items").
+			Set(goqu.Record{
+				"item_index": item.ItemIndex,
+			}).
+			Where(goqu.I("id").Eq(item.Id)).
+			Prepared(true)
+
+		_, err := db.Exec(ctx, ds)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (db *Database) DeleteItemsFromPlaylist(ctx context.Context, playlistId string, trackIndices []int) error {
+	for _, trackIndex := range trackIndices {
+		ds := dialect.Delete("playlist_items").
+			Where(
+				goqu.And(
+					goqu.I("playlist_id").Eq(playlistId),
+					goqu.I("item_index").Eq(trackIndex),
+				),
+			)
+
+		_, err := db.Exec(ctx, ds)
+		if err != nil {
+			return nil
+		}
+	}
+
+	items, err := db.GetPlaylistItems(ctx, playlistId)
+	if err != nil {
+		return err
+	}
+
+	for i := range items {
+		items[i].ItemIndex = i + 1
+	}
+
+	for _, item := range items {
+		ds := dialect.Update("playlist_items").
+			Set(goqu.Record{
+				"item_index": item.ItemIndex,
+			}).
+			Where(goqu.I("id").Eq(item.Id)).
+			Prepared(true)
+
+		_, err := db.Exec(ctx, ds)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, itemIndex int, toIndex int) error {
+	items, err := db.GetPlaylistItems(ctx, playlistId)
+	if err != nil {
+		return err
+	}
+
+	pretty.Println(items)
+
+	// TODO(patrik): Maybe we should try to find the items inside the items 
+	// array instead
+	itemIndex = itemIndex - 1
+	toIndex = toIndex - 1
+
+	item := items[itemIndex]
+
+	// TODO(patrik): This need testing
+	length := (toIndex-itemIndex)+1
+	for i := itemIndex; i < length; i++ {
+		if i < len(items) - 1 {
+			items[i] = items[i+1]
+		}
+	}
+
+	items[toIndex] = item
+
+	for i := range items {
+		items[i].ItemIndex = i + 1
 	}
 
 	for _, item := range items {

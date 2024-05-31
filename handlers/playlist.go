@@ -78,7 +78,7 @@ func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
 		return err
 	}
 
-	var tracks []types.Track
+	tracks := []types.Track{}
 	for _, item := range items {
 		// TODO(patrik): Optimize
 		track, err := h.db.GetTrackById(c.Request().Context(), item.TrackId)
@@ -140,9 +140,71 @@ func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
+func (h *Handlers) HandleDeletePlaylistItemsById(c echo.Context) error {
+	playlistId := c.Param("id")
+
+	user, err := h.User(c)
+	if err != nil {
+		return err
+	}
+
+	body, err := Body[types.DeletePlaylistItemsByIdBody](c, types.DeletePlaylistItemsByIdBodySchema)
+	if err != nil {
+		return err
+	}
+
+	playlist, err := h.db.GetPlaylistById(c.Request().Context(), playlistId)
+	if err != nil {
+		return err
+	}
+
+	if playlist.OwnerId != user.Id {
+		return types.ErrNoPlaylist
+	}
+
+	err = h.db.DeleteItemsFromPlaylist(c.Request().Context(), playlist.Id, body.TrackIndices)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, types.NewApiSuccessResponse(nil))
+}
+
+func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
+	playlistId := c.Param("id")
+
+	user, err := h.User(c)
+	if err != nil {
+		return err
+	}
+
+	body, err := Body[types.PostPlaylistsItemMoveByIdBody](c, types.PostPlaylistsItemMoveByIdBodySchema)
+	if err != nil {
+		return err
+	}
+
+	playlist, err := h.db.GetPlaylistById(c.Request().Context(), playlistId)
+	if err != nil {
+		return err
+	}
+
+	if playlist.OwnerId != user.Id {
+		return types.ErrNoPlaylist
+	}
+
+	err = h.db.MovePlaylistItem(c.Request().Context(), playlist.Id, body.ItemIndex, body.BeforeIndex)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, types.NewApiSuccessResponse(nil))
+}
+
 func (h *Handlers) InstallPlaylistHandlers(group *echo.Group) {
 	group.GET("/playlists", h.HandleGetPlaylists)
 	group.POST("/playlists", h.HandlePostPlaylist)
 	group.GET("/playlists/:id", h.HandleGetPlaylistById)
 	group.POST("/playlists/:id/items", h.HandlePostPlaylistItemsById)
+	group.DELETE("/playlists/:id/items", h.HandleDeletePlaylistItemsById)
+	group.POST("/playlists/:id/items/move", h.HandlePostPlaylistsItemsMoveById)
 }
