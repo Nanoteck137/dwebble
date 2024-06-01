@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -231,9 +230,7 @@ func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, ite
 		return err
 	}
 
-	pretty.Println(items)
-
-	// TODO(patrik): Maybe we should try to find the items inside the items 
+	// TODO(patrik): Maybe we should try to find the items inside the items
 	// array instead
 	itemIndex = itemIndex - 1
 	toIndex = toIndex - 1
@@ -241,9 +238,9 @@ func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, ite
 	item := items[itemIndex]
 
 	// TODO(patrik): This need testing
-	length := (toIndex-itemIndex)+1
+	length := (toIndex - itemIndex) + 1
 	for i := itemIndex; i < length; i++ {
-		if i < len(items) - 1 {
+		if i < len(items)-1 {
 			items[i] = items[i+1]
 		}
 	}

@@ -83,7 +83,7 @@ func (c *Config) BootstrapDataDir() (types.WorkDir, error) {
 		if _, err := os.Stat(dst); err != nil {
 			if !os.IsNotExist(err) {
 				return err
-			} 
+			}
 		}
 
 		data, err := assets.AssetsFS.ReadFile(filename)
