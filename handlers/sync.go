@@ -2,25 +2,25 @@ package handlers
 
 import (
 	"log"
-	"net/http"
+	"sync/atomic"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/nanoteck137/dwebble/types"
 )
 
-var syncing = false
+var syncing atomic.Bool
 
 func (h *Handlers) HandleGetSync(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetSync{
-		IsSyncing: syncing,
+		IsSyncing: syncing.Load(),
 	}))
 }
 
 func (h *Handlers) HandlePostSync(c echo.Context) error {
 	go func() {
-		syncing = true
-		defer func() { syncing = false }()
+		syncing.Store(true)
+		defer syncing.Store(false)
 
 		lib, err := library.ReadFromDir(h.libraryDir)
 		if err != nil {
@@ -35,7 +35,7 @@ func (h *Handlers) HandlePostSync(c echo.Context) error {
 		}
 	}()
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
 func (h *Handlers) InstallSyncHandlers(group *echo.Group) {
