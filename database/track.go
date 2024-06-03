@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/jackc/pgx/v5"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -184,7 +183,7 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 		&item.ArtistName,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == sql.ErrNoRows {
 			return Track{}, types.ErrNoTrack
 		}
 
@@ -230,7 +229,7 @@ func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, err
 		&item.ArtistId,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == sql.ErrNoRows {
 			return Track{}, types.ErrNoTrack
 		}
 

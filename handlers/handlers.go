@@ -3,10 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"fmt"
-	"reflect"
-	"strings"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/database"
@@ -22,52 +19,18 @@ const (
 type Handlers struct {
 	libraryDir string
 	workDir    types.WorkDir
-	validate   *validator.Validate
 	db         *database.Database
 
 	jwtValidator *jwt.Validator
 }
 
 func New(db *database.Database, libraryDir string, workDir types.WorkDir) *Handlers {
-	var validate = validator.New()
-	validate.RegisterTagNameFunc(func(field reflect.StructField) string {
-		name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
-
-		if name == "-" {
-			return ""
-		}
-
-		return name
-	})
-
 	return &Handlers{
 		libraryDir: libraryDir,
 		workDir:    workDir,
-		validate:   validate,
 		db:         db,
-
 		jwtValidator: jwt.NewValidator(jwt.WithIssuedAt()),
 	}
-}
-
-func (api *Handlers) validateBody(body any) map[string]string {
-	err := api.validate.Struct(body)
-	if err != nil {
-		type ValidationError struct {
-			Field   string `json:"field"`
-			Message string `json:"message"`
-		}
-
-		validationErrs := make(map[string]string)
-		for _, err := range err.(validator.ValidationErrors) {
-			field := err.Field()
-			validationErrs[field] = fmt.Sprintf("'%v' not satisfying tags '%v'", field, err.Tag())
-		}
-
-		return validationErrs
-	}
-
-	return nil
 }
 
 func ConvertURL(c echo.Context, path string) string {

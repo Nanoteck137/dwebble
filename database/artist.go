@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/jackc/pgx/v5"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -57,7 +56,7 @@ func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error
 	var item Artist
 	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == sql.ErrNoRows {
 			return Artist{}, types.ErrNoArtist
 		}
 
@@ -81,7 +80,7 @@ func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, e
 	var item Artist
 	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if err == sql.ErrNoRows {
 			return Artist{}, types.ErrNoArtist
 		}
 

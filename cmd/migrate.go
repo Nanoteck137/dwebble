@@ -3,7 +3,6 @@ package cmd
 import (
 	"log"
 
-	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/migrations"
 	"github.com/pressly/goose/v3"
