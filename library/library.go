@@ -13,7 +13,6 @@ import (
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
-	"github.com/nanoteck137/parasect"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -629,11 +628,12 @@ import (
 // }
 
 type LibraryTrack struct {
-	Name     string
-	Number   int
-	FilePath string
-	Artist   *LibraryArtist
-	Album    *LibraryAlbum
+	Name              string
+	Number            int
+	BestQualityFile   string
+	MobileQualityFile string
+	Artist            *LibraryArtist
+	Album             *LibraryAlbum
 }
 
 type LibraryAlbum struct {
@@ -711,13 +711,21 @@ func ReadFromDir(dir string) (*Library, error) {
 			// 	_ = artist
 			// }
 
-			filePath := path.Join(base, t.Filename)
+			// TODO(patrik): Add more checks here
+			bestQualityFile := t.File.Lossless
+			mobileQualityFile := t.File.Lossy
+
+			if bestQualityFile == "" {
+				bestQualityFile = mobileQualityFile
+			}
+
 			album.Tracks = append(album.Tracks, &LibraryTrack{
-				Name:     t.Name,
-				Number:   t.Num,
-				FilePath: filePath,
-				Artist:   artist,
-				Album:    album,
+				Name:              t.Name,
+				Number:            t.Num,
+				BestQualityFile:   path.Join(base, bestQualityFile),
+				MobileQualityFile: path.Join(base, mobileQualityFile),
+				Artist:            artist,
+				Album:             album,
 			})
 		}
 	}
@@ -811,11 +819,12 @@ func (sync *SyncContext) GetOrCreateTrack(ctx context.Context, db *database.Data
 				return database.Track{}, fmt.Errorf("Album not mapped '%s'", track.Album.Name)
 			}
 
+			// TODO(patrik): Path need fixing
 			dbTrack, err := db.CreateTrack(ctx, database.CreateTrackParams{
 				TrackNumber:       track.Number,
 				Name:              track.Name,
 				CoverArt:          sql.NullString{},
-				Path:              track.FilePath,
+				Path:              artist.Id + "-" + album.Id + "-" + track.Name,
 				Duration:          0,
 				BestQualityFile:   "",
 				MobileQualityFile: "",
@@ -886,38 +895,12 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					return err
 				}
 
-				originalMedia := track.FilePath
-				mobileMedia := track.FilePath
-
-				trackInfo, err := parasect.GetTrackInfo(originalMedia)
+				originalMedia, err := filepath.Abs(track.BestQualityFile)
 				if err != nil {
 					return err
 				}
 
-				if !utils.IsFileLossyFormat(originalMedia) {
-					trackTranscode := path.Join(workDir.TranscodeDir(), dbTrack.Id+".opus")
-
-					_, err = os.Stat(trackTranscode)
-					if err != nil {
-						if os.IsNotExist(err) {
-							err = parasect.RunFFmpeg(true, "-y", "-i", track.FilePath, "-vbr", "on", "-b:a", "128k", trackTranscode)
-							if err != nil {
-								return err
-							}
-						} else {
-							return err
-						}
-					}
-
-					mobileMedia = trackTranscode
-				}
-
-				originalMedia, err = filepath.Abs(originalMedia)
-				if err != nil {
-					return err
-				}
-
-				mobileMedia, err = filepath.Abs(mobileMedia)
+				mobileMedia, err := filepath.Abs(track.MobileQualityFile)
 				if err != nil {
 					return err
 				}
@@ -942,7 +925,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				changes.BestQualityFile.Changed = true
 				changes.MobileQualityFile.Value = path.Base(mobileMediaSymlink)
 				changes.MobileQualityFile.Changed = true
-				changes.Duration.Value = trackInfo.Duration
+				changes.Duration.Value = 0
 				changes.Duration.Changed = true
 				changes.Available = true
 
