@@ -194,7 +194,7 @@ func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 		return types.ErrNoPlaylist
 	}
 
-	err = h.db.MovePlaylistItem(c.Request().Context(), playlist.Id, body.ItemIndex, body.ToIndex)
+	err = h.db.MovePlaylistItem(c.Request().Context(), playlist.Id, body.TrackId, body.ToIndex)
 	if err != nil {
 		return err
 	}

@@ -159,13 +159,13 @@ var DeletePlaylistItemsByIdBodySchema = jio.Object().Keys(jio.K{
 })
 
 type PostPlaylistsItemMoveByIdBody struct {
-	ItemIndex int `json:"itemIndex"`
-	ToIndex   int `json:"toIndex"`
+	TrackId string `json:"trackId"`
+	ToIndex int    `json:"toIndex"`
 }
 
 var PostPlaylistsItemMoveByIdBodySchema = jio.Object().Keys(jio.K{
-	"itemIndex": jio.Number().Integer().Required(),
-	"toIndex":   jio.Number().Integer().Required(),
+	"trackId": jio.String().Required(),
+	"toIndex": jio.Number().Integer().Required(),
 })
 
 type GetSystemInfo struct {

@@ -240,15 +240,26 @@ func (db *Database) DeleteItemsFromPlaylist(ctx context.Context, playlistId stri
 	return nil
 }
 
-func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, itemIndex int, toIndex int) error {
+func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, trackId string, toIndex int) error {
 	items, err := db.GetPlaylistItems(ctx, playlistId)
 	if err != nil {
 		return err
 	}
 
+	itemIndex := -1
+
+	for i, item := range items {
+		if item.TrackId == trackId {
+			itemIndex = i
+		}
+	}
+
+	if itemIndex == -1 {
+		return types.NewApiError(400, "Track not in playlist")
+	}
+
 	// TODO(patrik): Maybe we should try to find the items inside the items
 	// array instead
-	itemIndex = itemIndex - 1
 	toIndex = toIndex - 1
 
 	item := items[itemIndex]
