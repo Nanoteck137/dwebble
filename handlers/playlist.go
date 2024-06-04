@@ -51,8 +51,10 @@ func (h *Handlers) HandlePostPlaylist(c echo.Context) error {
 	}
 
 	return c.JSON(200, types.NewApiSuccessResponse(types.PostPlaylist{
-		Id:   playlist.Id,
-		Name: playlist.Name,
+		Playlist: types.Playlist{
+			Id:   playlist.Id,
+			Name: playlist.Name,
+		},
 	}))
 }
 

@@ -120,7 +120,9 @@ type GetAuthMe struct {
 	Username string `json:"username"`
 }
 
-type PostPlaylist Playlist
+type PostPlaylist struct {
+	Playlist
+}
 
 type PostPlaylistBody struct {
 	Name string `json:"name"`
