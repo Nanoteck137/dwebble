@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -68,7 +69,6 @@ func (db *Database) GetPlaylistById(ctx context.Context, id string) (Playlist, e
 }
 
 type PlaylistItem struct {
-	Id         string
 	PlaylistId string
 	TrackId    string
 	ItemIndex  int
@@ -76,7 +76,7 @@ type PlaylistItem struct {
 
 func (db *Database) GetPlaylistItems(ctx context.Context, id string) ([]PlaylistItem, error) {
 	ds := dialect.From("playlist_items").
-		Select("id", "playlist_id", "track_id", "item_index").
+		Select("playlist_id", "track_id", "item_index").
 		Where(goqu.I("playlist_id").Eq(id)).
 		Order(goqu.I("item_index").Asc()).
 		Prepared(true)
@@ -90,7 +90,7 @@ func (db *Database) GetPlaylistItems(ctx context.Context, id string) ([]Playlist
 	var items []PlaylistItem
 	for rows.Next() {
 		var item PlaylistItem
-		err := rows.Scan(&item.Id, &item.PlaylistId, &item.TrackId, &item.ItemIndex)
+		err := rows.Scan(&item.PlaylistId, &item.TrackId, &item.ItemIndex)
 		if err != nil {
 			return nil, err
 		}
@@ -152,7 +152,6 @@ func (db *Database) AddItemsToPlaylist(ctx context.Context, playlistId string, t
 	for i, trackId := range trackIds {
 		ds := dialect.Insert("playlist_items").
 			Rows(goqu.Record{
-				"id":          utils.CreateId(),
 				"playlist_id": playlistId,
 				"track_id":    trackId,
 				"item_index":  nextIndex + i,
@@ -161,6 +160,12 @@ func (db *Database) AddItemsToPlaylist(ctx context.Context, playlistId string, t
 
 		_, err = db.Exec(ctx, ds)
 		if err != nil {
+			if err, ok := err.(sqlite3.Error); ok {
+				if errors.Is(err.ExtendedCode, sqlite3.ErrConstraintPrimaryKey) {
+					// TODO(patrik): Move and fix
+					return types.NewApiError(400, "Track already in playlist")
+				}
+			}
 			return err
 		}
 	}
@@ -170,7 +175,12 @@ func (db *Database) AddItemsToPlaylist(ctx context.Context, playlistId string, t
 			Set(goqu.Record{
 				"item_index": item.ItemIndex,
 			}).
-			Where(goqu.I("id").Eq(item.Id)).
+			Where(
+				goqu.And(
+					goqu.I("playlist_id").Eq(item.PlaylistId),
+					goqu.I("track_id").Eq(item.TrackId),
+				),
+			).
 			Prepared(true)
 
 		_, err := db.Exec(ctx, ds)
@@ -182,6 +192,7 @@ func (db *Database) AddItemsToPlaylist(ctx context.Context, playlistId string, t
 	return nil
 }
 
+// TODO(patrik): Change from trackIndices to trackIds
 func (db *Database) DeleteItemsFromPlaylist(ctx context.Context, playlistId string, trackIndices []int) error {
 	for _, trackIndex := range trackIndices {
 		ds := dialect.Delete("playlist_items").
@@ -212,7 +223,12 @@ func (db *Database) DeleteItemsFromPlaylist(ctx context.Context, playlistId stri
 			Set(goqu.Record{
 				"item_index": item.ItemIndex,
 			}).
-			Where(goqu.I("id").Eq(item.Id)).
+			Where(
+				goqu.And(
+					goqu.I("playlist_id").Eq(item.PlaylistId),
+					goqu.I("track_id").Eq(item.TrackId),
+				),
+			).
 			Prepared(true)
 
 		_, err := db.Exec(ctx, ds)
@@ -256,7 +272,12 @@ func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, ite
 			Set(goqu.Record{
 				"item_index": item.ItemIndex,
 			}).
-			Where(goqu.I("id").Eq(item.Id)).
+			Where(
+				goqu.And(
+					goqu.I("playlist_id").Eq(item.PlaylistId),
+					goqu.I("track_id").Eq(item.TrackId),
+				),
+			).
 			Prepared(true)
 
 		_, err := db.Exec(ctx, ds)
