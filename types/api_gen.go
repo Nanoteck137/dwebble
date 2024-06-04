@@ -167,3 +167,20 @@ var PostPlaylistsItemMoveByIdBodySchema = jio.Object().Keys(jio.K{
 	"itemIndex": jio.Number().Integer().Required(),
 	"toIndex":   jio.Number().Integer().Required(),
 })
+
+type GetSystemInfo struct {
+	Version string `json:"version"`
+	IsSetup bool   `json:"isSetup"`
+}
+
+type PostSystemSetupBody struct {
+	Username        string `json:"username"`
+	Password        string `json:"password"`
+	PasswordConfirm string `json:"passwordConfirm"`
+}
+
+var PostSystemSetupBodySchema = jio.Object().Keys(jio.K{
+	"username":        jio.String().Required(),
+	"password":        jio.String().Required(),
+	"passwordConfirm": jio.String().Required(),
+})

@@ -1,6 +1,8 @@
 package server
 
 import (
+	"log"
+
 	"github.com/MadAppGang/httplog/echolog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -40,7 +42,15 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	e.Static("/images", workDir.ImagesDir())
 
 	h := handlers.New(db, libraryDir, workDir)
-	apiGroup := e.Group("/api/v1")
+	apiGroup := e.Group("/api/v1", func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if !handlers.IsSetup() {
+				return types.NewApiError(400, "Server not setup")
+			}
+
+			return next(c)
+		}
+	})
 
 	h.InstallArtistHandlers(apiGroup)
 	h.InstallAlbumHandlers(apiGroup)
@@ -50,6 +60,14 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	h.InstallTagHandlers(apiGroup)
 	h.InstallAuthHandlers(apiGroup)
 	h.InstallPlaylistHandlers(apiGroup)
+
+	apiGroup = e.Group("/api/v1")
+	h.InstallSystemHandlers(apiGroup)
+
+	err := handlers.InitializeConfig(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return e
 }
