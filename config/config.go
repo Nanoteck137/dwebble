@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-var AppName = "sewaddle"
+var AppName = "dwebble"
 var Version = "no-version"
 var Commit = "no-commit"
 
