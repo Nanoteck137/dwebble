@@ -253,15 +253,26 @@ func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, ite
 
 	item := items[itemIndex]
 
-	// TODO(patrik): This need testing
-	length := (toIndex - itemIndex) + 1
-	for i := itemIndex; i < length; i++ {
-		if i < len(items)-1 {
-			items[i] = items[i+1]
+	if toIndex > itemIndex {
+		// TODO(patrik): This need testing
+		length := (toIndex - itemIndex) + 1
+		for i := itemIndex; i < length; i++ {
+			if i < len(items)-1 {
+				items[i] = items[i+1]
+			}
 		}
-	}
 
-	items[toIndex] = item
+		items[toIndex] = item
+
+	} else {
+		// TODO(patrik): This need testing
+		length := itemIndex - toIndex
+		for i := length + toIndex; i > 0; i-- {
+			items[i] = items[i-1]
+		}
+
+		items[toIndex] = item
+	}
 
 	for i := range items {
 		items[i].ItemIndex = i + 1
