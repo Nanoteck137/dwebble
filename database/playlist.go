@@ -240,6 +240,7 @@ func (db *Database) DeleteItemsFromPlaylist(ctx context.Context, playlistId stri
 	return nil
 }
 
+// TODO(patrik): Add bounds check for toIndex
 func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, trackId string, toIndex int) error {
 	items, err := db.GetPlaylistItems(ctx, playlistId)
 	if err != nil {
