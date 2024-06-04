@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/spf13/cobra"
@@ -16,7 +17,7 @@ var libraryCmd = &cobra.Command{
 var libraryPrint = &cobra.Command{
 	Use: "print",
 	Run: func(cmd *cobra.Command, args []string) {
-		lib, err := library.ReadFromDir(config.LibraryDir)
+		lib, err := library.ReadFromDir(config.Current.LibraryDir)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -39,7 +40,7 @@ var libraryPrint = &cobra.Command{
 var librarySync = &cobra.Command{
 	Use: "sync",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.BootstrapDataDir()
+		workDir, err := config.Current.BootstrapDataDir()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -55,7 +56,7 @@ var librarySync = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		lib, err := library.ReadFromDir(config.LibraryDir)
+		lib, err := library.ReadFromDir(config.Current.LibraryDir)
 		if err != nil {
 			log.Fatal(err)
 		}

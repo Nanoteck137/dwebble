@@ -3,6 +3,7 @@ package cmd
 import (
 	"log"
 
+	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/server"
 	"github.com/spf13/cobra"
@@ -11,7 +12,7 @@ import (
 var serveCmd = &cobra.Command{
 	Use: "serve",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.BootstrapDataDir()
+		workDir, err := config.Current.BootstrapDataDir()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -27,11 +28,9 @@ var serveCmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		_ = db
+		e := server.New(db, config.Current.LibraryDir, workDir)
 
-		e := server.New(db, config.LibraryDir, workDir)
-
-		err = e.Start(config.ListenAddr)
+		err = e.Start(config.Current.ListenAddr)
 		if err != nil {
 			log.Fatal(err)
 		}

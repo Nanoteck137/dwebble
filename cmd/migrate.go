@@ -3,6 +3,7 @@ package cmd
 import (
 	"log"
 
+	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/migrations"
 	"github.com/pressly/goose/v3"
@@ -20,7 +21,7 @@ func runMigrateUp(db *database.Database) error {
 var upCmd = &cobra.Command{
 	Use: "up",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.BootstrapDataDir()
+		workDir, err := config.Current.BootstrapDataDir()
 
 		db, err := database.Open(workDir)
 		if err != nil {
@@ -37,7 +38,7 @@ var upCmd = &cobra.Command{
 var downCmd = &cobra.Command{
 	Use: "down",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.BootstrapDataDir()
+		workDir, err := config.Current.BootstrapDataDir()
 
 		db, err := database.Open(workDir)
 		if err != nil {
@@ -58,7 +59,7 @@ var createCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
 
-		workDir, err := config.BootstrapDataDir()
+		workDir, err := config.Current.BootstrapDataDir()
 
 		db, err := database.Open(workDir)
 		if err != nil {
