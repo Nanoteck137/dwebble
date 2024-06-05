@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	DefaultArtistPictureName = "default_artist.png"
-	DefaultAlbumCoverArtName = "default_album.png"
-	DefaultTrackCoverArtName = "default_album.png"
+	DefaultArtistPictureName = "default/default_artist.png"
+	DefaultAlbumCoverArtName = "default/default_album.png"
+	DefaultTrackCoverArtName = "default/default_album.png"
 )
 
 type Handlers struct {

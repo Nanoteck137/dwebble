@@ -6,6 +6,7 @@ import (
 	"github.com/MadAppGang/httplog/echolog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
@@ -39,6 +40,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 
 	e.Static("/tracks/mobile", workDir.MobileTracksDir())
 	e.Static("/tracks/original", workDir.OriginalTracksDir())
+	e.StaticFS("/images/default", assets.AssetsFS)
 	e.Static("/images", workDir.ImagesDir())
 
 	h := handlers.New(db, libraryDir, workDir)
