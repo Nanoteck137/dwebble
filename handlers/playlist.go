@@ -205,6 +205,7 @@ func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 func (h *Handlers) InstallPlaylistHandlers(group *echo.Group) {
 	group.GET("/playlists", h.HandleGetPlaylists)
 	group.POST("/playlists", h.HandlePostPlaylist)
+
 	group.GET("/playlists/:id", h.HandleGetPlaylistById)
 	group.POST("/playlists/:id/items", h.HandlePostPlaylistItemsById)
 	group.DELETE("/playlists/:id/items", h.HandleDeletePlaylistItemsById)

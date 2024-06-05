@@ -17,8 +17,8 @@ func (db *Database) CreateConfig(ctx context.Context, ownerId string) (Config, e
 		"id":       1,
 		"owner_id": ownerId,
 	}).
-	Returning("owner_id").
-	Prepared(true)
+		Returning("owner_id").
+		Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
 

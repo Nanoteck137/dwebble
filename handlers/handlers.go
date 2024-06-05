@@ -26,9 +26,9 @@ type Handlers struct {
 
 func New(db *database.Database, libraryDir string, workDir types.WorkDir) *Handlers {
 	return &Handlers{
-		libraryDir: libraryDir,
-		workDir:    workDir,
-		db:         db,
+		libraryDir:   libraryDir,
+		workDir:      workDir,
+		db:           db,
 		jwtValidator: jwt.NewValidator(jwt.WithIssuedAt()),
 	}
 }

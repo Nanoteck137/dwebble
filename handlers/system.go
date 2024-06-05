@@ -58,10 +58,8 @@ func (h *Handlers) HandlePostSystemSetup(c echo.Context) error {
 
 	cfg = &conf
 
-
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
-
 
 func (h *Handlers) InstallSystemHandlers(group *echo.Group) {
 	group.GET("/system/info", h.HandleGetSystemInfo)

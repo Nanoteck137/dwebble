@@ -32,4 +32,3 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVarP(&config.ConfigFile, "config", "c", "", "Config File")
 }
-
