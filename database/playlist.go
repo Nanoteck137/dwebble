@@ -74,10 +74,10 @@ type PlaylistItem struct {
 	ItemIndex  int
 }
 
-func (db *Database) GetPlaylistItems(ctx context.Context, id string) ([]PlaylistItem, error) {
+func (db *Database) GetPlaylistItems(ctx context.Context, playlistId string) ([]PlaylistItem, error) {
 	ds := dialect.From("playlist_items").
 		Select("playlist_id", "track_id", "item_index").
-		Where(goqu.I("playlist_id").Eq(id)).
+		Where(goqu.I("playlist_id").Eq(playlistId)).
 		Order(goqu.I("item_index").Asc()).
 		Prepared(true)
 
