@@ -10,6 +10,7 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
@@ -637,9 +638,10 @@ type LibraryTrack struct {
 }
 
 type LibraryAlbum struct {
-	Name   string
-	Artist *LibraryArtist
-	Tracks []*LibraryTrack
+	Name     string
+	CoverArt string
+	Artist   *LibraryArtist
+	Tracks   []*LibraryTrack
 }
 
 type LibraryArtist struct {
@@ -698,10 +700,17 @@ func ReadFromDir(dir string) (*Library, error) {
 
 		artist := GetOrCreateArtist(metadata.Artist)
 
+		coverArt := ""
+
+		if metadata.CoverArt != "" {
+			coverArt = path.Join(base, metadata.CoverArt)
+		}
+
 		album := &LibraryAlbum{
-			Name:   metadata.Album,
-			Artist: artist,
-			Tracks: []*LibraryTrack{},
+			Name:     metadata.Album,
+			CoverArt: coverArt,
+			Artist:   artist,
+			Tracks:   []*LibraryTrack{},
 		}
 		artist.Albums = append(artist.Albums, album)
 
@@ -889,6 +898,26 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				return err
 			}
 
+			coverArt := ""
+			fmt.Printf("album.CoverArt: %v\n", album.CoverArt)
+			if album.CoverArt != "" {
+				p, err := filepath.Abs(album.CoverArt)
+				if err != nil {
+					return err
+				}
+
+				name := dbAlbum.Id + path.Ext(p)
+				sym := path.Join(workDir.ImagesDir(), name)
+				err = utils.SymlinkReplace(p, sym)
+				if err != nil {
+					return err
+				}
+
+				coverArt = name
+			}
+
+			fmt.Printf("coverArt: %v\n", coverArt)
+
 			for _, track := range album.Tracks {
 				dbTrack, err := syncContext.GetOrCreateTrack(ctx, db, track)
 				if err != nil {
@@ -925,9 +954,16 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				changes.BestQualityFile.Changed = true
 				changes.MobileQualityFile.Value = path.Base(mobileMediaSymlink)
 				changes.MobileQualityFile.Changed = true
+				changes.CoverArt.Value = sql.NullString{
+					String: coverArt,
+					Valid:  coverArt != "",
+				}
+				changes.CoverArt.Changed = true
 				changes.Duration.Value = 0
 				changes.Duration.Changed = true
 				changes.Available = true
+
+				pretty.Println(changes)
 
 				err = db.UpdateTrack(ctx, dbTrack.Id, changes)
 				if err != nil {
@@ -935,9 +971,14 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				}
 			}
 
-			err = db.UpdateAlbum(ctx, dbAlbum.Id, database.AlbumChanges{
-				Available: true,
-			})
+			changes := database.AlbumChanges{}
+			changes.CoverArt.Value = sql.NullString{
+				String: coverArt,
+				Valid:  coverArt != "",
+			}
+			changes.CoverArt.Changed = true
+			changes.Available = true
+			err = db.UpdateAlbum(ctx, dbAlbum.Id, changes)
 			if err != nil {
 				return err
 			}
