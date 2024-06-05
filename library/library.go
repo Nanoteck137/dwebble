@@ -877,6 +877,38 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 		return err
 	}
 
+	removeAll := func(dir string) error {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			return err
+		}
+
+		for _, entry := range entries {
+			p := path.Join(dir, entry.Name())
+			err = os.Remove(p)
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	err = removeAll(workDir.ImagesDir())
+	if err != nil {
+		return err
+	}
+
+	err = removeAll(workDir.OriginalTracksDir())
+	if err != nil {
+		return err
+	}
+
+	err = removeAll(workDir.MobileTracksDir())
+	if err != nil {
+		return err
+	}
+
 	for _, artist := range lib.Artists {
 		dbArtist, err := syncContext.GetOrCreateArtist(ctx, db, artist)
 		if err != nil {
