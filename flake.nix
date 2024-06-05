@@ -4,10 +4,9 @@
   inputs = {
     nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url  = "github:numtide/flake-utils";
-    pyrin.url        = "github:nanoteck137/pyrin";
   };
 
-  outputs = { self, nixpkgs, flake-utils, pyrin, ... }:
+  outputs = { self, nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [];
@@ -36,11 +35,8 @@
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            ffmpeg
             air
             go
-            opusTools
-            pyrin.packages.${system}.default
           ];
         };
       }
