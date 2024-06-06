@@ -2,9 +2,12 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
 
@@ -51,6 +54,9 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (Tag, error) 
 	var item Tag
 	err = row.Scan(&item.Id, &item.Name)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Tag{}, types.ErrNoTag
+		}
 		return Tag{}, err
 	}
 

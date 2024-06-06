@@ -633,6 +633,7 @@ type LibraryTrack struct {
 	Number            int
 	BestQualityFile   string
 	MobileQualityFile string
+	Tags              []string
 	Artist            *LibraryArtist
 	Album             *LibraryAlbum
 }
@@ -733,6 +734,7 @@ func ReadFromDir(dir string) (*Library, error) {
 				Number:            t.Num,
 				BestQualityFile:   path.Join(base, bestQualityFile),
 				MobileQualityFile: path.Join(base, mobileQualityFile),
+				Tags:              t.Tags,
 				Artist:            artist,
 				Album:             album,
 			})
@@ -752,6 +754,7 @@ func ReadFromDir(dir string) (*Library, error) {
 type SyncContext struct {
 	ArtistMapping map[*LibraryArtist]database.Artist
 	AlbumMapping  map[*LibraryAlbum]database.Album
+	TagMapping    map[string]database.Tag
 }
 
 func (sync *SyncContext) GetOrCreateArtist(ctx context.Context, db *database.Database, artist *LibraryArtist) (database.Artist, error) {
@@ -854,12 +857,36 @@ func (sync *SyncContext) GetOrCreateTrack(ctx context.Context, db *database.Data
 	return dbTrack, nil
 }
 
+func (sync *SyncContext) GetOrCreateTag(ctx context.Context, db *database.Database, tag string) (database.Tag, error) {
+	dbTag, err := db.GetTagByName(ctx, tag)
+	if err != nil {
+		if errors.Is(err, types.ErrNoTag) {
+			dbTag, err := db.CreateTag(ctx, tag)
+
+			if err != nil {
+				return database.Tag{}, nil
+			}
+
+			sync.TagMapping[tag] = dbTag
+
+			return dbTag, nil
+		}
+
+		return database.Tag{}, err
+	}
+
+	sync.TagMapping[tag] = dbTag
+
+	return dbTag, nil
+}
+
 func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 	ctx := context.Background()
 
 	syncContext := SyncContext{
 		ArtistMapping: make(map[*LibraryArtist]database.Artist),
 		AlbumMapping:  make(map[*LibraryAlbum]database.Album),
+		TagMapping:    make(map[string]database.Tag),
 	}
 
 	err := db.MarkAllArtistsUnavailable(ctx)
@@ -956,6 +983,8 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					return err
 				}
 
+				// db.GetTrackTags()
+
 				originalMedia, err := filepath.Abs(track.BestQualityFile)
 				if err != nil {
 					return err
@@ -979,6 +1008,44 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				err = utils.SymlinkReplace(mobileMedia, mobileMediaSymlink)
 				if err != nil {
 					return err
+				}
+
+				currentTrackTags, err := db.GetTrackTags(ctx, dbTrack.Id)
+				if err != nil {
+					return err
+				}
+
+				for _, tag := range track.Tags {
+					hasTag := false
+					for _, t := range currentTrackTags {
+						if t.Name == tag {
+							hasTag = true;
+							break;
+						}
+					}
+
+					if !hasTag {
+						dbTag, err := syncContext.GetOrCreateTag(ctx, db, tag)
+						if err != nil {
+							return err
+						}
+
+						db.AddTagToTrack(ctx, dbTag.Id, dbTrack.Id)
+					}
+				}
+
+				for _, t := range currentTrackTags {
+					hasTag := false
+					for _, trackTag := range track.Tags {
+						if trackTag == t.Name {
+							hasTag = true;
+							break;
+						}
+					}
+
+					if !hasTag {
+						db.RemoveTagFromTrack(ctx, t.Id, dbTrack.Id)
+					}
 				}
 
 				changes := database.TrackChanges{}
