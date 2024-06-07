@@ -10,6 +10,7 @@ var (
 	ErrNoTrack    = NewApiError(http.StatusNotFound, "Track not found")
 	ErrNoPlaylist = NewApiError(http.StatusNotFound, "Playlist not found")
 	ErrNoTag      = NewApiError(http.StatusNotFound, "Tag not found")
+	ErrNoGenre    = NewApiError(http.StatusNotFound, "Genre not found")
 
 	ErrInvalidAuthHeader = NewApiError(http.StatusUnauthorized, "Invalid Auth Header")
 	ErrInvalidToken      = NewApiError(http.StatusUnauthorized, "Invalid Token")

@@ -634,6 +634,7 @@ type LibraryTrack struct {
 	BestQualityFile   string
 	MobileQualityFile string
 	Tags              []string
+	Genres            []string
 	Artist            *LibraryArtist
 	Album             *LibraryAlbum
 }
@@ -735,6 +736,7 @@ func ReadFromDir(dir string) (*Library, error) {
 				BestQualityFile:   path.Join(base, bestQualityFile),
 				MobileQualityFile: path.Join(base, mobileQualityFile),
 				Tags:              t.Tags,
+				Genres:            t.Genres,
 				Artist:            artist,
 				Album:             album,
 			})
@@ -755,6 +757,7 @@ type SyncContext struct {
 	ArtistMapping map[*LibraryArtist]database.Artist
 	AlbumMapping  map[*LibraryAlbum]database.Album
 	TagMapping    map[string]database.Tag
+	GenreMapping  map[string]database.Genre
 }
 
 func (sync *SyncContext) GetOrCreateArtist(ctx context.Context, db *database.Database, artist *LibraryArtist) (database.Artist, error) {
@@ -818,17 +821,17 @@ func (sync *SyncContext) GetOrCreateAlbum(ctx context.Context, db *database.Data
 }
 
 func (sync *SyncContext) GetOrCreateTrack(ctx context.Context, db *database.Database, track *LibraryTrack) (database.Track, error) {
-	dbTrack, err := db.GetTrackByName(ctx, track.Name)
+	album, exists := sync.AlbumMapping[track.Album]
+	if !exists {
+		return database.Track{}, fmt.Errorf("Album not mapped '%s'", track.Album.Name)
+	}
+
+	dbTrack, err := db.GetTrackByNameAndAlbum(ctx, track.Name, album.Id)
 	if err != nil {
 		if errors.Is(err, types.ErrNoTrack) {
 			artist, exists := sync.ArtistMapping[track.Artist]
 			if !exists {
 				return database.Track{}, fmt.Errorf("Artist not mapped '%s'", track.Artist.Name)
-			}
-
-			album, exists := sync.AlbumMapping[track.Album]
-			if !exists {
-				return database.Track{}, fmt.Errorf("Album not mapped '%s'", track.Album.Name)
 			}
 
 			// TODO(patrik): Path need fixing
@@ -880,6 +883,29 @@ func (sync *SyncContext) GetOrCreateTag(ctx context.Context, db *database.Databa
 	return dbTag, nil
 }
 
+func (sync *SyncContext) GetOrCreateGenre(ctx context.Context, db *database.Database, genre string) (database.Genre, error) {
+	dbGenre, err := db.GetGenreByName(ctx, genre)
+	if err != nil {
+		if errors.Is(err, types.ErrNoGenre) {
+			dbGenre, err := db.CreateGenre(ctx, genre)
+
+			if err != nil {
+				return database.Genre{}, nil
+			}
+
+			sync.GenreMapping[genre] = dbGenre
+
+			return dbGenre, nil
+		}
+
+		return database.Genre{}, err
+	}
+
+	sync.GenreMapping[genre] = dbGenre
+
+	return dbGenre, nil
+}
+
 func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 	ctx := context.Background()
 
@@ -887,6 +913,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 		ArtistMapping: make(map[*LibraryArtist]database.Artist),
 		AlbumMapping:  make(map[*LibraryAlbum]database.Album),
 		TagMapping:    make(map[string]database.Tag),
+		GenreMapping:  make(map[string]database.Genre),
 	}
 
 	err := db.MarkAllArtistsUnavailable(ctx)
@@ -1010,41 +1037,79 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					return err
 				}
 
-				currentTrackTags, err := db.GetTrackTags(ctx, dbTrack.Id)
+				// currentTrackTags, err := db.GetTrackTags(ctx, dbTrack.Id)
+				// if err != nil {
+				// 	return err
+				// }
+				//
+				// for _, tag := range track.Tags {
+				// 	hasTag := false
+				// 	for _, t := range currentTrackTags {
+				// 		if t.Name == tag {
+				// 			hasTag = true
+				// 			break
+				// 		}
+				// 	}
+				//
+				// 	if !hasTag {
+				// 		dbTag, err := syncContext.GetOrCreateTag(ctx, db, tag)
+				// 		if err != nil {
+				// 			return err
+				// 		}
+				//
+				// 		db.AddTagToTrack(ctx, dbTag.Id, dbTrack.Id)
+				// 	}
+				// }
+				//
+				// for _, t := range currentTrackTags {
+				// 	hasTag := false
+				// 	for _, trackTag := range track.Tags {
+				// 		if trackTag == t.Name {
+				// 			hasTag = true
+				// 			break
+				// 		}
+				// 	}
+				//
+				// 	if !hasTag {
+				// 		db.RemoveTagFromTrack(ctx, t.Id, dbTrack.Id)
+				// 	}
+				// }
+
+				currentTrackGenres, err := db.GetTrackGenres(ctx, dbTrack.Id)
 				if err != nil {
 					return err
 				}
 
-				for _, tag := range track.Tags {
-					hasTag := false
-					for _, t := range currentTrackTags {
-						if t.Name == tag {
-							hasTag = true;
-							break;
+				for _, genre := range track.Genres {
+					hasGenre := false
+					for _, g := range currentTrackGenres {
+						if g.Name == genre {
+							hasGenre = true
+							break
 						}
 					}
 
-					if !hasTag {
-						dbTag, err := syncContext.GetOrCreateTag(ctx, db, tag)
+					if !hasGenre {
+						dbGenre, err := syncContext.GetOrCreateGenre(ctx, db, genre)
 						if err != nil {
 							return err
 						}
 
-						db.AddTagToTrack(ctx, dbTag.Id, dbTrack.Id)
+						db.AddGenreToTrack(ctx, dbGenre.Id, dbTrack.Id)
 					}
 				}
 
-				for _, t := range currentTrackTags {
-					hasTag := false
-					for _, trackTag := range track.Tags {
-						if trackTag == t.Name {
-							hasTag = true;
-							break;
+				for _, g := range currentTrackGenres {
+					hasGenre := false
+					for _, trackGenre := range track.Genres {
+						if trackGenre == g.Name {
+							hasGenre = true
+							break
 						}
 					}
 
-					if !hasTag {
-						db.RemoveTagFromTrack(ctx, t.Id, dbTrack.Id)
+					if !hasGenre {
+						db.RemoveGenreFromTrack(ctx, g.Id, dbTrack.Id)
 					}
 				}
 

@@ -291,6 +291,63 @@ func (db *Database) GetTrackByName(ctx context.Context, name string) (Track, err
 	return item, nil
 }
 
+func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, albumId string) (Track, error) {
+	ds := dialect.From("tracks").
+		Select(
+			"tracks.id",
+			"tracks.track_number",
+			"tracks.name",
+			"tracks.cover_art",
+			"tracks.duration",
+			"tracks.path",
+			"tracks.best_quality_file",
+			"tracks.mobile_quality_file",
+			"tracks.album_id",
+			"tracks.artist_id",
+			"albums.name",
+			"artists.name",
+		).
+		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
+		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
+		Where(
+			goqu.And(
+				goqu.I("tracks.name").Eq(name),
+				goqu.I("tracks.album_id").Eq(albumId),
+			),
+		).
+		Prepared(true)
+
+	row, err := db.QueryRow(ctx, ds)
+	if err != nil {
+		return Track{}, err
+	}
+
+	var item Track
+	err = row.Scan(
+		&item.Id,
+		&item.Number,
+		&item.Name,
+		&item.CoverArt,
+		&item.Duration,
+		&item.Path,
+		&item.BestQualityFile,
+		&item.MobileQualityFile,
+		&item.AlbumId,
+		&item.ArtistId,
+		&item.AlbumName,
+		&item.ArtistName,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Track{}, types.ErrNoTrack
+		}
+
+		return Track{}, err
+	}
+
+	return item, nil
+}
+
 type CreateTrackParams struct {
 	TrackNumber       int
 	Name              string
