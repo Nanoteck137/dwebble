@@ -1037,43 +1037,49 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					return err
 				}
 
-				// currentTrackTags, err := db.GetTrackTags(ctx, dbTrack.Id)
-				// if err != nil {
-				// 	return err
-				// }
-				//
-				// for _, tag := range track.Tags {
-				// 	hasTag := false
-				// 	for _, t := range currentTrackTags {
-				// 		if t.Name == tag {
-				// 			hasTag = true
-				// 			break
-				// 		}
-				// 	}
-				//
-				// 	if !hasTag {
-				// 		dbTag, err := syncContext.GetOrCreateTag(ctx, db, tag)
-				// 		if err != nil {
-				// 			return err
-				// 		}
-				//
-				// 		db.AddTagToTrack(ctx, dbTag.Id, dbTrack.Id)
-				// 	}
-				// }
-				//
-				// for _, t := range currentTrackTags {
-				// 	hasTag := false
-				// 	for _, trackTag := range track.Tags {
-				// 		if trackTag == t.Name {
-				// 			hasTag = true
-				// 			break
-				// 		}
-				// 	}
-				//
-				// 	if !hasTag {
-				// 		db.RemoveTagFromTrack(ctx, t.Id, dbTrack.Id)
-				// 	}
-				// }
+				currentTrackTags, err := db.GetTrackTags(ctx, dbTrack.Id)
+				if err != nil {
+					return err
+				}
+
+				for _, tag := range track.Tags {
+					hasTag := false
+					for _, t := range currentTrackTags {
+						if t.Name == tag {
+							hasTag = true
+							break
+						}
+					}
+
+					if !hasTag {
+						dbTag, err := syncContext.GetOrCreateTag(ctx, db, tag)
+						if err != nil {
+							return err
+						}
+
+						err = db.AddTagToTrack(ctx, dbTag.Id, dbTrack.Id)
+						if err != nil {
+							return err
+						}
+					}
+				}
+
+				for _, t := range currentTrackTags {
+					hasTag := false
+					for _, trackTag := range track.Tags {
+						if trackTag == t.Name {
+							hasTag = true
+							break
+						}
+					}
+
+					if !hasTag {
+						err := db.RemoveTagFromTrack(ctx, t.Id, dbTrack.Id)
+						if err != nil {
+							return err
+						}
+					}
+				}
 
 				currentTrackGenres, err := db.GetTrackGenres(ctx, dbTrack.Id)
 				if err != nil {
@@ -1096,6 +1102,9 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 						}
 
 						db.AddGenreToTrack(ctx, dbGenre.Id, dbTrack.Id)
+						if err != nil {
+							return err
+						}
 					}
 				}
 
@@ -1109,7 +1118,10 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					}
 
 					if !hasGenre {
-						db.RemoveGenreFromTrack(ctx, g.Id, dbTrack.Id)
+						err = db.RemoveGenreFromTrack(ctx, g.Id, dbTrack.Id)
+						if err != nil {
+							return err
+						}
 					}
 				}
 
