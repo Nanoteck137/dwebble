@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -30,7 +31,103 @@ type Track struct {
 	ArtistName string
 }
 
-func (db *Database) GetAllTracks(ctx context.Context, random bool) ([]Track, error) {
+type FilterAction int
+
+const (
+	FilterActionAdd FilterAction = iota
+	FilterActionRemove
+)
+
+type FilterType int
+
+const (
+	FilterTypeTags FilterType = iota
+	FilterTypeGenres
+)
+
+type Filter struct {
+	Action FilterAction
+	Type   FilterType
+	Ids    []string
+}
+
+func (db *Database) GetAllTracks(ctx context.Context, random bool, filters []Filter) ([]Track, error) {
+	// SELECT * FROM tracks WHERE
+	// id IN (SELECT track_id FROM tracks_to_tags WHERE tag_id='ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh')
+	// AND id NOT IN (SELECT track_id FROM tracks_to_genres WHERE genre_id='y1vwuhgv7cfuab1pym13ox1smgvbluiw')
+	// AND id NOT IN (SELECT track_id FROM tracks_to_genres WHERE genre_id='i83do0db648xt7oli8t9y3zj4ne2ud02')
+	// ORDER BY name
+
+	// "j5t12d2ftmfwm7owo9p4hym5ar94jizh", "yywqa0x7lh22lzn7n0ud0mvu6q1i2vfr",
+	// filters := []Filter{
+	// 	{
+	// 		Action: FilterActionAdd,
+	// 		Type:   FilterTypeTags,
+	// 		Ids:    []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+	// 	},
+	// 	{
+	// 		Action: FilterActionRemove,
+	// 		Type:   FilterTypeTags,
+	// 		Ids:    []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+	// 	},
+	// 	// {
+	// 	// 	Action: FilterActionRemove,
+	// 	// 	Type:   FilterTypeTags,
+	// 	// 	Ids:    []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+	// 	// },
+	// 	// {
+	// 	// 	Action: FilterActionRemove,
+	// 	// 	Type:   FilterTypeGenres,
+	// 	// 	Ids:    []string{"v4qythpkhujw4k0xdc6rh2evnfkxqu31", "y1vwuhgv7cfuab1pym13ox1smgvbluiw", "i83do0db648xt7oli8t9y3zj4ne2ud02"},
+	// 	// },
+	// }
+
+	var addFilter *goqu.SelectDataset
+	var removeFilter *goqu.SelectDataset
+
+	for _, filter := range filters {
+		switch filter.Action {
+		case FilterActionAdd:
+			var s *goqu.SelectDataset
+			switch filter.Type {
+			case FilterTypeTags:
+				s = dialect.From("tracks_to_tags").
+					Select("track_id").
+					Where(goqu.I("tag_id").In(filter.Ids))
+			case FilterTypeGenres:
+				s = dialect.From("tracks_to_genres").
+					Select("track_id").
+					Where(goqu.I("genre_id").In(filter.Ids))
+			}
+
+			if addFilter == nil {
+				addFilter = s
+			} else {
+				addFilter = addFilter.Union(s)
+			}
+		case FilterActionRemove:
+			var s *goqu.SelectDataset
+			switch filter.Type {
+			case FilterTypeTags:
+				s = dialect.From("tracks_to_tags").
+					Select("track_id").
+					Where(goqu.I("tag_id").In(filter.Ids))
+			case FilterTypeGenres:
+				s = dialect.From("tracks_to_genres").
+					Select("track_id").
+					Where(goqu.I("genre_id").In(filter.Ids))
+			}
+
+			if removeFilter == nil {
+				removeFilter = s
+			} else {
+				removeFilter = removeFilter.Union(s)
+			}
+		default:
+		}
+
+	}
+
 	ds := dialect.From("tracks").
 		Select(
 			"tracks.id",
@@ -48,11 +145,37 @@ func (db *Database) GetAllTracks(ctx context.Context, random bool) ([]Track, err
 		).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
-		Where(goqu.I("tracks.available").Eq(true))
+		Order(goqu.I("tracks.name").Asc())
+		// goqu.I("tracks.available").Eq(true)
+		// goqu.Ex{
+		// 	"tracks.id": t,
+		// 	"tracks.available": true,
+		// }
+
+	e := []exp.Expression{
+		goqu.I("tracks.available").Eq(true),
+	}
+
+	if addFilter != nil {
+		e = append(e, goqu.L("tracks.id IN ?", addFilter))
+	}
+
+	if removeFilter != nil {
+		e = append(e, goqu.L("tracks.id NOT IN ?", removeFilter))
+	}
+
+	ds = ds.Where(e...)
 
 	if random {
 		ds = ds.Order(goqu.Func("RANDOM").Asc())
 	}
+
+	ds = ds.Prepared(true)
+
+	sql, params, _ := ds.ToSQL()
+
+	fmt.Printf("sql: %v\n", sql)
+	fmt.Printf("params: %v\n", params)
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {
