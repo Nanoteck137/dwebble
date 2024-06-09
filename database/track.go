@@ -58,75 +58,123 @@ func (db *Database) GetAllTracks(ctx context.Context, random bool, filters []Fil
 	// AND id NOT IN (SELECT track_id FROM tracks_to_genres WHERE genre_id='i83do0db648xt7oli8t9y3zj4ne2ud02')
 	// ORDER BY name
 
-	// "j5t12d2ftmfwm7owo9p4hym5ar94jizh", "yywqa0x7lh22lzn7n0ud0mvu6q1i2vfr",
-	// filters := []Filter{
+	// filter = tags[Anime] + genre[Nerdcore] && tags[Jujutsu Kaisen] &~ genre[Soundtrack]
+
+	type Set struct {
+		Not      bool
+		TagIds   []string
+		GenreIds []string
+	}
+
+	sets := []Set{
+		{
+			Not:      false,
+			TagIds:   []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+			GenreIds: []string{},
+		},
+		{
+			Not:      true,
+			TagIds:   []string{},
+			GenreIds: []string{"y1vwuhgv7cfuab1pym13ox1smgvbluiw", "i83do0db648xt7oli8t9y3zj4ne2ud02"},
+		},
+	}
+
+	// sets := []Set{
 	// 	{
-	// 		Action: FilterActionAdd,
-	// 		Type:   FilterTypeTags,
-	// 		Ids:    []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+	// 		Not:      false,
+	// 		TagIds:   []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+	// 		GenreIds: []string{"i83do0db648xt7oli8t9y3zj4ne2ud02"},
 	// 	},
 	// 	{
-	// 		Action: FilterActionRemove,
-	// 		Type:   FilterTypeTags,
-	// 		Ids:    []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+	// 		Not:      false,
+	// 		TagIds:   []string{"bqgsf98akxhl6nc356ao7kbmw1l8pwp2"},
+	// 		GenreIds: []string{},
 	// 	},
-	// 	// {
-	// 	// 	Action: FilterActionRemove,
-	// 	// 	Type:   FilterTypeTags,
-	// 	// 	Ids:    []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
-	// 	// },
-	// 	// {
-	// 	// 	Action: FilterActionRemove,
-	// 	// 	Type:   FilterTypeGenres,
-	// 	// 	Ids:    []string{"v4qythpkhujw4k0xdc6rh2evnfkxqu31", "y1vwuhgv7cfuab1pym13ox1smgvbluiw", "i83do0db648xt7oli8t9y3zj4ne2ud02"},
-	// 	// },
+	// 	{
+	// 		Not:      true,
+	// 		TagIds:   []string{},
+	// 		GenreIds: []string{"y1vwuhgv7cfuab1pym13ox1smgvbluiw"},
+	// 	},
 	// }
 
-	var addFilter *goqu.SelectDataset
-	var removeFilter *goqu.SelectDataset
+	e := []exp.Expression{
+		goqu.I("tracks.available").Eq(true),
+	}
 
-	for _, filter := range filters {
-		switch filter.Action {
-		case FilterActionAdd:
-			var s *goqu.SelectDataset
-			switch filter.Type {
-			case FilterTypeTags:
-				s = dialect.From("tracks_to_tags").
-					Select("track_id").
-					Where(goqu.I("tag_id").In(filter.Ids))
-			case FilterTypeGenres:
-				s = dialect.From("tracks_to_genres").
-					Select("track_id").
-					Where(goqu.I("genre_id").In(filter.Ids))
-			}
+	for _, set := range sets {
+		var sel *goqu.SelectDataset
 
-			if addFilter == nil {
-				addFilter = s
-			} else {
-				addFilter = addFilter.Union(s)
-			}
-		case FilterActionRemove:
-			var s *goqu.SelectDataset
-			switch filter.Type {
-			case FilterTypeTags:
-				s = dialect.From("tracks_to_tags").
-					Select("track_id").
-					Where(goqu.I("tag_id").In(filter.Ids))
-			case FilterTypeGenres:
-				s = dialect.From("tracks_to_genres").
-					Select("track_id").
-					Where(goqu.I("genre_id").In(filter.Ids))
-			}
-
-			if removeFilter == nil {
-				removeFilter = s
-			} else {
-				removeFilter = removeFilter.Union(s)
-			}
-		default:
+		if set.TagIds != nil && len(set.TagIds) > 0 {
+			sel = dialect.From("tracks_to_tags").
+				Select("track_id").
+				Where(goqu.I("tag_id").In(set.TagIds))
 		}
 
+		if set.GenreIds != nil && len(set.GenreIds) > 0 {
+			s := dialect.From("tracks_to_genres").
+				Select("track_id").
+				Where(goqu.I("genre_id").In(set.GenreIds))
+
+			if sel == nil {
+				sel = s
+			} else {
+				sel = sel.Union(s)
+			}
+		}
+
+		if sel != nil {
+			if set.Not {
+				e = append(e, goqu.L("tracks.id NOT IN ?", sel))
+			} else {
+				e = append(e, goqu.L("tracks.id IN ?", sel))
+			}
+		}
 	}
+
+	// var addFilter *goqu.SelectDataset
+	// var removeFilter *goqu.SelectDataset
+	// for _, filter := range filters {
+	// 	switch filter.Action {
+	// 	case FilterActionAdd:
+	// 		var s *goqu.SelectDataset
+	// 		switch filter.Type {
+	// 		case FilterTypeTags:
+	// 			s = dialect.From("tracks_to_tags").
+	// 				Select("track_id").
+	// 				Where(goqu.I("tag_id").In(filter.Ids))
+	// 		case FilterTypeGenres:
+	// 			s = dialect.From("tracks_to_genres").
+	// 				Select("track_id").
+	// 				Where(goqu.I("genre_id").In(filter.Ids))
+	// 		}
+	//
+	// 		if addFilter == nil {
+	// 			addFilter = s
+	// 		} else {
+	// 			addFilter = addFilter.Union(s)
+	// 		}
+	// 	case FilterActionRemove:
+	// 		var s *goqu.SelectDataset
+	// 		switch filter.Type {
+	// 		case FilterTypeTags:
+	// 			s = dialect.From("tracks_to_tags").
+	// 				Select("track_id").
+	// 				Where(goqu.I("tag_id").In(filter.Ids))
+	// 		case FilterTypeGenres:
+	// 			s = dialect.From("tracks_to_genres").
+	// 				Select("track_id").
+	// 				Where(goqu.I("genre_id").In(filter.Ids))
+	// 		}
+	//
+	// 		if removeFilter == nil {
+	// 			removeFilter = s
+	// 		} else {
+	// 			removeFilter = removeFilter.Union(s)
+	// 		}
+	// 	default:
+	// 	}
+	//
+	// }
 
 	ds := dialect.From("tracks").
 		Select(
@@ -145,6 +193,7 @@ func (db *Database) GetAllTracks(ctx context.Context, random bool, filters []Fil
 		).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
+		Where(e...).
 		Order(goqu.I("tracks.name").Asc())
 		// goqu.I("tracks.available").Eq(true)
 		// goqu.Ex{
@@ -152,19 +201,19 @@ func (db *Database) GetAllTracks(ctx context.Context, random bool, filters []Fil
 		// 	"tracks.available": true,
 		// }
 
-	e := []exp.Expression{
-		goqu.I("tracks.available").Eq(true),
-	}
-
-	if addFilter != nil {
-		e = append(e, goqu.L("tracks.id IN ?", addFilter))
-	}
-
-	if removeFilter != nil {
-		e = append(e, goqu.L("tracks.id NOT IN ?", removeFilter))
-	}
-
-	ds = ds.Where(e...)
+	// e := []exp.Expression{
+	// 	goqu.I("tracks.available").Eq(true),
+	// }
+	//
+	// if addFilter != nil {
+	// 	e = append(e, goqu.L("tracks.id IN ?", addFilter))
+	// }
+	//
+	// if removeFilter != nil {
+	// 	e = append(e, goqu.L("tracks.id NOT IN ?", removeFilter))
+	// }
+	//
+	// ds = ds.Where(e...)
 
 	if random {
 		ds = ds.Order(goqu.Func("RANDOM").Asc())
