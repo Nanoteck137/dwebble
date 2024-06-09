@@ -55,7 +55,7 @@ func (h *Handlers) getTagFilter(c echo.Context, filters []database.Filter) ([]da
 	parseQueryParam(tagsParam, func(action database.FilterAction, name string) {
 		id := tagToId(name)
 		if id == "" {
-			return;
+			return
 		}
 
 		switch action {
@@ -109,7 +109,7 @@ func (h *Handlers) getGenreFilter(c echo.Context, filters []database.Filter) ([]
 	parseQueryParam(param, func(action database.FilterAction, name string) {
 		id := genreToId(name)
 		if id == "" {
-			return;
+			return
 		}
 
 		switch action {

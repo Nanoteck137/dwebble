@@ -14,13 +14,13 @@ var eof = rune(0)
 
 type Tokenizer struct {
 	reader *bufio.Reader
-	pos   token.Pos
+	pos    token.Pos
 }
 
 func New(reader io.Reader) *Tokenizer {
 	return &Tokenizer{
 		reader: bufio.NewReader(reader),
-		pos:    token.Pos{
+		pos: token.Pos{
 			Line:   1,
 			Column: 1,
 		},
@@ -35,7 +35,7 @@ func (t *Tokenizer) read() rune {
 
 	if ch == '\n' {
 		t.pos.Line += 1
-	} 
+	}
 
 	return ch
 }

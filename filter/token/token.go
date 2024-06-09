@@ -14,7 +14,7 @@ const (
 	RBracket
 	LParen
 	RParen
-	
+
 	Semicolon
 	Colon
 	DoubleColon
@@ -26,14 +26,14 @@ const (
 )
 
 type Pos struct {
-	Line int
+	Line   int
 	Column int
 }
 
 type Token struct {
-	Kind Kind
+	Kind  Kind
 	Ident string
-	Pos Pos
+	Pos   Pos
 }
 
 func Lookup(ident string) Kind {
