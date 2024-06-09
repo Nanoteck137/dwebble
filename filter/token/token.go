@@ -18,7 +18,15 @@ const (
 	Semicolon
 	Colon
 	DoubleColon
+	AndNot
+	And
+	DoubleAnd
+	Or
+	DoubleOr
+
 	Asterisk
+	Dot
+	Plus
 
 	// Unset
 

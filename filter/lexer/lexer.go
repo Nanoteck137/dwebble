@@ -3,7 +3,6 @@ package lexer
 import (
 	"bufio"
 	"bytes"
-	"fmt"
 	"io"
 	"unicode"
 
@@ -115,8 +114,29 @@ func (t *Tokenizer) NextToken() token.Token {
 			t.unread()
 			kind = token.Colon
 		}
+	case '&':
+		c = t.read()
+		if c == '&' {
+			kind = token.DoubleAnd
+		} else if c == '~' {
+			kind = token.AndNot
+		} else {
+			t.unread()
+			kind = token.And
+		}
+	case '|':
+		if c := t.read(); c == '|' {
+			kind = token.DoubleOr
+		} else {
+			t.unread()
+			kind = token.Or
+		}
 	case '*':
 		kind = token.Asterisk
+	case '.':
+		kind = token.Dot
+	case '+':
+		kind = token.Plus
 	}
 
 	return token.Token{
