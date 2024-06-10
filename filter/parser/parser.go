@@ -56,7 +56,7 @@ func (p *Parser) expect(token token.Kind) {
 	p.next()
 }
 
-func (p *Parser) parseExprBase() ast.Expr {
+func (p *Parser) parseOperationParam() ast.Expr {
 	if p.token.Kind == token.Ident {
 		ident := p.token.Ident
 		p.next()
@@ -80,16 +80,48 @@ func (p *Parser) parseExpr0() ast.Expr {
 		name := p.token.Ident
 		p.next()
 
-		p.expect(token.LParen)
+		switch p.token.Kind {
+		case token.LParen:
+			p.next()
+			var params []ast.Expr
 
-		e := p.parseExprBase()
+			if p.token.Kind != token.RParen {
+				e := p.parseOperationParam()
+				params = append(params, e)
 
+				for p.token.Kind != token.RParen {
+					p.expect(token.Comma)
+					e := p.parseOperationParam()
+
+					params = append(params, e)
+				}
+			}
+
+			p.expect(token.RParen)
+
+			return &ast.OperationExpr{
+				Name:   name,
+				Params: params,
+			}
+		case token.DoubleEqual:
+			p.next()
+
+			value := p.token.Ident
+			p.expect(token.Str)
+
+			return &ast.EqualExpr{
+				Name:  name,
+				Value: value,
+			}
+		}
+
+	} else if p.token.Kind == token.LParen {
+		p.next()
+
+		e := p.ParseExpr()
 		p.expect(token.RParen)
 
-		return &ast.OperationExpr{
-			Name: name,
-			Params: []ast.Expr{e},
-		}
+		return e
 	}
 
 	return nil

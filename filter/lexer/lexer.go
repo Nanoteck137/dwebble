@@ -105,6 +105,8 @@ func (t *Tokenizer) NextToken() token.Token {
 		kind = token.LParen
 	case ')':
 		kind = token.RParen
+	case ',':
+		kind = token.Comma
 	case ';':
 		kind = token.Semicolon
 	case ':':
@@ -130,6 +132,20 @@ func (t *Tokenizer) NextToken() token.Token {
 		} else {
 			t.unread()
 			kind = token.Or
+		}
+	case '=':
+		if c := t.read(); c == '=' {
+			kind = token.DoubleEqual
+		} else {
+			t.unread()
+			kind = token.Equal
+		}
+	case '!':
+		if c := t.read(); c == '=' {
+			kind = token.NotEqual
+		} else {
+			t.unread()
+			kind = token.Unknown
 		}
 	case '*':
 		kind = token.Asterisk

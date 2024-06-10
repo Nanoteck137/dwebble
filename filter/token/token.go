@@ -15,6 +15,7 @@ const (
 	LParen
 	RParen
 
+	Comma
 	Semicolon
 	Colon
 	DoubleColon
@@ -23,6 +24,9 @@ const (
 	DoubleAnd
 	Or
 	DoubleOr
+	Equal
+	DoubleEqual
+	NotEqual
 
 	Asterisk
 	Dot

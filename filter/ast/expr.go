@@ -5,7 +5,7 @@ type Expr interface {
 }
 
 type OperationExpr struct {
-	Name string
+	Name   string
 	Params []Expr
 }
 
@@ -17,6 +17,11 @@ type AccessorExpr struct {
 type UnionExpr struct {
 	Left  Expr
 	Right Expr
+}
+
+type EqualExpr struct {
+	Name  string
+	Value string
 }
 
 type AndExpr struct {
@@ -36,12 +41,13 @@ type Table struct {
 
 type InTableExpr struct {
 	Not   bool
-	Tables []Table
+	Table Table
 }
 
 func (e *OperationExpr) exprType() {}
 func (e *AccessorExpr) exprType()  {}
 func (e *UnionExpr) exprType()     {}
+func (e *EqualExpr) exprType()     {}
 func (e *AndExpr) exprType()       {}
 func (e *OrExpr) exprType()        {}
 func (e *InTableExpr) exprType()   {}

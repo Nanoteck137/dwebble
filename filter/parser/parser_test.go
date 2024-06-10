@@ -10,10 +10,7 @@ import (
 )
 
 func TestParser(t *testing.T) {
-	// has(tag."Hello" | genres."Soundtrack") && not(tag."Anime")
-
-	// src := `&& tags["Hello"] + genres["Soundtrack"] &~ tags["Anime"]`
-	src := `has(tag."Anime") && not(genre."Soundtrack") || has(tag."One Piece")`
+	src := `artist == "test" && has(tag."Anime", genre."Nerdcore") && (not(genre."Soundtrack") || has(tag."One Piece"))`
 	p := parser.New(strings.NewReader(src))
 
 	expr := p.ParseExpr()

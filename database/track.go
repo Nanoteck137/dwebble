@@ -47,19 +47,17 @@ func resolveTable(table *ast.Table) *goqu.SelectDataset {
 }
 
 func resolveExpr(e ast.Expr) exp.Expression {
-
 	switch e := e.(type) {
 	case *ast.AndExpr:
 		left := resolveExpr(e.Left)
 		right := resolveExpr(e.Right)
-		return goqu.L("? AND ?", left, right)
+		return goqu.L("(? AND ?)", left, right)
 	case *ast.OrExpr:
 		left := resolveExpr(e.Left)
 		right := resolveExpr(e.Right)
-		return goqu.L("? OR ?", left, right)
+		return goqu.L("(? OR ?)", left, right)
 	case *ast.InTableExpr:
-		fmt.Printf("e.Tables: %v\n", e.Tables)
-		s := resolveTable(&e.Tables[0])
+		s := resolveTable(&e.Table)
 
 		if e.Not {
 			return goqu.L("? NOT IN ?", goqu.I("tracks.id"), s)
@@ -95,34 +93,31 @@ func processTable(e ast.Expr) ast.Table {
 type IdMappingFunc func(typ string, name string) string
 
 func processTableOperation(not bool, params []ast.Expr, mapNameToId IdMappingFunc) *ast.InTableExpr {
-	m := make(map[string][]string)
-
-	for _, p := range params {
-		e, ok := p.(*ast.AccessorExpr)
-		if !ok {
-			panic("Params should only be 'ast.AccessorExpr'")
-		}
-
-		if e.Ident != "tags" && e.Ident != "genres" {
-			continue
-		}
-
-		tbls := m[e.Ident]
-		tbls = append(tbls, mapNameToId(e.Ident, e.Name))
-		m[e.Ident] = tbls
+	if len(params) != 1 {
+		panic("One param")
 	}
 
-	var tbls []ast.Table
-	for k, v := range m {
-		tbls = append(tbls, ast.Table{
-			Type: k,
-			Ids:  v,
-		})
+	p := params[0]
+
+	e, ok := p.(*ast.AccessorExpr)
+	if !ok {
+		panic("Params should only be 'ast.AccessorExpr'")
+	}
+
+	if e.Ident != "tags" && e.Ident != "genres" {
+		return nil
+	}
+
+	id := mapNameToId(e.Ident, e.Name)
+
+	tbl := ast.Table{
+		Type: e.Ident,
+		Ids:  []string{id},
 	}
 
 	return &ast.InTableExpr{
-		Not:    not,
-		Tables: tbls,
+		Not:   not,
+		Table: tbl,
 	}
 }
 
@@ -151,27 +146,10 @@ func processExpr(conf *ProcessConfig, e ast.Expr) ast.Expr {
 }
 
 func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, error) {
-	// id IN (SELECT track_id FROM tracks_to_tags WHERE tag_id='kitb1jb6sb882stnjqo1psp1q5e08xah')
-	// AND id NOT IN (SELECT track_id FROM tracks_to_genres WHERE genre_id='y1vwuhgv7cfuab1pym13ox1smgvbluiw')
-	// OR id IN (SELECT track_id FROM tracks_to_tags WHERE tag_id='kitb1jb6sb882stnjqo1psp1q5e08xah')
-
 	p := parser.New(strings.NewReader(filter))
 	e := p.ParseExpr()
 
-	// e := &ast.AndExpr{
-	// 	Left: &ast.OperationExpr{
-	// 		Name: "has",
-	// 		Params: []ast.Expr{
-	// 			&ast.AccessorExpr{Ident: "tags", Name: "Anime"},
-	// 		},
-	// 	},
-	// 	Right: &ast.OperationExpr{
-	// 		Name: "not",
-	// 		Params: []ast.Expr{
-	// 			&ast.AccessorExpr{Ident: "genres", Name: "Soundtrack"},
-	// 		},
-	// 	},
-	// }
+	pretty.Println(e)
 
 	tags, err := db.GetAllTags(ctx)
 	if err != nil {
@@ -204,34 +182,9 @@ func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, e
 		},
 	}
 
-	pretty.Println(e)
 	pe := processExpr(&conf, e)
-	pretty.Println(e)
+	pretty.Println(pe)
 	re := resolveExpr(pe)
-
-	// test := &ast.OrExpr{
-	// 	Left: &ast.AndExpr{
-	// 		Left: &ast.InTableExpr{
-	// 			Table: ast.Table{
-	// 				Type: "tags",
-	// 				Ids:  []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
-	// 			},
-	// 		},
-	// 		Right: &ast.InTableExpr{
-	// 			Not:   true,
-	// 			Table: ast.Table{Type: "genres", Ids: []string{"y1vwuhgv7cfuab1pym13ox1smgvbluiw"}},
-	// 		},
-	// 	},
-	// 	Right: &ast.InTableExpr{
-	// 		Table: ast.Table{
-	// 			Type: "tags",
-	// 			Ids:  []string{"kitb1jb6sb882stnjqo1psp1q5e08xah"},
-	// 		},
-	// 	},
-	// }
-	//
-	// _ = e
-	// _ = test
 
 	ds := dialect.From("tracks").
 		Select(
@@ -253,7 +206,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, e
 		Where(re).
 		Order(goqu.I("tracks.name").Asc())
 
-	ds = ds.Prepared(true)
+	// ds = ds.Prepared(true)
 
 	sql, params, _ := ds.ToSQL()
 
