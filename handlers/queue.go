@@ -6,7 +6,7 @@ import (
 )
 
 func (h *Handlers) HandlePostQueue(c echo.Context) error {
-	tracks, err := h.db.GetAllTracks(c.Request().Context(), true, nil)
+	tracks, err := h.db.GetAllTracks(c.Request().Context())
 	if err != nil {
 		return err
 	}

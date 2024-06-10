@@ -20,17 +20,28 @@ type UnionExpr struct {
 }
 
 type AndExpr struct {
-	Left Expr
+	Left  Expr
 	Right Expr
 }
 
 type OrExpr struct {
-	Left Expr
+	Left  Expr
 	Right Expr
+}
+
+type Table struct {
+	Type string
+	Ids  []string
+}
+
+type InTableExpr struct {
+	Not   bool
+	Table Table
 }
 
 func (e *OperationExpr) exprType() {}
 func (e *AccessorExpr) exprType()  {}
 func (e *UnionExpr) exprType()     {}
 func (e *AndExpr) exprType()       {}
-func (e *OrExpr) exprType()       {}
+func (e *OrExpr) exprType()        {}
+func (e *InTableExpr) exprType()   {}

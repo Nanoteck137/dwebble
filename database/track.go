@@ -8,6 +8,8 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/kr/pretty"
+	"github.com/nanoteck137/dwebble/filter/ast"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -31,150 +33,137 @@ type Track struct {
 	ArtistName string
 }
 
-type FilterAction int
+func resolveTable(table *ast.Table) *goqu.SelectDataset {
+	switch table.Type {
+	case "tags":
+		return goqu.From("tracks_to_tags").Select("track_id").Where(goqu.I("tag_id").In(table.Ids))
+	case "genres":
+		return goqu.From("tracks_to_genres").Select("track_id").Where(goqu.I("genre_id").In(table.Ids))
+	}
 
-const (
-	FilterActionAdd FilterAction = iota
-	FilterActionRemove
-)
-
-type FilterType int
-
-const (
-	FilterTypeTags FilterType = iota
-	FilterTypeGenres
-)
-
-type Filter struct {
-	Action FilterAction
-	Type   FilterType
-	Ids    []string
+	return nil
 }
 
-func (db *Database) GetAllTracks(ctx context.Context, random bool, filters []Filter) ([]Track, error) {
-	// SELECT * FROM tracks WHERE
-	// id IN (SELECT track_id FROM tracks_to_tags WHERE tag_id='ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh')
+func resolveExpr(e ast.Expr) exp.Expression {
+
+	switch e := e.(type) {
+	case *ast.AndExpr:
+		left := resolveExpr(e.Left)
+		right := resolveExpr(e.Right)
+		return goqu.L("? AND ?", left, right)
+	case *ast.OrExpr:
+		left := resolveExpr(e.Left)
+		right := resolveExpr(e.Right)
+		return goqu.L("? OR ?", left, right)
+	case *ast.InTableExpr:
+		s := resolveTable(&e.Table)
+
+		if e.Not {
+			return goqu.L("? NOT IN ?", goqu.I("tracks.id"), s)
+		} else {
+			return goqu.L("? IN ?", goqu.I("tracks.id"), s)
+		}
+	}
+
+	return nil
+}
+
+func processTable(e ast.Expr) ast.Table {
+	switch e := e.(type) {
+	case *ast.AccessorExpr:
+		typ := ""
+
+		switch e.Name {
+		case "tag":
+			typ = "tags"
+		case "genre":
+			typ = "genre"
+		}
+
+		return ast.Table{
+			Type: typ,
+			Ids:  []string{e.Ident},
+		}
+	}
+
+	return ast.Table{}
+}
+
+func processExpr(e ast.Expr) ast.Expr {
+	switch e := e.(type) {
+	case *ast.AndExpr:
+		e.Left = processExpr(e.Left)
+		e.Right = processExpr(e.Right)
+	case *ast.OrExpr:
+		e.Left = processExpr(e.Left)
+		e.Right = processExpr(e.Right)
+	case *ast.OperationExpr:
+		switch e.Name {
+		case "has":
+			tbl := processTable(e.Expr)
+			return &ast.InTableExpr{
+				Not:   false,
+				Table: tbl,
+			}
+		case "not":
+			tbl := processTable(e.Expr)
+			return &ast.InTableExpr{
+				Not:   true,
+				Table: tbl,
+			}
+		}
+	}
+
+	return e
+}
+
+func (db *Database) GetAllTracks(ctx context.Context) ([]Track, error) {
+	// id IN (SELECT track_id FROM tracks_to_tags WHERE tag_id='kitb1jb6sb882stnjqo1psp1q5e08xah')
 	// AND id NOT IN (SELECT track_id FROM tracks_to_genres WHERE genre_id='y1vwuhgv7cfuab1pym13ox1smgvbluiw')
-	// AND id NOT IN (SELECT track_id FROM tracks_to_genres WHERE genre_id='i83do0db648xt7oli8t9y3zj4ne2ud02')
-	// ORDER BY name
+	// OR id IN (SELECT track_id FROM tracks_to_tags WHERE tag_id='kitb1jb6sb882stnjqo1psp1q5e08xah')
 
-	// filter = tags[Anime] + genre[Nerdcore] && tags[Jujutsu Kaisen] &~ genre[Soundtrack]
-
-	type Set struct {
-		Not      bool
-		TagIds   []string
-		GenreIds []string
-	}
-
-	sets := []Set{
-		{
-			Not:      false,
-			TagIds:   []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
-			GenreIds: []string{},
+	e := &ast.AndExpr{
+		Left: &ast.OperationExpr{
+			Name: "has",
+			Expr: &ast.AccessorExpr{Ident: "ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh", Name: "tag"},
 		},
-		{
-			Not:      true,
-			TagIds:   []string{},
-			GenreIds: []string{"y1vwuhgv7cfuab1pym13ox1smgvbluiw", "i83do0db648xt7oli8t9y3zj4ne2ud02"},
+		Right: &ast.OperationExpr{
+			Name: "not",
+			Expr: &ast.AccessorExpr{Ident: "y1vwuhgv7cfuab1pym13ox1smgvbluiw", Name: "genre"},
 		},
 	}
 
-	// sets := []Set{
-	// 	{
-	// 		Not:      false,
-	// 		TagIds:   []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
-	// 		GenreIds: []string{"i83do0db648xt7oli8t9y3zj4ne2ud02"},
-	// 	},
-	// 	{
-	// 		Not:      false,
-	// 		TagIds:   []string{"bqgsf98akxhl6nc356ao7kbmw1l8pwp2"},
-	// 		GenreIds: []string{},
-	// 	},
-	// 	{
-	// 		Not:      true,
-	// 		TagIds:   []string{},
-	// 		GenreIds: []string{"y1vwuhgv7cfuab1pym13ox1smgvbluiw"},
-	// 	},
-	// }
+	pretty.Println(e)
 
-	e := []exp.Expression{
-		goqu.I("tracks.available").Eq(true),
+	processExpr(e)
+
+	pretty.Println(e)
+
+	test := &ast.OrExpr{
+		Left: &ast.AndExpr{
+			Left: &ast.InTableExpr{
+				Table: ast.Table{
+					Type: "tags",
+					Ids:  []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+				},
+			},
+			Right: &ast.InTableExpr{
+				Not:   true,
+				Table: ast.Table{Type: "genres", Ids: []string{"y1vwuhgv7cfuab1pym13ox1smgvbluiw"}},
+			},
+		},
+		Right: &ast.InTableExpr{
+			Table: ast.Table{
+				Type: "tags",
+				Ids:  []string{"kitb1jb6sb882stnjqo1psp1q5e08xah"},
+			},
+		},
 	}
 
-	for _, set := range sets {
-		var sel *goqu.SelectDataset
+	_ = e
+	_ = test
 
-		if set.TagIds != nil && len(set.TagIds) > 0 {
-			sel = dialect.From("tracks_to_tags").
-				Select("track_id").
-				Where(goqu.I("tag_id").In(set.TagIds))
-		}
-
-		if set.GenreIds != nil && len(set.GenreIds) > 0 {
-			s := dialect.From("tracks_to_genres").
-				Select("track_id").
-				Where(goqu.I("genre_id").In(set.GenreIds))
-
-			if sel == nil {
-				sel = s
-			} else {
-				sel = sel.Union(s)
-			}
-		}
-
-		if sel != nil {
-			if set.Not {
-				e = append(e, goqu.L("tracks.id NOT IN ?", sel))
-			} else {
-				e = append(e, goqu.L("tracks.id IN ?", sel))
-			}
-		}
-	}
-
-	// var addFilter *goqu.SelectDataset
-	// var removeFilter *goqu.SelectDataset
-	// for _, filter := range filters {
-	// 	switch filter.Action {
-	// 	case FilterActionAdd:
-	// 		var s *goqu.SelectDataset
-	// 		switch filter.Type {
-	// 		case FilterTypeTags:
-	// 			s = dialect.From("tracks_to_tags").
-	// 				Select("track_id").
-	// 				Where(goqu.I("tag_id").In(filter.Ids))
-	// 		case FilterTypeGenres:
-	// 			s = dialect.From("tracks_to_genres").
-	// 				Select("track_id").
-	// 				Where(goqu.I("genre_id").In(filter.Ids))
-	// 		}
-	//
-	// 		if addFilter == nil {
-	// 			addFilter = s
-	// 		} else {
-	// 			addFilter = addFilter.Union(s)
-	// 		}
-	// 	case FilterActionRemove:
-	// 		var s *goqu.SelectDataset
-	// 		switch filter.Type {
-	// 		case FilterTypeTags:
-	// 			s = dialect.From("tracks_to_tags").
-	// 				Select("track_id").
-	// 				Where(goqu.I("tag_id").In(filter.Ids))
-	// 		case FilterTypeGenres:
-	// 			s = dialect.From("tracks_to_genres").
-	// 				Select("track_id").
-	// 				Where(goqu.I("genre_id").In(filter.Ids))
-	// 		}
-	//
-	// 		if removeFilter == nil {
-	// 			removeFilter = s
-	// 		} else {
-	// 			removeFilter = removeFilter.Union(s)
-	// 		}
-	// 	default:
-	// 	}
-	//
-	// }
+	re := resolveExpr(test)
 
 	ds := dialect.From("tracks").
 		Select(
@@ -193,31 +182,8 @@ func (db *Database) GetAllTracks(ctx context.Context, random bool, filters []Fil
 		).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
-		Where(e...).
+		Where(re).
 		Order(goqu.I("tracks.name").Asc())
-		// goqu.I("tracks.available").Eq(true)
-		// goqu.Ex{
-		// 	"tracks.id": t,
-		// 	"tracks.available": true,
-		// }
-
-	// e := []exp.Expression{
-	// 	goqu.I("tracks.available").Eq(true),
-	// }
-	//
-	// if addFilter != nil {
-	// 	e = append(e, goqu.L("tracks.id IN ?", addFilter))
-	// }
-	//
-	// if removeFilter != nil {
-	// 	e = append(e, goqu.L("tracks.id NOT IN ?", removeFilter))
-	// }
-	//
-	// ds = ds.Where(e...)
-
-	if random {
-		ds = ds.Order(goqu.Func("RANDOM").Asc())
-	}
 
 	ds = ds.Prepared(true)
 
