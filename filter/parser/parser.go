@@ -58,12 +58,12 @@ func (p *Parser) expect(token token.Kind) {
 
 func (p *Parser) parseExprBase() ast.Expr {
 	if p.token.Kind == token.Ident {
-		name := p.token.Ident
+		ident := p.token.Ident
 		p.next()
 
 		p.expect(token.Dot)
 
-		ident := p.token.Ident
+		name := p.token.Ident
 		p.expect(token.Str)
 
 		return &ast.AccessorExpr{
@@ -88,7 +88,7 @@ func (p *Parser) parseExpr0() ast.Expr {
 
 		return &ast.OperationExpr{
 			Name: name,
-			Expr: e,
+			Params: []ast.Expr{e},
 		}
 	}
 

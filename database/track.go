@@ -5,11 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/filter/ast"
+	"github.com/nanoteck137/dwebble/filter/parser"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -56,7 +58,8 @@ func resolveExpr(e ast.Expr) exp.Expression {
 		right := resolveExpr(e.Right)
 		return goqu.L("? OR ?", left, right)
 	case *ast.InTableExpr:
-		s := resolveTable(&e.Table)
+		fmt.Printf("e.Tables: %v\n", e.Tables)
+		s := resolveTable(&e.Tables[0])
 
 		if e.Not {
 			return goqu.L("? NOT IN ?", goqu.I("tracks.id"), s)
@@ -89,81 +92,146 @@ func processTable(e ast.Expr) ast.Table {
 	return ast.Table{}
 }
 
-func processExpr(e ast.Expr) ast.Expr {
+type IdMappingFunc func(typ string, name string) string
+
+func processTableOperation(not bool, params []ast.Expr, mapNameToId IdMappingFunc) *ast.InTableExpr {
+	m := make(map[string][]string)
+
+	for _, p := range params {
+		e, ok := p.(*ast.AccessorExpr)
+		if !ok {
+			panic("Params should only be 'ast.AccessorExpr'")
+		}
+
+		if e.Ident != "tags" && e.Ident != "genres" {
+			continue
+		}
+
+		tbls := m[e.Ident]
+		tbls = append(tbls, mapNameToId(e.Ident, e.Name))
+		m[e.Ident] = tbls
+	}
+
+	var tbls []ast.Table
+	for k, v := range m {
+		tbls = append(tbls, ast.Table{
+			Type: k,
+			Ids:  v,
+		})
+	}
+
+	return &ast.InTableExpr{
+		Not:    not,
+		Tables: tbls,
+	}
+}
+
+type ProcessConfig struct {
+	MapNameToId IdMappingFunc
+}
+
+func processExpr(conf *ProcessConfig, e ast.Expr) ast.Expr {
 	switch e := e.(type) {
 	case *ast.AndExpr:
-		e.Left = processExpr(e.Left)
-		e.Right = processExpr(e.Right)
+		e.Left = processExpr(conf, e.Left)
+		e.Right = processExpr(conf, e.Right)
 	case *ast.OrExpr:
-		e.Left = processExpr(e.Left)
-		e.Right = processExpr(e.Right)
+		e.Left = processExpr(conf, e.Left)
+		e.Right = processExpr(conf, e.Right)
 	case *ast.OperationExpr:
 		switch e.Name {
 		case "has":
-			tbl := processTable(e.Expr)
-			return &ast.InTableExpr{
-				Not:   false,
-				Table: tbl,
-			}
+			return processTableOperation(false, e.Params, conf.MapNameToId)
 		case "not":
-			tbl := processTable(e.Expr)
-			return &ast.InTableExpr{
-				Not:   true,
-				Table: tbl,
-			}
+			return processTableOperation(true, e.Params, conf.MapNameToId)
 		}
 	}
 
 	return e
 }
 
-func (db *Database) GetAllTracks(ctx context.Context) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, error) {
 	// id IN (SELECT track_id FROM tracks_to_tags WHERE tag_id='kitb1jb6sb882stnjqo1psp1q5e08xah')
 	// AND id NOT IN (SELECT track_id FROM tracks_to_genres WHERE genre_id='y1vwuhgv7cfuab1pym13ox1smgvbluiw')
 	// OR id IN (SELECT track_id FROM tracks_to_tags WHERE tag_id='kitb1jb6sb882stnjqo1psp1q5e08xah')
 
-	e := &ast.AndExpr{
-		Left: &ast.OperationExpr{
-			Name: "has",
-			Expr: &ast.AccessorExpr{Ident: "ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh", Name: "tag"},
-		},
-		Right: &ast.OperationExpr{
-			Name: "not",
-			Expr: &ast.AccessorExpr{Ident: "y1vwuhgv7cfuab1pym13ox1smgvbluiw", Name: "genre"},
+	p := parser.New(strings.NewReader(filter))
+	e := p.ParseExpr()
+
+	// e := &ast.AndExpr{
+	// 	Left: &ast.OperationExpr{
+	// 		Name: "has",
+	// 		Params: []ast.Expr{
+	// 			&ast.AccessorExpr{Ident: "tags", Name: "Anime"},
+	// 		},
+	// 	},
+	// 	Right: &ast.OperationExpr{
+	// 		Name: "not",
+	// 		Params: []ast.Expr{
+	// 			&ast.AccessorExpr{Ident: "genres", Name: "Soundtrack"},
+	// 		},
+	// 	},
+	// }
+
+	tags, err := db.GetAllTags(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	genres, err := db.GetAllGenres(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	conf := ProcessConfig{
+		MapNameToId: func(typ string, name string) string {
+			switch typ {
+			case "tags":
+				for _, t := range tags {
+					if t.Name == name {
+						return t.Id
+					}
+				}
+			case "genres":
+				for _, g := range genres {
+					if g.Name == name {
+						return g.Id
+					}
+				}
+			}
+
+			return ""
 		},
 	}
 
 	pretty.Println(e)
-
-	processExpr(e)
-
+	pe := processExpr(&conf, e)
 	pretty.Println(e)
+	re := resolveExpr(pe)
 
-	test := &ast.OrExpr{
-		Left: &ast.AndExpr{
-			Left: &ast.InTableExpr{
-				Table: ast.Table{
-					Type: "tags",
-					Ids:  []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
-				},
-			},
-			Right: &ast.InTableExpr{
-				Not:   true,
-				Table: ast.Table{Type: "genres", Ids: []string{"y1vwuhgv7cfuab1pym13ox1smgvbluiw"}},
-			},
-		},
-		Right: &ast.InTableExpr{
-			Table: ast.Table{
-				Type: "tags",
-				Ids:  []string{"kitb1jb6sb882stnjqo1psp1q5e08xah"},
-			},
-		},
-	}
-
-	_ = e
-	_ = test
-
-	re := resolveExpr(test)
+	// test := &ast.OrExpr{
+	// 	Left: &ast.AndExpr{
+	// 		Left: &ast.InTableExpr{
+	// 			Table: ast.Table{
+	// 				Type: "tags",
+	// 				Ids:  []string{"ytnqxmqyo4plg5nhvxjezv2e8e9gw4jh"},
+	// 			},
+	// 		},
+	// 		Right: &ast.InTableExpr{
+	// 			Not:   true,
+	// 			Table: ast.Table{Type: "genres", Ids: []string{"y1vwuhgv7cfuab1pym13ox1smgvbluiw"}},
+	// 		},
+	// 	},
+	// 	Right: &ast.InTableExpr{
+	// 		Table: ast.Table{
+	// 			Type: "tags",
+	// 			Ids:  []string{"kitb1jb6sb882stnjqo1psp1q5e08xah"},
+	// 		},
+	// 	},
+	// }
+	//
+	// _ = e
+	// _ = test
 
 	ds := dialect.From("tracks").
 		Select(

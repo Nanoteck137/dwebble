@@ -6,7 +6,7 @@ type Expr interface {
 
 type OperationExpr struct {
 	Name string
-	Expr Expr
+	Params []Expr
 }
 
 type AccessorExpr struct {
@@ -36,7 +36,7 @@ type Table struct {
 
 type InTableExpr struct {
 	Not   bool
-	Table Table
+	Tables []Table
 }
 
 func (e *OperationExpr) exprType() {}

@@ -6,7 +6,9 @@ import (
 )
 
 func (h *Handlers) HandleGetTracks(c echo.Context) error {
-	tracks, err := h.db.GetAllTracks(c.Request().Context())
+	filter := c.QueryParam("filter")
+
+	tracks, err := h.db.GetAllTracks(c.Request().Context(), filter)
 	if err != nil {
 		return err
 	}
