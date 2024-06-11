@@ -8,10 +8,9 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/kr/pretty"
-	"github.com/nanoteck137/dwebble/filter/ast"
+	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/filter/parser"
+	"github.com/nanoteck137/dwebble/filter/resolve"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -35,121 +34,13 @@ type Track struct {
 	ArtistName string
 }
 
-func resolveTable(table *ast.Table) *goqu.SelectDataset {
-	switch table.Type {
-	case "tags":
-		return goqu.From("tracks_to_tags").Select("track_id").Where(goqu.I("tag_id").In(table.Ids))
-	case "genres":
-		return goqu.From("tracks_to_genres").Select("track_id").Where(goqu.I("genre_id").In(table.Ids))
-	}
-
-	return nil
-}
-
-func resolveExpr(e ast.Expr) exp.Expression {
-	switch e := e.(type) {
-	case *ast.AndExpr:
-		left := resolveExpr(e.Left)
-		right := resolveExpr(e.Right)
-		return goqu.L("(? AND ?)", left, right)
-	case *ast.OrExpr:
-		left := resolveExpr(e.Left)
-		right := resolveExpr(e.Right)
-		return goqu.L("(? OR ?)", left, right)
-	case *ast.InTableExpr:
-		s := resolveTable(&e.Table)
-
-		if e.Not {
-			return goqu.L("? NOT IN ?", goqu.I("tracks.id"), s)
-		} else {
-			return goqu.L("? IN ?", goqu.I("tracks.id"), s)
-		}
-	}
-
-	return nil
-}
-
-func processTable(e ast.Expr) ast.Table {
-	switch e := e.(type) {
-	case *ast.AccessorExpr:
-		typ := ""
-
-		switch e.Name {
-		case "tag":
-			typ = "tags"
-		case "genre":
-			typ = "genre"
-		}
-
-		return ast.Table{
-			Type: typ,
-			Ids:  []string{e.Ident},
-		}
-	}
-
-	return ast.Table{}
-}
-
-type IdMappingFunc func(typ string, name string) string
-
-func processTableOperation(not bool, params []ast.Expr, mapNameToId IdMappingFunc) *ast.InTableExpr {
-	if len(params) != 1 {
-		panic("One param")
-	}
-
-	p := params[0]
-
-	e, ok := p.(*ast.AccessorExpr)
-	if !ok {
-		panic("Params should only be 'ast.AccessorExpr'")
-	}
-
-	if e.Ident != "tags" && e.Ident != "genres" {
-		return nil
-	}
-
-	id := mapNameToId(e.Ident, e.Name)
-
-	tbl := ast.Table{
-		Type: e.Ident,
-		Ids:  []string{id},
-	}
-
-	return &ast.InTableExpr{
-		Not:   not,
-		Table: tbl,
-	}
-}
-
-type ProcessConfig struct {
-	MapNameToId IdMappingFunc
-}
-
-func processExpr(conf *ProcessConfig, e ast.Expr) ast.Expr {
-	switch e := e.(type) {
-	case *ast.AndExpr:
-		e.Left = processExpr(conf, e.Left)
-		e.Right = processExpr(conf, e.Right)
-	case *ast.OrExpr:
-		e.Left = processExpr(conf, e.Left)
-		e.Right = processExpr(conf, e.Right)
-	case *ast.OperationExpr:
-		switch e.Name {
-		case "has":
-			return processTableOperation(false, e.Params, conf.MapNameToId)
-		case "not":
-			return processTableOperation(true, e.Params, conf.MapNameToId)
-		}
-	}
-
-	return e
-}
-
 func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, error) {
 	p := parser.New(strings.NewReader(filter))
 	e := p.ParseExpr()
 
-	pretty.Println(e)
+	if len(p.Errors) > 0{
+		return nil, errors.New("Failed to parse")
+	}
 
 	tags, err := db.GetAllTags(ctx)
 	if err != nil {
@@ -161,30 +52,38 @@ func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, e
 		return nil, err
 	}
 
-	conf := ProcessConfig{
-		MapNameToId: func(typ string, name string) string {
-			switch typ {
-			case "tags":
-				for _, t := range tags {
-					if t.Name == name {
-						return t.Id
-					}
-				}
-			case "genres":
-				for _, g := range genres {
-					if g.Name == name {
-						return g.Id
-					}
+	r := resolve.New(func(typ string, name string) string {
+		switch typ {
+		case "tags":
+			for _, t := range tags {
+				if t.Name == name {
+					return t.Id
 				}
 			}
+		case "genres":
+			for _, g := range genres {
+				if g.Name == name {
+					return g.Id
+				}
+			}
+		}
 
-			return ""
-		},
+		return ""
+	})
+
+	pe := r.Resolve(e)
+
+	if len(r.Errors) > 0{
+		// TODO(patrik): Change
+		return nil, types.NewApiError(400, "Failed to resolve filter", map[string]any{
+			"messages": r.Errors, 
+		})
 	}
 
-	pe := processExpr(&conf, e)
-	pretty.Println(pe)
-	re := resolveExpr(pe)
+	re, err := gen.Generate(pe)
+	if err != nil {
+		return nil, err
+	}
 
 	ds := dialect.From("tracks").
 		Select(

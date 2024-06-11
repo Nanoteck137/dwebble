@@ -1,27 +1,25 @@
 package ast
 
+import "github.com/nanoteck137/dwebble/filter/token"
+
 type Expr interface {
 	exprType()
 }
 
-type OperationExpr struct {
+type CallExpr struct {
 	Name   string
 	Params []Expr
 }
 
-type AccessorExpr struct {
+type FieldExpr struct {
 	Ident string
-	Name  string
+	Field string
 }
 
-type UnionExpr struct {
-	Left  Expr
-	Right Expr
-}
-
-type EqualExpr struct {
+type OpExpr struct {
+	Kind  token.Kind
 	Name  string
-	Value string
+	Value any
 }
 
 type AndExpr struct {
@@ -44,10 +42,9 @@ type InTableExpr struct {
 	Table Table
 }
 
-func (e *OperationExpr) exprType() {}
-func (e *AccessorExpr) exprType()  {}
-func (e *UnionExpr) exprType()     {}
-func (e *EqualExpr) exprType()     {}
-func (e *AndExpr) exprType()       {}
-func (e *OrExpr) exprType()        {}
-func (e *InTableExpr) exprType()   {}
+func (e *CallExpr) exprType()    {}
+func (e *FieldExpr) exprType()   {}
+func (e *OpExpr) exprType()      {}
+func (e *AndExpr) exprType()     {}
+func (e *OrExpr) exprType()      {}
+func (e *InTableExpr) exprType() {}

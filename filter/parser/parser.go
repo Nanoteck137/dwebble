@@ -46,19 +46,19 @@ func (p *Parser) expect(token token.Kind) {
 	p.next()
 }
 
-func (p *Parser) parseOperationParam() ast.Expr {
+func (p *Parser) parseCallParam() ast.Expr {
 	if p.token.Kind == token.Ident {
 		ident := p.token.Ident
 		p.next()
 
 		p.expect(token.Dot)
 
-		name := p.token.Ident
+		field := p.token.Ident
 		p.expect(token.Str)
 
-		return &ast.AccessorExpr{
+		return &ast.FieldExpr{
 			Ident: ident,
-			Name:  name,
+			Field: field,
 		}
 	}
 
@@ -66,7 +66,8 @@ func (p *Parser) parseOperationParam() ast.Expr {
 }
 
 func (p *Parser) parseExpr0() ast.Expr {
-	if p.is(token.Ident) {
+	switch p.token.Kind {
+	case token.Ident:
 		name := p.token.Ident
 		p.next()
 
@@ -76,12 +77,12 @@ func (p *Parser) parseExpr0() ast.Expr {
 
 			var params []ast.Expr
 			if p.token.Kind != token.RParen {
-				e := p.parseOperationParam()
+				e := p.parseCallParam()
 				params = append(params, e)
 
 				for p.token.Kind != token.RParen {
 					p.expect(token.Comma)
-					e := p.parseOperationParam()
+					e := p.parseCallParam()
 
 					params = append(params, e)
 				}
@@ -89,23 +90,25 @@ func (p *Parser) parseExpr0() ast.Expr {
 
 			p.expect(token.RParen)
 
-			return &ast.OperationExpr{
+			return &ast.CallExpr{
 				Name:   name,
 				Params: params,
 			}
 		case token.DoubleEqual:
+			kind := p.token.Kind
 			p.next()
 
 			value := p.token.Ident
 			p.expect(token.Str)
 
-			return &ast.EqualExpr{
+			return &ast.OpExpr{
+				Kind:  kind,
 				Name:  name,
 				Value: value,
 			}
 		}
 
-	} else if p.token.Kind == token.LParen {
+	case token.LParen:
 		p.next()
 
 		e := p.ParseExpr()
@@ -122,7 +125,7 @@ func (p *Parser) parseExpr0() ast.Expr {
 func (p *Parser) parseExpr1() ast.Expr {
 	left := p.parseExpr0()
 
-	for p.token.Kind == token.DoubleAnd || p.token.Kind == token.DoubleOr {
+	for p.is(token.DoubleAnd) || p.is(token.DoubleOr) {
 		op := p.token.Kind
 		p.next()
 

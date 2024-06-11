@@ -36,7 +36,7 @@ type Change[T any] struct {
 }
 
 type Error struct {
-	Message string
+	Message string `json:"message"`
 }
 
 func (e *Error) Error() string {

@@ -79,6 +79,10 @@ func (t *Tokenizer) NextToken() token.Token {
 		for c != '"' {
 			b.WriteRune(c)
 			c = t.read()
+
+			if c == eof {
+				break
+			}
 		}
 
 		s := b.String()
