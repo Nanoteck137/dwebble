@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
@@ -38,45 +39,18 @@ func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, e
 	p := parser.New(strings.NewReader(filter))
 	e := p.ParseExpr()
 
-	if len(p.Errors) > 0{
+	if len(p.Errors) > 0 {
 		return nil, errors.New("Failed to parse")
 	}
 
-	tags, err := db.GetAllTags(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	genres, err := db.GetAllGenres(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	r := resolve.New(func(typ string, name string) string {
-		switch typ {
-		case "tags":
-			for _, t := range tags {
-				if t.Name == name {
-					return t.Id
-				}
-			}
-		case "genres":
-			for _, g := range genres {
-				if g.Name == name {
-					return g.Id
-				}
-			}
-		}
-
-		return ""
-	})
+	r := resolve.New(trackMapNameToId)
 
 	pe := r.Resolve(e)
 
-	if len(r.Errors) > 0{
+	if len(r.Errors) > 0 {
 		// TODO(patrik): Change
 		return nil, types.NewApiError(400, "Failed to resolve filter", map[string]any{
-			"messages": r.Errors, 
+			"messages": r.Errors,
 		})
 	}
 
@@ -543,4 +517,35 @@ func (db *Database) MarkAllTracksUnavailable(ctx context.Context) error {
 	fmt.Printf("tag: %v\n", tag)
 
 	return nil
+}
+
+var tags []Tag
+var genres []Genre
+
+func (db *Database) Invalidate() {
+	log.Printf("Database.Invalidate")
+
+	ctx := context.Background()
+
+	tags, _ = db.GetAllTags(ctx)
+	genres, _ = db.GetAllGenres(ctx)
+}
+
+func trackMapNameToId(typ string, name string) string {
+	switch typ {
+	case "tags":
+		for _, t := range tags {
+			if t.Name == name {
+				return t.Id
+			}
+		}
+	case "genres":
+		for _, g := range genres {
+			if g.Name == name {
+				return g.Id
+			}
+		}
+	}
+
+	return ""
 }

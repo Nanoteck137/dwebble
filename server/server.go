@@ -71,5 +71,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 		log.Fatal(err)
 	}
 
+	db.Invalidate()
+
 	return e
 }

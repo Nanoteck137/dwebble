@@ -33,6 +33,8 @@ func (h *Handlers) HandlePostSync(c echo.Context) error {
 			log.Printf("Failed to sync: %v", err)
 			return
 		}
+
+		h.db.Invalidate()
 	}()
 
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
