@@ -7,28 +7,13 @@ import (
 	"github.com/nanoteck137/dwebble/filter/ast"
 	"github.com/nanoteck137/dwebble/filter/lexer"
 	"github.com/nanoteck137/dwebble/filter/token"
+	"github.com/nanoteck137/dwebble/types"
 )
-
-type Error struct {
-	Message string
-}
-
-func (e *Error) Error() string {
-	return e.Message
-}
-
-type ErrorList []*Error
-
-func (p *ErrorList) Add(message string) {
-	*p = append(*p, &Error{
-		Message: message,
-	})
-}
 
 type Parser struct {
 	tokenizer *lexer.Tokenizer
 	token     token.Token
-	Errors    ErrorList
+	Errors    types.ErrorList
 }
 
 func New(reader io.Reader) *Parser {
@@ -37,6 +22,7 @@ func New(reader io.Reader) *Parser {
 	return &Parser{
 		tokenizer: tokenizer,
 		token:     tokenizer.NextToken(),
+		Errors:    []*types.Error{},
 	}
 }
 
@@ -48,9 +34,13 @@ func (p *Parser) next() {
 	p.token = p.tokenizer.NextToken()
 }
 
+func (p *Parser) is(tok token.Kind) bool {
+	return p.token.Kind == tok
+}
+
 func (p *Parser) expect(token token.Kind) {
 	if p.token.Kind != token {
-		p.error(fmt.Sprintf("Expected token: %v got %v", token, p.token.Kind))
+		p.error(fmt.Sprintf("Expected token: %v got %v", token.String(), p.token.Kind.String()))
 	}
 
 	p.next()
@@ -76,15 +66,15 @@ func (p *Parser) parseOperationParam() ast.Expr {
 }
 
 func (p *Parser) parseExpr0() ast.Expr {
-	if p.token.Kind == token.Ident {
+	if p.is(token.Ident) {
 		name := p.token.Ident
 		p.next()
 
 		switch p.token.Kind {
 		case token.LParen:
 			p.next()
-			var params []ast.Expr
 
+			var params []ast.Expr
 			if p.token.Kind != token.RParen {
 				e := p.parseOperationParam()
 				params = append(params, e)
@@ -124,6 +114,8 @@ func (p *Parser) parseExpr0() ast.Expr {
 		return e
 	}
 
+	p.error("Unexpected token: " + p.token.Kind.String())
+
 	return nil
 }
 
@@ -157,4 +149,11 @@ func (p *Parser) parseExpr1() ast.Expr {
 
 func (p *Parser) ParseExpr() ast.Expr {
 	return p.parseExpr1()
+}
+
+func (p *Parser) Parse() ast.Expr {
+	e := p.ParseExpr()
+	p.expect(token.Eof)
+
+	return e
 }

@@ -34,3 +34,19 @@ type Change[T any] struct {
 	Value   T
 	Changed bool
 }
+
+type Error struct {
+	Message string
+}
+
+func (e *Error) Error() string {
+	return e.Message
+}
+
+type ErrorList []*Error
+
+func (p *ErrorList) Add(message string) {
+	*p = append(*p, &Error{
+		Message: message,
+	})
+}

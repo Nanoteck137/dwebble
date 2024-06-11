@@ -107,21 +107,10 @@ func (t *Tokenizer) NextToken() token.Token {
 		kind = token.RParen
 	case ',':
 		kind = token.Comma
-	case ';':
-		kind = token.Semicolon
-	case ':':
-		if c := t.read(); c == ':' {
-			kind = token.DoubleColon
-		} else {
-			t.unread()
-			kind = token.Colon
-		}
 	case '&':
 		c = t.read()
 		if c == '&' {
 			kind = token.DoubleAnd
-		} else if c == '~' {
-			kind = token.AndNot
 		} else {
 			t.unread()
 			kind = token.And
@@ -147,12 +136,8 @@ func (t *Tokenizer) NextToken() token.Token {
 			t.unread()
 			kind = token.Unknown
 		}
-	case '*':
-		kind = token.Asterisk
 	case '.':
 		kind = token.Dot
-	case '+':
-		kind = token.Plus
 	}
 
 	return token.Token{

@@ -10,16 +10,13 @@ import (
 )
 
 func TestParser(t *testing.T) {
-	src := `artist == "test" && has(tag."Anime", genre."Nerdcore") && (not(genre."Soundtrack") || has(tag."One Piece"))`
+	src := `has(tag."Anime", genre."Nerdcore") && (not(genre."Soundtrack") || has(tag."One Piece"))`
 	p := parser.New(strings.NewReader(src))
 
-	expr := p.ParseExpr()
-	pretty.Println(expr)
+	e := p.Parse()
+	pretty.Println(e)
 
-	expr = p.ParseExpr()
-	pretty.Println(expr)
-
-	for _, v := range p.Errors {
-		fmt.Printf("v: %v\n", v)
+	for _, e := range p.Errors {
+		fmt.Printf("e: %v\n", e)
 	}
 }

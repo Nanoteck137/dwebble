@@ -1,5 +1,7 @@
 package token
 
+import "strconv"
+
 type Kind int
 
 const (
@@ -15,11 +17,6 @@ const (
 	LParen
 	RParen
 
-	Comma
-	Semicolon
-	Colon
-	DoubleColon
-	AndNot
 	And
 	DoubleAnd
 	Or
@@ -28,11 +25,8 @@ const (
 	DoubleEqual
 	NotEqual
 
-	Asterisk
+	Comma
 	Dot
-	Plus
-
-	// Unset
 
 	Eof
 )
@@ -46,6 +40,41 @@ type Token struct {
 	Kind  Kind
 	Ident string
 	Pos   Pos
+}
+
+var tokens = [...]string{
+	Unknown: "Unknown",
+
+	Ident: "Ident",
+	Str:   "Str",
+
+	LBrace:   "{",
+	RBrace:   "}",
+	LBracket: "[",
+	RBracket: "]",
+	LParen:   "(",
+	RParen:   ")",
+
+	And:         "&",
+	DoubleAnd:   "&&",
+	Or:          "|",
+	DoubleOr:    "||",
+	Equal:       "=",
+	DoubleEqual: "==",
+	NotEqual:    "!=",
+
+	Comma: ",",
+	Dot:   ".",
+
+	Eof: "Eof",
+}
+
+func (tok Kind) String() string {
+	if 0 <= tok && tok < Kind(len(tokens)) {
+		return tokens[tok]
+	}
+
+	return "token(" + strconv.Itoa(int(tok)) + ")"
 }
 
 func Lookup(ident string) Kind {
