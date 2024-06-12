@@ -36,24 +36,6 @@ type Track struct {
 }
 
 func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track, error) {
-	ast, err := parser.ParseExpr(filterStr)
-	if err != nil {
-		return nil, err
-	}
-
-	pretty.Println(ast)
-
-	r := filter.New(TrackMapNameToId)
-	e, err := r.Resolve(ast)
-	if err != nil {
-		return nil, err
-	}
-
-	re, err := gen.Generate(e)
-	if err != nil {
-		return nil, err
-	}
-
 	ds := dialect.From("tracks").
 		Select(
 			"tracks.id",
@@ -71,8 +53,29 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 		).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
-		Where(re).
 		Order(goqu.I("tracks.name").Asc())
+
+	if filterStr != "" {
+		ast, err := parser.ParseExpr(filterStr)
+		if err != nil {
+			return nil, err
+		}
+
+		pretty.Println(ast)
+
+		r := filter.New(TrackMapNameToId)
+		e, err := r.Resolve(ast)
+		if err != nil {
+			return nil, err
+		}
+
+		re, err := gen.Generate(e)
+		if err != nil {
+			return nil, err
+		}
+
+		ds = ds.Where(re)
+	}
 
 	// ds = ds.Prepared(true)
 
