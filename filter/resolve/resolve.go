@@ -1,6 +1,8 @@
 package resolve
 
 import (
+	"fmt"
+
 	"github.com/nanoteck137/dwebble/filter/ast"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -69,6 +71,10 @@ func (r *Resolver) resolveExpr(e ast.Expr) ast.Expr {
 		case "not":
 			return r.resolveInTable(true, e.Params)
 		}
+
+		r.error("Unsupported call: " + e.Name)
+	default:
+		r.error(fmt.Sprintf("Unsupported expr type: %T", e))
 	}
 
 	return e
