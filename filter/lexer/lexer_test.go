@@ -36,6 +36,13 @@ func (w *wrapper) expectIdent(t *testing.T, ident string) {
 	assert(t, i == ident, "Expected ident '%s' got '%s'", ident, i)
 }
 
+func (w *wrapper) expectStr(t *testing.T, s string) {
+	i := w.current.Ident
+	w.expect(t, token.Str)
+
+	assert(t, i == s, "Expected ident '%s' got '%s'", s, i)
+}
+
 func TestLexerIdents(t *testing.T) {
 	src := "hello hello_world _bye_world test123 test_123"
 	w := wrapper{Tokenizer: lexer.New(strings.NewReader(src))}
@@ -46,4 +53,16 @@ func TestLexerIdents(t *testing.T) {
 	w.expectIdent(t, "_bye_world")
 	w.expectIdent(t, "test123")
 	w.expectIdent(t, "test_123")
+}
+
+func TestLexerStrings(t *testing.T) {
+	// TODO(patrik): Test string termination
+	src := `"hello" test_"world" "this%is$a&&test|123"`
+	w := wrapper{Tokenizer: lexer.New(strings.NewReader(src))}
+	w.next()
+
+	w.expectStr(t, "hello")
+	w.expectIdent(t, "test_")
+	w.expectStr(t, "world")
+	w.expectStr(t, "this%is$a&&test|123")
 }
