@@ -53,6 +53,7 @@ func TestLexerIdents(t *testing.T) {
 	w.expectIdent(t, "_bye_world")
 	w.expectIdent(t, "test123")
 	w.expectIdent(t, "test_123")
+	w.expect(t, token.Eof)
 }
 
 func TestLexerStrings(t *testing.T) {
@@ -65,4 +66,29 @@ func TestLexerStrings(t *testing.T) {
 	w.expectIdent(t, "test_")
 	w.expectStr(t, "world")
 	w.expectStr(t, "this%is$a&&test|123")
+	w.expect(t, token.Eof)
+}
+
+func TestLexerTokens(t *testing.T) {
+	// TODO(patrik): Test string termination
+	src := "{}[]() & && | || = == != ,."
+	w := wrapper{Tokenizer: lexer.New(strings.NewReader(src))}
+	w.next()
+
+	w.expect(t, token.LBrace)
+	w.expect(t, token.RBrace)
+	w.expect(t, token.LBracket)
+	w.expect(t, token.RBracket)
+	w.expect(t, token.LParen)
+	w.expect(t, token.RParen)
+	w.expect(t, token.And)
+	w.expect(t, token.DoubleAnd)
+	w.expect(t, token.Or)
+	w.expect(t, token.DoubleOr)
+	w.expect(t, token.Equal)
+	w.expect(t, token.DoubleEqual)
+	w.expect(t, token.NotEqual)
+	w.expect(t, token.Comma)
+	w.expect(t, token.Dot)
+	w.expect(t, token.Eof)
 }
