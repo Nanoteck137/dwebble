@@ -22,6 +22,16 @@ type OrExpr struct {
 	Right FilterExpr
 }
 
+type EqualExpr struct {
+	Name  string
+	Value any
+}
+
+type LikeExpr struct {
+	Name  string
+	Value any
+}
+
 type Table struct {
 	Type string
 	Ids  []string
@@ -34,6 +44,8 @@ type InTableExpr struct {
 
 func (e *AndExpr) filterExprType()     {}
 func (e *OrExpr) filterExprType()      {}
+func (e *EqualExpr) filterExprType()   {}
+func (e *LikeExpr) filterExprType()   {}
 func (e *InTableExpr) filterExprType() {}
 
 type IdMappingFunc func(typ string, name string) string
@@ -78,26 +90,66 @@ func (r *Resolver) resolveToStr(e ast.Expr) string {
 func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 	switch e := e.(type) {
 	case *ast.BinaryExpr:
-		left, err := r.Resolve(e.X)
-		if err != nil {
-			return nil, err
-		}
-
-		right, err := r.Resolve(e.Y)
-		if err != nil {
-			return nil, err
-		}
-
 		switch e.Op {
 		case token.LAND:
+			left, err := r.Resolve(e.X)
+			if err != nil {
+				return nil, err
+			}
+
+			right, err := r.Resolve(e.Y)
+			if err != nil {
+				return nil, err
+			}
+
 			return &AndExpr{
 				Left:  left,
 				Right: right,
 			}, nil
 		case token.LOR:
+			left, err := r.Resolve(e.X)
+			if err != nil {
+				return nil, err
+			}
+
+			right, err := r.Resolve(e.Y)
+			if err != nil {
+				return nil, err
+			}
+
 			return &OrExpr{
 				Left:  left,
 				Right: right,
+			}, nil
+		case token.EQL:
+			name := r.resolveToIdent(e.X)
+			var value any
+
+			if name == "artist" {
+				name = "artists.name"
+				value = r.resolveToStr(e.Y)
+			} else {
+				panic("Unknown name: " + name)
+			}
+
+			return &EqualExpr{
+				Name:  name,
+				Value: value,
+			}, nil
+		case token.REM:
+			name := r.resolveToIdent(e.X)
+			var value any
+
+			if name == "artist" {
+				name = "artists.name"
+				value = r.resolveToStr(e.Y)
+			} else {
+				panic("Unknown name: " + name)
+			}
+
+			return &LikeExpr{
+				Name:  name,
+				Value: value,
 			}, nil
 		default:
 			return nil, fmt.Errorf("Unsupported binary operator: %s", e.Op.String())
@@ -107,27 +159,41 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 		fmt.Printf("name: %v\n", name)
 		switch name {
 		case "hasTag":
-			expr := e.Args[0]
-			s := r.resolveToStr(expr)
+			if len(e.Args) <= 0 {
+				return nil, fmt.Errorf("'hasTag' requires at least 1 parameter")
+			}
 
-			id := r.mapNameToId("tags", s)
+			var ids []string
+			for _, arg := range e.Args {
+				s := r.resolveToStr(arg)
+				id := r.mapNameToId("tags", s)
+				ids = append(ids, id)
+			}
+
 			return &InTableExpr{
 				Not: false,
 				Table: Table{
 					Type: "tags",
-					Ids:  []string{id},
+					Ids:  ids,
 				},
 			}, nil
 		case "hasGenre":
-			expr := e.Args[0]
-			s := r.resolveToStr(expr)
+			if len(e.Args) <= 0 {
+				return nil, fmt.Errorf("'hasGenre' requires at least 1 parameter")
+			}
 
-			id := r.mapNameToId("genres", s)
+			var ids []string
+			for _, arg := range e.Args {
+				s := r.resolveToStr(arg)
+				id := r.mapNameToId("tags", s)
+				ids = append(ids, id)
+			}
+
 			return &InTableExpr{
 				Not: false,
 				Table: Table{
 					Type: "genres",
-					Ids:  []string{id},
+					Ids:  ids,
 				},
 			}, nil
 		default:

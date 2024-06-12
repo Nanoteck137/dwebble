@@ -13,9 +13,13 @@ import (
 func resolveTable(table *filter.Table) (*goqu.SelectDataset, error) {
 	switch table.Type {
 	case "tags":
-		return goqu.From("tracks_to_tags").Select("track_id").Where(goqu.I("tag_id").In(table.Ids)), nil
+		return goqu.From("tracks_to_tags").
+			Select("track_id").
+			Where(goqu.I("tag_id").In(table.Ids)), nil
 	case "genres":
-		return goqu.From("tracks_to_genres").Select("track_id").Where(goqu.I("genre_id").In(table.Ids)), nil
+		return goqu.From("tracks_to_genres").
+			Select("track_id").
+			Where(goqu.I("genre_id").In(table.Ids)), nil
 	}
 
 	return nil, fmt.Errorf("Unsupported type: %s\n", table.Type)
@@ -47,6 +51,10 @@ func Generate(e filter.FilterExpr) (exp.Expression, error) {
 		}
 
 		return goqu.L("(? OR ?)", left, right), nil
+	case *filter.EqualExpr:
+		return goqu.L("(? == ?)", goqu.I(e.Name), e.Value), nil
+	case *filter.LikeExpr:
+		return goqu.L("(? like ?)", goqu.I(e.Name), e.Value.(string)), nil
 	case *filter.InTableExpr:
 		s, err := resolveTable(&e.Table)
 		if err != nil {

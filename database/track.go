@@ -9,6 +9,7 @@ import (
 	"log"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/filter"
 	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
@@ -39,6 +40,8 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 	if err != nil {
 		return nil, err
 	}
+
+	pretty.Println(ast)
 
 	r := filter.New(TrackMapNameToId)
 	e, err := r.Resolve(ast)
