@@ -22,12 +22,17 @@ type OrExpr struct {
 	Right FilterExpr
 }
 
-type EqualExpr struct {
-	Name  string
-	Value any
-}
+type OpKind int
 
-type LikeExpr struct {
+const (
+	OpEqual OpKind = iota
+	OpNotEqual
+	OpLike
+	OpGreater
+)
+
+type OpExpr struct {
+	Kind  OpKind
 	Name  string
 	Value any
 }
@@ -44,8 +49,7 @@ type InTableExpr struct {
 
 func (e *AndExpr) filterExprType()     {}
 func (e *OrExpr) filterExprType()      {}
-func (e *EqualExpr) filterExprType()   {}
-func (e *LikeExpr) filterExprType()   {}
+func (e *OpExpr) filterExprType()      {}
 func (e *InTableExpr) filterExprType() {}
 
 type IdMappingFunc func(typ string, name string) string
@@ -87,6 +91,75 @@ func (r *Resolver) resolveToStr(e ast.Expr) string {
 	return s
 }
 
+func (r *Resolver) resolveToNumber(e ast.Expr) int64 {
+	lit, ok := e.(*ast.BasicLit)
+	if !ok {
+		panic("Expected BasicLit")
+	}
+
+	if lit.Kind != token.INT {
+		panic("Expected int")
+	}
+
+	i, err := strconv.ParseInt(lit.Value, 10, 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return i
+}
+
+type NameKind int
+
+const (
+	NameKindString NameKind = iota
+	NameKindNumber
+)
+
+type Name struct {
+	Kind NameKind
+	Name string
+}
+
+var globalNames = map[string]Name{
+	"artist": {
+		Kind: NameKindString,
+		Name: "artists.name",
+	},
+	"album": {
+		Kind: NameKindString,
+		Name: "albums.name",
+	},
+	"track": {
+		Kind: NameKindString,
+		Name: "tracks.name",
+	},
+	"trackNumber": {
+		Kind: NameKindNumber,
+		Name: "tracks.track_number",
+	},
+}
+
+func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, error) {
+	n, exists := globalNames[name]
+	if !exists {
+		return "", nil, fmt.Errorf("Unknown name: %s", name)
+	}
+
+	var val any
+
+	switch n.Kind {
+	case NameKindString:
+		val = r.resolveToStr(value)
+	case NameKindNumber:
+		val = r.resolveToNumber(value)
+	default:
+		panic("Unimplemented NameKind")
+	}
+
+	return n.Name, val, nil
+}
+
 func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 	switch e := e.(type) {
 	case *ast.BinaryExpr:
@@ -123,31 +196,49 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 			}, nil
 		case token.EQL:
 			name := r.resolveToIdent(e.X)
-			var value any
-
-			if name == "artist" {
-				name = "artists.name"
-				value = r.resolveToStr(e.Y)
-			} else {
-				panic("Unknown name: " + name)
+			name, value, err := r.resolveNameValue(name, e.Y)
+			if err != nil {
+				return nil, err
 			}
 
-			return &EqualExpr{
+			return &OpExpr{
+				Kind:  OpEqual,
+				Name:  name,
+				Value: value,
+			}, nil
+		case token.NEQ:
+			name := r.resolveToIdent(e.X)
+			name, value, err := r.resolveNameValue(name, e.Y)
+			if err != nil {
+				return nil, err
+			}
+
+			return &OpExpr{
+				Kind:  OpNotEqual,
 				Name:  name,
 				Value: value,
 			}, nil
 		case token.REM:
 			name := r.resolveToIdent(e.X)
-			var value any
-
-			if name == "artist" {
-				name = "artists.name"
-				value = r.resolveToStr(e.Y)
-			} else {
-				panic("Unknown name: " + name)
+			name, value, err := r.resolveNameValue(name, e.Y)
+			if err != nil {
+				return nil, err
 			}
 
-			return &LikeExpr{
+			return &OpExpr{
+				Kind:  OpLike,
+				Name:  name,
+				Value: value,
+			}, nil
+		case token.GTR:
+			name := r.resolveToIdent(e.X)
+			name, value, err := r.resolveNameValue(name, e.Y)
+			if err != nil {
+				return nil, err
+			}
+
+			return &OpExpr{
+				Kind:  OpGreater,
 				Name:  name,
 				Value: value,
 			}, nil

@@ -51,10 +51,19 @@ func Generate(e filter.FilterExpr) (exp.Expression, error) {
 		}
 
 		return goqu.L("(? OR ?)", left, right), nil
-	case *filter.EqualExpr:
-		return goqu.L("(? == ?)", goqu.I(e.Name), e.Value), nil
-	case *filter.LikeExpr:
-		return goqu.L("(? like ?)", goqu.I(e.Name), e.Value.(string)), nil
+	case *filter.OpExpr:
+		switch e.Kind {
+		case filter.OpEqual:
+			return goqu.L("(? == ?)", goqu.I(e.Name), e.Value), nil
+		case filter.OpNotEqual:
+			return goqu.L("(? != ?)", goqu.I(e.Name), e.Value), nil
+		case filter.OpLike:
+			return goqu.L("(? LIKE ?)", goqu.I(e.Name), e.Value), nil
+		case filter.OpGreater:
+			return goqu.L("(? > ?)", goqu.I(e.Name), e.Value), nil
+		default:
+			panic("Unknown op")
+		}
 	case *filter.InTableExpr:
 		s, err := resolveTable(&e.Table)
 		if err != nil {
