@@ -51,7 +51,7 @@ func (p *Parser) expect(token token.Kind) {
 }
 
 func (p *Parser) parseCallParam() ast.Expr {
-	if p.token.Kind == token.Ident {
+	if p.is(token.Ident) {
 		ident := p.token.Ident
 		p.next()
 
@@ -65,6 +65,8 @@ func (p *Parser) parseCallParam() ast.Expr {
 			Field: field,
 		}
 	}
+
+	p.error(fmt.Sprintf("Unexpected token: %s", p.token.Kind.String()))
 
 	return nil
 }
