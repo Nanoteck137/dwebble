@@ -7,10 +7,10 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/nanoteck137/dwebble/filter/ast"
+	"github.com/nanoteck137/dwebble/filter"
 )
 
-func resolveTable(table *ast.Table) (*goqu.SelectDataset, error) {
+func resolveTable(table *filter.Table) (*goqu.SelectDataset, error) {
 	switch table.Type {
 	case "tags":
 		return goqu.From("tracks_to_tags").Select("track_id").Where(goqu.I("tag_id").In(table.Ids)), nil
@@ -21,9 +21,9 @@ func resolveTable(table *ast.Table) (*goqu.SelectDataset, error) {
 	return nil, fmt.Errorf("Unsupported type: %s\n", table.Type)
 }
 
-func Generate(e ast.Expr) (exp.Expression, error) {
+func Generate(e filter.FilterExpr) (exp.Expression, error) {
 	switch e := e.(type) {
-	case *ast.AndExpr:
+	case *filter.AndExpr:
 		left, err := Generate(e.Left)
 		if err != nil {
 			return nil, err
@@ -35,7 +35,7 @@ func Generate(e ast.Expr) (exp.Expression, error) {
 		}
 
 		return goqu.L("(? AND ?)", left, right), nil
-	case *ast.OrExpr:
+	case *filter.OrExpr:
 		left, err := Generate(e.Left)
 		if err != nil {
 			return nil, err
@@ -47,7 +47,7 @@ func Generate(e ast.Expr) (exp.Expression, error) {
 		}
 
 		return goqu.L("(? OR ?)", left, right), nil
-	case *ast.InTableExpr:
+	case *filter.InTableExpr:
 		s, err := resolveTable(&e.Table)
 		if err != nil {
 			return nil, err

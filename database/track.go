@@ -5,13 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go/parser"
 	"log"
-	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/dwebble/filter"
 	"github.com/nanoteck137/dwebble/filter/gen"
-	"github.com/nanoteck137/dwebble/filter/parser"
-	"github.com/nanoteck137/dwebble/filter/resolve"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -35,26 +34,19 @@ type Track struct {
 	ArtistName string
 }
 
-func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, error) {
-	p := parser.New(strings.NewReader(filter))
-	e := p.ParseExpr()
-
-	if len(p.Errors) > 0 {
-		return nil, errors.New("Failed to parse")
+func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track, error) {
+	ast, err := parser.ParseExpr(filterStr)
+	if err != nil {
+		return nil, err
 	}
 
-	r := resolve.New(TrackMapNameToId)
-
-	pe := r.Resolve(e)
-
-	if len(r.Errors) > 0 {
-		// TODO(patrik): Change
-		return nil, types.NewApiError(400, "Failed to resolve filter", map[string]any{
-			"messages": r.Errors,
-		})
+	r := filter.New(TrackMapNameToId)
+	e, err := r.Resolve(ast)
+	if err != nil {
+		return nil, err
 	}
 
-	re, err := gen.Generate(pe)
+	re, err := gen.Generate(e)
 	if err != nil {
 		return nil, err
 	}
