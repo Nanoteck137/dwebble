@@ -9,9 +9,12 @@ import (
 	"github.com/nanoteck137/dwebble/filter/token"
 )
 
+type ErrorHandler func(message string)
+
 var eof = rune(0)
 
 type Tokenizer struct {
+	errorHandler ErrorHandler
 	reader *bufio.Reader
 	pos    token.Pos
 }
@@ -24,6 +27,10 @@ func New(reader io.Reader) *Tokenizer {
 			Column: 1,
 		},
 	}
+}
+
+func (t *Tokenizer) Init(errorHandler ErrorHandler) {
+	t.errorHandler = errorHandler
 }
 
 func (t *Tokenizer) read() rune {
@@ -81,6 +88,7 @@ func (t *Tokenizer) NextToken() token.Token {
 			c = t.read()
 
 			if c == eof {
+				t.errorHandler("Unterminated string")
 				break
 			}
 		}

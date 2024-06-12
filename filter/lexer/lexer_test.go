@@ -46,6 +46,9 @@ func (w *wrapper) expectStr(t *testing.T, s string) {
 func TestLexerIdents(t *testing.T) {
 	src := "hello hello_world _bye_world test123 test_123"
 	w := wrapper{Tokenizer: lexer.New(strings.NewReader(src))}
+	w.Tokenizer.Init(func(message string) {
+		t.Fatalf("Lexer Error: %s", message)
+	})
 	w.next()
 
 	w.expectIdent(t, "hello")
@@ -57,9 +60,11 @@ func TestLexerIdents(t *testing.T) {
 }
 
 func TestLexerStrings(t *testing.T) {
-	// TODO(patrik): Test string termination
 	src := `"hello" test_"world" "this%is$a&&test|123"`
 	w := wrapper{Tokenizer: lexer.New(strings.NewReader(src))}
+	w.Tokenizer.Init(func(message string) {
+		t.Fatalf("Lexer Error: %s", message)
+	})
 	w.next()
 
 	w.expectStr(t, "hello")
@@ -72,6 +77,9 @@ func TestLexerStrings(t *testing.T) {
 func TestLexerTokens(t *testing.T) {
 	src := "{}[]() & && | || = == != ,."
 	w := wrapper{Tokenizer: lexer.New(strings.NewReader(src))}
+	w.Tokenizer.Init(func(message string) {
+		t.Fatalf("Lexer Error: %s", message)
+	})
 	w.next()
 
 	w.expect(t, token.LBrace)
@@ -90,4 +98,21 @@ func TestLexerTokens(t *testing.T) {
 	w.expect(t, token.Comma)
 	w.expect(t, token.Dot)
 	w.expect(t, token.Eof)
+}
+
+func TestLexerStringError(t *testing.T) {
+	errored := false
+
+	src := `"hello`
+	w := wrapper{Tokenizer: lexer.New(strings.NewReader(src))}
+	w.Tokenizer.Init(func(message string) {
+		if message == "Unterminated string" {
+			errored = true
+		}
+	})
+	w.next()
+
+	if !errored {
+		t.Errorf("Expected error")
+	}
 }

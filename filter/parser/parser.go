@@ -19,11 +19,15 @@ type Parser struct {
 func New(reader io.Reader) *Parser {
 	tokenizer := lexer.New(reader)
 
-	return &Parser{
+	p := &Parser{
 		tokenizer: tokenizer,
 		token:     tokenizer.NextToken(),
 		Errors:    []*types.Error{},
 	}
+
+	p.tokenizer.Init(p.error)
+
+	return p
 }
 
 func (p *Parser) error(message string) {
