@@ -43,7 +43,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filter string) ([]Track, e
 		return nil, errors.New("Failed to parse")
 	}
 
-	r := resolve.New(trackMapNameToId)
+	r := resolve.New(TrackMapNameToId)
 
 	pe := r.Resolve(e)
 
@@ -531,7 +531,7 @@ func (db *Database) Invalidate() {
 	genres, _ = db.GetAllGenres(ctx)
 }
 
-func trackMapNameToId(typ string, name string) string {
+func TrackMapNameToId(typ string, name string) string {
 	switch typ {
 	case "tags":
 		for _, t := range tags {

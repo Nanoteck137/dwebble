@@ -1,14 +1,31 @@
 package handlers
 
 import (
+	"go/parser"
+
+	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
+	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/filter"
 	"github.com/nanoteck137/dwebble/types"
 )
 
 func (h *Handlers) HandleGetTracks(c echo.Context) error {
-	filter := c.QueryParam("filter")
+	f := c.QueryParam("filter")
 
-	tracks, err := h.db.GetAllTracks(c.Request().Context(), filter)
+	ast, err := parser.ParseExpr(f)
+	if err != nil {
+		return err
+	}
+
+	pretty.Println(ast)
+
+	r := filter.New(database.TrackMapNameToId)
+
+	e := r.Resolve(ast)
+	pretty.Println(e)
+
+	tracks, err := h.db.GetAllTracks(c.Request().Context(), f)
 	if err != nil {
 		return err
 	}
