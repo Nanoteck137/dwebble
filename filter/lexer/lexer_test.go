@@ -70,7 +70,6 @@ func TestLexerStrings(t *testing.T) {
 }
 
 func TestLexerTokens(t *testing.T) {
-	// TODO(patrik): Test string termination
 	src := "{}[]() & && | || = == != ,."
 	w := wrapper{Tokenizer: lexer.New(strings.NewReader(src))}
 	w.next()
