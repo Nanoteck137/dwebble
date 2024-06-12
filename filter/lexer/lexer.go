@@ -52,7 +52,7 @@ func (t *Tokenizer) NextToken() token.Token {
 
 	pos := t.pos
 
-	if unicode.IsLetter(c) {
+	if unicode.IsLetter(c) || c == '_' {
 		var b bytes.Buffer
 
 		for unicode.IsLetter(c) || unicode.IsDigit(c) || c == '_' {
