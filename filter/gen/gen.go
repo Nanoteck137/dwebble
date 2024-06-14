@@ -1,16 +1,14 @@
 package gen
 
 import (
-	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/nanoteck137/dwebble/filter"
 )
 
-func resolveTable(table *filter.Table) (*goqu.SelectDataset, error) {
+func generateTableSelect(table *filter.Table) (*goqu.SelectDataset, error) {
 	switch table.Type {
 	case "tags":
 		return goqu.From("tracks_to_tags").
@@ -62,10 +60,10 @@ func Generate(e filter.FilterExpr) (exp.Expression, error) {
 		case filter.OpGreater:
 			return goqu.L("(? > ?)", goqu.I(e.Name), e.Value), nil
 		default:
-			panic("Unknown op")
+			return nil, fmt.Errorf("Unimplemented OpKind %d", e.Kind)
 		}
 	case *filter.InTableExpr:
-		s, err := resolveTable(&e.Table)
+		s, err := generateTableSelect(&e.Table)
 		if err != nil {
 			return nil, err
 		}
@@ -77,5 +75,5 @@ func Generate(e filter.FilterExpr) (exp.Expression, error) {
 		}
 	}
 
-	return nil, errors.New("Unexpected expr: " + reflect.TypeOf(e).Name())
+	return nil, fmt.Errorf("Unimplemented expr %T", e)
 }
