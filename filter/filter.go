@@ -276,7 +276,7 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 			var ids []string
 			for _, arg := range e.Args {
 				s := r.resolveToStr(arg)
-				id := r.mapNameToId("tags", s)
+				id := r.mapNameToId("genres", s)
 				ids = append(ids, id)
 			}
 
