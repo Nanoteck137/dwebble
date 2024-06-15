@@ -566,7 +566,7 @@ func TrackMapNameToId(typ string, name string) string {
 		}
 	case "genres":
 		for _, g := range genres {
-			if g.Name == name {
+			if g.Name == strings.ToLower(name) {
 				return g.Id
 			}
 		}
