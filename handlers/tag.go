@@ -16,8 +16,9 @@ func (h *Handlers) HandleGetTags(c echo.Context) error {
 	}
 
 	for i, tag := range tags {
+		// TODO(patrik): Fix this
 		res.Tags[i] = types.Tag{
-			Id:   tag.Id,
+			Id:   tag.Name,
 			Name: tag.Name,
 		}
 	}

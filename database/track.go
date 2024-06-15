@@ -560,8 +560,8 @@ func TrackMapNameToId(typ string, name string) string {
 	switch typ {
 	case "tags":
 		for _, t := range tags {
-			if t.Name == name {
-				return t.Id
+			if t.Name == strings.ToLower(name) {
+				return t.Name
 			}
 		}
 	case "genres":

@@ -12,13 +12,14 @@ import (
 )
 
 type Genre struct {
-	Id   string
-	Name string
+	Id          string
+	Name        string
+	DisplayName string
 }
 
 func (db *Database) GetAllGenres(ctx context.Context) ([]Genre, error) {
 	ds := dialect.From("genres").
-		Select("id", "name")
+		Select("id", "name", "display_name")
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {
@@ -29,7 +30,7 @@ func (db *Database) GetAllGenres(ctx context.Context) ([]Genre, error) {
 
 	for rows.Next() {
 		var item Genre
-		err := rows.Scan(&item.Id, &item.Name)
+		err := rows.Scan(&item.Id, &item.Name, &item.DisplayName)
 		if err != nil {
 			return nil, err
 		}
@@ -42,8 +43,8 @@ func (db *Database) GetAllGenres(ctx context.Context) ([]Genre, error) {
 
 func (db *Database) GetGenreByName(ctx context.Context, name string) (Genre, error) {
 	ds := dialect.From("genres").
-		Select("id", "name").
-		Where(goqu.I("name").Eq(name)).
+		Select("id", "name", "display_name").
+		Where(goqu.I("name").Eq(goqu.Func("LOWER", name))).
 		Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
@@ -52,7 +53,7 @@ func (db *Database) GetGenreByName(ctx context.Context, name string) (Genre, err
 	}
 
 	var item Genre
-	err = row.Scan(&item.Id, &item.Name)
+	err = row.Scan(&item.Id, &item.Name, &item.DisplayName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Genre{}, types.ErrNoGenre
@@ -67,9 +68,10 @@ func (db *Database) CreateGenre(ctx context.Context, name string) (Genre, error)
 	ds := dialect.Insert("genres").
 		Rows(goqu.Record{
 			"id":   utils.CreateId(),
-			"name": name,
+			"name": goqu.Func("LOWER", name),
+			"display_name": name,
 		}).
-		Returning("id", "name").
+		Returning("id", "name", "display_name").
 		Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
@@ -78,7 +80,7 @@ func (db *Database) CreateGenre(ctx context.Context, name string) (Genre, error)
 	}
 
 	var item Genre
-	err = row.Scan(&item.Id, &item.Name)
+	err = row.Scan(&item.Id, &item.Name, &item.DisplayName)
 	if err != nil {
 		return Genre{}, err
 	}
@@ -122,7 +124,7 @@ func (db *Database) RemoveGenreFromTrack(ctx context.Context, genreId, trackId s
 
 func (db *Database) GetTrackGenres(ctx context.Context, trackId string) ([]Genre, error) {
 	ds := dialect.From("tracks_to_genres").
-		Select("genres.id", "genres.name").
+		Select("genres.id", "genres.name", "genres.display_name").
 		Join(
 			goqu.I("genres"),
 			goqu.On(
@@ -141,7 +143,7 @@ func (db *Database) GetTrackGenres(ctx context.Context, trackId string) ([]Genre
 
 	for rows.Next() {
 		var item Genre
-		err := rows.Scan(&item.Id, &item.Name)
+		err := rows.Scan(&item.Id, &item.Name, &item.DisplayName)
 		if err != nil {
 			return nil, err
 		}

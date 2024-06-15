@@ -12,13 +12,14 @@ import (
 )
 
 type Tag struct {
-	Id   string
-	Name string
+	Id          string
+	Name        string
+	DisplayName string
 }
 
 func (db *Database) GetAllTags(ctx context.Context) ([]Tag, error) {
 	ds := dialect.From("tags").
-		Select("id", "name")
+		Select("id", "name", "display_name")
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {
@@ -29,7 +30,7 @@ func (db *Database) GetAllTags(ctx context.Context) ([]Tag, error) {
 
 	for rows.Next() {
 		var item Tag
-		err := rows.Scan(&item.Id, &item.Name)
+		err := rows.Scan(&item.Id, &item.Name, &item.DisplayName)
 		if err != nil {
 			return nil, err
 		}
@@ -42,8 +43,8 @@ func (db *Database) GetAllTags(ctx context.Context) ([]Tag, error) {
 
 func (db *Database) GetTagByName(ctx context.Context, name string) (Tag, error) {
 	ds := dialect.From("tags").
-		Select("id", "name").
-		Where(goqu.I("name").Eq(name)).
+		Select("id", "name", "display_name").
+		Where(goqu.I("name").Eq(goqu.Func("LOWER", name))).
 		Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
@@ -52,11 +53,12 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (Tag, error) 
 	}
 
 	var item Tag
-	err = row.Scan(&item.Id, &item.Name)
+	err = row.Scan(&item.Id, &item.Name, &item.DisplayName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Tag{}, types.ErrNoTag
 		}
+
 		return Tag{}, err
 	}
 
@@ -66,10 +68,11 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (Tag, error) 
 func (db *Database) CreateTag(ctx context.Context, name string) (Tag, error) {
 	ds := dialect.Insert("tags").
 		Rows(goqu.Record{
-			"id":   utils.CreateId(),
-			"name": name,
+			"id": utils.CreateId(),
+			"name":         goqu.Func("LOWER", name),
+			"display_name": name,
 		}).
-		Returning("id", "name").
+		Returning("id", "name", "display_name").
 		Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
@@ -78,7 +81,7 @@ func (db *Database) CreateTag(ctx context.Context, name string) (Tag, error) {
 	}
 
 	var item Tag
-	err = row.Scan(&item.Id, &item.Name)
+	err = row.Scan(&item.Id, &item.Name, &item.DisplayName)
 	if err != nil {
 		return Tag{}, err
 	}
@@ -122,8 +125,8 @@ func (db *Database) RemoveTagFromTrack(ctx context.Context, tagId, trackId strin
 
 func (db *Database) GetTrackTags(ctx context.Context, trackId string) ([]Tag, error) {
 	ds := dialect.From("tracks_to_tags").
-		Select("tags.id", "tags.name").
-		Join(goqu.I("tags"), goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.id")))).
+		Select("tags.id", "tags.name", "tags.display_name").
+		Join(goqu.I("tags"), goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.name")))).
 		Where(goqu.I("tracks_to_tags.track_id").Eq(trackId)).
 		Prepared(true)
 
@@ -136,7 +139,7 @@ func (db *Database) GetTrackTags(ctx context.Context, trackId string) ([]Tag, er
 
 	for rows.Next() {
 		var item Tag
-		err := rows.Scan(&item.Id, &item.Name)
+		err := rows.Scan(&item.Id, &item.Name, &item.DisplayName)
 		if err != nil {
 			return nil, err
 		}

@@ -1074,7 +1074,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					}
 
 					if !hasTag {
-						err := db.RemoveTagFromTrack(ctx, t.Id, dbTrack.Id)
+						err := db.RemoveTagFromTrack(ctx, t.Name, dbTrack.Id)
 						if err != nil {
 							return err
 						}
