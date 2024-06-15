@@ -58,29 +58,8 @@ CREATE TABLE tracks (
         REFERENCES artists(id)
 );
 
-CREATE TABLE tags (
-    id TEXT,
-    name TEXT,
-
-    CONSTRAINT tags_pk PRIMARY KEY(id),
-    CONSTRAINT tags_name_unique UNIQUE(name)
-);
-
-CREATE TABLE tracks_to_tags (
-    track_id TEXT,
-    tag_id TEXT,
-
-    CONSTRAINT tracks_to_tags_pk PRIMARY KEY(track_id, tag_id),
-
-    CONSTRAINT tracks_to_tags_track_id_fk FOREIGN KEY (track_id)
-        REFERENCES tracks(id),
-    CONSTRAINT tracks_to_tags_tag_id_fk FOREIGN KEY (tag_id)
-        REFERENCES tags(id)
-);
 
 -- +goose Down
-DROP TABLE tracks_to_tags;
-DROP TABLE tags;
 DROP TABLE tracks;
 DROP TABLE albums;
 DROP TABLE artists;
