@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"go/parser"
 	"log"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/nanoteck137/dwebble/filter"
 	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
@@ -72,8 +74,43 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 			return nil, err
 		}
 
-		ds = ds.Where(re)
+		ds = ds.Where(goqu.I("tracks.available").Eq(true), re)
+	} else {
+		ds = ds.Where(goqu.I("tracks.available").Eq(true))
 	}
+
+	// order := "sort=+artist,+track"
+	order := ""
+	split := strings.Split(order, "=")
+
+	fmt.Printf("split: %v\n", split)
+
+	mode := split[0]
+	switch mode {
+	case "sort":
+		args := strings.Split(split[1], ",")
+
+		var orderExprs []exp.OrderedExpression
+
+		fmt.Printf("args: %v\n", args)
+		for _, arg := range args {
+			switch arg[0] {
+			case '+':
+				name := filter.GlobalNames[arg[1:]]
+				fmt.Printf("name: %v\n", name)
+				orderExprs = append(orderExprs, goqu.I(name.Name).Asc())
+			case '-':
+			default:
+			}
+		}
+
+		ds = ds.Order(orderExprs...)
+	case "random":
+		ds = ds.Order(goqu.Func("RANDOM").Asc())
+	default:
+		ds = ds.Order(goqu.I("tracks.name").Asc())
+	}
+
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {

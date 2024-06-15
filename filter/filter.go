@@ -121,7 +121,7 @@ type Name struct {
 	Name string
 }
 
-var globalNames = map[string]Name{
+var GlobalNames = map[string]Name{
 	"artist": {
 		Kind: NameKindString,
 		Name: "artists.name",
@@ -141,7 +141,7 @@ var globalNames = map[string]Name{
 }
 
 func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, error) {
-	n, exists := globalNames[name]
+	n, exists := GlobalNames[name]
 	if !exists {
 		return "", nil, fmt.Errorf("Unknown name: %s", name)
 	}
