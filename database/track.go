@@ -9,7 +9,6 @@ import (
 	"log"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/filter"
 	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
@@ -51,6 +50,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 			"albums.name",
 			"artists.name",
 		).
+		Prepared(true).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
 		Order(goqu.I("tracks.name").Asc())
@@ -60,8 +60,6 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 		if err != nil {
 			return nil, err
 		}
-
-		pretty.Println(ast)
 
 		r := filter.New(TrackMapNameToId)
 		e, err := r.Resolve(ast)
@@ -76,13 +74,6 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 
 		ds = ds.Where(re)
 	}
-
-	// ds = ds.Prepared(true)
-
-	sql, params, _ := ds.ToSQL()
-
-	fmt.Printf("sql: %v\n", sql)
-	fmt.Printf("params: %v\n", params)
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {
