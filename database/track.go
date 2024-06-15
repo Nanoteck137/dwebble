@@ -524,6 +524,7 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 		return err
 	}
 
+	// TODO(patrik): Cleanup
 	fmt.Printf("tag: %v\n", tag)
 
 	return nil
@@ -539,6 +540,7 @@ func (db *Database) MarkAllTracksUnavailable(ctx context.Context) error {
 		return err
 	}
 
+	// TODO(patrik): Cleanup
 	fmt.Printf("tag: %v\n", tag)
 
 	return nil
