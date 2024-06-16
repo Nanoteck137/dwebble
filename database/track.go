@@ -5,17 +5,79 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go/ast"
 	"go/parser"
 	"log"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/filter"
 	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
+
+type TrackResolverAdapter struct {
+}
+
+func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
+	switch typ {
+	case "tags":
+		for _, t := range tags {
+			if t.Name == strings.ToLower(name) {
+				return t.Name, nil
+			}
+		}
+	case "genres":
+		for _, g := range genres {
+			if g.Name == strings.ToLower(name) {
+				return g.Id, nil
+			}
+		}
+	}
+
+	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
+}
+
+func (a *TrackResolverAdapter) MapName(name string) (filter.Name, error) {
+	switch name {
+	case "artist":
+		return filter.Name{
+			Kind: filter.NameKindString,
+			Name: "artists.name",
+		}, nil
+	case "album":
+		return filter.Name{
+			Kind: filter.NameKindString,
+			Name: "albums.name",
+		}, nil
+	case "track":
+		return filter.Name{
+			Kind: filter.NameKindString,
+			Name: "tracks.name",
+		}, nil
+	case "trackNumber":
+		return filter.Name{
+			Kind: filter.NameKindNumber,
+			Name: "tracks.track_number",
+		}, nil
+	}
+
+	return filter.Name{}, fmt.Errorf("Unknown name: %s", name)
+}
+
+func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
+	switch name {
+	case "hasTag":
+		return resolver.InTable(name, "tags", args)
+	case "hasGenre":
+		return resolver.InTable(name, "genres", args)
+	}
+
+	return nil, fmt.Errorf("Unknown function name: %s", name)
+}
 
 type Track struct {
 	Id       string
@@ -57,17 +119,21 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
 		Order(goqu.I("tracks.name").Asc())
 
+	a := TrackResolverAdapter{}
+
 	if filterStr != "" {
 		ast, err := parser.ParseExpr(filterStr)
 		if err != nil {
 			return nil, err
 		}
 
-		r := filter.New(TrackMapNameToId)
+		r := filter.New(&a)
 		e, err := r.Resolve(ast)
 		if err != nil {
 			return nil, err
 		}
+
+		pretty.Println(e)
 
 		re, err := gen.Generate(e)
 		if err != nil {
@@ -96,7 +162,11 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 		for _, arg := range args {
 			switch arg[0] {
 			case '+':
-				name := filter.GlobalNames[arg[1:]]
+				name, err := a.MapName(arg[1:])
+				if err != nil {
+					return nil, err
+				}
+
 				fmt.Printf("name: %v\n", name)
 				orderExprs = append(orderExprs, goqu.I(name.Name).Asc())
 			case '-':
@@ -110,7 +180,6 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 	default:
 		ds = ds.Order(goqu.I("tracks.name").Asc())
 	}
-
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {

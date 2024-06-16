@@ -54,17 +54,25 @@ func (e *InTableExpr) filterExprType() {}
 
 type IdMappingFunc func(typ string, name string) string
 
-type Resolver struct {
-	mapNameToId IdMappingFunc
+type ResolverAdapter interface {
+	MapNameToId(typ, name string) (string, error)
+	// TODO(patrik): Rename to ResolveVariableName
+	MapName(name string) (Name, error)
+
+	ResolveFunctionCall(resolver *Resolver, name string, args []ast.Expr) (FilterExpr, error)
 }
 
-func New(mapNametoId IdMappingFunc) *Resolver {
+type Resolver struct {
+	adapter ResolverAdapter
+}
+
+func New(adpater ResolverAdapter) *Resolver {
 	return &Resolver{
-		mapNameToId: mapNametoId,
+		adapter: adpater,
 	}
 }
 
-func (r *Resolver) resolveToIdent(e ast.Expr) string {
+func (r *Resolver) ResolveToIdent(e ast.Expr) string {
 	ident, ok := e.(*ast.Ident)
 	if !ok {
 		panic("Expected ident")
@@ -73,7 +81,7 @@ func (r *Resolver) resolveToIdent(e ast.Expr) string {
 	return ident.Name
 }
 
-func (r *Resolver) resolveToStr(e ast.Expr) string {
+func (r *Resolver) ResolveToStr(e ast.Expr) string {
 	lit, ok := e.(*ast.BasicLit)
 	if !ok {
 		panic("Expected BasicLit")
@@ -91,7 +99,7 @@ func (r *Resolver) resolveToStr(e ast.Expr) string {
 	return s
 }
 
-func (r *Resolver) resolveToNumber(e ast.Expr) int64 {
+func (r *Resolver) ResolveToNumber(e ast.Expr) int64 {
 	lit, ok := e.(*ast.BasicLit)
 	if !ok {
 		panic("Expected BasicLit")
@@ -121,43 +129,50 @@ type Name struct {
 	Name string
 }
 
-var GlobalNames = map[string]Name{
-	"artist": {
-		Kind: NameKindString,
-		Name: "artists.name",
-	},
-	"album": {
-		Kind: NameKindString,
-		Name: "albums.name",
-	},
-	"track": {
-		Kind: NameKindString,
-		Name: "tracks.name",
-	},
-	"trackNumber": {
-		Kind: NameKindNumber,
-		Name: "tracks.track_number",
-	},
-}
 
 func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, error) {
-	n, exists := GlobalNames[name]
-	if !exists {
-		return "", nil, fmt.Errorf("Unknown name: %s", name)
+	n, err := r.adapter.MapName(name)
+	if err != nil {
+		return "", nil, err
 	}
 
 	var val any
 
 	switch n.Kind {
 	case NameKindString:
-		val = r.resolveToStr(value)
+		val = r.ResolveToStr(value)
 	case NameKindNumber:
-		val = r.resolveToNumber(value)
+		val = r.ResolveToNumber(value)
 	default:
 		panic("Unimplemented NameKind")
 	}
 
 	return n.Name, val, nil
+}
+
+func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, error) {
+		if len(args) <= 0 {
+			return nil, fmt.Errorf("'%s' requires at least 1 parameter", name)
+		}
+
+		var ids []string
+		for _, arg := range args {
+			s := r.ResolveToStr(arg)
+			id, err := r.adapter.MapNameToId(typ, s)
+			if err != nil {
+				return nil, err
+			}
+
+			ids = append(ids, id)
+		}
+
+		return &InTableExpr{
+			Not: false,
+			Table: Table{
+				Type: typ,
+				Ids:  ids,
+			},
+		}, nil
 }
 
 func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
@@ -195,7 +210,7 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 				Right: right,
 			}, nil
 		case token.EQL:
-			name := r.resolveToIdent(e.X)
+			name := r.ResolveToIdent(e.X)
 			name, value, err := r.resolveNameValue(name, e.Y)
 			if err != nil {
 				return nil, err
@@ -207,7 +222,7 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 				Value: value,
 			}, nil
 		case token.NEQ:
-			name := r.resolveToIdent(e.X)
+			name := r.ResolveToIdent(e.X)
 			name, value, err := r.resolveNameValue(name, e.Y)
 			if err != nil {
 				return nil, err
@@ -219,7 +234,7 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 				Value: value,
 			}, nil
 		case token.REM:
-			name := r.resolveToIdent(e.X)
+			name := r.ResolveToIdent(e.X)
 			name, value, err := r.resolveNameValue(name, e.Y)
 			if err != nil {
 				return nil, err
@@ -231,7 +246,7 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 				Value: value,
 			}, nil
 		case token.GTR:
-			name := r.resolveToIdent(e.X)
+			name := r.ResolveToIdent(e.X)
 			name, value, err := r.resolveNameValue(name, e.Y)
 			if err != nil {
 				return nil, err
@@ -246,50 +261,10 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 			return nil, fmt.Errorf("Unsupported binary operator: %s", e.Op.String())
 		}
 	case *ast.CallExpr:
-		name := r.resolveToIdent(e.Fun)
+		name := r.ResolveToIdent(e.Fun)
 		fmt.Printf("name: %v\n", name)
-		switch name {
-		case "hasTag":
-			if len(e.Args) <= 0 {
-				return nil, fmt.Errorf("'hasTag' requires at least 1 parameter")
-			}
 
-			var ids []string
-			for _, arg := range e.Args {
-				s := r.resolveToStr(arg)
-				id := r.mapNameToId("tags", s)
-				ids = append(ids, id)
-			}
-
-			return &InTableExpr{
-				Not: false,
-				Table: Table{
-					Type: "tags",
-					Ids:  ids,
-				},
-			}, nil
-		case "hasGenre":
-			if len(e.Args) <= 0 {
-				return nil, fmt.Errorf("'hasGenre' requires at least 1 parameter")
-			}
-
-			var ids []string
-			for _, arg := range e.Args {
-				s := r.resolveToStr(arg)
-				id := r.mapNameToId("genres", s)
-				ids = append(ids, id)
-			}
-
-			return &InTableExpr{
-				Not: false,
-				Table: Table{
-					Type: "genres",
-					Ids:  ids,
-				},
-			}, nil
-		default:
-			return nil, fmt.Errorf("Unknown function name: %s", name)
-		}
+		return r.adapter.ResolveFunctionCall(r, name, e.Args)
 	case *ast.UnaryExpr:
 		expr, err := r.Resolve(e.X)
 		if err != nil {
