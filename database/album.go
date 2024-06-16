@@ -5,11 +5,47 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"go/ast"
+	"go/parser"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/dwebble/filter"
+	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
+
+type AlbumResolverAdapter struct {
+}
+
+func (a *AlbumResolverAdapter) MapNameToId(typ, name string) (string, error) {
+	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
+}
+
+func (a *AlbumResolverAdapter) MapName(name string) (filter.Name, error) {
+	switch name {
+	case "artist":
+		return filter.Name{
+			Kind: filter.NameKindString,
+			Name: "artists.name",
+		}, nil
+	case "album":
+		return filter.Name{
+			Kind: filter.NameKindString,
+			Name: "albums.name",
+		}, nil
+	}
+
+	return filter.Name{}, fmt.Errorf("Unknown name: %s", name)
+}
+
+func (a *AlbumResolverAdapter) ResolveTable(typ string) (filter.Table, error) {
+	return filter.Table{}, fmt.Errorf("Unknown table type: %s", typ)
+}
+
+func (a *AlbumResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
+	return nil, fmt.Errorf("Unknown function name: %s", name)
+}
 
 type Album struct {
 	Id       string
@@ -19,10 +55,35 @@ type Album struct {
 	Path     string
 }
 
-func (db *Database) GetAllAlbums(ctx context.Context) ([]Album, error) {
+func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album, error) {
 	ds := dialect.From("albums").
-		Select("id", "name", "cover_art", "artist_id", "path").
-		Where(goqu.I("available").Eq(true))
+		Select("albums.id", "albums.name", "albums.cover_art", "albums.artist_id", "albums.path").
+		Join(goqu.I("artists"), goqu.On(goqu.I("albums.artist_id").Eq(goqu.I("artists.id")))).
+		Prepared(true)
+
+	a := AlbumResolverAdapter{}
+
+	if filterStr != "" {
+		ast, err := parser.ParseExpr(filterStr)
+		if err != nil {
+			return nil, err
+		}
+
+		r := filter.New(&a)
+		e, err := r.Resolve(ast)
+		if err != nil {
+			return nil, err
+		}
+
+		re, err := gen.Generate(e)
+		if err != nil {
+			return nil, err
+		}
+
+		ds = ds.Where(goqu.I("albums.available").Eq(true), re)
+	} else {
+		ds = ds.Where(goqu.I("albums.available").Eq(true))
+	}
 
 	rows, err := db.Query(ctx, ds)
 	if err != nil {

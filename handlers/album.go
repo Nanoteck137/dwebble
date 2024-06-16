@@ -8,7 +8,9 @@ import (
 )
 
 func (h *Handlers) HandleGetAlbums(c echo.Context) error {
-	albums, err := h.db.GetAllAlbums(c.Request().Context())
+	f := c.QueryParam("filter")
+
+	albums, err := h.db.GetAllAlbums(c.Request().Context(), f)
 	if err != nil {
 		return err
 	}
