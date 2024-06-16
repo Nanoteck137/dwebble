@@ -8,19 +8,10 @@ import (
 	"github.com/nanoteck137/dwebble/filter"
 )
 
-func generateTableSelect(table *filter.Table) (*goqu.SelectDataset, error) {
-	switch table.Type {
-	case "tags":
-		return goqu.From("tracks_to_tags").
-			Select("track_id").
-			Where(goqu.I("tag_id").In(table.Ids)), nil
-	case "genres":
-		return goqu.From("tracks_to_genres").
-			Select("track_id").
-			Where(goqu.I("genre_id").In(table.Ids)), nil
-	}
-
-	return nil, fmt.Errorf("Unsupported type: %s\n", table.Type)
+func generateTableSelect(table *filter.Table, ids []string) *goqu.SelectDataset {
+	return goqu.From(table.Name).
+		Select(table.SelectName).
+		Where(goqu.I(table.WhereName).In(ids))
 }
 
 func Generate(e filter.FilterExpr) (exp.Expression, error) {
@@ -63,10 +54,7 @@ func Generate(e filter.FilterExpr) (exp.Expression, error) {
 			return nil, fmt.Errorf("Unimplemented OpKind %d", e.Kind)
 		}
 	case *filter.InTableExpr:
-		s, err := generateTableSelect(&e.Table)
-		if err != nil {
-			return nil, err
-		}
+		s := generateTableSelect(&e.Table, e.Ids)
 
 		if e.Not {
 			return goqu.L("? NOT IN ?", goqu.I("tracks.id"), s), nil

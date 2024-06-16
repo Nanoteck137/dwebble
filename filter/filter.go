@@ -38,13 +38,15 @@ type OpExpr struct {
 }
 
 type Table struct {
-	Type string
-	Ids  []string
+	Name       string
+	SelectName string
+	WhereName  string
 }
 
 type InTableExpr struct {
 	Not   bool
 	Table Table
+	Ids   []string
 }
 
 func (e *AndExpr) filterExprType()     {}
@@ -58,6 +60,8 @@ type ResolverAdapter interface {
 	MapNameToId(typ, name string) (string, error)
 	// TODO(patrik): Rename to ResolveVariableName
 	MapName(name string) (Name, error)
+
+	ResolveTable(typ string) (Table, error)
 
 	ResolveFunctionCall(resolver *Resolver, name string, args []ast.Expr) (FilterExpr, error)
 }
@@ -129,7 +133,6 @@ type Name struct {
 	Name string
 }
 
-
 func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, error) {
 	n, err := r.adapter.MapName(name)
 	if err != nil {
@@ -144,35 +147,38 @@ func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, e
 	case NameKindNumber:
 		val = r.ResolveToNumber(value)
 	default:
-		panic("Unimplemented NameKind")
+		return "", nil, fmt.Errorf("Unknown NameKind: %d", n.Kind)
 	}
 
 	return n.Name, val, nil
 }
 
 func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, error) {
-		if len(args) <= 0 {
-			return nil, fmt.Errorf("'%s' requires at least 1 parameter", name)
+	if len(args) <= 0 {
+		return nil, fmt.Errorf("'%s' requires at least 1 parameter", name)
+	}
+
+	var ids []string
+	for _, arg := range args {
+		s := r.ResolveToStr(arg)
+		id, err := r.adapter.MapNameToId(typ, s)
+		if err != nil {
+			return nil, err
 		}
 
-		var ids []string
-		for _, arg := range args {
-			s := r.ResolveToStr(arg)
-			id, err := r.adapter.MapNameToId(typ, s)
-			if err != nil {
-				return nil, err
-			}
+		ids = append(ids, id)
+	}
 
-			ids = append(ids, id)
-		}
+	tbl, err := r.adapter.ResolveTable(typ)
+	if err != nil {
+		return nil, err
+	}
 
-		return &InTableExpr{
-			Not: false,
-			Table: Table{
-				Type: typ,
-				Ids:  ids,
-			},
-		}, nil
+	return &InTableExpr{
+		Not:   false,
+		Table: tbl,
+		Ids:   ids,
+	}, nil
 }
 
 func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
@@ -262,8 +268,6 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 		}
 	case *ast.CallExpr:
 		name := r.ResolveToIdent(e.Fun)
-		fmt.Printf("name: %v\n", name)
-
 		return r.adapter.ResolveFunctionCall(r, name, e.Args)
 	case *ast.UnaryExpr:
 		expr, err := r.Resolve(e.X)

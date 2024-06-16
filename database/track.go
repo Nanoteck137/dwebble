@@ -12,7 +12,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/filter"
 	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
@@ -66,6 +65,25 @@ func (a *TrackResolverAdapter) MapName(name string) (filter.Name, error) {
 	}
 
 	return filter.Name{}, fmt.Errorf("Unknown name: %s", name)
+}
+
+func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, error) {
+	switch typ {
+	case "tags":
+		return filter.Table{
+			Name:       "tracks_to_tags",
+			SelectName: "track_id",
+			WhereName:  "tag_id",
+		}, nil
+	case "genres":
+		return filter.Table{
+			Name:       "tracks_to_genres",
+			SelectName: "track_id",
+			WhereName:  "genre_id",
+		}, nil
+	}
+
+	return filter.Table{}, fmt.Errorf("Unknown table type: %s", typ)
 }
 
 func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
@@ -132,8 +150,6 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 		if err != nil {
 			return nil, err
 		}
-
-		pretty.Println(e)
 
 		re, err := gen.Generate(e)
 		if err != nil {
