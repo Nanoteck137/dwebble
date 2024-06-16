@@ -8,52 +8,6 @@ import (
 	"strconv"
 )
 
-type FilterExpr interface {
-	filterExprType()
-}
-
-type AndExpr struct {
-	Left  FilterExpr
-	Right FilterExpr
-}
-
-type OrExpr struct {
-	Left  FilterExpr
-	Right FilterExpr
-}
-
-type OpKind int
-
-const (
-	OpEqual OpKind = iota
-	OpNotEqual
-	OpLike
-	OpGreater
-)
-
-type OpExpr struct {
-	Kind  OpKind
-	Name  string
-	Value any
-}
-
-type Table struct {
-	Name       string
-	SelectName string
-	WhereName  string
-}
-
-type InTableExpr struct {
-	Not   bool
-	Table Table
-	Ids   []string
-}
-
-func (e *AndExpr) filterExprType()     {}
-func (e *OrExpr) filterExprType()      {}
-func (e *OpExpr) filterExprType()      {}
-func (e *InTableExpr) filterExprType() {}
-
 type IdMappingFunc func(typ string, name string) string
 
 type ResolverAdapter interface {
@@ -79,6 +33,7 @@ func New(adpater ResolverAdapter) *Resolver {
 func (r *Resolver) ResolveToIdent(e ast.Expr) string {
 	ident, ok := e.(*ast.Ident)
 	if !ok {
+		// TODO(patrik): Return error
 		panic("Expected ident")
 	}
 
@@ -88,10 +43,12 @@ func (r *Resolver) ResolveToIdent(e ast.Expr) string {
 func (r *Resolver) ResolveToStr(e ast.Expr) string {
 	lit, ok := e.(*ast.BasicLit)
 	if !ok {
+		// TODO(patrik): Return error
 		panic("Expected BasicLit")
 	}
 
 	if lit.Kind != token.STRING {
+		// TODO(patrik): Return error
 		panic("Expected string")
 	}
 
@@ -106,10 +63,12 @@ func (r *Resolver) ResolveToStr(e ast.Expr) string {
 func (r *Resolver) ResolveToNumber(e ast.Expr) int64 {
 	lit, ok := e.(*ast.BasicLit)
 	if !ok {
+		// TODO(patrik): Return error
 		panic("Expected BasicLit")
 	}
 
 	if lit.Kind != token.INT {
+		// TODO(patrik): Return error
 		panic("Expected int")
 	}
 
@@ -282,6 +241,7 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 
 		return expr, nil
 	}
-
+	
+	// TODO(patrik): Return error
 	panic(fmt.Sprintf("Unexpected expr: %T", e))
 }

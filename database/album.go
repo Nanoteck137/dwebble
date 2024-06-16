@@ -8,7 +8,7 @@ import (
 	"go/ast"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/nanoteck137/dwebble/filter"
+	"github.com/nanoteck137/dwebble/sortfilter/filter"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -69,7 +69,6 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album
 			),
 		).
 		Prepared(true)
-
 
 	if filterStr != "" {
 		a := AlbumResolverAdapter{}

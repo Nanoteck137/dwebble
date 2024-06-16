@@ -1,11 +1,11 @@
-package gen
+package filtergen
 
 import (
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/nanoteck137/dwebble/filter"
+	"github.com/nanoteck137/dwebble/sortfilter/filter"
 )
 
 func generateTableSelect(table *filter.Table, ids []string) *goqu.SelectDataset {
