@@ -16,6 +16,10 @@ import (
 type AlbumResolverAdapter struct {
 }
 
+func (a *AlbumResolverAdapter) GetDefaultSort() string {
+	return "albums.name"
+}
+
 func (a *AlbumResolverAdapter) MapNameToId(typ, name string) (string, error) {
 	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
 }

@@ -10,13 +10,18 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/nanoteck137/dwebble/database/filtergen"
 	"github.com/nanoteck137/dwebble/sortfilter/filter"
+	"github.com/nanoteck137/dwebble/sortfilter/sort"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
 
 type TrackResolverAdapter struct {
+}
+
+func (a *TrackResolverAdapter) GetDefaultSort() string {
+	return "tracks.name"
 }
 
 func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
@@ -114,7 +119,7 @@ type Track struct {
 	ArtistName string
 }
 
-func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
 	ds := dialect.From("tracks").
 		Select(
 			"tracks.id",
@@ -132,8 +137,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 		).
 		Prepared(true).
 		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
-		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
-		Order(goqu.I("tracks.name").Asc())
+		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))))
 
 	a := TrackResolverAdapter{}
 
@@ -148,39 +152,23 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 		ds = ds.Where(goqu.I("tracks.available").Eq(true))
 	}
 
-	// order := "sort=+artist,+track"
-	order := ""
-	split := strings.Split(order, "=")
-
-	fmt.Printf("split: %v\n", split)
-
-	mode := split[0]
-	switch mode {
-	case "sort":
-		args := strings.Split(split[1], ",")
-
-		var orderExprs []exp.OrderedExpression
-
-		fmt.Printf("args: %v\n", args)
-		for _, arg := range args {
-			switch arg[0] {
-			case '+':
-				name, err := a.MapName(arg[1:])
-				if err != nil {
-					return nil, err
-				}
-
-				fmt.Printf("name: %v\n", name)
-				orderExprs = append(orderExprs, goqu.I(name.Name).Asc())
-			case '-':
-			default:
-			}
+	if sortStr != "" {
+		e, err := sort.Parse(sortStr)
+		if err != nil {
+			return nil, err
 		}
 
-		ds = ds.Order(orderExprs...)
-	case "random":
-		ds = ds.Order(goqu.Func("RANDOM").Asc())
-	default:
+		r := sort.New(&a)
+
+		re, err := r.Resolve(e)
+
+		ge, err := filtergen.GenerateSort(re)
+		if err != nil {
+			return nil, err
+		}
+
+		ds = ds.Order(ge...)
+	} else {
 		ds = ds.Order(goqu.I("tracks.name").Asc())
 	}
 

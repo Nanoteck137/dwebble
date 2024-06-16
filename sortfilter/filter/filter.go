@@ -11,6 +11,8 @@ import (
 type IdMappingFunc func(typ string, name string) string
 
 type ResolverAdapter interface {
+	GetDefaultSort() string
+
 	MapNameToId(typ, name string) (string, error)
 	// TODO(patrik): Rename to ResolveVariableName
 	MapName(name string) (Name, error)
