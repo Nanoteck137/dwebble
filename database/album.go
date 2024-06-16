@@ -6,11 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
-	"go/parser"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/filter"
-	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -57,25 +55,25 @@ type Album struct {
 
 func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album, error) {
 	ds := dialect.From("albums").
-		Select("albums.id", "albums.name", "albums.cover_art", "albums.artist_id", "albums.path").
-		Join(goqu.I("artists"), goqu.On(goqu.I("albums.artist_id").Eq(goqu.I("artists.id")))).
+		Select(
+			"albums.id", 
+			"albums.name", 
+			"albums.cover_art", 
+			"albums.artist_id", 
+			"albums.path",
+		).
+		Join(
+			goqu.I("artists"), 
+			goqu.On(
+				goqu.I("albums.artist_id").Eq(goqu.I("artists.id")),
+			),
+		).
 		Prepared(true)
 
-	a := AlbumResolverAdapter{}
 
 	if filterStr != "" {
-		ast, err := parser.ParseExpr(filterStr)
-		if err != nil {
-			return nil, err
-		}
-
-		r := filter.New(&a)
-		e, err := r.Resolve(ast)
-		if err != nil {
-			return nil, err
-		}
-
-		re, err := gen.Generate(e)
+		a := AlbumResolverAdapter{}
+		re, err := FullParseFilter(&a, filterStr)
 		if err != nil {
 			return nil, err
 		}

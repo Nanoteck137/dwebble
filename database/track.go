@@ -6,14 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
-	"go/parser"
 	"log"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/nanoteck137/dwebble/filter"
-	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
@@ -140,18 +138,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string) ([]Track
 	a := TrackResolverAdapter{}
 
 	if filterStr != "" {
-		ast, err := parser.ParseExpr(filterStr)
-		if err != nil {
-			return nil, err
-		}
-
-		r := filter.New(&a)
-		e, err := r.Resolve(ast)
-		if err != nil {
-			return nil, err
-		}
-
-		re, err := gen.Generate(e)
+		re, err := FullParseFilter(&a, filterStr)
 		if err != nil {
 			return nil, err
 		}

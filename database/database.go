@@ -4,9 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"go/parser"
 
 	"github.com/doug-martin/goqu/v9"
 	goqusqlite3 "github.com/doug-martin/goqu/v9/dialect/sqlite3"
+	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/nanoteck137/dwebble/filter"
+	"github.com/nanoteck137/dwebble/filter/gen"
 	"github.com/nanoteck137/dwebble/types"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -91,4 +95,24 @@ func init() {
 	opts := goqusqlite3.DialectOptions()
 	opts.SupportsReturn = true
 	goqu.RegisterDialect("sqlite_returning", opts)
+}
+
+func FullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expression, error) {
+	ast, err := parser.ParseExpr(filterStr)
+	if err != nil {
+		return nil, err
+	}
+
+	r := filter.New(adapter)
+	e, err := r.Resolve(ast)
+	if err != nil {
+		return nil, err
+	}
+
+	re, err := gen.Generate(e)
+	if err != nil {
+		return nil, err
+	}
+
+	return re, nil
 }
