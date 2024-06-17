@@ -29,7 +29,7 @@ func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
 	case "tags":
 		for _, t := range tags {
 			if t.Name == strings.ToLower(name) {
-				return t.Name, nil
+				return t.Id, nil
 			}
 		}
 	case "genres":

@@ -9,6 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
@@ -1045,7 +1046,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				for _, tag := range track.Tags {
 					hasTag := false
 					for _, t := range currentTrackTags {
-						if t.Name == tag {
+						if t.Name == strings.ToLower(tag) {
 							hasTag = true
 							break
 						}
@@ -1067,7 +1068,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				for _, t := range currentTrackTags {
 					hasTag := false
 					for _, trackTag := range track.Tags {
-						if trackTag == t.Name {
+						if t.Name == strings.ToLower(trackTag) {
 							hasTag = true
 							break
 						}
@@ -1089,7 +1090,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				for _, genre := range track.Genres {
 					hasGenre := false
 					for _, g := range currentTrackGenres {
-						if g.Name == genre {
+						if g.Name == strings.ToLower(genre) {
 							hasGenre = true
 							break
 						}
@@ -1111,7 +1112,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				for _, g := range currentTrackGenres {
 					hasGenre := false
 					for _, trackGenre := range track.Genres {
-						if trackGenre == g.Name {
+						if g.Name == strings.ToLower(trackGenre) {
 							hasGenre = true
 							break
 						}

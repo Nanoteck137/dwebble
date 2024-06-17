@@ -126,7 +126,7 @@ func (db *Database) RemoveTagFromTrack(ctx context.Context, tagId, trackId strin
 func (db *Database) GetTrackTags(ctx context.Context, trackId string) ([]Tag, error) {
 	ds := dialect.From("tracks_to_tags").
 		Select("tags.id", "tags.name", "tags.display_name").
-		Join(goqu.I("tags"), goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.name")))).
+		Join(goqu.I("tags"), goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.id")))).
 		Where(goqu.I("tracks_to_tags.track_id").Eq(trackId)).
 		Prepared(true)
 
