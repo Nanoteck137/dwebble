@@ -731,6 +731,8 @@ func ReadFromDir(dir string) (*Library, error) {
 				bestQualityFile = mobileQualityFile
 			}
 
+			artist := GetOrCreateArtist(t.Artist)
+
 			album.Tracks = append(album.Tracks, &LibraryTrack{
 				Name:              t.Name,
 				Number:            t.Num,
@@ -1126,6 +1128,11 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					}
 				}
 
+				artist, exists := syncContext.ArtistMapping[track.Artist]
+				if !exists {
+					return fmt.Errorf("Artist not mapped '%s'", track.Artist.Name)
+				}
+
 				changes := database.TrackChanges{}
 				changes.BestQualityFile.Value = path.Base(originalMediaSymlink)
 				changes.BestQualityFile.Changed = true
@@ -1138,6 +1145,10 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				changes.CoverArt.Changed = true
 				changes.Duration.Value = 0
 				changes.Duration.Changed = true
+				changes.ArtistId = types.Change[string]{
+					Value:   artist.Id,
+					Changed: dbTrack.ArtistId != artist.Id,
+				}
 				changes.Available = true
 
 				pretty.Println(changes)
@@ -1148,12 +1159,22 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				}
 			}
 
+			// TODO(patrik): Temporary
+			artist, exists := syncContext.ArtistMapping[album.Artist]
+			if !exists {
+				return fmt.Errorf("Artist not mapped '%s'", album.Artist.Name)
+			}
+
 			changes := database.AlbumChanges{}
 			changes.CoverArt.Value = sql.NullString{
 				String: coverArt,
 				Valid:  coverArt != "",
 			}
 			changes.CoverArt.Changed = true
+			changes.ArtistId = types.Change[string]{
+				Value:   artist.Id,
+				Changed: dbAlbum.ArtistId != artist.Id,
+			}
 			changes.Available = true
 			err = db.UpdateAlbum(ctx, dbAlbum.Id, changes)
 			if err != nil {

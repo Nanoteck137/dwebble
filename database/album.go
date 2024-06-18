@@ -238,6 +238,7 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 type AlbumChanges struct {
 	Name      types.Change[string]
 	CoverArt  types.Change[sql.NullString]
+	ArtistId  types.Change[string]
 	Available bool
 }
 
@@ -248,6 +249,10 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 
 	if changes.Name.Changed {
 		record["name"] = changes.Name.Value
+	}
+
+	if changes.ArtistId.Changed {
+		record["artist_id"] = changes.ArtistId.Value
 	}
 
 	if changes.CoverArt.Changed {
