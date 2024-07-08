@@ -12,6 +12,7 @@ import (
 
 var cfg *database.Config
 
+// TODO(patrik): Should this be here?
 func IsSetup() bool {
 	return cfg != nil
 }
@@ -61,9 +62,87 @@ func (h *Handlers) HandlePostSystemSetup(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
+func (h *Handlers) HandlePostSystemExport(c echo.Context) error {
+	user, err := h.User(c)
+	if err != nil {
+		return err
+	}
+
+	if user.Id != cfg.OwnerId {
+		return types.NewApiError(403, "Only the owner can export")
+	}
+
+	users, err := h.db.GetAllUsers(c.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	res := types.PostSystemExport{
+		Users: []types.ExportUser{},
+	}
+
+	for _, user := range users {
+		playlists, err := h.db.GetPlaylistsByUser(c.Request().Context(), user.Id)
+		if err != nil {
+			return err
+		}
+
+		var exportedPlaylists []types.ExportPlaylist
+
+		for _, playlist := range playlists {
+			items, err := h.db.GetPlaylistItems(c.Request().Context(), playlist.Id)
+			if err != nil {
+				return err
+			}
+
+			playlistTracks := make([]types.ExportTrack, 0, len(items))
+
+			for _, item := range items {
+				track, err := h.db.GetTrackById(c.Request().Context(), item.TrackId)
+				if err != nil {
+					return err
+				}
+
+				playlistTracks = append(playlistTracks, types.ExportTrack{
+					Name:   track.Name,
+					Album:  track.AlbumName,
+					Artist: track.ArtistName,
+				})
+			}
+
+			exportedPlaylists = append(exportedPlaylists, types.ExportPlaylist{
+				Name:   playlist.Name,
+				Tracks: playlistTracks,
+			})
+		}
+
+		res.Users = append(res.Users, types.ExportUser{
+			Username:  user.Username,
+			Playlists: exportedPlaylists,
+		})
+	}
+
+	return c.JSON(200, types.NewApiSuccessResponse(res))
+}
+
+func (h *Handlers) HandlePostSystemImport(c echo.Context) error {
+	user, err := h.User(c)
+	if err != nil {
+		return err
+	}
+
+	if user.Id != cfg.OwnerId {
+		return types.NewApiError(403, "Only the owner can import")
+	}
+
+	return nil
+}
+
 func (h *Handlers) InstallSystemHandlers(group *echo.Group) {
 	group.GET("/system/info", h.HandleGetSystemInfo)
 	group.POST("/system/setup", h.HandlePostSystemSetup)
+	group.POST("/system/export", h.HandlePostSystemExport)
+	group.POST("/system/import", h.HandlePostSystemImport)
 }
 
 func InitializeConfig(db *database.Database) error {

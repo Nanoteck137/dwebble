@@ -183,3 +183,23 @@ var PostSystemSetupBodySchema = jio.Object().Keys(jio.K{
 	"password":        jio.String().Required(),
 	"passwordConfirm": jio.String().Required(),
 })
+
+type ExportTrack struct {
+	Name   string `json:"name"`
+	Album  string `json:"album"`
+	Artist string `json:"artist"`
+}
+
+type ExportPlaylist struct {
+	Name   string        `json:"name"`
+	Tracks []ExportTrack `json:"tracks"`
+}
+
+type ExportUser struct {
+	Username  string           `json:"username"`
+	Playlists []ExportPlaylist `json:"playlists"`
+}
+
+type PostSystemExport struct {
+	Users []ExportUser `json:"users"`
+}

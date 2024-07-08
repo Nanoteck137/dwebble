@@ -13,6 +13,30 @@ type User struct {
 	Password string
 }
 
+func (db *Database) GetAllUsers(ctx context.Context) ([]User, error) {
+	ds := dialect.From("users").
+		Select("id", "username")
+
+	rows, err := db.Query(ctx, ds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []User
+	for rows.Next() {
+		var item User
+		err := rows.Scan(&item.Id, &item.Username)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+	}
+
+	return items, nil
+}
+
 func (db *Database) CreateUser(ctx context.Context, username, password string) (User, error) {
 	ds := dialect.
 		Insert("users").
