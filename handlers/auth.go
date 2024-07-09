@@ -9,6 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/mitchellh/mapstructure"
+	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
@@ -95,7 +96,7 @@ func (h *Handlers) HandlePostSignin(c echo.Context) error {
 		// "exp":    time.Now().Add(1000 * time.Second).Unix(),
 	})
 
-	tokenString, err := token.SignedString(([]byte)("SOME SECRET"))
+	tokenString, err := token.SignedString(([]byte)(config.Current.JwtSecret))
 	if err != nil {
 		return err
 	}
@@ -117,7 +118,7 @@ func (h *Handlers) User(c echo.Context) (*database.User, error) {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte("SOME SECRET"), nil
+		return []byte(config.Current.JwtSecret), nil
 	})
 
 	if err != nil {
