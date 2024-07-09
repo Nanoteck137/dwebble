@@ -135,7 +135,7 @@ func (h *Handlers) HandlePostSystemImport(c echo.Context) error {
 		return types.NewApiError(403, "Only the owner can import")
 	}
 
-	return nil
+	return types.NewApiError(400, "Import is not supported right now")
 }
 
 func (h *Handlers) InstallSystemHandlers(group *echo.Group) {
