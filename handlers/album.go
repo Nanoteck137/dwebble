@@ -67,22 +67,6 @@ func (h *Handlers) HandleGetAlbumTracksById(c echo.Context) error {
 	}
 
 	for i, track := range tracks {
-		tags, err := h.db.GetTrackTags(c.Request().Context(), track.Id)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("%v -> %v\n", track.Name, tags)
-
-		genres, err := h.db.GetTrackGenres(c.Request().Context(), track.Id)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("%v -> %v\n", track.Name, genres)
-
-		fmt.Println()
-
 		res.Tracks[i] = types.Track{
 			Id:                track.Id,
 			Number:            track.Number,
