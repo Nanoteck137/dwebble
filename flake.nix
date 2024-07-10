@@ -49,6 +49,7 @@
             listen_addr = "${cfg.host}:${toString cfg.port}"
             data_dir = "/var/lib/dwebble"
             library_dir = "${cfg.library}"
+            jwt_secret = "${jwtSecret}"
           '';
         in
         {
@@ -70,6 +71,11 @@
             library = mkOption {
               type = types.path;
               description = lib.mdDoc "path to series library";
+            };
+
+            jwtSecret = mkOption {
+              type = types.str;
+              description = lib.mdDoc "jwt secret";
             };
 
             package = mkOption {
