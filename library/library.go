@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
@@ -999,7 +998,6 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 			}
 
 			coverArt := ""
-			fmt.Printf("album.CoverArt: %v\n", album.CoverArt)
 			if album.CoverArt != "" {
 				p, err := filepath.Abs(album.CoverArt)
 				if err != nil {
@@ -1016,15 +1014,11 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				coverArt = name
 			}
 
-			fmt.Printf("coverArt: %v\n", coverArt)
-
 			for _, track := range album.Tracks {
 				dbTrack, err := syncContext.GetOrCreateTrack(track)
 				if err != nil {
 					return err
 				}
-
-				// db.GetTrackTags()
 
 				originalMedia, err := filepath.Abs(track.BestQualityFile)
 				if err != nil {
@@ -1035,9 +1029,6 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				if err != nil {
 					return err
 				}
-
-				fmt.Printf("originalMedia: %v\n", originalMedia)
-				fmt.Printf("mobileMedia: %v\n", mobileMedia)
 
 				originalMediaSymlink := path.Join(workDir.OriginalTracksDir(), dbTrack.Id+path.Ext(originalMedia))
 				err = utils.SymlinkReplace(originalMedia, originalMediaSymlink)
@@ -1162,8 +1153,6 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					Changed: dbTrack.ArtistId != artist.Id,
 				}
 				changes.Available = true
-
-				pretty.Println(changes)
 
 				err = db.UpdateTrack(ctx, dbTrack.Id, changes)
 				if err != nil {
