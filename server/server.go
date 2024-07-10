@@ -1,14 +1,13 @@
 package server
 
 import (
-	"log"
-
 	"github.com/MadAppGang/httplog/echolog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/handlers"
+	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -68,7 +67,8 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 
 	err := handlers.InitializeConfig(db)
 	if err != nil {
-		log.Fatal(err)
+		// TODO(patrik): Remove?
+		log.Fatal("Failed to initialize config", "err", err)
 	}
 
 	db.Invalidate()

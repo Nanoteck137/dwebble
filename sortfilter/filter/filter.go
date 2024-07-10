@@ -56,6 +56,7 @@ func (r *Resolver) ResolveToStr(e ast.Expr) string {
 
 	s, err := strconv.Unquote(lit.Value)
 	if err != nil {
+		// TODO(patrik): Return err
 		log.Fatal(err)
 	}
 

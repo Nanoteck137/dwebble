@@ -1,10 +1,9 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/migrations"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
@@ -25,12 +24,12 @@ var upCmd = &cobra.Command{
 
 		db, err := database.Open(workDir)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to open database", "err", err)
 		}
 
 		err = runMigrateUp(db)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to run migrate up", "err", err)
 		}
 	},
 }
@@ -42,12 +41,12 @@ var downCmd = &cobra.Command{
 
 		db, err := database.Open(workDir)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to open database", "err", err)
 		}
 
 		err = goose.Down(db.RawConn, ".")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to run migrate down", "err", err)
 		}
 	},
 }
@@ -63,12 +62,12 @@ var createCmd = &cobra.Command{
 
 		db, err := database.Open(workDir)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to open database", "err", err)
 		}
 
 		err = goose.Create(db.RawConn, "./migrations", name, "sql")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to create migration", "err", err)
 		}
 	},
 }
@@ -79,7 +78,7 @@ var fixCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := goose.Fix("./migrations")
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Failed to fix migrations", "err", err)
 		}
 	},
 }
