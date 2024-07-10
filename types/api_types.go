@@ -16,17 +16,19 @@ type Album struct {
 }
 
 type Track struct {
-	Id                string `json:"id"`
-	Number            int    `json:"number"`
-	Name              string `json:"name"`
-	CoverArt          string `json:"coverArt"`
-	Duration          int    `json:"duration"`
-	BestQualityFile   string `json:"bestQualityFile"`
-	MobileQualityFile string `json:"mobileQualityFile"`
-	AlbumId           string `json:"albumId"`
-	ArtistId          string `json:"artistId"`
-	AlbumName         string `json:"albumName"`
-	ArtistName        string `json:"artistName"`
+	Id                string   `json:"id"`
+	Number            int      `json:"number"`
+	Name              string   `json:"name"`
+	CoverArt          string   `json:"coverArt"`
+	Duration          int      `json:"duration"`
+	BestQualityFile   string   `json:"bestQualityFile"`
+	MobileQualityFile string   `json:"mobileQualityFile"`
+	AlbumId           string   `json:"albumId"`
+	ArtistId          string   `json:"artistId"`
+	AlbumName         string   `json:"albumName"`
+	ArtistName        string   `json:"artistName"`
+	Tags              []string `json:"tags"`
+	Genres            []string `json:"genres"`
 }
 
 type Tag struct {

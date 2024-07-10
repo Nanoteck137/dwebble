@@ -117,10 +117,35 @@ type Track struct {
 
 	AlbumName  string
 	ArtistName string
+
+	Tags   string
+	Genres string
 }
 
-func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
-	ds := dialect.From("tracks").
+func TrackQuery() *goqu.SelectDataset {
+	tags := dialect.From("tracks_to_tags").
+		Select(
+			goqu.I("tracks_to_tags.track_id").As("track_id"),
+			goqu.Func("group_concat", goqu.I("tags.display_name"), ",").As("tags"),
+		).
+		Join(
+			goqu.I("tags"),
+			goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.id"))),
+		).
+		GroupBy(goqu.I("tracks_to_tags.track_id"))
+
+	genres := dialect.From("tracks_to_genres").
+		Select(
+			goqu.I("tracks_to_genres.track_id").As("track_id"),
+			goqu.Func("group_concat", goqu.I("genres.display_name"), ",").As("genres"),
+		).
+		Join(
+			goqu.I("genres"),
+			goqu.On(goqu.I("tracks_to_genres.genre_id").Eq(goqu.I("genres.id"))),
+		).
+		GroupBy(goqu.I("tracks_to_genres.track_id"))
+
+	query := dialect.From("tracks").
 		Select(
 			"tracks.id",
 			"tracks.track_number",
@@ -134,10 +159,61 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 			"tracks.artist_id",
 			"albums.name",
 			"artists.name",
+			"tags.tags",
+			"genres.genres",
 		).
 		Prepared(true).
-		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
-		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))))
+		Join(
+			goqu.I("albums"),
+			goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id"))),
+		).
+		Join(
+			goqu.I("artists"),
+			goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))),
+		).
+		Join(
+			tags.As("tags"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
+		).
+		Join(
+			genres.As("genres"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("genres.track_id"))),
+		)
+
+	return query
+}
+
+type Scan interface {
+	Scan(dest ...any) error
+}
+
+func ScanTrack(scanner Scan) (Track, error) {
+	var res Track
+	err := scanner.Scan(
+		&res.Id,
+		&res.Number,
+		&res.Name,
+		&res.CoverArt,
+		&res.Duration,
+		&res.Path,
+		&res.BestQualityFile,
+		&res.MobileQualityFile,
+		&res.AlbumId,
+		&res.ArtistId,
+		&res.AlbumName,
+		&res.ArtistName,
+		&res.Tags,
+		&res.Genres,
+	)
+	if err != nil {
+		return Track{}, err
+	}
+
+	return res, nil
+}
+
+func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
+	query := TrackQuery()
 
 	a := TrackResolverAdapter{}
 
@@ -147,9 +223,9 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 			return nil, err
 		}
 
-		ds = ds.Where(goqu.I("tracks.available").Eq(true), re)
+		query = query.Where(goqu.I("tracks.available").Eq(true), re)
 	} else {
-		ds = ds.Where(goqu.I("tracks.available").Eq(true))
+		query = query.Where(goqu.I("tracks.available").Eq(true))
 	}
 
 	if sortStr != "" {
@@ -167,33 +243,19 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 			return nil, err
 		}
 
-		ds = ds.Order(ge...)
+		query = query.Order(ge...)
 	} else {
-		ds = ds.Order(goqu.I("tracks.name").Asc())
+		query = query.Order(goqu.I("tracks.name").Asc())
 	}
 
-	rows, err := db.Query(ctx, ds)
+	rows, err := db.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
 	var items []Track
 	for rows.Next() {
-		var item Track
-		err := rows.Scan(
-			&item.Id,
-			&item.Number,
-			&item.Name,
-			&item.CoverArt,
-			&item.Duration,
-			&item.Path,
-			&item.BestQualityFile,
-			&item.MobileQualityFile,
-			&item.AlbumId,
-			&item.ArtistId,
-			&item.AlbumName,
-			&item.ArtistName,
-		)
+		item, err := ScanTrack(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -205,49 +267,16 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 }
 
 func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
-	ds := dialect.From("tracks").
-		Select(
-			"tracks.id",
-			"tracks.track_number",
-			"tracks.name",
-			"tracks.cover_art",
-			"tracks.duration",
-			"tracks.path",
-			"tracks.best_quality_file",
-			"tracks.mobile_quality_file",
-			"tracks.album_id",
-			"tracks.artist_id",
-			"albums.name",
-			"artists.name",
-		).
-		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
-		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
-		Where(goqu.And(goqu.I("tracks.available").Eq(true), goqu.I("tracks.album_id").Eq(albumId))).
-		Order(goqu.I("tracks.track_number").Asc(), goqu.I("tracks.name").Asc()).
-		Prepared(true)
-
-	rows, err := db.Query(ctx, ds)
+	query := TrackQuery().
+		Where(goqu.I("tracks.album_id").Eq(albumId))
+	rows, err := db.Query(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
 	var items []Track
 	for rows.Next() {
-		var item Track
-		err := rows.Scan(
-			&item.Id,
-			&item.Number,
-			&item.Name,
-			&item.CoverArt,
-			&item.Duration,
-			&item.Path,
-			&item.BestQualityFile,
-			&item.MobileQualityFile,
-			&item.AlbumId,
-			&item.ArtistId,
-			&item.AlbumName,
-			&item.ArtistName,
-		)
+		item, err := ScanTrack(rows)
 		if err != nil {
 			return nil, err
 		}
@@ -259,46 +288,15 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 }
 
 func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) {
-	ds := dialect.From("tracks").
-		Select(
-			"tracks.id",
-			"tracks.track_number",
-			"tracks.name",
-			"tracks.cover_art",
-			"tracks.duration",
-			"tracks.path",
-			"tracks.best_quality_file",
-			"tracks.mobile_quality_file",
-			"tracks.album_id",
-			"tracks.artist_id",
-			"albums.name",
-			"artists.name",
-		).
-		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
-		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
-		Where(goqu.I("tracks.id").Eq(id)).
-		Prepared(true)
+	query := TrackQuery().
+		Where(goqu.I("tracks.id").Eq(id))
 
-	row, err := db.QueryRow(ctx, ds)
+	row, err := db.QueryRow(ctx, query)
 	if err != nil {
 		return Track{}, err
 	}
 
-	var item Track
-	err = row.Scan(
-		&item.Id,
-		&item.Number,
-		&item.Name,
-		&item.CoverArt,
-		&item.Duration,
-		&item.Path,
-		&item.BestQualityFile,
-		&item.MobileQualityFile,
-		&item.AlbumId,
-		&item.ArtistId,
-		&item.AlbumName,
-		&item.ArtistName,
-	)
+	item, err := ScanTrack(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return Track{}, types.ErrNoTrack
@@ -357,46 +355,15 @@ func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, err
 }
 
 func (db *Database) GetTrackByName(ctx context.Context, name string) (Track, error) {
-	ds := dialect.From("tracks").
-		Select(
-			"tracks.id",
-			"tracks.track_number",
-			"tracks.name",
-			"tracks.cover_art",
-			"tracks.duration",
-			"tracks.path",
-			"tracks.best_quality_file",
-			"tracks.mobile_quality_file",
-			"tracks.album_id",
-			"tracks.artist_id",
-			"albums.name",
-			"artists.name",
-		).
-		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
-		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
-		Where(goqu.I("tracks.name").Eq(name)).
-		Prepared(true)
+	query := TrackQuery().
+		Where(goqu.I("tracks.name").Eq(name))
 
-	row, err := db.QueryRow(ctx, ds)
+	row, err := db.QueryRow(ctx, query)
 	if err != nil {
 		return Track{}, err
 	}
 
-	var item Track
-	err = row.Scan(
-		&item.Id,
-		&item.Number,
-		&item.Name,
-		&item.CoverArt,
-		&item.Duration,
-		&item.Path,
-		&item.BestQualityFile,
-		&item.MobileQualityFile,
-		&item.AlbumId,
-		&item.ArtistId,
-		&item.AlbumName,
-		&item.ArtistName,
-	)
+	item, err := ScanTrack(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Track{}, types.ErrNoTrack
@@ -409,51 +376,20 @@ func (db *Database) GetTrackByName(ctx context.Context, name string) (Track, err
 }
 
 func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, albumId string) (Track, error) {
-	ds := dialect.From("tracks").
-		Select(
-			"tracks.id",
-			"tracks.track_number",
-			"tracks.name",
-			"tracks.cover_art",
-			"tracks.duration",
-			"tracks.path",
-			"tracks.best_quality_file",
-			"tracks.mobile_quality_file",
-			"tracks.album_id",
-			"tracks.artist_id",
-			"albums.name",
-			"artists.name",
-		).
-		Join(goqu.I("albums"), goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id")))).
-		Join(goqu.I("artists"), goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id")))).
+	query := TrackQuery().
 		Where(
 			goqu.And(
 				goqu.I("tracks.name").Eq(name),
 				goqu.I("tracks.album_id").Eq(albumId),
 			),
-		).
-		Prepared(true)
+		)
 
-	row, err := db.QueryRow(ctx, ds)
+	row, err := db.QueryRow(ctx, query)
 	if err != nil {
 		return Track{}, err
 	}
 
-	var item Track
-	err = row.Scan(
-		&item.Id,
-		&item.Number,
-		&item.Name,
-		&item.CoverArt,
-		&item.Duration,
-		&item.Path,
-		&item.BestQualityFile,
-		&item.MobileQualityFile,
-		&item.AlbumId,
-		&item.ArtistId,
-		&item.AlbumName,
-		&item.ArtistName,
-	)
+	item, err := ScanTrack(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Track{}, types.ErrNoTrack

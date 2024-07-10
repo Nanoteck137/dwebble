@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"strings"
+
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -31,6 +33,8 @@ func (h *Handlers) HandleGetTracks(c echo.Context) error {
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
 			ArtistName:        track.ArtistName,
+			Tags:              strings.Split(track.Tags, ","),
+			Genres:            strings.Split(track.Genres, ","),
 		}
 	}
 
