@@ -780,8 +780,7 @@ func (sync *SyncContext) GetOrCreateArtist(artist *LibraryArtist) (database.Arti
 			})
 
 			if err != nil {
-				// TODO(patrik): Return err
-				return database.Artist{}, nil
+				return database.Artist{}, err
 			}
 
 			sync.ArtistMapping[artist] = dbArtist
@@ -816,8 +815,7 @@ func (sync *SyncContext) GetOrCreateAlbum(album *LibraryAlbum) (database.Album, 
 			})
 
 			if err != nil {
-				// TODO(patrik): Return err
-				return database.Album{}, nil
+				return database.Album{}, err
 			}
 
 			sync.AlbumMapping[album] = dbAlbum
@@ -849,7 +847,6 @@ func (sync *SyncContext) GetOrCreateTrack(track *LibraryTrack) (database.Track, 
 	dbTrack, err := sync.db.GetTrackByPath(sync.ctx, p)
 	if err != nil {
 		if errors.Is(err, types.ErrNoTrack) {
-			// TODO(patrik): Path need fixing
 			dbTrack, err := sync.db.CreateTrack(sync.ctx, database.CreateTrackParams{
 				TrackNumber:       track.Number,
 				Name:              track.Name,
@@ -863,8 +860,7 @@ func (sync *SyncContext) GetOrCreateTrack(track *LibraryTrack) (database.Track, 
 			})
 
 			if err != nil {
-				// TODO(patrik): Return err
-				return database.Track{}, nil
+				return database.Track{}, err
 			}
 
 			return dbTrack, nil
