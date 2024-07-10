@@ -1,11 +1,12 @@
 package handlers
 
 import (
-	"log"
 	"sync/atomic"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/library"
+	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -22,17 +23,25 @@ func (h *Handlers) HandlePostSync(c echo.Context) error {
 		syncing.Store(true)
 		defer syncing.Store(false)
 
+		start := time.Now()
+
+		log.Info("Sync: Reading library")
 		lib, err := library.ReadFromDir(h.libraryDir)
 		if err != nil {
-			log.Printf("Failed to sync: %v", err)
+			log.Error("Failed to sync", "err", err)
 			return
 		}
+		log.Info("Sync: Done Reading library", "time", time.Since(start))
 
+		start = time.Now()
+
+		log.Info("Sync: Started Syncing library")
 		err = lib.Sync(h.workDir, h.db)
 		if err != nil {
-			log.Printf("Failed to sync: %v", err)
+			log.Error("Failed to sync", "err", err)
 			return
 		}
+		log.Info("Sync: Done Syncing library", "time", time.Since(start))
 
 		h.db.Invalidate()
 	}()
