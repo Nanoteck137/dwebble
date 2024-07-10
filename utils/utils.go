@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"mime/multipart"
 	"os"
 	"path"
 	"strings"
 
+	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/parasect"
 	"github.com/nrednav/cuid2"
@@ -21,7 +21,7 @@ var CreateId = createIdGenerator()
 func createIdGenerator() func() string {
 	res, err := cuid2.Init(cuid2.WithLength(32))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to create id generator", "err", err)
 	}
 
 	return res
