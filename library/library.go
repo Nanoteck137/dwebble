@@ -632,6 +632,7 @@ import (
 type LibraryTrack struct {
 	Name              string
 	Number            int
+	Duration          int
 	BestQualityFile   string
 	MobileQualityFile string
 	Tags              []string
@@ -736,6 +737,7 @@ func ReadFromDir(dir string) (*Library, error) {
 			album.Tracks = append(album.Tracks, &LibraryTrack{
 				Name:              t.Name,
 				Number:            t.Num,
+				Duration:          t.Duration,
 				BestQualityFile:   path.Join(base, bestQualityFile),
 				MobileQualityFile: path.Join(base, mobileQualityFile),
 				Tags:              t.Tags,
@@ -843,7 +845,7 @@ func (sync *SyncContext) GetOrCreateTrack(ctx context.Context, db *database.Data
 				Name:              track.Name,
 				CoverArt:          sql.NullString{},
 				Path:              artist.Id + "-" + album.Id + "-" + track.Name,
-				Duration:          0,
+				Duration:          track.Duration,
 				BestQualityFile:   "",
 				MobileQualityFile: "",
 				AlbumId:           album.Id,
@@ -1133,6 +1135,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					return fmt.Errorf("Artist not mapped '%s'", track.Artist.Name)
 				}
 
+				// TODO(patrik): Change all 'Changed' to conditions
 				changes := database.TrackChanges{}
 				changes.BestQualityFile.Value = path.Base(originalMediaSymlink)
 				changes.BestQualityFile.Changed = true
@@ -1143,7 +1146,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					Valid:  coverArt != "",
 				}
 				changes.CoverArt.Changed = true
-				changes.Duration.Value = 0
+				changes.Duration.Value = track.Duration
 				changes.Duration.Changed = true
 				changes.ArtistId = types.Change[string]{
 					Value:   artist.Id,
