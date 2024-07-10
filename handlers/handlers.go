@@ -66,29 +66,3 @@ func ConvertAlbumCoverURL(c echo.Context, val sql.NullString) string {
 func ConvertTrackCoverURL(c echo.Context, val sql.NullString) string {
 	return ConvertImageURL(c, val, DefaultTrackCoverArtName)
 }
-
-// func (apiConfig *ApiConfig) HandlerCreateQueueFromAlbum(c *fiber.Ctx) error {
-// 	body := struct {
-// 		AlbumId string `json:"albumId"`
-// 	}{}
-//
-// 	fmt.Println("Hello")
-//
-// 	err := c.BodyParser(&body)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	tracks, err := apiConfig.queries.GetTracksByAlbum(c.UserContext(), body.AlbumId)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	res := struct {
-// 		Queue []database.GetTracksByAlbumRow `json:"queue"`
-// 	}{
-// 		Queue: tracks,
-// 	}
-//
-// 	return c.JSON(res)
-// }
