@@ -10,7 +10,7 @@ import (
 var logger *slog.Logger
 
 func init() {
-	logger = slog.New(devslog.NewHandler(os.Stdout, nil))
+	logger = slog.New(devslog.NewHandler(os.Stderr, nil))
 	slog.SetDefault(logger)
 }
 
