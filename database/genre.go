@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/types"
@@ -94,12 +93,10 @@ func (db *Database) AddGenreToTrack(ctx context.Context, genreId, trackId string
 		"genre_id": genreId,
 	}).Prepared(true)
 
-	tag, err := db.Exec(ctx, ds)
+	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("tag: %v\n", tag)
 
 	return nil
 }
@@ -112,12 +109,10 @@ func (db *Database) RemoveGenreFromTrack(ctx context.Context, genreId, trackId s
 		)).
 		Prepared(true)
 
-	tag, err := db.Exec(ctx, ds)
+	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("tag: %v\n", tag)
 
 	return nil
 }

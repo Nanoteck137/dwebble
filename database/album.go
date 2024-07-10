@@ -264,12 +264,10 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 		Where(goqu.I("id").Eq(id)).
 		Prepared(true)
 
-	tag, err := db.Exec(ctx, ds)
+	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("tag: %v\n", tag)
 
 	return nil
 }
@@ -279,12 +277,10 @@ func (db *Database) MarkAllAlbumsUnavailable(ctx context.Context) error {
 		"available": false,
 	})
 
-	tag, err := db.Exec(ctx, ds)
+	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("tag: %v\n", tag)
 
 	return nil
 }

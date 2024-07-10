@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/types"
@@ -95,12 +94,10 @@ func (db *Database) AddTagToTrack(ctx context.Context, tagId, trackId string) er
 		"tag_id":   tagId,
 	}).Prepared(true)
 
-	tag, err := db.Exec(ctx, ds)
+	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("tag: %v\n", tag)
 
 	return nil
 }
@@ -113,12 +110,10 @@ func (db *Database) RemoveTagFromTrack(ctx context.Context, tagId, trackId strin
 		)).
 		Prepared(true)
 
-	tag, err := db.Exec(ctx, ds)
+	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("tag: %v\n", tag)
 
 	return nil
 }

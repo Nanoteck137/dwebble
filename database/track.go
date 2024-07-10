@@ -515,13 +515,10 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 		Where(goqu.I("id").Eq(id)).
 		Prepared(true)
 
-	tag, err := db.Exec(ctx, ds)
+	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
-
-	// TODO(patrik): Cleanup
-	fmt.Printf("tag: %v\n", tag)
 
 	return nil
 }
@@ -531,13 +528,10 @@ func (db *Database) MarkAllTracksUnavailable(ctx context.Context) error {
 		"available": false,
 	})
 
-	tag, err := db.Exec(ctx, ds)
+	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
-
-	// TODO(patrik): Cleanup
-	fmt.Printf("tag: %v\n", tag)
 
 	return nil
 }
