@@ -59,6 +59,10 @@ func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
+			AlbumName:         track.AlbumName,
+			ArtistName:        track.ArtistName,
+			Tags:              strings.Split(track.Tags, ","),
+			Genres:            strings.Split(track.Genres, ","),
 		},
 	}))
 }
