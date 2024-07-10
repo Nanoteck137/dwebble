@@ -1,11 +1,9 @@
 package config
 
 import (
-	"fmt"
-	"log"
 	"os"
 
-	"github.com/kr/pretty"
+	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/spf13/viper"
 )
@@ -63,7 +61,7 @@ func validateConfig(config *Config) {
 
 	validate := func(expr bool, msg string) {
 		if expr {
-			fmt.Println("Err:", msg)
+			log.Error("Config Validation", "err", msg)
 			hasError = true
 		}
 	}
@@ -75,8 +73,7 @@ func validateConfig(config *Config) {
 	validate(config.JwtSecret == "", "jwt_secret needs to be set")
 
 	if hasError {
-		fmt.Println("Config is not valid")
-		os.Exit(-1)
+		log.Fatal("Config not valid")
 	}
 }
 
@@ -98,14 +95,15 @@ func InitConfig() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Println("Failed to load config: ", err)
+		log.Warn("Failed to load config", "err", err)
 	}
 
 	err = viper.Unmarshal(&Current)
 	if err != nil {
-		log.Fatal("Failed to unmarshal config: ", err)
+		log.Error("Failed to unmarshal config: ", err)
+		os.Exit(-1)
 	}
 
-	pretty.Println(Current)
+	log.Debug("Current Config", "config", Current)
 	validateConfig(&Current)
 }

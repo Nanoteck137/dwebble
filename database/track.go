@@ -6,11 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
-	"log"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/database/filtergen"
+	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/sortfilter/filter"
 	"github.com/nanoteck137/dwebble/sortfilter/sort"
 	"github.com/nanoteck137/dwebble/types"
@@ -546,7 +546,7 @@ var tags []Tag
 var genres []Genre
 
 func (db *Database) Invalidate() {
-	log.Printf("Database.Invalidate")
+	log.Debug("Database.Invalidate")
 
 	ctx := context.Background()
 

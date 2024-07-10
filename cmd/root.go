@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/nanoteck137/dwebble/config"
+	"github.com/nanoteck137/dwebble/log"
 	"github.com/spf13/cobra"
 )
 
@@ -15,7 +15,7 @@ var rootCmd = &cobra.Command{
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed to run root command", "err", err)
 	}
 }
 
