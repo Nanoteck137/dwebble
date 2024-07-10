@@ -759,23 +759,28 @@ func ReadFromDir(dir string) (*Library, error) {
 }
 
 type SyncContext struct {
+	ctx context.Context
+	db *database.Database
+
 	ArtistMapping map[*LibraryArtist]database.Artist
 	AlbumMapping  map[*LibraryAlbum]database.Album
 	TagMapping    map[string]database.Tag
 	GenreMapping  map[string]database.Genre
 }
 
-func (sync *SyncContext) GetOrCreateArtist(ctx context.Context, db *database.Database, artist *LibraryArtist) (database.Artist, error) {
-	dbArtist, err := db.GetArtistByName(ctx, artist.Name)
+func (sync *SyncContext) GetOrCreateArtist(artist *LibraryArtist) (database.Artist, error) {
+	p := artist.Name
+	dbArtist, err := sync.db.GetArtistByPath(sync.ctx, p)
 	if err != nil {
 		if errors.Is(err, types.ErrNoArtist) {
-			dbArtist, err := db.CreateArtist(ctx, database.CreateArtistParams{
+			dbArtist, err := sync.db.CreateArtist(sync.ctx, database.CreateArtistParams{
 				Name:    artist.Name,
 				Picture: sql.NullString{},
-				Path:    artist.Name,
+				Path:    p,
 			})
 
 			if err != nil {
+				// TODO(patrik): Return err
 				return database.Artist{}, nil
 			}
 
@@ -792,23 +797,26 @@ func (sync *SyncContext) GetOrCreateArtist(ctx context.Context, db *database.Dat
 	return dbArtist, nil
 }
 
-func (sync *SyncContext) GetOrCreateAlbum(ctx context.Context, db *database.Database, album *LibraryAlbum) (database.Album, error) {
-	dbAlbum, err := db.GetAlbumByName(ctx, album.Name)
+func (sync *SyncContext) GetOrCreateAlbum(album *LibraryAlbum) (database.Album, error) {
+	artist, exists := sync.ArtistMapping[album.Artist]
+	if !exists {
+		return database.Album{}, fmt.Errorf("Artist not mapped '%s'", album.Artist.Name)
+	}
+
+	p := artist.Id + "-" + album.Name
+	dbAlbum, err := sync.db.GetAlbumByPath(sync.ctx, p)
 	if err != nil {
 		if errors.Is(err, types.ErrNoAlbum) {
-			artist, exists := sync.ArtistMapping[album.Artist]
-			if !exists {
-				return database.Album{}, fmt.Errorf("Artist not mapped '%s'", album.Artist.Name)
-			}
 
-			dbAlbum, err := db.CreateAlbum(ctx, database.CreateAlbumParams{
+			dbAlbum, err := sync.db.CreateAlbum(sync.ctx, database.CreateAlbumParams{
 				Name:     album.Name,
 				CoverArt: sql.NullString{},
 				ArtistId: artist.Id,
-				Path:     album.Name,
+				Path:     p,
 			})
 
 			if err != nil {
+				// TODO(patrik): Return err
 				return database.Album{}, nil
 			}
 
@@ -825,26 +833,28 @@ func (sync *SyncContext) GetOrCreateAlbum(ctx context.Context, db *database.Data
 	return dbAlbum, nil
 }
 
-func (sync *SyncContext) GetOrCreateTrack(ctx context.Context, db *database.Database, track *LibraryTrack) (database.Track, error) {
+func (sync *SyncContext) GetOrCreateTrack(track *LibraryTrack) (database.Track, error) {
 	album, exists := sync.AlbumMapping[track.Album]
 	if !exists {
 		return database.Track{}, fmt.Errorf("Album not mapped '%s'", track.Album.Name)
 	}
 
-	dbTrack, err := db.GetTrackByNameAndAlbum(ctx, track.Name, album.Id)
+	artist, exists := sync.ArtistMapping[track.Artist]
+	if !exists {
+		return database.Track{}, fmt.Errorf("Artist not mapped '%s'", track.Artist.Name)
+	}
+
+	p := artist.Id + "-" + album.Id + "-" + track.Name
+
+	dbTrack, err := sync.db.GetTrackByPath(sync.ctx, p)
 	if err != nil {
 		if errors.Is(err, types.ErrNoTrack) {
-			artist, exists := sync.ArtistMapping[track.Artist]
-			if !exists {
-				return database.Track{}, fmt.Errorf("Artist not mapped '%s'", track.Artist.Name)
-			}
-
 			// TODO(patrik): Path need fixing
-			dbTrack, err := db.CreateTrack(ctx, database.CreateTrackParams{
+			dbTrack, err := sync.db.CreateTrack(sync.ctx, database.CreateTrackParams{
 				TrackNumber:       track.Number,
 				Name:              track.Name,
 				CoverArt:          sql.NullString{},
-				Path:              artist.Id + "-" + album.Id + "-" + track.Name,
+				Path:              p,
 				Duration:          track.Duration,
 				BestQualityFile:   "",
 				MobileQualityFile: "",
@@ -853,6 +863,7 @@ func (sync *SyncContext) GetOrCreateTrack(ctx context.Context, db *database.Data
 			})
 
 			if err != nil {
+				// TODO(patrik): Return err
 				return database.Track{}, nil
 			}
 
@@ -865,11 +876,11 @@ func (sync *SyncContext) GetOrCreateTrack(ctx context.Context, db *database.Data
 	return dbTrack, nil
 }
 
-func (sync *SyncContext) GetOrCreateTag(ctx context.Context, db *database.Database, tag string) (database.Tag, error) {
-	dbTag, err := db.GetTagByName(ctx, tag)
+func (sync *SyncContext) GetOrCreateTag(tag string) (database.Tag, error) {
+	dbTag, err := sync.db.GetTagByName(sync.ctx, tag)
 	if err != nil {
 		if errors.Is(err, types.ErrNoTag) {
-			dbTag, err := db.CreateTag(ctx, tag)
+			dbTag, err := sync.db.CreateTag(sync.ctx, tag)
 
 			if err != nil {
 				return database.Tag{}, nil
@@ -888,11 +899,11 @@ func (sync *SyncContext) GetOrCreateTag(ctx context.Context, db *database.Databa
 	return dbTag, nil
 }
 
-func (sync *SyncContext) GetOrCreateGenre(ctx context.Context, db *database.Database, genre string) (database.Genre, error) {
-	dbGenre, err := db.GetGenreByName(ctx, genre)
+func (sync *SyncContext) GetOrCreateGenre(genre string) (database.Genre, error) {
+	dbGenre, err := sync.db.GetGenreByName(sync.ctx, genre)
 	if err != nil {
 		if errors.Is(err, types.ErrNoGenre) {
-			dbGenre, err := db.CreateGenre(ctx, genre)
+			dbGenre, err := sync.db.CreateGenre(sync.ctx, genre)
 
 			if err != nil {
 				return database.Genre{}, nil
@@ -915,6 +926,8 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 	ctx := context.Background()
 
 	syncContext := SyncContext{
+		ctx:           ctx,
+		db:            db,
 		ArtistMapping: make(map[*LibraryArtist]database.Artist),
 		AlbumMapping:  make(map[*LibraryAlbum]database.Album),
 		TagMapping:    make(map[string]database.Tag),
@@ -969,7 +982,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 	}
 
 	for _, artist := range lib.Artists {
-		dbArtist, err := syncContext.GetOrCreateArtist(ctx, db, artist)
+		dbArtist, err := syncContext.GetOrCreateArtist(artist)
 		if err != nil {
 			return err
 		}
@@ -984,7 +997,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 
 	for _, artist := range lib.Artists {
 		for _, album := range artist.Albums {
-			dbAlbum, err := syncContext.GetOrCreateAlbum(ctx, db, album)
+			dbAlbum, err := syncContext.GetOrCreateAlbum(album)
 			if err != nil {
 				return err
 			}
@@ -1010,7 +1023,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 			fmt.Printf("coverArt: %v\n", coverArt)
 
 			for _, track := range album.Tracks {
-				dbTrack, err := syncContext.GetOrCreateTrack(ctx, db, track)
+				dbTrack, err := syncContext.GetOrCreateTrack(track)
 				if err != nil {
 					return err
 				}
@@ -1057,7 +1070,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					}
 
 					if !hasTag {
-						dbTag, err := syncContext.GetOrCreateTag(ctx, db, tag)
+						dbTag, err := syncContext.GetOrCreateTag(tag)
 						if err != nil {
 							return err
 						}
@@ -1101,7 +1114,7 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					}
 
 					if !hasGenre {
-						dbGenre, err := syncContext.GetOrCreateGenre(ctx, db, genre)
+						dbGenre, err := syncContext.GetOrCreateGenre(genre)
 						if err != nil {
 							return err
 						}
