@@ -1,7 +1,10 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/MadAppGang/httplog/echolog"
+	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/nanoteck137/dwebble/assets"
@@ -10,6 +13,54 @@ import (
 	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
 )
+
+type Route struct {
+	Name   string
+	Path   string
+	Method string
+}
+
+type RouteManager struct {
+	Routes []Route
+}
+
+func NewRouteManager() *RouteManager {
+	return &RouteManager{
+		Routes: []Route{},
+	}
+}
+
+func (r *RouteManager) AddRoute(name, path, method string) {
+	r.Routes = append(r.Routes, Route{
+		Name:   name,
+		Path:   path,
+		Method: method,
+	})
+}
+
+type EchoGroup struct {
+	Prefix string
+	Group  *echo.Group
+
+	routeManager *RouteManager
+}
+
+func (g *EchoGroup) GET(name string, path string, f echo.HandlerFunc) {
+	log.Debug("Registering GET", "name", name, "path", g.Prefix+path)
+	g.Group.GET(path, f)
+
+	g.routeManager.AddRoute(name, g.Prefix+path, http.MethodGet)
+}
+
+func NewGroup(e *echo.Echo, r *RouteManager, prefix string) *EchoGroup {
+	g := e.Group(prefix)
+
+	return &EchoGroup{
+		Prefix:       prefix,
+		Group:        g,
+		routeManager: r,
+	}
+}
 
 func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.Echo {
 	e := echo.New()
@@ -53,7 +104,10 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 		}
 	})
 
-	h.InstallArtistHandlers(apiGroup)
+	routeManager := NewRouteManager()
+
+	g := NewGroup(e, routeManager, "/api/v1")
+	h.InstallArtistHandlers(g)
 	h.InstallAlbumHandlers(apiGroup)
 	h.InstallTrackHandlers(apiGroup)
 	h.InstallSyncHandlers(apiGroup)
@@ -64,6 +118,8 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 
 	apiGroup = e.Group("/api/v1")
 	h.InstallSystemHandlers(apiGroup)
+
+	pretty.Println(routeManager)
 
 	err := handlers.InitializeConfig(db)
 	if err != nil {

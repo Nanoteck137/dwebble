@@ -10,6 +10,10 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
+type Group interface {
+	GET(name string, path string, f echo.HandlerFunc)
+}
+
 const (
 	DefaultArtistPictureName = "default/default_artist.png"
 	DefaultAlbumCoverArtName = "default/default_album.png"

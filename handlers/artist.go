@@ -71,8 +71,12 @@ func (h *Handlers) HandleGetArtistAlbumsById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) InstallArtistHandlers(group *echo.Group) {
-	group.GET("/artists", h.HandleGetArtists)
-	group.GET("/artists/:id", h.HandleGetArtistById)
-	group.GET("/artists/:id/albums", h.HandleGetArtistAlbumsById)
+func (h *Handlers) InstallArtistHandlers(group Group) {
+	group.GET("GetArtists", "/artists", h.HandleGetArtists)
+	group.GET("GetArtistById", "/artists/:id", h.HandleGetArtistById)
+	group.GET("GetArtistAlbums", "/artists/:id/albums", h.HandleGetArtistAlbumsById)
+
+	// group.GET("/artists", h.HandleGetArtists)
+	// group.GET("/artists/:id", h.HandleGetArtistById)
+	// group.GET("/artists/:id/albums", h.HandleGetArtistAlbumsById)
 }
