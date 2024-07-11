@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/MadAppGang/httplog/echolog"
-	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/nanoteck137/dwebble/assets"
@@ -23,11 +22,13 @@ type Route struct {
 }
 
 type RouteManager struct {
+	Prefix string
 	Routes []Route
 }
 
-func NewRouteManager() *RouteManager {
+func NewRouteManager(prefix string) *RouteManager {
 	return &RouteManager{
+		Prefix: prefix,
 		Routes: []Route{},
 	}
 }
@@ -42,27 +43,26 @@ func (r *RouteManager) AddRoute(name, path, method string, data, body any) {
 	})
 }
 
+func (r *RouteManager) GET(name string, path string, f echo.HandlerFunc, data, body any) {
+	r.AddRoute(name, r.Prefix + path, http.MethodGet, data, body)
+}
+
 type EchoGroup struct {
 	Prefix string
 	Group  *echo.Group
-
-	routeManager *RouteManager
 }
 
 func (g *EchoGroup) GET(name string, path string, f echo.HandlerFunc, data, body any) {
 	log.Debug("Registering GET", "name", name, "path", g.Prefix+path)
 	g.Group.GET(path, f)
-
-	g.routeManager.AddRoute(name, g.Prefix+path, http.MethodGet, data, body)
 }
 
-func NewGroup(e *echo.Echo, r *RouteManager, prefix string) *EchoGroup {
+func NewGroup(e *echo.Echo, prefix string) *EchoGroup {
 	g := e.Group(prefix)
 
 	return &EchoGroup{
-		Prefix:       prefix,
-		Group:        g,
-		routeManager: r,
+		Prefix: prefix,
+		Group:  g,
 	}
 }
 
@@ -108,9 +108,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 		}
 	})
 
-	routeManager := NewRouteManager()
-
-	g := NewGroup(e, routeManager, "/api/v1")
+	g := NewGroup(e, "/api/v1")
 	h.InstallArtistHandlers(g)
 	h.InstallAlbumHandlers(apiGroup)
 	h.InstallTrackHandlers(apiGroup)
@@ -123,8 +121,6 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	apiGroup = e.Group("/api/v1")
 	h.InstallSystemHandlers(apiGroup)
 
-	pretty.Println(routeManager)
-
 	err := handlers.InitializeConfig(db)
 	if err != nil {
 		// TODO(patrik): Remove?
@@ -134,4 +130,22 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	db.Invalidate()
 
 	return e
+}
+
+func ServerRoutes() []Route {
+	var h handlers.Handlers
+
+	g := NewRouteManager("/api/v1")
+	h.InstallArtistHandlers(g)
+	// h.InstallAlbumHandlers(apiGroup)
+	// h.InstallTrackHandlers(apiGroup)
+	// h.InstallSyncHandlers(apiGroup)
+	// h.InstallQueueHandlers(apiGroup)
+	// h.InstallTagHandlers(apiGroup)
+	// h.InstallAuthHandlers(apiGroup)
+	// h.InstallPlaylistHandlers(apiGroup)
+
+	// h.InstallSystemHandlers(apiGroup)
+
+	return g.Routes
 }

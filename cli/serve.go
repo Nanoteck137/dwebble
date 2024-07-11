@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"github.com/nanoteck137/dwebble/config"
