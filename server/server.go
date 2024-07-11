@@ -18,6 +18,8 @@ type Route struct {
 	Name   string
 	Path   string
 	Method string
+	Data   any
+	Body   any
 }
 
 type RouteManager struct {
@@ -30,11 +32,13 @@ func NewRouteManager() *RouteManager {
 	}
 }
 
-func (r *RouteManager) AddRoute(name, path, method string) {
+func (r *RouteManager) AddRoute(name, path, method string, data, body any) {
 	r.Routes = append(r.Routes, Route{
 		Name:   name,
 		Path:   path,
 		Method: method,
+		Data:   data,
+		Body:   body,
 	})
 }
 
@@ -45,11 +49,11 @@ type EchoGroup struct {
 	routeManager *RouteManager
 }
 
-func (g *EchoGroup) GET(name string, path string, f echo.HandlerFunc) {
+func (g *EchoGroup) GET(name string, path string, f echo.HandlerFunc, data, body any) {
 	log.Debug("Registering GET", "name", name, "path", g.Prefix+path)
 	g.Group.GET(path, f)
 
-	g.routeManager.AddRoute(name, g.Prefix+path, http.MethodGet)
+	g.routeManager.AddRoute(name, g.Prefix+path, http.MethodGet, data, body)
 }
 
 func NewGroup(e *echo.Echo, r *RouteManager, prefix string) *EchoGroup {

@@ -11,7 +11,7 @@ import (
 )
 
 type Group interface {
-	GET(name string, path string, f echo.HandlerFunc)
+	GET(name string, path string, f echo.HandlerFunc, data, body any)
 }
 
 const (
