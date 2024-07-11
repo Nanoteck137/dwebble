@@ -10,7 +10,8 @@ import (
 var logger *slog.Logger
 
 func init() {
-	logger = slog.New(devslog.NewHandler(os.Stderr, nil))
+	// TODO(patrik): Temp
+	logger = slog.New(devslog.NewHandler(os.Stderr, &devslog.Options{HandlerOptions: &slog.HandlerOptions{Level: slog.LevelDebug}}))
 	slog.SetDefault(logger)
 }
 
