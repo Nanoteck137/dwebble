@@ -1,6 +1,8 @@
 module github.com/nanoteck137/dwebble
 
-go 1.21.5
+go 1.21.0
+
+toolchain go1.21.5
 
 require (
 	github.com/MadAppGang/httplog/echolog v1.3.0
@@ -13,6 +15,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.7
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nanoteck137/parasect v0.2.1
+	github.com/nanoteck137/pyrin v0.2.1
 	github.com/nrednav/cuid2 v1.0.0
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/pressly/goose/v3 v3.17.0
