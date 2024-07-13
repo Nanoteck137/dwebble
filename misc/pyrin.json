@@ -1,0 +1,685 @@
+{
+  "types": [
+    {
+      "name": "Artist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "picture",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetArtists",
+      "extend": "",
+      "fields": [
+        {
+          "name": "artists",
+          "type": "[]Artist",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetArtistById",
+      "extend": "Artist",
+      "fields": null
+    },
+    {
+      "name": "Album",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "coverArt",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artistId",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetArtistAlbumsById",
+      "extend": "",
+      "fields": [
+        {
+          "name": "albums",
+          "type": "[]Album",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetAlbums",
+      "extend": "",
+      "fields": [
+        {
+          "name": "albums",
+          "type": "[]Album",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetAlbumById",
+      "extend": "Album",
+      "fields": null
+    },
+    {
+      "name": "Track",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "number",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "coverArt",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "duration",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "bestQualityFile",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "mobileQualityFile",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "albumId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artistId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "albumName",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artistName",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omit": false
+        },
+        {
+          "name": "genres",
+          "type": "[]string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetAlbumTracksById",
+      "extend": "",
+      "fields": [
+        {
+          "name": "tracks",
+          "type": "[]Track",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetTracks",
+      "extend": "",
+      "fields": [
+        {
+          "name": "tracks",
+          "type": "[]Track",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetTrackById",
+      "extend": "Track",
+      "fields": null
+    },
+    {
+      "name": "GetSync",
+      "extend": "",
+      "fields": [
+        {
+          "name": "isSyncing",
+          "type": "bool",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostQueue",
+      "extend": "",
+      "fields": [
+        {
+          "name": "tracks",
+          "type": "[]Track",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "Tag",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetTags",
+      "extend": "",
+      "fields": [
+        {
+          "name": "tags",
+          "type": "[]Tag",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostAuthSignup",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostAuthSignupBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "username",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "passwordConfirm",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostAuthSignin",
+      "extend": "",
+      "fields": [
+        {
+          "name": "token",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostAuthSigninBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "username",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetAuthMe",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "Playlist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetPlaylists",
+      "extend": "",
+      "fields": [
+        {
+          "name": "playlists",
+          "type": "[]Playlist",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostPlaylist",
+      "extend": "Playlist",
+      "fields": null
+    },
+    {
+      "name": "PostPlaylistBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetPlaylistById",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "items",
+          "type": "[]Track",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostPlaylistItemsByIdBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "tracks",
+          "type": "[]string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "DeletePlaylistItemsByIdBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "trackIndices",
+          "type": "[]int",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetSystemInfo",
+      "extend": "",
+      "fields": [
+        {
+          "name": "version",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "isSetup",
+          "type": "bool",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostSystemSetupBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "username",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "passwordConfirm",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "ExportTrack",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "album",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artist",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "ExportPlaylist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "tracks",
+          "type": "[]ExportTrack",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "ExportUser",
+      "extend": "",
+      "fields": [
+        {
+          "name": "username",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "playlists",
+          "type": "[]ExportPlaylist",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostSystemExport",
+      "extend": "",
+      "fields": [
+        {
+          "name": "users",
+          "type": "[]ExportUser",
+          "omit": false
+        }
+      ]
+    }
+  ],
+  "endpoints": [
+    {
+      "name": "GetArtists",
+      "method": "GET",
+      "path": "/api/v1/artists",
+      "responseType": "GetArtists",
+      "bodyType": ""
+    },
+    {
+      "name": "GetArtistById",
+      "method": "GET",
+      "path": "/api/v1/artists/:id",
+      "responseType": "GetArtistById",
+      "bodyType": ""
+    },
+    {
+      "name": "GetArtistAlbums",
+      "method": "GET",
+      "path": "/api/v1/artists/:id/albums",
+      "responseType": "GetArtistAlbumsById",
+      "bodyType": ""
+    },
+    {
+      "name": "GetAlbums",
+      "method": "GET",
+      "path": "/api/v1/albums",
+      "responseType": "GetAlbums",
+      "bodyType": ""
+    },
+    {
+      "name": "GetAlbumById",
+      "method": "GET",
+      "path": "/api/v1/albums/:id",
+      "responseType": "GetAlbumById",
+      "bodyType": ""
+    },
+    {
+      "name": "GetAlbumTracks",
+      "method": "GET",
+      "path": "/api/v1/albums/:id/tracks",
+      "responseType": "GetAlbumTracksById",
+      "bodyType": ""
+    },
+    {
+      "name": "GetTracks",
+      "method": "GET",
+      "path": "/api/v1/tracks",
+      "responseType": "GetTracks",
+      "bodyType": ""
+    },
+    {
+      "name": "GetTrackById",
+      "method": "GET",
+      "path": "/api/v1/tracks/:id",
+      "responseType": "GetTrackById",
+      "bodyType": ""
+    },
+    {
+      "name": "GetSyncStatus",
+      "method": "GET",
+      "path": "/api/v1/sync",
+      "responseType": "GetSync",
+      "bodyType": ""
+    },
+    {
+      "name": "RunSync",
+      "method": "POST",
+      "path": "/api/v1/sync",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
+      "name": "CreateQueue",
+      "method": "POST",
+      "path": "/api/v1/queue",
+      "responseType": "PostQueue",
+      "bodyType": ""
+    },
+    {
+      "name": "GetTags",
+      "method": "GET",
+      "path": "/api/v1/tags",
+      "responseType": "GetTags",
+      "bodyType": ""
+    },
+    {
+      "name": "Signup",
+      "method": "POST",
+      "path": "/api/v1/auth/signup",
+      "responseType": "PostAuthSignup",
+      "bodyType": "PostAuthSignupBody"
+    },
+    {
+      "name": "Signin",
+      "method": "POST",
+      "path": "/api/v1/auth/signin",
+      "responseType": "PostAuthSignin",
+      "bodyType": "PostAuthSigninBody"
+    },
+    {
+      "name": "GetMe",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "responseType": "GetAuthMe",
+      "bodyType": ""
+    },
+    {
+      "name": "GetPlaylists",
+      "method": "GET",
+      "path": "/api/v1/playlists",
+      "responseType": "GetPlaylists",
+      "bodyType": ""
+    },
+    {
+      "name": "CreatePlaylist",
+      "method": "POST",
+      "path": "/api/v1/playlists",
+      "responseType": "PostPlaylist",
+      "bodyType": "PostPlaylistBody"
+    },
+    {
+      "name": "GetPlaylistById",
+      "method": "GET",
+      "path": "/api/v1/playlists/:id",
+      "responseType": "GetPlaylistById",
+      "bodyType": ""
+    },
+    {
+      "name": "AddItemsToPlaylist",
+      "method": "POST",
+      "path": "/api/v1/playlists/:id/items",
+      "responseType": "",
+      "bodyType": "PostPlaylistItemsByIdBody"
+    },
+    {
+      "name": "DeletePlaylistItems",
+      "method": "DELETE",
+      "path": "/api/v1/playlists/:id/items",
+      "responseType": "",
+      "bodyType": "DeletePlaylistItemsByIdBody"
+    },
+    {
+      "name": "MovePlaylistItem",
+      "method": "POST",
+      "path": "/api/v1/playlists/:id/items/move",
+      "responseType": "",
+      "bodyType": "PostPlaylistItemsByIdBody"
+    },
+    {
+      "name": "GetSystemInfo",
+      "method": "GET",
+      "path": "/api/v1/system/info",
+      "responseType": "GetSystemInfo",
+      "bodyType": ""
+    },
+    {
+      "name": "RunSystemSetup",
+      "method": "POST",
+      "path": "/api/v1/system/setup",
+      "responseType": "",
+      "bodyType": "PostSystemSetupBody"
+    },
+    {
+      "name": "SystemExport",
+      "method": "POST",
+      "path": "/api/v1/system/export",
+      "responseType": "PostSystemExport",
+      "bodyType": ""
+    },
+    {
+      "name": "SystemImport",
+      "method": "POST",
+      "path": "/api/v1/system/import",
+      "responseType": "",
+      "bodyType": ""
+    }
+  ]
+}
