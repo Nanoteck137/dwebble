@@ -5,10 +5,8 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/server"
-	"github.com/nanoteck137/pyrin/ast"
 	"github.com/nanoteck137/pyrin/client"
 	"github.com/nanoteck137/pyrin/parser"
 	"github.com/nanoteck137/pyrin/resolve"
@@ -18,31 +16,12 @@ import (
 func main() {
 	routes := server.ServerRoutes()
 
-	pretty.Println(routes)
-
 	d, err := os.ReadFile("./types/api_types.go")
 	if err != nil {
 		log.Fatal("Failed to read api types source", "err", err)
 	}
 
 	decls := parser.Parse(string(d))
-
-	findDecl := func(name string) ast.Decl {
-		for _, decl := range decls {
-			switch decl := decl.(type) {
-			case *ast.StructDecl:
-				if decl.Name == name {
-					return decl
-				}
-			}
-		}
-
-		return nil
-	}
-
-	_ = findDecl
-
-	pretty.Println(decls)
 
 	s := client.Server{}
 
@@ -85,8 +64,6 @@ func main() {
 		})
 	}
 
-	pretty.Println(resolver.ResolvedStructs)
-
 	for _, st := range resolver.ResolvedStructs {
 		switch t := st.Type.(type) {
 		case *resolve.TypeStruct:
@@ -118,8 +95,6 @@ func main() {
 		}
 	}
 
-	pretty.Println(s)
-
 	d, err = json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		log.Fatal("Failed to marshal server", "err", err)
@@ -130,4 +105,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to write pyrin.json", "err", err)
 	}
+
+	log.Info("Wrote 'pyrin.json'")
 }
