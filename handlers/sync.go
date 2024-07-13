@@ -49,7 +49,16 @@ func (h *Handlers) HandlePostSync(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
-func (h *Handlers) InstallSyncHandlers(group *echo.Group) {
-	group.GET("/sync", h.HandleGetSync)
-	group.POST("/sync", h.HandlePostSync)
+func (h *Handlers) InstallSyncHandlers(group Group) {
+	group.GET(
+		"GetSyncStatus", "/sync", 
+		h.HandleGetSync, 
+		types.GetSync{}, nil,
+	)
+
+	group.POST(
+		"RunSync", "/sync", 
+		h.HandlePostSync,
+		nil, nil,
+	)
 }

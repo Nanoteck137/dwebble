@@ -47,6 +47,14 @@ func (r *RouteManager) GET(name string, path string, f echo.HandlerFunc, data, b
 	r.AddRoute(name, r.Prefix + path, http.MethodGet, data, body)
 }
 
+func (r *RouteManager) POST(name string, path string, f echo.HandlerFunc, data, body any) {
+	r.AddRoute(name, r.Prefix + path, http.MethodPost, data, body)
+}
+
+func (r *RouteManager) DELETE(name string, path string, f echo.HandlerFunc, data, body any) {
+	r.AddRoute(name, r.Prefix + path, http.MethodDelete, data, body)
+}
+
 type EchoGroup struct {
 	Prefix string
 	Group  *echo.Group
@@ -55,6 +63,16 @@ type EchoGroup struct {
 func (g *EchoGroup) GET(name string, path string, f echo.HandlerFunc, data, body any) {
 	log.Debug("Registering GET", "name", name, "path", g.Prefix+path)
 	g.Group.GET(path, f)
+}
+
+func (g *EchoGroup) POST(name string, path string, f echo.HandlerFunc, data, body any) {
+	log.Debug("Registering POST", "name", name, "path", g.Prefix+path)
+	g.Group.POST(path, f)
+}
+
+func (g *EchoGroup) DELETE(name string, path string, f echo.HandlerFunc, data, body any) {
+	log.Debug("Registering DELETE", "name", name, "path", g.Prefix+path)
+	g.Group.DELETE(path, f)
 }
 
 func NewGroup(e *echo.Echo, prefix string) *EchoGroup {
@@ -108,18 +126,20 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 		}
 	})
 
+	_ = apiGroup
+
 	g := NewGroup(e, "/api/v1")
 	h.InstallArtistHandlers(g)
-	h.InstallAlbumHandlers(apiGroup)
-	h.InstallTrackHandlers(apiGroup)
-	h.InstallSyncHandlers(apiGroup)
-	h.InstallQueueHandlers(apiGroup)
-	h.InstallTagHandlers(apiGroup)
-	h.InstallAuthHandlers(apiGroup)
-	h.InstallPlaylistHandlers(apiGroup)
+	h.InstallAlbumHandlers(g)
+	h.InstallTrackHandlers(g)
+	h.InstallSyncHandlers(g)
+	h.InstallQueueHandlers(g)
+	h.InstallTagHandlers(g)
+	h.InstallAuthHandlers(g)
+	h.InstallPlaylistHandlers(g)
 
-	apiGroup = e.Group("/api/v1")
-	h.InstallSystemHandlers(apiGroup)
+	g = NewGroup(e, "/api/v1")
+	h.InstallSystemHandlers(g)
 
 	err := handlers.InitializeConfig(db)
 	if err != nil {
@@ -137,15 +157,15 @@ func ServerRoutes() []Route {
 
 	g := NewRouteManager("/api/v1")
 	h.InstallArtistHandlers(g)
-	// h.InstallAlbumHandlers(apiGroup)
-	// h.InstallTrackHandlers(apiGroup)
-	// h.InstallSyncHandlers(apiGroup)
-	// h.InstallQueueHandlers(apiGroup)
-	// h.InstallTagHandlers(apiGroup)
-	// h.InstallAuthHandlers(apiGroup)
-	// h.InstallPlaylistHandlers(apiGroup)
+	h.InstallAlbumHandlers(g)
+	h.InstallTrackHandlers(g)
+	h.InstallSyncHandlers(g)
+	h.InstallQueueHandlers(g)
+	h.InstallTagHandlers(g)
+	h.InstallAuthHandlers(g)
+	h.InstallPlaylistHandlers(g)
 
-	// h.InstallSystemHandlers(apiGroup)
+	h.InstallSystemHandlers(g)
 
 	return g.Routes
 }

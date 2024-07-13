@@ -154,8 +154,22 @@ func (h *Handlers) HandleGetMe(c echo.Context) error {
 	}))
 }
 
-func (h *Handlers) InstallAuthHandlers(group *echo.Group) {
-	group.POST("/auth/signup", h.HandlePostSignup)
-	group.POST("/auth/signin", h.HandlePostSignin)
-	group.GET("/auth/me", h.HandleGetMe)
+func (h *Handlers) InstallAuthHandlers(group Group) {
+	group.POST(
+		"Signup", "/auth/signup", 
+		h.HandlePostSignup, 
+		types.PostAuthSignup{}, types.PostAuthSignupBody{},
+	)
+
+	group.POST(
+		"Signin", "/auth/signin", 
+		h.HandlePostSignin, 
+		types.PostAuthSignin{}, types.PostAuthSigninBody{},
+	)
+
+	group.GET(
+		"GetMe", "/auth/me", 
+		h.HandleGetMe, 
+		types.GetAuthMe{}, nil,
+	)
 }

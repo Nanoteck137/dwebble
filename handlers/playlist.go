@@ -202,12 +202,42 @@ func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
-func (h *Handlers) InstallPlaylistHandlers(group *echo.Group) {
-	group.GET("/playlists", h.HandleGetPlaylists)
-	group.POST("/playlists", h.HandlePostPlaylist)
+func (h *Handlers) InstallPlaylistHandlers(group Group) {
+	group.GET(
+		"GetPlaylists",
+		"/playlists", 
+		h.HandleGetPlaylists,
+		types.GetPlaylists{}, nil,
+	)
+	group.POST(
+		"CreatePlaylist", "/playlists", 
+		h.HandlePostPlaylist,
+		types.PostPlaylist{}, types.PostPlaylistBody{},
+	)
 
-	group.GET("/playlists/:id", h.HandleGetPlaylistById)
-	group.POST("/playlists/:id/items", h.HandlePostPlaylistItemsById)
-	group.DELETE("/playlists/:id/items", h.HandleDeletePlaylistItemsById)
-	group.POST("/playlists/:id/items/move", h.HandlePostPlaylistsItemsMoveById)
+	group.GET(
+		"GetPlaylistById", "/playlists/:id", 
+		h.HandleGetPlaylistById, 
+		types.GetPlaylistById{}, nil,
+	)
+
+	group.POST(
+		"AddItemsToPlaylist", "/playlists/:id/items", 
+		h.HandlePostPlaylistItemsById, 
+		nil, types.PostPlaylistItemsByIdBody{},
+	)
+
+	group.DELETE(
+		"DeletePlaylistItems", "/playlists/:id/items", 
+		h.HandleDeletePlaylistItemsById,
+		nil,
+		types.DeletePlaylistItemsByIdBody{},
+	)
+
+	group.POST(
+		"MovePlaylistItem", "/playlists/:id/items/move", 
+		h.HandlePostPlaylistsItemsMoveById,
+		nil,
+		types.PostPlaylistItemsByIdBody{},
+	)
 }

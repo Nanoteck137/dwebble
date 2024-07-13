@@ -34,6 +34,10 @@ func (h *Handlers) HandlePostQueue(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) InstallQueueHandlers(group *echo.Group) {
-	group.POST("/queue", h.HandlePostQueue)
+func (h *Handlers) InstallQueueHandlers(group Group) {
+	group.POST(
+		"CreateQueue", "/queue", 
+		h.HandlePostQueue, 
+		types.PostQueue{}, nil,
+	)
 }

@@ -138,11 +138,11 @@ func (h *Handlers) HandlePostSystemImport(c echo.Context) error {
 	return types.NewApiError(400, "Import is not supported right now")
 }
 
-func (h *Handlers) InstallSystemHandlers(group *echo.Group) {
-	group.GET("/system/info", h.HandleGetSystemInfo)
-	group.POST("/system/setup", h.HandlePostSystemSetup)
-	group.POST("/system/export", h.HandlePostSystemExport)
-	group.POST("/system/import", h.HandlePostSystemImport)
+func (h *Handlers) InstallSystemHandlers(group Group) {
+	group.GET("GetSystemInfo", "/system/info", h.HandleGetSystemInfo, types.GetSystemInfo{}, nil)
+	group.POST("RunSystemSetup", "/system/setup", h.HandlePostSystemSetup, nil, types.PostSystemSetupBody{})
+	group.POST("SystemExport", "/system/export", h.HandlePostSystemExport, types.PostSystemExport{}, nil)
+	group.POST("SystemImport", "/system/import", h.HandlePostSystemImport, nil, nil)
 }
 
 func InitializeConfig(db *database.Database) error {

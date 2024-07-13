@@ -67,7 +67,16 @@ func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 	}))
 }
 
-func (h *Handlers) InstallTrackHandlers(group *echo.Group) {
-	group.GET("/tracks", h.HandleGetTracks)
-	group.GET("/tracks/:id", h.HandleGetTrackById)
+func (h *Handlers) InstallTrackHandlers(group Group) {
+	group.GET(
+		"GetTracks", "/tracks", 
+		h.HandleGetTracks, 
+		types.GetTracks{}, nil,
+	)
+
+	group.GET(
+		"GetTrackById", "/tracks/:id", 
+		h.HandleGetTrackById,
+		types.GetTrackById{}, nil,
+	)
 }

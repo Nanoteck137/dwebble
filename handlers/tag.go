@@ -26,6 +26,10 @@ func (h *Handlers) HandleGetTags(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) InstallTagHandlers(group *echo.Group) {
-	group.GET("/tags", h.HandleGetTags)
+func (h *Handlers) InstallTagHandlers(group Group) {
+	group.GET(
+		"GetTags", "/tags", 
+		h.HandleGetTags, 
+		types.GetTags{}, nil,
+	)
 }

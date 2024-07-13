@@ -86,8 +86,22 @@ func (h *Handlers) HandleGetAlbumTracksById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) InstallAlbumHandlers(group *echo.Group) {
-	group.GET("/albums", h.HandleGetAlbums)
-	group.GET("/albums/:id", h.HandleGetAlbumById)
-	group.GET("/albums/:id/tracks", h.HandleGetAlbumTracksById)
+func (h *Handlers) InstallAlbumHandlers(group Group) {
+	group.GET(
+		"GetAlbums", "/albums", 
+		h.HandleGetAlbums, 
+		types.GetAlbums{}, nil,
+	)
+
+	group.GET(
+		"GetAlbumById", "/albums/:id", 
+		h.HandleGetAlbumById, 
+		types.GetAlbumById{}, nil,
+	)
+
+	group.GET(
+		"GetAlbumTracks", "/albums/:id/tracks", 
+		h.HandleGetAlbumTracksById,
+		types.GetAlbumTracksById{}, nil,
+	)
 }
