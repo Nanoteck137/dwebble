@@ -1,8 +1,6 @@
 package server
 
 import (
-	"net/http"
-
 	"github.com/MadAppGang/httplog/echolog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -43,16 +41,10 @@ func (r *RouteGroup) AddRoute(name, path, method string, data, body any) {
 	})
 }
 
-func (r *RouteGroup) GET(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
-	r.AddRoute(name, r.Prefix + path, http.MethodGet, data, body)
-}
-
-func (r *RouteGroup) POST(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
-	r.AddRoute(name, r.Prefix + path, http.MethodPost, data, body)
-}
-
-func (r *RouteGroup) DELETE(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
-	r.AddRoute(name, r.Prefix + path, http.MethodDelete, data, body)
+func (r *RouteGroup) Register(handlers ...handlers.Handler) {
+	for _, h := range handlers {
+		r.AddRoute(h.Name, r.Prefix + h.Path, h.Method, h.DataType, h.BodyType)
+	}
 }
 
 type EchoGroup struct {
@@ -60,19 +52,11 @@ type EchoGroup struct {
 	Group  *echo.Group
 }
 
-func (g *EchoGroup) GET(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
-	log.Debug("Registering GET", "name", name, "path", g.Prefix+path)
-	g.Group.GET(path, f, m...)
-}
-
-func (g *EchoGroup) POST(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
-	log.Debug("Registering POST", "name", name, "path", g.Prefix+path)
-	g.Group.POST(path, f, m...)
-}
-
-func (g *EchoGroup) DELETE(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
-	log.Debug("Registering DELETE", "name", name, "path", g.Prefix+path)
-	g.Group.DELETE(path, f, m...)
+func (g *EchoGroup) Register(handlers ...handlers.Handler) {
+	for _, h := range handlers {
+		log.Debug("Registering", "method", h.Method, "name", h.Name, "path", g.Prefix+h.Path)
+		g.Group.Add(h.Method, h.Path, h.HandlerFunc, h.Middlewares...)
+	}
 }
 
 func NewEchoGroup(e *echo.Echo, prefix string, m ...echo.MiddlewareFunc) *EchoGroup {

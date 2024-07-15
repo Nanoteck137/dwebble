@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -27,9 +29,14 @@ func (h *Handlers) HandleGetTags(c echo.Context) error {
 }
 
 func (h *Handlers) InstallTagHandlers(group Group) {
-	group.GET(
-		"GetTags", "/tags", 
-		types.GetTags{}, nil,
-		h.HandleGetTags, 
+	group.Register(
+		Handler {
+			Name: "GetTags", 
+			Path: "/tags", 
+			Method: http.MethodGet,
+			DataType: types.GetTags{}, 
+			BodyType: nil,
+			HandlerFunc: h.HandleGetTags, 
+		},
 	)
 }

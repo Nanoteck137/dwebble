@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -72,21 +74,32 @@ func (h *Handlers) HandleGetArtistAlbumsById(c echo.Context) error {
 }
 
 func (h *Handlers) InstallArtistHandlers(group Group) {
-	group.GET(
-		"GetArtists", "/artists",
-		types.GetArtists{}, nil,
-		h.HandleGetArtists, 
-	)
+	group.Register(
+		Handler{
+			Name:     "GetArtists",
+			Method:   http.MethodGet,
+			Path:     "/artists",
+			DataType: types.GetArtists{},
+			BodyType: nil,
+			HandlerFunc: h.HandleGetArtists,
+		},
 
-	group.GET(
-		"GetArtistById", "/artists/:id", 
-		types.GetArtistById{}, nil,
-		h.HandleGetArtistById, 
-	)
+		Handler {
+			Name: "GetArtistById", 
+			Path: "/artists/:id", 
+			Method: http.MethodGet,
+			DataType: types.GetArtistById{}, 
+			BodyType: nil,
+			HandlerFunc: h.HandleGetArtistById, 
+		},
 
-	group.GET(
-		"GetArtistAlbums", "/artists/:id/albums", 
-		types.GetArtistAlbumsById{}, nil,
-		h.HandleGetArtistAlbumsById, 
+		Handler {
+			Name: "GetArtistAlbums", 
+			Path: "/artists/:id/albums", 
+			Method: http.MethodGet,
+			DataType: types.GetArtistAlbumsById{}, 
+			BodyType: nil,
+			HandlerFunc: h.HandleGetArtistAlbumsById, 
+		},
 	)
 }

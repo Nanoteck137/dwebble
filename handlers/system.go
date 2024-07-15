@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
@@ -139,29 +140,42 @@ func (h *Handlers) HandlePostSystemImport(c echo.Context) error {
 }
 
 func (h *Handlers) InstallSystemHandlers(group Group) {
-	group.GET(
-		"GetSystemInfo", "/system/info", 
-		types.GetSystemInfo{}, nil,
-		h.HandleGetSystemInfo, 
-	)
+	group.Register(
+		Handler {
+			Name: "GetSystemInfo", 
+			Path: "/system/info", 
+			Method: http.MethodGet,
+			DataType: types.GetSystemInfo{}, 
+			BodyType: nil,
+			HandlerFunc: h.HandleGetSystemInfo, 
+		},
 
-	group.POST(
-		"RunSystemSetup", "/system/setup", 
-		nil, types.PostSystemSetupBody{},
-		h.HandlePostSystemSetup, 
-	)
+		Handler {
+			Name: "RunSystemSetup", 
+			Path: "/system/setup", 
+			Method: http.MethodPost,
+			DataType: nil, 
+			BodyType: types.PostSystemSetupBody{},
+			HandlerFunc: h.HandlePostSystemSetup, 
+		},
 
-	group.POST(
-		"SystemExport", "/system/export", 
-		types.PostSystemExport{}, nil,
-		h.HandlePostSystemExport, 
-	)
+		Handler {
+			Name: "SystemExport", 
+			Path: "/system/export", 
+			Method: http.MethodPost,
+			DataType: types.PostSystemExport{}, 
+			BodyType: nil,
+			HandlerFunc: h.HandlePostSystemExport, 
+		},
 
-	group.POST(
-		"SystemImport", 
-		"/system/import", 
-		nil, nil,
-		h.HandlePostSystemImport, 
+		Handler{
+			Name: "SystemImport", 
+			Path: "/system/import", 
+			Method: http.MethodPost,
+			DataType: nil,
+			BodyType: nil,
+			HandlerFunc: h.HandlePostSystemImport, 
+		},
 	)
 }
 

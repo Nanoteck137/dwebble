@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -87,21 +88,34 @@ func (h *Handlers) HandleGetAlbumTracksById(c echo.Context) error {
 }
 
 func (h *Handlers) InstallAlbumHandlers(group Group) {
-	group.GET(
-		"GetAlbums", "/albums", 
-		types.GetAlbums{}, nil,
-		h.HandleGetAlbums, 
+	group.Register(
+		Handler{
+			Name:        "GetAlbums",
+			Path:        "/albums",
+			Method:      http.MethodGet,
+			DataType:    types.GetAlbums{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetAlbums,
+		},
+
+		Handler{
+			Name:        "GetAlbumById",
+			Path:        "/albums/:id",
+			Method:      http.MethodGet,
+			DataType:    types.GetAlbumById{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetAlbumById,
+		},
 	)
 
-	group.GET(
-		"GetAlbumById", "/albums/:id", 
-		types.GetAlbumById{}, nil,
-		h.HandleGetAlbumById, 
-	)
-
-	group.GET(
-		"GetAlbumTracks", "/albums/:id/tracks", 
-		types.GetAlbumTracksById{}, nil,
-		h.HandleGetAlbumTracksById,
+	group.Register(
+		Handler{
+			Name:        "GetAlbumTracks",
+			Path:        "/albums/:id/tracks",
+			Method:      http.MethodGet,
+			DataType:    types.GetAlbumTracksById{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetAlbumTracksById,
+		},
 	)
 }

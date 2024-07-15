@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
@@ -203,40 +205,59 @@ func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 }
 
 func (h *Handlers) InstallPlaylistHandlers(group Group) {
-	group.GET(
-		"GetPlaylists",
-		"/playlists", 
-		types.GetPlaylists{}, nil,
-		h.HandleGetPlaylists,
-	)
+	group.Register(
+		Handler{
+			Name:        "GetPlaylists",
+			Path:        "/playlists",
+			Method:      http.MethodGet,
+			DataType:    types.GetPlaylists{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetPlaylists,
+		},
 
-	group.POST(
-		"CreatePlaylist", "/playlists", 
-		types.PostPlaylist{}, types.PostPlaylistBody{},
-		h.HandlePostPlaylist,
-	)
+		Handler{
+			Name:        "CreatePlaylist",
+			Path:        "/playlists",
+			Method:      http.MethodPost,
+			DataType:    types.PostPlaylist{},
+			BodyType:    types.PostPlaylistBody{},
+			HandlerFunc: h.HandlePostPlaylist,
+		},
 
-	group.GET(
-		"GetPlaylistById", "/playlists/:id", 
-		types.GetPlaylistById{}, nil,
-		h.HandleGetPlaylistById, 
-	)
+		Handler{
+			Name:        "GetPlaylistById",
+			Path:        "/playlists/:id",
+			Method:      http.MethodGet,
+			DataType:    types.GetPlaylistById{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetPlaylistById,
+		},
 
-	group.POST(
-		"AddItemsToPlaylist", "/playlists/:id/items", 
-		nil, types.PostPlaylistItemsByIdBody{},
-		h.HandlePostPlaylistItemsById, 
-	)
+		Handler{
+			Name:        "AddItemsToPlaylist",
+			Path:        "/playlists/:id/items",
+			Method:      http.MethodPost,
+			DataType:    nil,
+			BodyType:    types.PostPlaylistItemsByIdBody{},
+			HandlerFunc: h.HandlePostPlaylistItemsById,
+		},
 
-	group.DELETE(
-		"DeletePlaylistItems", "/playlists/:id/items", 
-		nil, types.DeletePlaylistItemsByIdBody{},
-		h.HandleDeletePlaylistItemsById,
-	)
+		Handler{
+			Name:        "DeletePlaylistItems",
+			Path:        "/playlists/:id/items",
+			Method:      http.MethodDelete,
+			DataType:    nil,
+			BodyType:    types.DeletePlaylistItemsByIdBody{},
+			HandlerFunc: h.HandleDeletePlaylistItemsById,
+		},
 
-	group.POST(
-		"MovePlaylistItem", "/playlists/:id/items/move", 
-		nil, types.PostPlaylistItemsByIdBody{},
-		h.HandlePostPlaylistsItemsMoveById,
+		Handler{
+			Name:        "MovePlaylistItem",
+			Path:        "/playlists/:id/items/move",
+			Method:      http.MethodPost,
+			DataType:    nil,
+			BodyType:    types.PostPlaylistItemsByIdBody{},
+			HandlerFunc: h.HandlePostPlaylistsItemsMoveById,
+		},
 	)
 }

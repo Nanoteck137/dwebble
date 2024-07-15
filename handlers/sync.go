@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"sync/atomic"
 	"time"
 
@@ -50,15 +51,23 @@ func (h *Handlers) HandlePostSync(c echo.Context) error {
 }
 
 func (h *Handlers) InstallSyncHandlers(group Group) {
-	group.GET(
-		"GetSyncStatus", "/sync", 
-		types.GetSync{}, nil,
-		h.HandleGetSync, 
-	)
+	group.Register(
+		Handler{
+			Name:        "GetSyncStatus",
+			Path:        "/sync",
+			Method:      http.MethodGet,
+			DataType:    types.GetSync{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetSync,
+		},
 
-	group.POST(
-		"RunSync", "/sync", 
-		nil, nil,
-		h.HandlePostSync,
+		Handler{
+			Name:        "RunSync",
+			Path:        "/sync",
+			Method:      http.MethodPost,
+			DataType:    nil,
+			BodyType:    nil,
+			HandlerFunc: h.HandlePostSync,
+		},
 	)
 }

@@ -10,10 +10,18 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
+type Handler struct {
+	Name string
+	Method string 
+	Path string
+	DataType any
+	BodyType any
+	HandlerFunc echo.HandlerFunc
+	Middlewares []echo.MiddlewareFunc
+}
+
 type Group interface {
-	GET(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc)
-	POST(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc)
-	DELETE(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc)
+	Register(handlers ...Handler)
 }
 
 const (

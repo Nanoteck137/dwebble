@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"time"
 
 	"github.com/faceair/jio"
@@ -155,21 +156,32 @@ func (h *Handlers) HandleGetMe(c echo.Context) error {
 }
 
 func (h *Handlers) InstallAuthHandlers(group Group) {
-	group.POST(
-		"Signup", "/auth/signup", 
-		types.PostAuthSignup{}, types.PostAuthSignupBody{},
-		h.HandlePostSignup, 
-	)
+	group.Register(
+		Handler{
+			Name:        "Signup",
+			Path:        "/auth/signup",
+			Method:      http.MethodPost,
+			DataType:    types.PostAuthSignup{},
+			BodyType:    types.PostAuthSignupBody{},
+			HandlerFunc: h.HandlePostSignup,
+		},
 
-	group.POST(
-		"Signin", "/auth/signin", 
-		types.PostAuthSignin{}, types.PostAuthSigninBody{},
-		h.HandlePostSignin, 
-	)
+		Handler{
+			Name:        "Signin",
+			Path:        "/auth/signin",
+			Method:      http.MethodPost,
+			DataType:    types.PostAuthSignin{},
+			BodyType:    types.PostAuthSigninBody{},
+			HandlerFunc: h.HandlePostSignin,
+		},
 
-	group.GET(
-		"GetMe", "/auth/me", 
-		types.GetAuthMe{}, nil,
-		h.HandleGetMe, 
+		Handler{
+			Name:        "GetMe",
+			Path:        "/auth/me",
+			Method:      http.MethodGet,
+			DataType:    types.GetAuthMe{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetMe,
+		},
 	)
 }

@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -35,9 +37,14 @@ func (h *Handlers) HandlePostQueue(c echo.Context) error {
 }
 
 func (h *Handlers) InstallQueueHandlers(group Group) {
-	group.POST(
-		"CreateQueue", "/queue", 
-		types.PostQueue{}, nil,
-		h.HandlePostQueue, 
+	group.Register(
+		Handler {
+			Name: "CreateQueue", 
+			Path: "/queue", 
+			Method: http.MethodPost,
+			DataType: types.PostQueue{}, 
+			BodyType: nil,
+			HandlerFunc: h.HandlePostQueue, 
+		},
 	)
 }

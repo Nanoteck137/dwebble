@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -68,15 +69,23 @@ func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 }
 
 func (h *Handlers) InstallTrackHandlers(group Group) {
-	group.GET(
-		"GetTracks", "/tracks", 
-		types.GetTracks{}, nil,
-		h.HandleGetTracks, 
-	)
+	group.Register(
+		Handler {
+			Name: "GetTracks", 
+			Path: "/tracks", 
+			Method: http.MethodGet,
+			DataType: types.GetTracks{}, 
+			BodyType: nil,
+			HandlerFunc: h.HandleGetTracks, 
+		},
 
-	group.GET(
-		"GetTrackById", "/tracks/:id", 
-		types.GetTrackById{}, nil,
-		h.HandleGetTrackById,
+		Handler {
+			Name: "GetTrackById", 
+			Path: "/tracks/:id", 
+			Method: http.MethodGet,
+			DataType: types.GetTrackById{}, 
+			BodyType: nil,
+			HandlerFunc: h.HandleGetTrackById,
+		},
 	)
 }
