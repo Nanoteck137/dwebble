@@ -78,7 +78,7 @@ func Parse(s string) (SortExpr, error) {
 	return &SortExprDefault{}, nil
 }
 
-type Resolver struct{
+type Resolver struct {
 	adapter filter.ResolverAdapter
 }
 
@@ -106,7 +106,7 @@ func (r *Resolver) Resolve(e SortExpr) (SortExpr, error) {
 	case *SortExprDefault:
 		defaultSort := r.adapter.GetDefaultSort()
 		return &SortExprSort{
-			Items: []SortItem{ 
+			Items: []SortItem{
 				{
 					Type: SortTypeAsc,
 					Name: defaultSort,

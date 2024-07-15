@@ -11,11 +11,11 @@ import (
 )
 
 type Handler struct {
-	Name string
-	Method string 
-	Path string
-	DataType any
-	BodyType any
+	Name        string
+	Method      string
+	Path        string
+	DataType    any
+	BodyType    any
 	HandlerFunc echo.HandlerFunc
 	Middlewares []echo.MiddlewareFunc
 }

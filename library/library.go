@@ -148,7 +148,7 @@ func ReadFromDir(dir string) (*Library, error) {
 
 type SyncContext struct {
 	ctx context.Context
-	db *database.Database
+	db  *database.Database
 
 	ArtistMapping map[*LibraryArtist]database.Artist
 	AlbumMapping  map[*LibraryAlbum]database.Album

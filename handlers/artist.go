@@ -76,30 +76,30 @@ func (h *Handlers) HandleGetArtistAlbumsById(c echo.Context) error {
 func (h *Handlers) InstallArtistHandlers(group Group) {
 	group.Register(
 		Handler{
-			Name:     "GetArtists",
-			Method:   http.MethodGet,
-			Path:     "/artists",
-			DataType: types.GetArtists{},
-			BodyType: nil,
+			Name:        "GetArtists",
+			Method:      http.MethodGet,
+			Path:        "/artists",
+			DataType:    types.GetArtists{},
+			BodyType:    nil,
 			HandlerFunc: h.HandleGetArtists,
 		},
 
-		Handler {
-			Name: "GetArtistById", 
-			Path: "/artists/:id", 
-			Method: http.MethodGet,
-			DataType: types.GetArtistById{}, 
-			BodyType: nil,
-			HandlerFunc: h.HandleGetArtistById, 
+		Handler{
+			Name:        "GetArtistById",
+			Path:        "/artists/:id",
+			Method:      http.MethodGet,
+			DataType:    types.GetArtistById{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetArtistById,
 		},
 
-		Handler {
-			Name: "GetArtistAlbums", 
-			Path: "/artists/:id/albums", 
-			Method: http.MethodGet,
-			DataType: types.GetArtistAlbumsById{}, 
-			BodyType: nil,
-			HandlerFunc: h.HandleGetArtistAlbumsById, 
+		Handler{
+			Name:        "GetArtistAlbums",
+			Path:        "/artists/:id/albums",
+			Method:      http.MethodGet,
+			DataType:    types.GetArtistAlbumsById{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetArtistAlbumsById,
 		},
 	)
 }

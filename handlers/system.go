@@ -141,40 +141,40 @@ func (h *Handlers) HandlePostSystemImport(c echo.Context) error {
 
 func (h *Handlers) InstallSystemHandlers(group Group) {
 	group.Register(
-		Handler {
-			Name: "GetSystemInfo", 
-			Path: "/system/info", 
-			Method: http.MethodGet,
-			DataType: types.GetSystemInfo{}, 
-			BodyType: nil,
-			HandlerFunc: h.HandleGetSystemInfo, 
-		},
-
-		Handler {
-			Name: "RunSystemSetup", 
-			Path: "/system/setup", 
-			Method: http.MethodPost,
-			DataType: nil, 
-			BodyType: types.PostSystemSetupBody{},
-			HandlerFunc: h.HandlePostSystemSetup, 
-		},
-
-		Handler {
-			Name: "SystemExport", 
-			Path: "/system/export", 
-			Method: http.MethodPost,
-			DataType: types.PostSystemExport{}, 
-			BodyType: nil,
-			HandlerFunc: h.HandlePostSystemExport, 
+		Handler{
+			Name:        "GetSystemInfo",
+			Path:        "/system/info",
+			Method:      http.MethodGet,
+			DataType:    types.GetSystemInfo{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetSystemInfo,
 		},
 
 		Handler{
-			Name: "SystemImport", 
-			Path: "/system/import", 
-			Method: http.MethodPost,
-			DataType: nil,
-			BodyType: nil,
-			HandlerFunc: h.HandlePostSystemImport, 
+			Name:        "RunSystemSetup",
+			Path:        "/system/setup",
+			Method:      http.MethodPost,
+			DataType:    nil,
+			BodyType:    types.PostSystemSetupBody{},
+			HandlerFunc: h.HandlePostSystemSetup,
+		},
+
+		Handler{
+			Name:        "SystemExport",
+			Path:        "/system/export",
+			Method:      http.MethodPost,
+			DataType:    types.PostSystemExport{},
+			BodyType:    nil,
+			HandlerFunc: h.HandlePostSystemExport,
+		},
+
+		Handler{
+			Name:        "SystemImport",
+			Path:        "/system/import",
+			Method:      http.MethodPost,
+			DataType:    nil,
+			BodyType:    nil,
+			HandlerFunc: h.HandlePostSystemImport,
 		},
 	)
 }

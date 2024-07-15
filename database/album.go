@@ -60,14 +60,14 @@ type Album struct {
 func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album, error) {
 	ds := dialect.From("albums").
 		Select(
-			"albums.id", 
-			"albums.name", 
-			"albums.cover_art", 
-			"albums.artist_id", 
+			"albums.id",
+			"albums.name",
+			"albums.cover_art",
+			"albums.artist_id",
 			"albums.path",
 		).
 		Join(
-			goqu.I("artists"), 
+			goqu.I("artists"),
 			goqu.On(
 				goqu.I("albums.artist_id").Eq(goqu.I("artists.id")),
 			),

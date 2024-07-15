@@ -66,8 +66,8 @@ func (db *Database) GetGenreByName(ctx context.Context, name string) (Genre, err
 func (db *Database) CreateGenre(ctx context.Context, name string) (Genre, error) {
 	ds := dialect.Insert("genres").
 		Rows(goqu.Record{
-			"id":   utils.CreateId(),
-			"name": goqu.Func("LOWER", name),
+			"id":           utils.CreateId(),
+			"name":         goqu.Func("LOWER", name),
 			"display_name": name,
 		}).
 		Returning("id", "name", "display_name").

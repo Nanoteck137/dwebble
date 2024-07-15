@@ -38,13 +38,13 @@ func (h *Handlers) HandlePostQueue(c echo.Context) error {
 
 func (h *Handlers) InstallQueueHandlers(group Group) {
 	group.Register(
-		Handler {
-			Name: "CreateQueue", 
-			Path: "/queue", 
-			Method: http.MethodPost,
-			DataType: types.PostQueue{}, 
-			BodyType: nil,
-			HandlerFunc: h.HandlePostQueue, 
+		Handler{
+			Name:        "CreateQueue",
+			Path:        "/queue",
+			Method:      http.MethodPost,
+			DataType:    types.PostQueue{},
+			BodyType:    nil,
+			HandlerFunc: h.HandlePostQueue,
 		},
 	)
 }

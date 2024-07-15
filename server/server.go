@@ -43,7 +43,7 @@ func (r *RouteGroup) AddRoute(name, path, method string, data, body any) {
 
 func (r *RouteGroup) Register(handlers ...handlers.Handler) {
 	for _, h := range handlers {
-		r.AddRoute(h.Name, r.Prefix + h.Path, h.Method, h.DataType, h.BodyType)
+		r.AddRoute(h.Name, r.Prefix+h.Path, h.Method, h.DataType, h.BodyType)
 	}
 }
 

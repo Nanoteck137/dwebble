@@ -30,13 +30,13 @@ func (h *Handlers) HandleGetTags(c echo.Context) error {
 
 func (h *Handlers) InstallTagHandlers(group Group) {
 	group.Register(
-		Handler {
-			Name: "GetTags", 
-			Path: "/tags", 
-			Method: http.MethodGet,
-			DataType: types.GetTags{}, 
-			BodyType: nil,
-			HandlerFunc: h.HandleGetTags, 
+		Handler{
+			Name:        "GetTags",
+			Path:        "/tags",
+			Method:      http.MethodGet,
+			DataType:    types.GetTags{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetTags,
 		},
 	)
 }

@@ -70,21 +70,21 @@ func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 
 func (h *Handlers) InstallTrackHandlers(group Group) {
 	group.Register(
-		Handler {
-			Name: "GetTracks", 
-			Path: "/tracks", 
-			Method: http.MethodGet,
-			DataType: types.GetTracks{}, 
-			BodyType: nil,
-			HandlerFunc: h.HandleGetTracks, 
+		Handler{
+			Name:        "GetTracks",
+			Path:        "/tracks",
+			Method:      http.MethodGet,
+			DataType:    types.GetTracks{},
+			BodyType:    nil,
+			HandlerFunc: h.HandleGetTracks,
 		},
 
-		Handler {
-			Name: "GetTrackById", 
-			Path: "/tracks/:id", 
-			Method: http.MethodGet,
-			DataType: types.GetTrackById{}, 
-			BodyType: nil,
+		Handler{
+			Name:        "GetTrackById",
+			Path:        "/tracks/:id",
+			Method:      http.MethodGet,
+			DataType:    types.GetTrackById{},
+			BodyType:    nil,
 			HandlerFunc: h.HandleGetTrackById,
 		},
 	)

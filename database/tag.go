@@ -67,7 +67,7 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (Tag, error) 
 func (db *Database) CreateTag(ctx context.Context, name string) (Tag, error) {
 	ds := dialect.Insert("tags").
 		Rows(goqu.Record{
-			"id": utils.CreateId(),
+			"id":           utils.CreateId(),
 			"name":         goqu.Func("LOWER", name),
 			"display_name": name,
 		}).
