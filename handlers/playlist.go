@@ -206,38 +206,37 @@ func (h *Handlers) InstallPlaylistHandlers(group Group) {
 	group.GET(
 		"GetPlaylists",
 		"/playlists", 
-		h.HandleGetPlaylists,
 		types.GetPlaylists{}, nil,
+		h.HandleGetPlaylists,
 	)
+
 	group.POST(
 		"CreatePlaylist", "/playlists", 
-		h.HandlePostPlaylist,
 		types.PostPlaylist{}, types.PostPlaylistBody{},
+		h.HandlePostPlaylist,
 	)
 
 	group.GET(
 		"GetPlaylistById", "/playlists/:id", 
-		h.HandleGetPlaylistById, 
 		types.GetPlaylistById{}, nil,
+		h.HandleGetPlaylistById, 
 	)
 
 	group.POST(
 		"AddItemsToPlaylist", "/playlists/:id/items", 
-		h.HandlePostPlaylistItemsById, 
 		nil, types.PostPlaylistItemsByIdBody{},
+		h.HandlePostPlaylistItemsById, 
 	)
 
 	group.DELETE(
 		"DeletePlaylistItems", "/playlists/:id/items", 
+		nil, types.DeletePlaylistItemsByIdBody{},
 		h.HandleDeletePlaylistItemsById,
-		nil,
-		types.DeletePlaylistItemsByIdBody{},
 	)
 
 	group.POST(
 		"MovePlaylistItem", "/playlists/:id/items/move", 
+		nil, types.PostPlaylistItemsByIdBody{},
 		h.HandlePostPlaylistsItemsMoveById,
-		nil,
-		types.PostPlaylistItemsByIdBody{},
 	)
 }

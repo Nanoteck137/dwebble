@@ -29,7 +29,7 @@ func (h *Handlers) HandleGetTags(c echo.Context) error {
 func (h *Handlers) InstallTagHandlers(group Group) {
 	group.GET(
 		"GetTags", "/tags", 
-		h.HandleGetTags, 
 		types.GetTags{}, nil,
+		h.HandleGetTags, 
 	)
 }

@@ -74,23 +74,19 @@ func (h *Handlers) HandleGetArtistAlbumsById(c echo.Context) error {
 func (h *Handlers) InstallArtistHandlers(group Group) {
 	group.GET(
 		"GetArtists", "/artists",
-		h.HandleGetArtists, 
 		types.GetArtists{}, nil,
+		h.HandleGetArtists, 
 	)
 
 	group.GET(
 		"GetArtistById", "/artists/:id", 
-		h.HandleGetArtistById, 
 		types.GetArtistById{}, nil,
+		h.HandleGetArtistById, 
 	)
 
 	group.GET(
 		"GetArtistAlbums", "/artists/:id/albums", 
-		h.HandleGetArtistAlbumsById, 
 		types.GetArtistAlbumsById{}, nil,
+		h.HandleGetArtistAlbumsById, 
 	)
-
-	// group.GET("/artists", h.HandleGetArtists)
-	// group.GET("/artists/:id", h.HandleGetArtistById)
-	// group.GET("/artists/:id/albums", h.HandleGetArtistAlbumsById)
 }

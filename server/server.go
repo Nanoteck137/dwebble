@@ -21,19 +21,19 @@ type Route struct {
 	Body   any
 }
 
-type RouteManager struct {
+type RouteGroup struct {
 	Prefix string
 	Routes []Route
 }
 
-func NewRouteManager(prefix string) *RouteManager {
-	return &RouteManager{
+func NewRouteManager(prefix string) *RouteGroup {
+	return &RouteGroup{
 		Prefix: prefix,
 		Routes: []Route{},
 	}
 }
 
-func (r *RouteManager) AddRoute(name, path, method string, data, body any) {
+func (r *RouteGroup) AddRoute(name, path, method string, data, body any) {
 	r.Routes = append(r.Routes, Route{
 		Name:   name,
 		Path:   path,
@@ -43,15 +43,15 @@ func (r *RouteManager) AddRoute(name, path, method string, data, body any) {
 	})
 }
 
-func (r *RouteManager) GET(name string, path string, f echo.HandlerFunc, data, body any) {
+func (r *RouteGroup) GET(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
 	r.AddRoute(name, r.Prefix + path, http.MethodGet, data, body)
 }
 
-func (r *RouteManager) POST(name string, path string, f echo.HandlerFunc, data, body any) {
+func (r *RouteGroup) POST(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
 	r.AddRoute(name, r.Prefix + path, http.MethodPost, data, body)
 }
 
-func (r *RouteManager) DELETE(name string, path string, f echo.HandlerFunc, data, body any) {
+func (r *RouteGroup) DELETE(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
 	r.AddRoute(name, r.Prefix + path, http.MethodDelete, data, body)
 }
 
@@ -60,23 +60,23 @@ type EchoGroup struct {
 	Group  *echo.Group
 }
 
-func (g *EchoGroup) GET(name string, path string, f echo.HandlerFunc, data, body any) {
+func (g *EchoGroup) GET(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
 	log.Debug("Registering GET", "name", name, "path", g.Prefix+path)
-	g.Group.GET(path, f)
+	g.Group.GET(path, f, m...)
 }
 
-func (g *EchoGroup) POST(name string, path string, f echo.HandlerFunc, data, body any) {
+func (g *EchoGroup) POST(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
 	log.Debug("Registering POST", "name", name, "path", g.Prefix+path)
-	g.Group.POST(path, f)
+	g.Group.POST(path, f, m...)
 }
 
-func (g *EchoGroup) DELETE(name string, path string, f echo.HandlerFunc, data, body any) {
+func (g *EchoGroup) DELETE(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc) {
 	log.Debug("Registering DELETE", "name", name, "path", g.Prefix+path)
-	g.Group.DELETE(path, f)
+	g.Group.DELETE(path, f, m...)
 }
 
-func NewGroup(e *echo.Echo, prefix string) *EchoGroup {
-	g := e.Group(prefix)
+func NewEchoGroup(e *echo.Echo, prefix string, m ...echo.MiddlewareFunc) *EchoGroup {
+	g := e.Group(prefix, m...)
 
 	return &EchoGroup{
 		Prefix: prefix,
@@ -116,7 +116,8 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	e.Static("/images", workDir.ImagesDir())
 
 	h := handlers.New(db, libraryDir, workDir)
-	apiGroup := e.Group("/api/v1", func(next echo.HandlerFunc) echo.HandlerFunc {
+
+	isSetupMiddleware := func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if !handlers.IsSetup() {
 				return types.NewApiError(400, "Server not setup")
@@ -124,11 +125,9 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 
 			return next(c)
 		}
-	})
+	}
 
-	_ = apiGroup
-
-	g := NewGroup(e, "/api/v1")
+	g := NewEchoGroup(e, "/api/v1", isSetupMiddleware)
 	h.InstallArtistHandlers(g)
 	h.InstallAlbumHandlers(g)
 	h.InstallTrackHandlers(g)
@@ -138,7 +137,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	h.InstallAuthHandlers(g)
 	h.InstallPlaylistHandlers(g)
 
-	g = NewGroup(e, "/api/v1")
+	g = NewEchoGroup(e, "/api/v1")
 	h.InstallSystemHandlers(g)
 
 	err := handlers.InitializeConfig(db)

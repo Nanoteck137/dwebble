@@ -70,13 +70,13 @@ func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 func (h *Handlers) InstallTrackHandlers(group Group) {
 	group.GET(
 		"GetTracks", "/tracks", 
-		h.HandleGetTracks, 
 		types.GetTracks{}, nil,
+		h.HandleGetTracks, 
 	)
 
 	group.GET(
 		"GetTrackById", "/tracks/:id", 
-		h.HandleGetTrackById,
 		types.GetTrackById{}, nil,
+		h.HandleGetTrackById,
 	)
 }

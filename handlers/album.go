@@ -89,19 +89,19 @@ func (h *Handlers) HandleGetAlbumTracksById(c echo.Context) error {
 func (h *Handlers) InstallAlbumHandlers(group Group) {
 	group.GET(
 		"GetAlbums", "/albums", 
-		h.HandleGetAlbums, 
 		types.GetAlbums{}, nil,
+		h.HandleGetAlbums, 
 	)
 
 	group.GET(
 		"GetAlbumById", "/albums/:id", 
-		h.HandleGetAlbumById, 
 		types.GetAlbumById{}, nil,
+		h.HandleGetAlbumById, 
 	)
 
 	group.GET(
 		"GetAlbumTracks", "/albums/:id/tracks", 
-		h.HandleGetAlbumTracksById,
 		types.GetAlbumTracksById{}, nil,
+		h.HandleGetAlbumTracksById,
 	)
 }

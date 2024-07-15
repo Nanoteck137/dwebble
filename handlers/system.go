@@ -139,10 +139,30 @@ func (h *Handlers) HandlePostSystemImport(c echo.Context) error {
 }
 
 func (h *Handlers) InstallSystemHandlers(group Group) {
-	group.GET("GetSystemInfo", "/system/info", h.HandleGetSystemInfo, types.GetSystemInfo{}, nil)
-	group.POST("RunSystemSetup", "/system/setup", h.HandlePostSystemSetup, nil, types.PostSystemSetupBody{})
-	group.POST("SystemExport", "/system/export", h.HandlePostSystemExport, types.PostSystemExport{}, nil)
-	group.POST("SystemImport", "/system/import", h.HandlePostSystemImport, nil, nil)
+	group.GET(
+		"GetSystemInfo", "/system/info", 
+		types.GetSystemInfo{}, nil,
+		h.HandleGetSystemInfo, 
+	)
+
+	group.POST(
+		"RunSystemSetup", "/system/setup", 
+		nil, types.PostSystemSetupBody{},
+		h.HandlePostSystemSetup, 
+	)
+
+	group.POST(
+		"SystemExport", "/system/export", 
+		types.PostSystemExport{}, nil,
+		h.HandlePostSystemExport, 
+	)
+
+	group.POST(
+		"SystemImport", 
+		"/system/import", 
+		nil, nil,
+		h.HandlePostSystemImport, 
+	)
 }
 
 func InitializeConfig(db *database.Database) error {

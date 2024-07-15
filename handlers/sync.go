@@ -52,13 +52,13 @@ func (h *Handlers) HandlePostSync(c echo.Context) error {
 func (h *Handlers) InstallSyncHandlers(group Group) {
 	group.GET(
 		"GetSyncStatus", "/sync", 
-		h.HandleGetSync, 
 		types.GetSync{}, nil,
+		h.HandleGetSync, 
 	)
 
 	group.POST(
 		"RunSync", "/sync", 
-		h.HandlePostSync,
 		nil, nil,
+		h.HandlePostSync,
 	)
 }

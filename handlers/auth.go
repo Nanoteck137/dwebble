@@ -157,19 +157,19 @@ func (h *Handlers) HandleGetMe(c echo.Context) error {
 func (h *Handlers) InstallAuthHandlers(group Group) {
 	group.POST(
 		"Signup", "/auth/signup", 
-		h.HandlePostSignup, 
 		types.PostAuthSignup{}, types.PostAuthSignupBody{},
+		h.HandlePostSignup, 
 	)
 
 	group.POST(
 		"Signin", "/auth/signin", 
-		h.HandlePostSignin, 
 		types.PostAuthSignin{}, types.PostAuthSigninBody{},
+		h.HandlePostSignin, 
 	)
 
 	group.GET(
 		"GetMe", "/auth/me", 
-		h.HandleGetMe, 
 		types.GetAuthMe{}, nil,
+		h.HandleGetMe, 
 	)
 }

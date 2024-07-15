@@ -37,7 +37,7 @@ func (h *Handlers) HandlePostQueue(c echo.Context) error {
 func (h *Handlers) InstallQueueHandlers(group Group) {
 	group.POST(
 		"CreateQueue", "/queue", 
-		h.HandlePostQueue, 
 		types.PostQueue{}, nil,
+		h.HandlePostQueue, 
 	)
 }

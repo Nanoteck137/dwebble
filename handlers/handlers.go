@@ -11,9 +11,9 @@ import (
 )
 
 type Group interface {
-	GET(name string, path string, f echo.HandlerFunc, data, body any)
-	POST(name string, path string, f echo.HandlerFunc, data, body any)
-	DELETE(name string, path string, f echo.HandlerFunc, data, body any)
+	GET(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc)
+	POST(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc)
+	DELETE(name string, path string, data, body any, f echo.HandlerFunc, m ...echo.MiddlewareFunc)
 }
 
 const (
