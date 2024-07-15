@@ -24,7 +24,7 @@ type RouteGroup struct {
 	Routes []Route
 }
 
-func NewRouteManager(prefix string) *RouteGroup {
+func NewRouteGroup(prefix string) *RouteGroup {
 	return &RouteGroup{
 		Prefix: prefix,
 		Routes: []Route{},
@@ -138,7 +138,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 func ServerRoutes() []Route {
 	var h handlers.Handlers
 
-	g := NewRouteManager("/api/v1")
+	g := NewRouteGroup("/api/v1")
 	h.InstallArtistHandlers(g)
 	h.InstallAlbumHandlers(g)
 	h.InstallTrackHandlers(g)
