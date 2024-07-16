@@ -22,6 +22,7 @@ func (d WorkDir) MobileTracksDir() string {
 	return path.Join(d.String(), "mobile-tracks")
 }
 
+// TODO(patrik): Remove
 func (d WorkDir) TranscodeDir() string {
 	return path.Join(d.String(), "transcode")
 }

@@ -23,6 +23,7 @@ func (c *Config) WorkDir() types.WorkDir {
 	return types.WorkDir(c.DataDir)
 }
 
+// TODO(patrik): Remove
 func (c *Config) BootstrapDataDir() (types.WorkDir, error) {
 	workDir := c.WorkDir()
 
@@ -78,7 +79,7 @@ func validateConfig(config *Config) {
 }
 
 var ConfigFile string
-var Current Config
+var LoadedConfig Config
 
 func InitConfig() {
 	setDefaults()
@@ -98,12 +99,12 @@ func InitConfig() {
 		log.Warn("Failed to load config", "err", err)
 	}
 
-	err = viper.Unmarshal(&Current)
+	err = viper.Unmarshal(&LoadedConfig)
 	if err != nil {
 		log.Error("Failed to unmarshal config: ", err)
 		os.Exit(-1)
 	}
 
-	log.Debug("Current Config", "config", Current)
-	validateConfig(&Current)
+	log.Debug("Current Config", "config", LoadedConfig)
+	validateConfig(&LoadedConfig)
 }

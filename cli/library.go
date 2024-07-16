@@ -17,7 +17,7 @@ var libraryCmd = &cobra.Command{
 var libraryPrint = &cobra.Command{
 	Use: "print",
 	Run: func(cmd *cobra.Command, args []string) {
-		lib, err := library.ReadFromDir(config.Current.LibraryDir)
+		lib, err := library.ReadFromDir(config.LoadedConfig.LibraryDir)
 		if err != nil {
 			log.Fatal("Failed to read library", "err", err)
 		}
@@ -40,7 +40,7 @@ var libraryPrint = &cobra.Command{
 var librarySync = &cobra.Command{
 	Use: "sync",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.Current.BootstrapDataDir()
+		workDir, err := config.LoadedConfig.BootstrapDataDir()
 		if err != nil {
 			log.Fatal("Failed to bootstrap data dir", "err", err)
 		}
@@ -56,7 +56,7 @@ var librarySync = &cobra.Command{
 			log.Fatal("Failed to run migration up", "err", err)
 		}
 
-		lib, err := library.ReadFromDir(config.Current.LibraryDir)
+		lib, err := library.ReadFromDir(config.LoadedConfig.LibraryDir)
 		if err != nil {
 			log.Fatal("Failed to read library", "err", err)
 		}

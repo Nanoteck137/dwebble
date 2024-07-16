@@ -20,7 +20,7 @@ func runMigrateUp(db *database.Database) error {
 var upCmd = &cobra.Command{
 	Use: "up",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.Current.BootstrapDataDir()
+		workDir, err := config.LoadedConfig.BootstrapDataDir()
 
 		db, err := database.Open(workDir)
 		if err != nil {
@@ -37,7 +37,7 @@ var upCmd = &cobra.Command{
 var downCmd = &cobra.Command{
 	Use: "down",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.Current.BootstrapDataDir()
+		workDir, err := config.LoadedConfig.BootstrapDataDir()
 
 		db, err := database.Open(workDir)
 		if err != nil {
@@ -58,7 +58,7 @@ var createCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
 
-		workDir, err := config.Current.BootstrapDataDir()
+		workDir, err := config.LoadedConfig.BootstrapDataDir()
 
 		db, err := database.Open(workDir)
 		if err != nil {

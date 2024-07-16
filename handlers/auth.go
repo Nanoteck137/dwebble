@@ -97,7 +97,7 @@ func (h *Handlers) HandlePostSignin(c echo.Context) error {
 		// "exp":    time.Now().Add(1000 * time.Second).Unix(),
 	})
 
-	tokenString, err := token.SignedString(([]byte)(config.Current.JwtSecret))
+	tokenString, err := token.SignedString(([]byte)(config.LoadedConfig.JwtSecret))
 	if err != nil {
 		return err
 	}
@@ -119,7 +119,7 @@ func (h *Handlers) User(c echo.Context) (*database.User, error) {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 
-		return []byte(config.Current.JwtSecret), nil
+		return []byte(config.LoadedConfig.JwtSecret), nil
 	})
 
 	if err != nil {

@@ -1,0 +1,68 @@
+package core
+
+import (
+	"os"
+
+	"github.com/nanoteck137/dwebble/config"
+	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/types"
+)
+
+var _ App = (*BaseApp)(nil)
+
+type BaseApp struct {
+	db     *database.Database
+	config *config.Config
+}
+
+func (app *BaseApp) DB() *database.Database {
+	return app.db
+}
+
+func (app *BaseApp) Config() *config.Config {
+	return app.config
+}
+
+func (app *BaseApp) WorkDir() types.WorkDir {
+	return app.config.WorkDir()
+}
+
+func (app *BaseApp) Bootstrap() error {
+	var err error
+
+	workDir := app.config.WorkDir()
+
+	app.db, err = database.Open(workDir)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(workDir.OriginalTracksDir(), 0755)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(workDir.MobileTracksDir(), 0755)
+	if err != nil {
+		return err
+	}
+
+	// TODO(patrik): Remove
+	err = os.MkdirAll(workDir.TranscodeDir(), 0755)
+	if err != nil {
+		return err
+	}
+
+	err = os.MkdirAll(workDir.ImagesDir(), 0755)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func NewBaseApp(config *config.Config) *BaseApp {
+	return &BaseApp{
+		config: config,
+	}
+}

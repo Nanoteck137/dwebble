@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/nanoteck137/dwebble/assets"
-	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
@@ -48,27 +48,36 @@ func (r *RouteGroup) Register(handlers ...handlers.Handler) {
 }
 
 type EchoGroup struct {
+	app core.App
+
 	Prefix string
 	Group  *echo.Group
 }
 
 func (g *EchoGroup) Register(handlers ...handlers.Handler) {
 	for _, h := range handlers {
+		if h.NewHandlerFunc == nil {
+			log.Error("Need fixing", "method", h.Method, "name", h.Name, "path", g.Prefix+h.Path)
+			continue
+		}
+
 		log.Debug("Registering", "method", h.Method, "name", h.Name, "path", g.Prefix+h.Path)
-		g.Group.Add(h.Method, h.Path, h.HandlerFunc, h.Middlewares...)
+		fixedHandler := func(c echo.Context) error { return h.NewHandlerFunc(g.app, c) }
+		g.Group.Add(h.Method, h.Path, fixedHandler, h.Middlewares...)
 	}
 }
 
-func NewEchoGroup(e *echo.Echo, prefix string, m ...echo.MiddlewareFunc) *EchoGroup {
+func NewEchoGroup(app core.App, e *echo.Echo, prefix string, m ...echo.MiddlewareFunc) *EchoGroup {
 	g := e.Group(prefix, m...)
 
 	return &EchoGroup{
+		app:    app,
 		Prefix: prefix,
 		Group:  g,
 	}
 }
 
-func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.Echo {
+func New(app core.App) *echo.Echo {
 	e := echo.New()
 
 	e.HTTPErrorHandler = func(err error, c echo.Context) {
@@ -87,19 +96,18 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 				},
 			})
 		}
-
 	}
 
 	e.Use(echolog.LoggerWithName("Dwebble"))
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
-	e.Static("/tracks/mobile", workDir.MobileTracksDir())
-	e.Static("/tracks/original", workDir.OriginalTracksDir())
+	e.Static("/tracks/mobile", app.WorkDir().MobileTracksDir())
+	e.Static("/tracks/original", app.WorkDir().OriginalTracksDir())
 	e.StaticFS("/images/default", assets.AssetsFS)
-	e.Static("/images", workDir.ImagesDir())
+	e.Static("/images", app.WorkDir().ImagesDir())
 
-	h := handlers.New(db, libraryDir, workDir)
+	h := handlers.New(app.DB(), app.Config().LibraryDir, app.WorkDir())
 
 	isSetupMiddleware := func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -111,7 +119,7 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 		}
 	}
 
-	g := NewEchoGroup(e, "/api/v1", isSetupMiddleware)
+	g := NewEchoGroup(app, e, "/api/v1", isSetupMiddleware)
 	h.InstallArtistHandlers(g)
 	h.InstallAlbumHandlers(g)
 	h.InstallTrackHandlers(g)
@@ -121,16 +129,16 @@ func New(db *database.Database, libraryDir string, workDir types.WorkDir) *echo.
 	h.InstallAuthHandlers(g)
 	h.InstallPlaylistHandlers(g)
 
-	g = NewEchoGroup(e, "/api/v1")
+	g = NewEchoGroup(app, e, "/api/v1")
 	h.InstallSystemHandlers(g)
 
-	err := handlers.InitializeConfig(db)
+	err := handlers.InitializeConfig(app.DB())
 	if err != nil {
 		// TODO(patrik): Remove?
 		log.Fatal("Failed to initialize config", "err", err)
 	}
 
-	db.Invalidate()
+	app.DB().Invalidate()
 
 	return e
 }
