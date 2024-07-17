@@ -8,8 +8,12 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func HandleGetArtists(app core.App, c echo.Context) error {
-	artists, err := app.DB().GetAllArtists(c.Request().Context())
+type artistApi struct {
+	app core.App
+}
+
+func (api *artistApi) HandleGetArtists(c echo.Context) error {
+	artists, err := api.app.DB().GetAllArtists(c.Request().Context())
 	if err != nil {
 		return err
 	}
@@ -29,9 +33,9 @@ func HandleGetArtists(app core.App, c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func HandleGetArtistById(app core.App, c echo.Context) error {
+func (api *artistApi) HandleGetArtistById(c echo.Context) error {
 	id := c.Param("id")
-	artist, err := app.DB().GetArtistById(c.Request().Context(), id)
+	artist, err := api.app.DB().GetArtistById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
@@ -45,15 +49,15 @@ func HandleGetArtistById(app core.App, c echo.Context) error {
 	}))
 }
 
-func HandleGetArtistAlbumsById(app core.App, c echo.Context) error {
+func (api *artistApi) HandleGetArtistAlbumsById(c echo.Context) error {
 	id := c.Param("id")
 
-	artist, err := app.DB().GetArtistById(c.Request().Context(), id)
+	artist, err := api.app.DB().GetArtistById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
 
-	albums, err := app.DB().GetAlbumsByArtist(c.Request().Context(), artist.Id)
+	albums, err := api.app.DB().GetAlbumsByArtist(c.Request().Context(), artist.Id)
 	if err != nil {
 		return err
 	}
@@ -74,34 +78,35 @@ func HandleGetArtistAlbumsById(app core.App, c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) InstallArtistHandlers(group Group) {
+func InstallArtistHandlers(app core.App, group Group) {
+	api := artistApi{app: app}
+
 	group.Register(
 		Handler{
-			Name:     "GetArtists",
-			Method:   http.MethodGet,
-			Path:     "/artists",
-			DataType: types.GetArtists{},
-			BodyType: nil,
-			// HandlerFunc: h.HandleGetArtists,
-			NewHandlerFunc: HandleGetArtists,
+			Name:        "GetArtists",
+			Method:      http.MethodGet,
+			Path:        "/artists",
+			DataType:    types.GetArtists{},
+			BodyType:    nil,
+			HandlerFunc: api.HandleGetArtists,
 		},
 
 		Handler{
-			Name:           "GetArtistById",
-			Path:           "/artists/:id",
-			Method:         http.MethodGet,
-			DataType:       types.GetArtistById{},
-			BodyType:       nil,
-			NewHandlerFunc: HandleGetArtistById,
+			Name:        "GetArtistById",
+			Path:        "/artists/:id",
+			Method:      http.MethodGet,
+			DataType:    types.GetArtistById{},
+			BodyType:    nil,
+			HandlerFunc: api.HandleGetArtistById,
 		},
 
 		Handler{
-			Name:           "GetArtistAlbums",
-			Path:           "/artists/:id/albums",
-			Method:         http.MethodGet,
-			DataType:       types.GetArtistAlbumsById{},
-			BodyType:       nil,
-			NewHandlerFunc: HandleGetArtistAlbumsById,
+			Name:        "GetArtistAlbums",
+			Path:        "/artists/:id/albums",
+			Method:      http.MethodGet,
+			DataType:    types.GetArtistAlbumsById{},
+			BodyType:    nil,
+			HandlerFunc: api.HandleGetArtistAlbumsById,
 		},
 	)
 }

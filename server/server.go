@@ -56,14 +56,8 @@ type EchoGroup struct {
 
 func (g *EchoGroup) Register(handlers ...handlers.Handler) {
 	for _, h := range handlers {
-		if h.NewHandlerFunc == nil {
-			log.Error("Need fixing", "method", h.Method, "name", h.Name, "path", g.Prefix+h.Path)
-			continue
-		}
-
 		log.Debug("Registering", "method", h.Method, "name", h.Name, "path", g.Prefix+h.Path)
-		fixedHandler := func(c echo.Context) error { return h.NewHandlerFunc(g.app, c) }
-		g.Group.Add(h.Method, h.Path, fixedHandler, h.Middlewares...)
+		g.Group.Add(h.Method, h.Path, h.HandlerFunc, h.Middlewares...)
 	}
 }
 
@@ -120,7 +114,7 @@ func New(app core.App) *echo.Echo {
 	}
 
 	g := NewEchoGroup(app, e, "/api/v1", isSetupMiddleware)
-	h.InstallArtistHandlers(g)
+	handlers.InstallArtistHandlers(app, g)
 	h.InstallAlbumHandlers(g)
 	h.InstallTrackHandlers(g)
 	h.InstallSyncHandlers(g)
@@ -143,11 +137,11 @@ func New(app core.App) *echo.Echo {
 	return e
 }
 
-func ServerRoutes() []Route {
+func ServerRoutes(app core.App) []Route {
 	var h handlers.Handlers
 
 	g := NewRouteGroup("/api/v1")
-	h.InstallArtistHandlers(g)
+	handlers.InstallArtistHandlers(app, g)
 	h.InstallAlbumHandlers(g)
 	h.InstallTrackHandlers(g)
 	h.InstallSyncHandlers(g)

@@ -6,22 +6,18 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 )
 
-type HandlerFunc func(app core.App, c echo.Context) error
-
 type Handler struct {
-	Name           string
-	Method         string
-	Path           string
-	DataType       any
-	BodyType       any
-	HandlerFunc    echo.HandlerFunc
-	NewHandlerFunc HandlerFunc
-	Middlewares    []echo.MiddlewareFunc
+	Name        string
+	Method      string
+	Path        string
+	DataType    any
+	BodyType    any
+	HandlerFunc echo.HandlerFunc
+	Middlewares []echo.MiddlewareFunc
 }
 
 type Group interface {
