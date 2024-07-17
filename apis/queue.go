@@ -1,14 +1,20 @@
-package handlers
+package apis
 
 import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func (h *Handlers) HandlePostQueue(c echo.Context) error {
-	tracks, err := h.db.GetAllTracks(c.Request().Context(), "", "")
+type queueApi struct {
+	app core.App
+}
+
+func (api *queueApi) HandlePostQueue(c echo.Context) error {
+	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), "", "")
 	if err != nil {
 		return err
 	}
@@ -22,10 +28,10 @@ func (h *Handlers) HandlePostQueue(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -36,15 +42,20 @@ func (h *Handlers) HandlePostQueue(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) InstallQueueHandlers(group Group) {
+func InstallQueueHandlers(app core.App, group handlers.Group) {
+	api := queueApi{app: app}
+
+	requireSetup := RequireSetup(app)
+
 	group.Register(
-		Handler{
+		handlers.Handler{
 			Name:        "CreateQueue",
 			Path:        "/queue",
 			Method:      http.MethodPost,
 			DataType:    types.PostQueue{},
 			BodyType:    nil,
-			HandlerFunc: h.HandlePostQueue,
+			HandlerFunc: api.HandlePostQueue,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)
 }
