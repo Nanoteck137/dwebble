@@ -1,12 +1,102 @@
 package handlers
 
 import (
+	"fmt"
+	"io"
 	"net/http"
 
+	"github.com/faceair/jio"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
+	"github.com/mitchellh/mapstructure"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/dwebble/utils"
 )
+
+// TODO(patrik): 'db' should be core.App
+// TODO(patrik): Move
+func User(db *database.Database, c echo.Context) (*database.User, error) {
+	authHeader := c.Request().Header.Get("Authorization")
+	tokenString, err := utils.ParseAuthHeader(authHeader)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		// return []byte(config.LoadedConfig.JwtSecret), nil
+		// TODO(patrik): Move back to config JwtSecret
+		return []byte("SECRET"), nil
+	})
+
+	if err != nil {
+		return nil, types.ErrInvalidToken
+	}
+
+	jwtValidator := jwt.NewValidator(jwt.WithIssuedAt())
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		if err := jwtValidator.Validate(token.Claims); err != nil {
+			return nil, types.ErrInvalidToken
+		}
+
+		userId := claims["userId"].(string)
+		user, err := db.GetUserById(c.Request().Context(), userId)
+		if err != nil {
+			return nil, types.ErrInvalidToken
+		}
+
+		return &user, nil
+	}
+
+	return nil, types.ErrInvalidToken
+}
+
+// TODO(patrik): Move
+func Decode(input interface{}, output interface{}) error {
+	config := &mapstructure.DecoderConfig{
+		Metadata: nil,
+		Result:   output,
+		TagName:  "json",
+	}
+
+	decoder, err := mapstructure.NewDecoder(config)
+	if err != nil {
+		return err
+	}
+
+	return decoder.Decode(input)
+}
+
+// TODO(patrik): Move
+func Body[T any](c echo.Context, schema jio.Schema) (T, error) {
+	var res T
+
+	j, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return res, err
+	}
+
+	if len(j) == 0 {
+		return res, types.ErrEmptyBody
+	}
+
+	data, err := jio.ValidateJSON(&j, schema)
+	if err != nil {
+		return res, err
+	}
+
+	err = Decode(data, &res)
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
 
 func (h *Handlers) HandleGetPlaylists(c echo.Context) error {
 	user, err := User(h.db, c)

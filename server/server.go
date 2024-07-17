@@ -111,7 +111,7 @@ func New(app core.App) *echo.Echo {
 	apis.InstallSyncHandlers(app, g)
 	apis.InstallQueueHandlers(app, g)
 	apis.InstallTagHandlers(app, g)
-	h.InstallAuthHandlers(g)
+	apis.InstallAuthHandlers(app, g)
 	h.InstallPlaylistHandlers(g)
 
 	g = NewEchoGroup(app, e, "/api/v1")
@@ -132,7 +132,7 @@ func ServerRoutes(app core.App) []Route {
 	apis.InstallSyncHandlers(app, g)
 	apis.InstallQueueHandlers(app, g)
 	apis.InstallTagHandlers(app, g)
-	h.InstallAuthHandlers(g)
+	apis.InstallAuthHandlers(app, g)
 	h.InstallPlaylistHandlers(g)
 
 	apis.InstallSystemHandlers(app, g)
