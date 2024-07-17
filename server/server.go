@@ -7,8 +7,8 @@ import (
 	"github.com/nanoteck137/dwebble/apis"
 	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/handlers"
-	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
 )
 

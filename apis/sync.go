@@ -7,14 +7,14 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/library"
-	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
 )
 
 type syncApi struct {
-	app core.App
+	app     core.App
 	syncing atomic.Bool
 }
 

@@ -5,8 +5,8 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/nanoteck137/dwebble/sortfilter/filter"
-	"github.com/nanoteck137/dwebble/sortfilter/sort"
+	"github.com/nanoteck137/dwebble/tools/filter"
+	"github.com/nanoteck137/dwebble/tools/sort"
 )
 
 func generateTableSelect(table *filter.Table, ids []string) *goqu.SelectDataset {

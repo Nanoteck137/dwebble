@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nanoteck137/dwebble/config"
-	"github.com/nanoteck137/dwebble/log"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/spf13/cobra"
 )
 

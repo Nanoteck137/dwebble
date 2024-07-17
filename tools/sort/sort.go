@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/nanoteck137/dwebble/sortfilter/filter"
+	"github.com/nanoteck137/dwebble/tools/filter"
 )
 
 type SortType int

@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"mime/multipart"
 	"os"
 	"path"
 	"strings"
 
-	"github.com/nanoteck137/dwebble/log"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/parasect"
 	"github.com/nrednav/cuid2"

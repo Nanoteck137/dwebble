@@ -9,12 +9,12 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database/filtergen"
-	"github.com/nanoteck137/dwebble/log"
-	"github.com/nanoteck137/dwebble/sortfilter/filter"
-	"github.com/nanoteck137/dwebble/sortfilter/sort"
+	"github.com/nanoteck137/dwebble/tools/filter"
+	"github.com/nanoteck137/dwebble/tools/sort"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
-	"github.com/nanoteck137/dwebble/utils"
 )
 
 type TrackResolverAdapter struct {

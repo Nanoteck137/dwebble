@@ -65,7 +65,6 @@ func (api *authApi) HandlePostSignin(c echo.Context) error {
 	}))
 }
 
-
 func (api *authApi) HandleGetMe(c echo.Context) error {
 	user, err := User(api.app.DB(), c)
 	if err != nil {

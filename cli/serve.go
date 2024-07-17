@@ -3,7 +3,7 @@ package cli
 import (
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/log"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/server"
 	"github.com/spf13/cobra"
 )

@@ -3,7 +3,7 @@ package config
 import (
 	"os"
 
-	"github.com/nanoteck137/dwebble/log"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/spf13/viper"
 )

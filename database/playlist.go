@@ -8,8 +8,8 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/mattn/go-sqlite3"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
-	"github.com/nanoteck137/dwebble/utils"
 )
 
 type Playlist struct {

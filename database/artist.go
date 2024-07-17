@@ -6,8 +6,8 @@ import (
 	"errors"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
-	"github.com/nanoteck137/dwebble/utils"
 )
 
 type Artist struct {

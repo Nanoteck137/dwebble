@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/nanoteck137/dwebble/utils"
+	"github.com/nanoteck137/dwebble/tools/utils"
 )
 
 type User struct {
