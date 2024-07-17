@@ -4,6 +4,7 @@ import (
 	"github.com/MadAppGang/httplog/echolog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/nanoteck137/dwebble/apis"
 	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/handlers"
@@ -103,18 +104,9 @@ func New(app core.App) *echo.Echo {
 
 	h := handlers.New(app.DB(), app.Config().LibraryDir, app.WorkDir())
 
-	isSetupMiddleware := func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			if !handlers.IsSetup() {
-				return types.NewApiError(400, "Server not setup")
-			}
 
-			return next(c)
-		}
-	}
-
-	g := NewEchoGroup(app, e, "/api/v1", isSetupMiddleware)
-	handlers.InstallArtistHandlers(app, g)
+	g := NewEchoGroup(app, e, "/api/v1")
+	apis.InstallArtistHandlers(app, g)
 	h.InstallAlbumHandlers(g)
 	h.InstallTrackHandlers(g)
 	h.InstallSyncHandlers(g)
@@ -141,7 +133,7 @@ func ServerRoutes(app core.App) []Route {
 	var h handlers.Handlers
 
 	g := NewRouteGroup("/api/v1")
-	handlers.InstallArtistHandlers(app, g)
+	apis.InstallArtistHandlers(app, g)
 	h.InstallAlbumHandlers(g)
 	h.InstallTrackHandlers(g)
 	h.InstallSyncHandlers(g)

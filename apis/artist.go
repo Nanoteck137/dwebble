@@ -1,10 +1,11 @@
-package handlers
+package apis
 
 import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -26,7 +27,7 @@ func (api *artistApi) HandleGetArtists(c echo.Context) error {
 		res.Artists[i] = types.Artist{
 			Id:      artist.Id,
 			Name:    artist.Name,
-			Picture: ConvertArtistPictureURL(c, artist.Picture),
+			Picture: handlers.ConvertArtistPictureURL(c, artist.Picture),
 		}
 	}
 
@@ -44,7 +45,7 @@ func (api *artistApi) HandleGetArtistById(c echo.Context) error {
 		Artist: types.Artist{
 			Id:      artist.Id,
 			Name:    artist.Name,
-			Picture: ConvertArtistPictureURL(c, artist.Picture),
+			Picture: handlers.ConvertArtistPictureURL(c, artist.Picture),
 		},
 	}))
 }
@@ -70,7 +71,7 @@ func (api *artistApi) HandleGetArtistAlbumsById(c echo.Context) error {
 		res.Albums[i] = types.Album{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: ConvertAlbumCoverURL(c, album.CoverArt),
+			CoverArt: handlers.ConvertAlbumCoverURL(c, album.CoverArt),
 			ArtistId: album.ArtistId,
 		}
 	}
@@ -78,35 +79,40 @@ func (api *artistApi) HandleGetArtistAlbumsById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func InstallArtistHandlers(app core.App, group Group) {
+func InstallArtistHandlers(app core.App, group handlers.Group) {
 	api := artistApi{app: app}
 
+	requireSetup := RequireSetup()
+
 	group.Register(
-		Handler{
+		handlers.Handler{
 			Name:        "GetArtists",
 			Method:      http.MethodGet,
 			Path:        "/artists",
 			DataType:    types.GetArtists{},
 			BodyType:    nil,
 			HandlerFunc: api.HandleGetArtists,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "GetArtistById",
 			Path:        "/artists/:id",
 			Method:      http.MethodGet,
 			DataType:    types.GetArtistById{},
 			BodyType:    nil,
 			HandlerFunc: api.HandleGetArtistById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "GetArtistAlbums",
 			Path:        "/artists/:id/albums",
 			Method:      http.MethodGet,
 			DataType:    types.GetArtistAlbumsById{},
 			BodyType:    nil,
 			HandlerFunc: api.HandleGetArtistAlbumsById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)
 }
