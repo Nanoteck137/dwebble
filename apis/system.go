@@ -27,7 +27,7 @@ func (api *systemApi) HandlePostSystemSetup(c echo.Context) error {
 		return types.NewApiError(400, "System already setup")
 	}
 
-	body, err := handlers.Body[types.PostSystemSetupBody](c, types.PostSystemSetupBodySchema)
+	body, err := Body[types.PostSystemSetupBody](c, types.PostSystemSetupBodySchema)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (api *systemApi) HandlePostSystemSetup(c echo.Context) error {
 }
 
 func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
-	user, err := handlers.User(api.app.DB(), c)
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 }
 
 func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
-	user, err := handlers.User(api.app.DB(), c)
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}

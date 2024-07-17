@@ -102,8 +102,6 @@ func New(app core.App) *echo.Echo {
 	e.StaticFS("/images/default", assets.AssetsFS)
 	e.Static("/images", app.WorkDir().ImagesDir())
 
-	h := handlers.New(app.DB(), app.Config().LibraryDir, app.WorkDir())
-
 	g := NewEchoGroup(app, e, "/api/v1")
 	apis.InstallArtistHandlers(app, g)
 	apis.InstallAlbumHandlers(app, g)
@@ -112,7 +110,7 @@ func New(app core.App) *echo.Echo {
 	apis.InstallQueueHandlers(app, g)
 	apis.InstallTagHandlers(app, g)
 	apis.InstallAuthHandlers(app, g)
-	h.InstallPlaylistHandlers(g)
+	apis.InstallPlaylistHandlers(app, g)
 
 	g = NewEchoGroup(app, e, "/api/v1")
 	apis.InstallSystemHandlers(app, g)
@@ -123,8 +121,6 @@ func New(app core.App) *echo.Echo {
 }
 
 func ServerRoutes(app core.App) []Route {
-	var h handlers.Handlers
-
 	g := NewRouteGroup("/api/v1")
 	apis.InstallArtistHandlers(app, g)
 	apis.InstallAlbumHandlers(app, g)
@@ -133,7 +129,7 @@ func ServerRoutes(app core.App) []Route {
 	apis.InstallQueueHandlers(app, g)
 	apis.InstallTagHandlers(app, g)
 	apis.InstallAuthHandlers(app, g)
-	h.InstallPlaylistHandlers(g)
+	apis.InstallPlaylistHandlers(app, g)
 
 	apis.InstallSystemHandlers(app, g)
 

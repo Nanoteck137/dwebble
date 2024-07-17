@@ -1,4 +1,4 @@
-package handlers
+package apis
 
 import (
 	"fmt"
@@ -9,10 +9,16 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/mitchellh/mapstructure"
+	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/dwebble/utils"
 )
+
+type playlistApi struct {
+	app core.App
+}
 
 // TODO(patrik): 'db' should be core.App
 // TODO(patrik): Move
@@ -98,13 +104,13 @@ func Body[T any](c echo.Context, schema jio.Schema) (T, error) {
 	return res, nil
 }
 
-func (h *Handlers) HandleGetPlaylists(c echo.Context) error {
-	user, err := User(h.db, c)
+func (api *playlistApi) HandleGetPlaylists(c echo.Context) error {
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
 
-	playlists, err := h.db.GetPlaylistsByUser(c.Request().Context(), user.Id)
+	playlists, err := api.app.DB().GetPlaylistsByUser(c.Request().Context(), user.Id)
 	if err != nil {
 		return err
 	}
@@ -123,8 +129,8 @@ func (h *Handlers) HandleGetPlaylists(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) HandlePostPlaylist(c echo.Context) error {
-	user, err := User(h.db, c)
+func (api *playlistApi) HandlePostPlaylist(c echo.Context) error {
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
@@ -134,7 +140,7 @@ func (h *Handlers) HandlePostPlaylist(c echo.Context) error {
 		return err
 	}
 
-	playlist, err := h.db.CreatePlaylist(c.Request().Context(), database.CreatePlaylistParams{
+	playlist, err := api.app.DB().CreatePlaylist(c.Request().Context(), database.CreatePlaylistParams{
 		Name:    body.Name,
 		OwnerId: user.Id,
 	})
@@ -150,15 +156,15 @@ func (h *Handlers) HandlePostPlaylist(c echo.Context) error {
 	}))
 }
 
-func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
+func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 	playlistId := c.Param("id")
 
-	user, err := User(h.db, c)
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
 
-	playlist, err := h.db.GetPlaylistById(c.Request().Context(), playlistId)
+	playlist, err := api.app.DB().GetPlaylistById(c.Request().Context(), playlistId)
 	if err != nil {
 		return err
 	}
@@ -167,7 +173,7 @@ func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
 		return types.ErrNoPlaylist
 	}
 
-	items, err := h.db.GetPlaylistItems(c.Request().Context(), playlist.Id)
+	items, err := api.app.DB().GetPlaylistItems(c.Request().Context(), playlist.Id)
 	if err != nil {
 		return err
 	}
@@ -175,7 +181,7 @@ func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
 	tracks := []types.Track{}
 	for _, item := range items {
 		// TODO(patrik): Optimize
-		track, err := h.db.GetTrackById(c.Request().Context(), item.TrackId)
+		track, err := api.app.DB().GetTrackById(c.Request().Context(), item.TrackId)
 		if err != nil {
 			return err
 		}
@@ -184,10 +190,10 @@ func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
 			Id:                track.Id,
 			Number:            item.ItemIndex,
 			Name:              track.Name,
-			CoverArt:          ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -204,10 +210,10 @@ func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
 	}))
 }
 
-func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
+func (api *playlistApi) HandlePostPlaylistItemsById(c echo.Context) error {
 	playlistId := c.Param("id")
 
-	user, err := User(h.db, c)
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
@@ -217,7 +223,7 @@ func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
 		return err
 	}
 
-	playlist, err := h.db.GetPlaylistById(c.Request().Context(), playlistId)
+	playlist, err := api.app.DB().GetPlaylistById(c.Request().Context(), playlistId)
 	if err != nil {
 		return err
 	}
@@ -226,7 +232,7 @@ func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
 		return types.ErrNoPlaylist
 	}
 
-	err = h.db.AddItemsToPlaylist(c.Request().Context(), playlist.Id, body.Tracks)
+	err = api.app.DB().AddItemsToPlaylist(c.Request().Context(), playlist.Id, body.Tracks)
 	if err != nil {
 		return err
 	}
@@ -234,10 +240,10 @@ func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
-func (h *Handlers) HandleDeletePlaylistItemsById(c echo.Context) error {
+func (api *playlistApi) HandleDeletePlaylistItemsById(c echo.Context) error {
 	playlistId := c.Param("id")
 
-	user, err := User(h.db, c)
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
@@ -247,7 +253,7 @@ func (h *Handlers) HandleDeletePlaylistItemsById(c echo.Context) error {
 		return err
 	}
 
-	playlist, err := h.db.GetPlaylistById(c.Request().Context(), playlistId)
+	playlist, err := api.app.DB().GetPlaylistById(c.Request().Context(), playlistId)
 	if err != nil {
 		return err
 	}
@@ -256,7 +262,7 @@ func (h *Handlers) HandleDeletePlaylistItemsById(c echo.Context) error {
 		return types.ErrNoPlaylist
 	}
 
-	err = h.db.DeleteItemsFromPlaylist(c.Request().Context(), playlist.Id, body.TrackIndices)
+	err = api.app.DB().DeleteItemsFromPlaylist(c.Request().Context(), playlist.Id, body.TrackIndices)
 	if err != nil {
 		return err
 	}
@@ -264,10 +270,10 @@ func (h *Handlers) HandleDeletePlaylistItemsById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
-func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
+func (api *playlistApi) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 	playlistId := c.Param("id")
 
-	user, err := User(h.db, c)
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
@@ -277,7 +283,7 @@ func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 		return err
 	}
 
-	playlist, err := h.db.GetPlaylistById(c.Request().Context(), playlistId)
+	playlist, err := api.app.DB().GetPlaylistById(c.Request().Context(), playlistId)
 	if err != nil {
 		return err
 	}
@@ -286,7 +292,7 @@ func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 		return types.ErrNoPlaylist
 	}
 
-	err = h.db.MovePlaylistItem(c.Request().Context(), playlist.Id, body.TrackId, body.ToIndex)
+	err = api.app.DB().MovePlaylistItem(c.Request().Context(), playlist.Id, body.TrackId, body.ToIndex)
 	if err != nil {
 		return err
 	}
@@ -294,60 +300,70 @@ func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
-func (h *Handlers) InstallPlaylistHandlers(group Group) {
+func InstallPlaylistHandlers(app core.App, group handlers.Group) {
+	api := playlistApi{app: app}
+
+	requireSetup := RequireSetup(app)
+
 	group.Register(
-		Handler{
+		handlers.Handler{
 			Name:        "GetPlaylists",
 			Path:        "/playlists",
 			Method:      http.MethodGet,
 			DataType:    types.GetPlaylists{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetPlaylists,
+			HandlerFunc: api.HandleGetPlaylists,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "CreatePlaylist",
 			Path:        "/playlists",
 			Method:      http.MethodPost,
 			DataType:    types.PostPlaylist{},
 			BodyType:    types.PostPlaylistBody{},
-			HandlerFunc: h.HandlePostPlaylist,
+			HandlerFunc: api.HandlePostPlaylist,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "GetPlaylistById",
 			Path:        "/playlists/:id",
 			Method:      http.MethodGet,
 			DataType:    types.GetPlaylistById{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetPlaylistById,
+			HandlerFunc: api.HandleGetPlaylistById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "AddItemsToPlaylist",
 			Path:        "/playlists/:id/items",
 			Method:      http.MethodPost,
 			DataType:    nil,
 			BodyType:    types.PostPlaylistItemsByIdBody{},
-			HandlerFunc: h.HandlePostPlaylistItemsById,
+			HandlerFunc: api.HandlePostPlaylistItemsById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "DeletePlaylistItems",
 			Path:        "/playlists/:id/items",
 			Method:      http.MethodDelete,
 			DataType:    nil,
 			BodyType:    types.DeletePlaylistItemsByIdBody{},
-			HandlerFunc: h.HandleDeletePlaylistItemsById,
+			HandlerFunc: api.HandleDeletePlaylistItemsById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "MovePlaylistItem",
 			Path:        "/playlists/:id/items/move",
 			Method:      http.MethodPost,
 			DataType:    nil,
 			BodyType:    types.PostPlaylistItemsByIdBody{},
-			HandlerFunc: h.HandlePostPlaylistsItemsMoveById,
+			HandlerFunc: api.HandlePostPlaylistsItemsMoveById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)
 }

@@ -18,7 +18,7 @@ type authApi struct {
 
 // TODO(patrik): Check confirmPassword
 func (api *authApi) HandlePostSignup(c echo.Context) error {
-	body, err := handlers.Body[types.PostAuthSignupBody](c, types.PostAuthSignupBodySchema)
+	body, err := Body[types.PostAuthSignupBody](c, types.PostAuthSignupBodySchema)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func (api *authApi) HandlePostSignup(c echo.Context) error {
 }
 
 func (api *authApi) HandlePostSignin(c echo.Context) error {
-	body, err := handlers.Body[types.PostAuthSigninBody](c, types.PostAuthSigninBodySchema)
+	body, err := Body[types.PostAuthSigninBody](c, types.PostAuthSigninBodySchema)
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (api *authApi) HandlePostSignin(c echo.Context) error {
 
 
 func (api *authApi) HandleGetMe(c echo.Context) error {
-	user, err := handlers.User(api.app.DB(), c)
+	user, err := User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
