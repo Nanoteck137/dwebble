@@ -72,15 +72,20 @@ func NewEchoGroup(app core.App, e *echo.Echo, prefix string, m ...echo.Middlewar
 	}
 }
 
-func New(app core.App) *echo.Echo {
-	e := echo.New()
-
-	e.HTTPErrorHandler = func(err error, c echo.Context) {
+func errorHandler(err error, c echo.Context) {
 		switch err := err.(type) {
 		case *types.ApiError:
 			c.JSON(err.Code, types.ApiResponse{
 				Status: types.StatusError,
 				Error:  err,
+			})
+		case *echo.HTTPError:
+			c.JSON(err.Code, types.ApiResponse{
+				Status: types.StatusError,
+				Error: &types.ApiError{
+					Code:    err.Code,
+					Message: err.Error(),
+				},
 			})
 		default:
 			c.JSON(500, types.ApiResponse{
@@ -92,6 +97,11 @@ func New(app core.App) *echo.Echo {
 			})
 		}
 	}
+
+func New(app core.App) *echo.Echo {
+	e := echo.New()
+
+	e.HTTPErrorHandler = errorHandler
 
 	e.Use(echolog.LoggerWithName("Dwebble"))
 	e.Use(middleware.Recover())
@@ -111,8 +121,6 @@ func New(app core.App) *echo.Echo {
 	apis.InstallTagHandlers(app, g)
 	apis.InstallAuthHandlers(app, g)
 	apis.InstallPlaylistHandlers(app, g)
-
-	g = NewEchoGroup(app, e, "/api/v1")
 	apis.InstallSystemHandlers(app, g)
 
 	app.DB().Invalidate()
@@ -130,7 +138,6 @@ func ServerRoutes(app core.App) []Route {
 	apis.InstallTagHandlers(app, g)
 	apis.InstallAuthHandlers(app, g)
 	apis.InstallPlaylistHandlers(app, g)
-
 	apis.InstallSystemHandlers(app, g)
 
 	return g.Routes
