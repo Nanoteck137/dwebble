@@ -109,7 +109,7 @@ func New(app core.App) *echo.Echo {
 
 	e.Static("/tracks/mobile", app.WorkDir().MobileTracksDir())
 	e.Static("/tracks/original", app.WorkDir().OriginalTracksDir())
-	e.StaticFS("/images/default", assets.AssetsFS)
+	e.StaticFS("/images/default", assets.DefaultImagesFS)
 	e.Static("/images", app.WorkDir().ImagesDir())
 
 	g := NewEchoGroup(app, e, "/api/v1")
