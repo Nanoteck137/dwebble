@@ -17,7 +17,7 @@ type Route struct {
 	Path   string
 	Method string
 	Data   any
-	Body   any
+	Body   types.Body
 }
 
 type RouteGroup struct {
@@ -32,7 +32,7 @@ func NewRouteGroup(prefix string) *RouteGroup {
 	}
 }
 
-func (r *RouteGroup) AddRoute(name, path, method string, data, body any) {
+func (r *RouteGroup) AddRoute(name, path, method string, data any, body types.Body) {
 	r.Routes = append(r.Routes, Route{
 		Name:   name,
 		Path:   path,

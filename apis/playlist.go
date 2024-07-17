@@ -45,7 +45,7 @@ func (api *playlistApi) HandlePostPlaylist(c echo.Context) error {
 		return err
 	}
 
-	body, err := Body[types.PostPlaylistBody](c, types.PostPlaylistBodySchema)
+	body, err := Body[types.PostPlaylistBody](c)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func (api *playlistApi) HandlePostPlaylistItemsById(c echo.Context) error {
 		return err
 	}
 
-	body, err := Body[types.PostPlaylistItemsByIdBody](c, types.PostPlaylistItemsByIdBodySchema)
+	body, err := Body[types.PostPlaylistItemsByIdBody](c)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (api *playlistApi) HandleDeletePlaylistItemsById(c echo.Context) error {
 		return err
 	}
 
-	body, err := Body[types.DeletePlaylistItemsByIdBody](c, types.DeletePlaylistItemsByIdBodySchema)
+	body, err := Body[types.DeletePlaylistItemsByIdBody](c)
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func (api *playlistApi) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 		return err
 	}
 
-	body, err := Body[types.PostPlaylistsItemMoveByIdBody](c, types.PostPlaylistsItemMoveByIdBodySchema)
+	body, err := Body[types.PostPlaylistsItemMoveByIdBody](c)
 	if err != nil {
 		return err
 	}

@@ -15,7 +15,7 @@ type Handler struct {
 	Method      string
 	Path        string
 	DataType    any
-	BodyType    any
+	BodyType    types.Body
 	HandlerFunc echo.HandlerFunc
 	Middlewares []echo.MiddlewareFunc
 }

@@ -2,6 +2,10 @@ package types
 
 import "github.com/faceair/jio"
 
+type Body interface {
+	Schema() jio.Schema
+}
+
 type Artist struct {
 	Id      string `json:"id"`
 	Name    string `json:"name"`
@@ -91,11 +95,13 @@ type PostAuthSignupBody struct {
 	PasswordConfirm string `json:"passwordConfirm"`
 }
 
-var PostAuthSignupBodySchema = jio.Object().Keys(jio.K{
-	"username":        jio.String().Min(4).Required(),
-	"password":        jio.String().Min(8).Required(),
-	"passwordConfirm": jio.String().Min(8).Required(),
-})
+func (b PostAuthSignupBody) Schema() jio.Schema {
+	return jio.Object().Keys(jio.K{
+		"username":        jio.String().Min(4).Required(),
+		"password":        jio.String().Min(8).Required(),
+		"passwordConfirm": jio.String().Min(8).Required(),
+	})
+}
 
 type PostAuthSignup struct {
 	Id       string `json:"id"`
@@ -107,10 +113,12 @@ type PostAuthSigninBody struct {
 	Password string `json:"password"`
 }
 
-var PostAuthSigninBodySchema = jio.Object().Keys(jio.K{
-	"username": jio.String().Required(),
-	"password": jio.String().Required(),
-})
+func (b PostAuthSigninBody) Schema() jio.Schema {
+	return jio.Object().Keys(jio.K{
+		"username": jio.String().Required(),
+		"password": jio.String().Required(),
+	})
+}
 
 type PostAuthSignin struct {
 	Token string `json:"token"`
@@ -129,17 +137,21 @@ type PostPlaylistBody struct {
 	Name string `json:"name"`
 }
 
-var PostPlaylistBodySchema = jio.Object().Keys(jio.K{
-	"name": jio.String().Required(),
-})
+func (b PostPlaylistBody) Schema() jio.Schema {
+	return jio.Object().Keys(jio.K{
+		"name": jio.String().Required(),
+	})
+}
 
 type PostPlaylistItemsByIdBody struct {
 	Tracks []string `json:"tracks"`
 }
 
-var PostPlaylistItemsByIdBodySchema = jio.Object().Keys(jio.K{
-	"tracks": jio.Array().Items(jio.String()).Min(1).Required(),
-})
+func (b PostPlaylistItemsByIdBody) Schema() jio.Schema {
+	return jio.Object().Keys(jio.K{
+		"tracks": jio.Array().Items(jio.String()).Min(1).Required(),
+	})
+}
 
 type GetPlaylistById struct {
 	Playlist
@@ -155,19 +167,23 @@ type DeletePlaylistItemsByIdBody struct {
 	TrackIndices []int `json:"trackIndices"`
 }
 
-var DeletePlaylistItemsByIdBodySchema = jio.Object().Keys(jio.K{
-	"trackIndices": jio.Array().Items(jio.Number().Integer()).Min(1).Required(),
-})
+func (b DeletePlaylistItemsByIdBody) Schema() jio.Schema {
+	return jio.Object().Keys(jio.K{
+		"trackIndices": jio.Array().Items(jio.Number().Integer()).Min(1).Required(),
+	})
+}
 
 type PostPlaylistsItemMoveByIdBody struct {
 	TrackId string `json:"trackId"`
 	ToIndex int    `json:"toIndex"`
 }
 
-var PostPlaylistsItemMoveByIdBodySchema = jio.Object().Keys(jio.K{
-	"trackId": jio.String().Required(),
-	"toIndex": jio.Number().Integer().Required(),
-})
+func (b PostPlaylistsItemMoveByIdBody) Schema() jio.Schema {
+	return jio.Object().Keys(jio.K{
+		"trackId": jio.String().Required(),
+		"toIndex": jio.Number().Integer().Required(),
+	})
+}
 
 type GetSystemInfo struct {
 	Version string `json:"version"`
@@ -180,11 +196,13 @@ type PostSystemSetupBody struct {
 	PasswordConfirm string `json:"passwordConfirm"`
 }
 
-var PostSystemSetupBodySchema = jio.Object().Keys(jio.K{
-	"username":        jio.String().Required(),
-	"password":        jio.String().Required(),
-	"passwordConfirm": jio.String().Required(),
-})
+func (b PostSystemSetupBody) Schema() jio.Schema {
+	return jio.Object().Keys(jio.K{
+		"username":        jio.String().Required(),
+		"password":        jio.String().Required(),
+		"passwordConfirm": jio.String().Required(),
+	})
+}
 
 type ExportTrack struct {
 	Name   string `json:"name"`

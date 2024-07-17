@@ -51,8 +51,10 @@ func User(app core.App, c echo.Context) (*database.User, error) {
 	return nil, types.ErrInvalidToken
 }
 
-func Body[T any](c echo.Context, schema jio.Schema) (T, error) {
+func Body[T types.Body](c echo.Context) (T, error) {
 	var res T
+
+	schema := res.Schema()
 
 	j, err := io.ReadAll(c.Request().Body)
 	if err != nil {
