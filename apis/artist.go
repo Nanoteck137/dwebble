@@ -82,7 +82,7 @@ func (api *artistApi) HandleGetArtistAlbumsById(c echo.Context) error {
 func InstallArtistHandlers(app core.App, group handlers.Group) {
 	api := artistApi{app: app}
 
-	requireSetup := RequireSetup()
+	requireSetup := RequireSetup(app)
 
 	group.Register(
 		handlers.Handler{

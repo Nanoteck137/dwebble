@@ -107,7 +107,8 @@ func (h *Handlers) HandlePostSignin(c echo.Context) error {
 	}))
 }
 
-func (h *Handlers) User(c echo.Context) (*database.User, error) {
+// TODO(patrik): 'db' should be core.App
+func User(db *database.Database, c echo.Context) (*database.User, error) {
 	authHeader := c.Request().Header.Get("Authorization")
 	tokenString, err := utils.ParseAuthHeader(authHeader)
 	if err != nil {
@@ -126,13 +127,15 @@ func (h *Handlers) User(c echo.Context) (*database.User, error) {
 		return nil, types.ErrInvalidToken
 	}
 
+	jwtValidator := jwt.NewValidator(jwt.WithIssuedAt())
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		if err := h.jwtValidator.Validate(token.Claims); err != nil {
+		if err := jwtValidator.Validate(token.Claims); err != nil {
 			return nil, types.ErrInvalidToken
 		}
 
 		userId := claims["userId"].(string)
-		user, err := h.db.GetUserById(c.Request().Context(), userId)
+		user, err := db.GetUserById(c.Request().Context(), userId)
 		if err != nil {
 			return nil, types.ErrInvalidToken
 		}
@@ -144,7 +147,7 @@ func (h *Handlers) User(c echo.Context) (*database.User, error) {
 }
 
 func (h *Handlers) HandleGetMe(c echo.Context) error {
-	user, err := h.User(c)
+	user, err := User(h.db, c)
 	if err != nil {
 		return err
 	}

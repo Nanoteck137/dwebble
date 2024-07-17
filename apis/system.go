@@ -1,41 +1,38 @@
-package handlers
+package apis
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/config"
-	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
-var cfg *database.Config
-
-// TODO(patrik): Should this be here?
-func IsSetup() bool {
-	return cfg != nil
+type systemApi struct {
+	app core.App
 }
 
-func (h *Handlers) HandleGetSystemInfo(c echo.Context) error {
+func (api *systemApi) HandleGetSystemInfo(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetSystemInfo{
 		Version: config.Version,
-		IsSetup: IsSetup(),
+		IsSetup: api.app.IsSetup(),
 	}))
 }
 
-func (h *Handlers) HandlePostSystemSetup(c echo.Context) error {
-	if IsSetup() {
+func (api *systemApi) HandlePostSystemSetup(c echo.Context) error {
+	if api.app.IsSetup() {
 		return types.NewApiError(400, "System already setup")
 	}
 
-	body, err := Body[types.PostSystemSetupBody](c, types.PostSystemSetupBodySchema)
+	body, err := handlers.Body[types.PostSystemSetupBody](c, types.PostSystemSetupBodySchema)
 	if err != nil {
 		return err
 	}
 
-	db, tx, err := h.db.Begin()
+	db, tx, err := api.app.DB().Begin()
 	if err != nil {
 		return err
 	}
@@ -58,22 +55,22 @@ func (h *Handlers) HandlePostSystemSetup(c echo.Context) error {
 		return err
 	}
 
-	cfg = &conf
+	api.app.UpdateDBConfig(&conf)
 
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
-func (h *Handlers) HandlePostSystemExport(c echo.Context) error {
-	user, err := h.User(c)
+func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
+	user, err := handlers.User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
 
-	if user.Id != cfg.OwnerId {
+	if user.Id != api.app.DBConfig().OwnerId {
 		return types.NewApiError(403, "Only the owner can export")
 	}
 
-	users, err := h.db.GetAllUsers(c.Request().Context())
+	users, err := api.app.DB().GetAllUsers(c.Request().Context())
 	if err != nil {
 		return err
 	}
@@ -83,7 +80,7 @@ func (h *Handlers) HandlePostSystemExport(c echo.Context) error {
 	}
 
 	for _, user := range users {
-		playlists, err := h.db.GetPlaylistsByUser(c.Request().Context(), user.Id)
+		playlists, err := api.app.DB().GetPlaylistsByUser(c.Request().Context(), user.Id)
 		if err != nil {
 			return err
 		}
@@ -91,7 +88,7 @@ func (h *Handlers) HandlePostSystemExport(c echo.Context) error {
 		var exportedPlaylists []types.ExportPlaylist
 
 		for _, playlist := range playlists {
-			items, err := h.db.GetPlaylistItems(c.Request().Context(), playlist.Id)
+			items, err := api.app.DB().GetPlaylistItems(c.Request().Context(), playlist.Id)
 			if err != nil {
 				return err
 			}
@@ -99,7 +96,7 @@ func (h *Handlers) HandlePostSystemExport(c echo.Context) error {
 			playlistTracks := make([]types.ExportTrack, 0, len(items))
 
 			for _, item := range items {
-				track, err := h.db.GetTrackById(c.Request().Context(), item.TrackId)
+				track, err := api.app.DB().GetTrackById(c.Request().Context(), item.TrackId)
 				if err != nil {
 					return err
 				}
@@ -126,66 +123,61 @@ func (h *Handlers) HandlePostSystemExport(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) HandlePostSystemImport(c echo.Context) error {
-	user, err := h.User(c)
+func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
+	user, err := handlers.User(api.app.DB(), c)
 	if err != nil {
 		return err
 	}
 
-	if user.Id != cfg.OwnerId {
+	if user.Id != api.app.DBConfig().OwnerId {
 		return types.NewApiError(403, "Only the owner can import")
 	}
 
 	return types.NewApiError(400, "Import is not supported right now")
 }
 
-func (h *Handlers) InstallSystemHandlers(group Group) {
+func InstallSystemHandlers(app core.App, group handlers.Group) {
+	api := systemApi{app: app}
+
+	requireSetup := RequireSetup(app)
+
 	group.Register(
-		Handler{
+		handlers.Handler{
 			Name:        "GetSystemInfo",
 			Path:        "/system/info",
 			Method:      http.MethodGet,
 			DataType:    types.GetSystemInfo{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetSystemInfo,
+			HandlerFunc: api.HandleGetSystemInfo,
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "RunSystemSetup",
 			Path:        "/system/setup",
 			Method:      http.MethodPost,
 			DataType:    nil,
 			BodyType:    types.PostSystemSetupBody{},
-			HandlerFunc: h.HandlePostSystemSetup,
+			HandlerFunc: api.HandlePostSystemSetup,
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "SystemExport",
 			Path:        "/system/export",
 			Method:      http.MethodPost,
 			DataType:    types.PostSystemExport{},
 			BodyType:    nil,
-			HandlerFunc: h.HandlePostSystemExport,
+			HandlerFunc: api.HandlePostSystemExport,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "SystemImport",
 			Path:        "/system/import",
 			Method:      http.MethodPost,
 			DataType:    nil,
 			BodyType:    nil,
-			HandlerFunc: h.HandlePostSystemImport,
+			HandlerFunc: api.HandlePostSystemImport,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)
-}
-
-func InitializeConfig(db *database.Database) error {
-	conf, err := db.GetConfig(context.Background())
-	if err != nil {
-		return err
-	}
-
-	cfg = conf
-
-	return nil
 }

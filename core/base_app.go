@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"os"
 
 	"github.com/nanoteck137/dwebble/config"
@@ -11,8 +12,9 @@ import (
 var _ App = (*BaseApp)(nil)
 
 type BaseApp struct {
-	db     *database.Database
-	config *config.Config
+	db       *database.Database
+	config   *config.Config
+	dbConfig *database.Config
 }
 
 func (app *BaseApp) DB() *database.Database {
@@ -23,8 +25,20 @@ func (app *BaseApp) Config() *config.Config {
 	return app.config
 }
 
+func (app *BaseApp) DBConfig() *database.Config {
+	return app.dbConfig
+}
+
 func (app *BaseApp) WorkDir() types.WorkDir {
 	return app.config.WorkDir()
+}
+
+func (app *BaseApp) IsSetup() bool {
+	return app.dbConfig != nil
+}
+
+func (app *BaseApp) UpdateDBConfig(conf *database.Config) {
+	app.dbConfig = conf
 }
 
 func (app *BaseApp) Bootstrap() error {
@@ -54,6 +68,11 @@ func (app *BaseApp) Bootstrap() error {
 	}
 
 	err = os.MkdirAll(workDir.ImagesDir(), 0755)
+	if err != nil {
+		return err
+	}
+
+	app.dbConfig, err = app.db.GetConfig(context.Background())
 	if err != nil {
 		return err
 	}

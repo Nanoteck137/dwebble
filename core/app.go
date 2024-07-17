@@ -11,8 +11,12 @@ import (
 type App interface {
 	DB() *database.Database
 	Config() *config.Config
+	DBConfig() *database.Config
 
 	WorkDir() types.WorkDir
+
+	IsSetup() bool
+	UpdateDBConfig(conf *database.Config)
 
 	Bootstrap() error
 }

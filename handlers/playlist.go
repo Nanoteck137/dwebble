@@ -9,7 +9,7 @@ import (
 )
 
 func (h *Handlers) HandleGetPlaylists(c echo.Context) error {
-	user, err := h.User(c)
+	user, err := User(h.db, c)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func (h *Handlers) HandleGetPlaylists(c echo.Context) error {
 }
 
 func (h *Handlers) HandlePostPlaylist(c echo.Context) error {
-	user, err := h.User(c)
+	user, err := User(h.db, c)
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (h *Handlers) HandlePostPlaylist(c echo.Context) error {
 func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
 	playlistId := c.Param("id")
 
-	user, err := h.User(c)
+	user, err := User(h.db, c)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func (h *Handlers) HandleGetPlaylistById(c echo.Context) error {
 func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
 	playlistId := c.Param("id")
 
-	user, err := h.User(c)
+	user, err := User(h.db, c)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (h *Handlers) HandlePostPlaylistItemsById(c echo.Context) error {
 func (h *Handlers) HandleDeletePlaylistItemsById(c echo.Context) error {
 	playlistId := c.Param("id")
 
-	user, err := h.User(c)
+	user, err := User(h.db, c)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (h *Handlers) HandleDeletePlaylistItemsById(c echo.Context) error {
 func (h *Handlers) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 	playlistId := c.Param("id")
 
-	user, err := h.User(c)
+	user, err := User(h.db, c)
 	if err != nil {
 		return err
 	}

@@ -116,13 +116,7 @@ func New(app core.App) *echo.Echo {
 	h.InstallPlaylistHandlers(g)
 
 	g = NewEchoGroup(app, e, "/api/v1")
-	h.InstallSystemHandlers(g)
-
-	err := handlers.InitializeConfig(app.DB())
-	if err != nil {
-		// TODO(patrik): Remove?
-		log.Fatal("Failed to initialize config", "err", err)
-	}
+	apis.InstallSystemHandlers(app, g)
 
 	app.DB().Invalidate()
 
@@ -142,7 +136,7 @@ func ServerRoutes(app core.App) []Route {
 	h.InstallAuthHandlers(g)
 	h.InstallPlaylistHandlers(g)
 
-	h.InstallSystemHandlers(g)
+	apis.InstallSystemHandlers(app, g)
 
 	return g.Routes
 }
