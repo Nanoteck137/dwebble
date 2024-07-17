@@ -1,17 +1,23 @@
-package handlers
+package apis
 
 import (
 	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func (h *Handlers) HandleGetAlbums(c echo.Context) error {
+type albumApi struct {
+	app core.App
+}
+
+func (api *albumApi) HandleGetAlbums(c echo.Context) error {
 	f := c.QueryParam("filter")
 
-	albums, err := h.db.GetAllAlbums(c.Request().Context(), f)
+	albums, err := api.app.DB().GetAllAlbums(c.Request().Context(), f)
 	if err != nil {
 		return err
 	}
@@ -24,7 +30,7 @@ func (h *Handlers) HandleGetAlbums(c echo.Context) error {
 		res.Albums[i] = types.Album{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: ConvertAlbumCoverURL(c, album.CoverArt),
+			CoverArt: handlers.ConvertAlbumCoverURL(c, album.CoverArt),
 			ArtistId: album.ArtistId,
 		}
 	}
@@ -32,9 +38,9 @@ func (h *Handlers) HandleGetAlbums(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) HandleGetAlbumById(c echo.Context) error {
+func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
 	id := c.Param("id")
-	album, err := h.db.GetAlbumById(c.Request().Context(), id)
+	album, err := api.app.DB().GetAlbumById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
@@ -43,21 +49,21 @@ func (h *Handlers) HandleGetAlbumById(c echo.Context) error {
 		Album: types.Album{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: ConvertAlbumCoverURL(c, album.CoverArt),
+			CoverArt: handlers.ConvertAlbumCoverURL(c, album.CoverArt),
 			ArtistId: album.ArtistId,
 		},
 	}))
 }
 
-func (h *Handlers) HandleGetAlbumTracksById(c echo.Context) error {
+func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 	id := c.Param("id")
 
-	album, err := h.db.GetAlbumById(c.Request().Context(), id)
+	album, err := api.app.DB().GetAlbumById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
 
-	tracks, err := h.db.GetTracksByAlbum(c.Request().Context(), album.Id)
+	tracks, err := api.app.DB().GetTracksByAlbum(c.Request().Context(), album.Id)
 	if err != nil {
 		return err
 	}
@@ -71,10 +77,10 @@ func (h *Handlers) HandleGetAlbumTracksById(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -87,33 +93,40 @@ func (h *Handlers) HandleGetAlbumTracksById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) InstallAlbumHandlers(group Group) {
+func InstallAlbumHandlers(app core.App, group handlers.Group) {
+	api := albumApi{app: app}
+
+	requireSetup := RequireSetup(app)
+
 	group.Register(
-		Handler{
+		handlers.Handler{
 			Name:        "GetAlbums",
 			Path:        "/albums",
 			Method:      http.MethodGet,
 			DataType:    types.GetAlbums{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetAlbums,
+			HandlerFunc: api.HandleGetAlbums,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "GetAlbumById",
 			Path:        "/albums/:id",
 			Method:      http.MethodGet,
 			DataType:    types.GetAlbumById{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetAlbumById,
+			HandlerFunc: api.HandleGetAlbumById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "GetAlbumTracks",
 			Path:        "/albums/:id/tracks",
 			Method:      http.MethodGet,
 			DataType:    types.GetAlbumTracksById{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetAlbumTracksById,
+			HandlerFunc: api.HandleGetAlbumTracksById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)
 }
