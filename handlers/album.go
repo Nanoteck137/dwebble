@@ -106,9 +106,7 @@ func (h *Handlers) InstallAlbumHandlers(group Group) {
 			BodyType:    nil,
 			HandlerFunc: h.HandleGetAlbumById,
 		},
-	)
 
-	group.Register(
 		Handler{
 			Name:        "GetAlbumTracks",
 			Path:        "/albums/:id/tracks",
