@@ -1,14 +1,20 @@
-package handlers
+package apis
 
 import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func (h *Handlers) HandleGetTags(c echo.Context) error {
-	tags, err := h.db.GetAllTags(c.Request().Context())
+type tagApi struct {
+	app core.App
+}
+
+func (api *tagApi) HandleGetTags(c echo.Context) error {
+	tags, err := api.app.DB().GetAllTags(c.Request().Context())
 	if err != nil {
 		return err
 	}
@@ -28,15 +34,20 @@ func (h *Handlers) HandleGetTags(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) InstallTagHandlers(group Group) {
+func InstallTagHandlers(app core.App, group handlers.Group) {
+	api := tagApi{app: app}
+
+	requireSetup := RequireSetup(app)
+
 	group.Register(
-		Handler{
+		handlers.Handler{
 			Name:        "GetTags",
 			Path:        "/tags",
 			Method:      http.MethodGet,
 			DataType:    types.GetTags{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetTags,
+			HandlerFunc: api.HandleGetTags,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)
 }

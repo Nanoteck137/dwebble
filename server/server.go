@@ -110,7 +110,7 @@ func New(app core.App) *echo.Echo {
 	apis.InstallTrackHandlers(app, g)
 	apis.InstallSyncHandlers(app, g)
 	apis.InstallQueueHandlers(app, g)
-	h.InstallTagHandlers(g)
+	apis.InstallTagHandlers(app, g)
 	h.InstallAuthHandlers(g)
 	h.InstallPlaylistHandlers(g)
 
@@ -131,7 +131,7 @@ func ServerRoutes(app core.App) []Route {
 	apis.InstallTrackHandlers(app, g)
 	apis.InstallSyncHandlers(app, g)
 	apis.InstallQueueHandlers(app, g)
-	h.InstallTagHandlers(g)
+	apis.InstallTagHandlers(app, g)
 	h.InstallAuthHandlers(g)
 	h.InstallPlaylistHandlers(g)
 
