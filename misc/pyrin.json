@@ -5,17 +5,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "id",
+          "name": "Id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "picture",
+          "name": "Picture",
           "type": "string",
           "omit": false
         }
@@ -26,7 +26,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "artists",
+          "name": "Artists",
           "type": "[]Artist",
           "omit": false
         }
@@ -42,22 +42,22 @@
       "extend": "",
       "fields": [
         {
-          "name": "id",
+          "name": "Id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "coverArt",
+          "name": "CoverArt",
           "type": "string",
           "omit": false
         },
         {
-          "name": "artistId",
+          "name": "ArtistId",
           "type": "string",
           "omit": false
         }
@@ -68,7 +68,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "albums",
+          "name": "Albums",
           "type": "[]Album",
           "omit": false
         }
@@ -79,7 +79,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "albums",
+          "name": "Albums",
           "type": "[]Album",
           "omit": false
         }
@@ -95,67 +95,67 @@
       "extend": "",
       "fields": [
         {
-          "name": "id",
+          "name": "Id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "number",
+          "name": "Number",
           "type": "int",
           "omit": false
         },
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "coverArt",
+          "name": "CoverArt",
           "type": "string",
           "omit": false
         },
         {
-          "name": "duration",
+          "name": "Duration",
           "type": "int",
           "omit": false
         },
         {
-          "name": "bestQualityFile",
+          "name": "BestQualityFile",
           "type": "string",
           "omit": false
         },
         {
-          "name": "mobileQualityFile",
+          "name": "MobileQualityFile",
           "type": "string",
           "omit": false
         },
         {
-          "name": "albumId",
+          "name": "AlbumId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "artistId",
+          "name": "ArtistId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "albumName",
+          "name": "AlbumName",
           "type": "string",
           "omit": false
         },
         {
-          "name": "artistName",
+          "name": "ArtistName",
           "type": "string",
           "omit": false
         },
         {
-          "name": "tags",
+          "name": "Tags",
           "type": "[]string",
           "omit": false
         },
         {
-          "name": "genres",
+          "name": "Genres",
           "type": "[]string",
           "omit": false
         }
@@ -166,7 +166,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "tracks",
+          "name": "Tracks",
           "type": "[]Track",
           "omit": false
         }
@@ -177,7 +177,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "tracks",
+          "name": "Tracks",
           "type": "[]Track",
           "omit": false
         }
@@ -193,8 +193,8 @@
       "extend": "",
       "fields": [
         {
-          "name": "isSyncing",
-          "type": "bool",
+          "name": "IsSyncing",
+          "type": "int",
           "omit": false
         }
       ]
@@ -204,7 +204,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "tracks",
+          "name": "Tracks",
           "type": "[]Track",
           "omit": false
         }
@@ -215,12 +215,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "id",
+          "name": "Id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         }
@@ -231,7 +231,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "tags",
+          "name": "Tags",
           "type": "[]Tag",
           "omit": false
         }
@@ -242,12 +242,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "id",
+          "name": "Id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "username",
+          "name": "Username",
           "type": "string",
           "omit": false
         }
@@ -258,17 +258,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "username",
+          "name": "Username",
           "type": "string",
           "omit": false
         },
         {
-          "name": "password",
+          "name": "Password",
           "type": "string",
           "omit": false
         },
         {
-          "name": "passwordConfirm",
+          "name": "PasswordConfirm",
           "type": "string",
           "omit": false
         }
@@ -279,7 +279,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "token",
+          "name": "Token",
           "type": "string",
           "omit": false
         }
@@ -290,12 +290,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "username",
+          "name": "Username",
           "type": "string",
           "omit": false
         },
         {
-          "name": "password",
+          "name": "Password",
           "type": "string",
           "omit": false
         }
@@ -306,12 +306,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "id",
+          "name": "Id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "username",
+          "name": "Username",
           "type": "string",
           "omit": false
         }
@@ -322,12 +322,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "id",
+          "name": "Id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         }
@@ -338,7 +338,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "playlists",
+          "name": "Playlists",
           "type": "[]Playlist",
           "omit": false
         }
@@ -354,7 +354,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         }
@@ -365,17 +365,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "id",
+          "name": "Id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "items",
+          "name": "Items",
           "type": "[]Track",
           "omit": false
         }
@@ -386,7 +386,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "tracks",
+          "name": "Tracks",
           "type": "[]string",
           "omit": false
         }
@@ -397,7 +397,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "trackIndices",
+          "name": "TrackIndices",
           "type": "[]int",
           "omit": false
         }
@@ -408,13 +408,13 @@
       "extend": "",
       "fields": [
         {
-          "name": "version",
+          "name": "Version",
           "type": "string",
           "omit": false
         },
         {
-          "name": "isSetup",
-          "type": "bool",
+          "name": "IsSetup",
+          "type": "int",
           "omit": false
         }
       ]
@@ -424,17 +424,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "username",
+          "name": "Username",
           "type": "string",
           "omit": false
         },
         {
-          "name": "password",
+          "name": "Password",
           "type": "string",
           "omit": false
         },
         {
-          "name": "passwordConfirm",
+          "name": "PasswordConfirm",
           "type": "string",
           "omit": false
         }
@@ -445,17 +445,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "album",
+          "name": "Album",
           "type": "string",
           "omit": false
         },
         {
-          "name": "artist",
+          "name": "Artist",
           "type": "string",
           "omit": false
         }
@@ -466,12 +466,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "name",
+          "name": "Name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "tracks",
+          "name": "Tracks",
           "type": "[]ExportTrack",
           "omit": false
         }
@@ -482,12 +482,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "username",
+          "name": "Username",
           "type": "string",
           "omit": false
         },
         {
-          "name": "playlists",
+          "name": "Playlists",
           "type": "[]ExportPlaylist",
           "omit": false
         }
@@ -498,7 +498,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "users",
+          "name": "Users",
           "type": "[]ExportUser",
           "omit": false
         }
