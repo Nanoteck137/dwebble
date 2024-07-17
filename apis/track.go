@@ -1,18 +1,24 @@
-package handlers
+package apis
 
 import (
 	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func (h *Handlers) HandleGetTracks(c echo.Context) error {
+type trackApi struct {
+	app core.App
+}
+
+func (api *trackApi) HandleGetTracks(c echo.Context) error {
 	f := c.QueryParam("filter")
 	s := c.QueryParam("sort")
 
-	tracks, err := h.db.GetAllTracks(c.Request().Context(), f, s)
+	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, s)
 	if err != nil {
 		return err
 	}
@@ -26,10 +32,10 @@ func (h *Handlers) HandleGetTracks(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -42,9 +48,9 @@ func (h *Handlers) HandleGetTracks(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func (h *Handlers) HandleGetTrackById(c echo.Context) error {
+func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 	id := c.Param("id")
-	track, err := h.db.GetTrackById(c.Request().Context(), id)
+	track, err := api.app.DB().GetTrackById(c.Request().Context(), id)
 	if err != nil {
 		return err
 	}
@@ -54,10 +60,10 @@ func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -68,24 +74,30 @@ func (h *Handlers) HandleGetTrackById(c echo.Context) error {
 	}))
 }
 
-func (h *Handlers) InstallTrackHandlers(group Group) {
+func InstallTrackHandlers(app core.App, group handlers.Group) {
+	api := trackApi{app: app}
+
+	requireSetup := RequireSetup(app)
+
 	group.Register(
-		Handler{
+		handlers.Handler{
 			Name:        "GetTracks",
 			Path:        "/tracks",
 			Method:      http.MethodGet,
 			DataType:    types.GetTracks{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetTracks,
+			HandlerFunc: api.HandleGetTracks,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		Handler{
+		handlers.Handler{
 			Name:        "GetTrackById",
 			Path:        "/tracks/:id",
 			Method:      http.MethodGet,
 			DataType:    types.GetTrackById{},
 			BodyType:    nil,
-			HandlerFunc: h.HandleGetTrackById,
+			HandlerFunc: api.HandleGetTrackById,
+			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)
 }

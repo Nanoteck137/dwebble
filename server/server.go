@@ -104,11 +104,10 @@ func New(app core.App) *echo.Echo {
 
 	h := handlers.New(app.DB(), app.Config().LibraryDir, app.WorkDir())
 
-
 	g := NewEchoGroup(app, e, "/api/v1")
 	apis.InstallArtistHandlers(app, g)
 	apis.InstallAlbumHandlers(app, g)
-	h.InstallTrackHandlers(g)
+	apis.InstallTrackHandlers(app, g)
 	h.InstallSyncHandlers(g)
 	h.InstallQueueHandlers(g)
 	h.InstallTagHandlers(g)
@@ -129,7 +128,7 @@ func ServerRoutes(app core.App) []Route {
 	g := NewRouteGroup("/api/v1")
 	apis.InstallArtistHandlers(app, g)
 	apis.InstallAlbumHandlers(app, g)
-	h.InstallTrackHandlers(g)
+	apis.InstallTrackHandlers(app, g)
 	h.InstallSyncHandlers(g)
 	h.InstallQueueHandlers(g)
 	h.InstallTagHandlers(g)
