@@ -61,7 +61,7 @@ func (api *systemApi) HandlePostSystemSetup(c echo.Context) error {
 }
 
 func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
-	user, err := User(api.app.DB(), c)
+	user, err := User(api.app, c)
 	if err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 }
 
 func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
-	user, err := User(api.app.DB(), c)
+	user, err := User(api.app, c)
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/nanoteck137/dwebble/config"
+	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/migrations"
@@ -20,14 +21,14 @@ func runMigrateUp(db *database.Database) error {
 var upCmd = &cobra.Command{
 	Use: "up",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.LoadedConfig.BootstrapDataDir()
+		app := core.NewBaseApp(&config.LoadedConfig)
 
-		db, err := database.Open(workDir)
+		err := app.Bootstrap()
 		if err != nil {
-			log.Fatal("Failed to open database", "err", err)
+			log.Fatal("Failed to bootstrap app", "err", err)
 		}
 
-		err = runMigrateUp(db)
+		err = runMigrateUp(app.DB())
 		if err != nil {
 			log.Fatal("Failed to run migrate up", "err", err)
 		}
@@ -37,14 +38,14 @@ var upCmd = &cobra.Command{
 var downCmd = &cobra.Command{
 	Use: "down",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.LoadedConfig.BootstrapDataDir()
+		app := core.NewBaseApp(&config.LoadedConfig)
 
-		db, err := database.Open(workDir)
+		err := app.Bootstrap()
 		if err != nil {
-			log.Fatal("Failed to open database", "err", err)
+			log.Fatal("Failed to bootstrap app", "err", err)
 		}
 
-		err = goose.Down(db.RawConn, ".")
+		err = goose.Down(app.DB().RawConn, ".")
 		if err != nil {
 			log.Fatal("Failed to run migrate down", "err", err)
 		}
@@ -58,14 +59,7 @@ var createCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		name := args[0]
 
-		workDir, err := config.LoadedConfig.BootstrapDataDir()
-
-		db, err := database.Open(workDir)
-		if err != nil {
-			log.Fatal("Failed to open database", "err", err)
-		}
-
-		err = goose.Create(db.RawConn, "./migrations", name, "sql")
+		err := goose.Create(nil, "./migrations", name, "sql")
 		if err != nil {
 			log.Fatal("Failed to create migration", "err", err)
 		}

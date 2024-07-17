@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/nanoteck137/dwebble/config"
+	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
-	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/spf13/cobra"
 )
@@ -40,18 +40,15 @@ var libraryPrint = &cobra.Command{
 var librarySync = &cobra.Command{
 	Use: "sync",
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir, err := config.LoadedConfig.BootstrapDataDir()
-		if err != nil {
-			log.Fatal("Failed to bootstrap data dir", "err", err)
-		}
+		app := core.NewBaseApp(&config.LoadedConfig)
 
-		db, err := database.Open(workDir)
+		err := app.Bootstrap()
 		if err != nil {
-			log.Fatal("Failed to open database", "err", err)
+			log.Fatal("Failed to bootstrap app", "err", err)
 		}
 
 		// TODO(patrik): Maybe create a flag to run this on startup
-		err = runMigrateUp(db)
+		err = runMigrateUp(app.DB())
 		if err != nil {
 			log.Fatal("Failed to run migration up", "err", err)
 		}
@@ -61,7 +58,7 @@ var librarySync = &cobra.Command{
 			log.Fatal("Failed to read library", "err", err)
 		}
 
-		err = lib.Sync(workDir, db)
+		err = lib.Sync(app.WorkDir(), app.DB())
 		if err != nil {
 			log.Fatal("Failed to sync library", "err", err)
 		}

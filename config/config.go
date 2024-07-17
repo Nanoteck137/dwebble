@@ -23,33 +23,6 @@ func (c *Config) WorkDir() types.WorkDir {
 	return types.WorkDir(c.DataDir)
 }
 
-// TODO(patrik): Remove
-func (c *Config) BootstrapDataDir() (types.WorkDir, error) {
-	workDir := c.WorkDir()
-
-	err := os.MkdirAll(workDir.OriginalTracksDir(), 0755)
-	if err != nil {
-		return workDir, err
-	}
-
-	err = os.MkdirAll(workDir.MobileTracksDir(), 0755)
-	if err != nil {
-		return workDir, err
-	}
-
-	err = os.MkdirAll(workDir.TranscodeDir(), 0755)
-	if err != nil {
-		return workDir, err
-	}
-
-	err = os.MkdirAll(workDir.ImagesDir(), 0755)
-	if err != nil {
-		return workDir, err
-	}
-
-	return workDir, nil
-}
-
 func setDefaults() {
 	viper.SetDefault("listen_addr", ":3000")
 	viper.BindEnv("data_dir")

@@ -6,7 +6,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
-	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
@@ -55,7 +54,7 @@ func (api *authApi) HandlePostSignin(c echo.Context) error {
 		// "exp":    time.Now().Add(1000 * time.Second).Unix(),
 	})
 
-	tokenString, err := token.SignedString(([]byte)(config.LoadedConfig.JwtSecret))
+	tokenString, err := token.SignedString(([]byte)(api.app.Config().JwtSecret))
 	if err != nil {
 		return err
 	}
@@ -66,7 +65,7 @@ func (api *authApi) HandlePostSignin(c echo.Context) error {
 }
 
 func (api *authApi) HandleGetMe(c echo.Context) error {
-	user, err := User(api.app.DB(), c)
+	user, err := User(api.app, c)
 	if err != nil {
 		return err
 	}

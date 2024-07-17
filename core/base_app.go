@@ -61,12 +61,6 @@ func (app *BaseApp) Bootstrap() error {
 		return err
 	}
 
-	// TODO(patrik): Remove
-	err = os.MkdirAll(workDir.TranscodeDir(), 0755)
-	if err != nil {
-		return err
-	}
-
 	err = os.MkdirAll(workDir.ImagesDir(), 0755)
 	if err != nil {
 		return err
