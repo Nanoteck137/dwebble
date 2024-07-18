@@ -8,7 +8,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
-	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -55,7 +54,7 @@ func (api *syncApi) HandlePostSync(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
-func InstallSyncHandlers(app core.App, group handlers.Group) {
+func InstallSyncHandlers(app core.App, group Group) {
 	api := syncApi{
 		app:     app,
 		syncing: atomic.Bool{},
@@ -64,7 +63,7 @@ func InstallSyncHandlers(app core.App, group handlers.Group) {
 	requireSetup := RequireSetup(app)
 
 	group.Register(
-		handlers.Handler{
+		Handler{
 			Name:        "GetSyncStatus",
 			Path:        "/sync",
 			Method:      http.MethodGet,
@@ -74,7 +73,7 @@ func InstallSyncHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "RunSync",
 			Path:        "/sync",
 			Method:      http.MethodPost,

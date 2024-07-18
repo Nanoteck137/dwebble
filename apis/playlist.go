@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/handlers"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -100,10 +100,10 @@ func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 			Id:                track.Id,
 			Number:            item.ItemIndex,
 			Name:              track.Name,
-			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -210,13 +210,13 @@ func (api *playlistApi) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(nil))
 }
 
-func InstallPlaylistHandlers(app core.App, group handlers.Group) {
+func InstallPlaylistHandlers(app core.App, group Group) {
 	api := playlistApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
 	group.Register(
-		handlers.Handler{
+		Handler{
 			Name:        "GetPlaylists",
 			Path:        "/playlists",
 			Method:      http.MethodGet,
@@ -226,7 +226,7 @@ func InstallPlaylistHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "CreatePlaylist",
 			Path:        "/playlists",
 			Method:      http.MethodPost,
@@ -236,7 +236,7 @@ func InstallPlaylistHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "GetPlaylistById",
 			Path:        "/playlists/:id",
 			Method:      http.MethodGet,
@@ -246,7 +246,7 @@ func InstallPlaylistHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "AddItemsToPlaylist",
 			Path:        "/playlists/:id/items",
 			Method:      http.MethodPost,
@@ -256,7 +256,7 @@ func InstallPlaylistHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "DeletePlaylistItems",
 			Path:        "/playlists/:id/items",
 			Method:      http.MethodDelete,
@@ -266,12 +266,12 @@ func InstallPlaylistHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "MovePlaylistItem",
 			Path:        "/playlists/:id/items/move",
 			Method:      http.MethodPost,
 			DataType:    nil,
-			BodyType:    types.PostPlaylistItemsByIdBody{},
+			BodyType:    types.PostPlaylistsItemMoveByIdBody{},
 			HandlerFunc: api.HandlePostPlaylistsItemsMoveById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},

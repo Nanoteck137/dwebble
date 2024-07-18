@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/handlers"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -32,10 +32,10 @@ func (api *trackApi) HandleGetTracks(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -60,10 +60,10 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -74,13 +74,13 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 	}))
 }
 
-func InstallTrackHandlers(app core.App, group handlers.Group) {
+func InstallTrackHandlers(app core.App, group Group) {
 	api := trackApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
 	group.Register(
-		handlers.Handler{
+		Handler{
 			Name:        "GetTracks",
 			Path:        "/tracks",
 			Method:      http.MethodGet,
@@ -90,7 +90,7 @@ func InstallTrackHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "GetTrackById",
 			Path:        "/tracks/:id",
 			Method:      http.MethodGet,

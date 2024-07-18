@@ -5,7 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -34,13 +33,13 @@ func (api *tagApi) HandleGetTags(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func InstallTagHandlers(app core.App, group handlers.Group) {
+func InstallTagHandlers(app core.App, group Group) {
 	api := tagApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
 	group.Register(
-		handlers.Handler{
+		Handler{
 			Name:        "GetTags",
 			Path:        "/tags",
 			Method:      http.MethodGet,

@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -136,13 +135,13 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 	return types.NewApiError(400, "Import is not supported right now")
 }
 
-func InstallSystemHandlers(app core.App, group handlers.Group) {
+func InstallSystemHandlers(app core.App, group Group) {
 	api := systemApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
 	group.Register(
-		handlers.Handler{
+		Handler{
 			Name:        "GetSystemInfo",
 			Path:        "/system/info",
 			Method:      http.MethodGet,
@@ -151,7 +150,7 @@ func InstallSystemHandlers(app core.App, group handlers.Group) {
 			HandlerFunc: api.HandleGetSystemInfo,
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "RunSystemSetup",
 			Path:        "/system/setup",
 			Method:      http.MethodPost,
@@ -160,7 +159,7 @@ func InstallSystemHandlers(app core.App, group handlers.Group) {
 			HandlerFunc: api.HandlePostSystemSetup,
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "SystemExport",
 			Path:        "/system/export",
 			Method:      http.MethodPost,
@@ -170,7 +169,7 @@ func InstallSystemHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "SystemImport",
 			Path:        "/system/import",
 			Method:      http.MethodPost,

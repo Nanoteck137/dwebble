@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/handlers"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -28,10 +28,10 @@ func (api *queueApi) HandlePostQueue(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -42,13 +42,13 @@ func (api *queueApi) HandlePostQueue(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func InstallQueueHandlers(app core.App, group handlers.Group) {
+func InstallQueueHandlers(app core.App, group Group) {
 	api := queueApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
 	group.Register(
-		handlers.Handler{
+		Handler{
 			Name:        "CreateQueue",
 			Path:        "/queue",
 			Method:      http.MethodPost,

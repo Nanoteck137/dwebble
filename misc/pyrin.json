@@ -404,6 +404,22 @@
       ]
     },
     {
+      "name": "PostPlaylistsItemMoveByIdBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "TrackId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "ToIndex",
+          "type": "int",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetSystemInfo",
       "extend": "",
       "fields": [
@@ -594,15 +610,15 @@
       "name": "Signup",
       "method": "POST",
       "path": "/api/v1/auth/signup",
-      "responseType": "PostAuthSignup",
-      "bodyType": "PostAuthSignupBody"
+      "responseType": "PostAuthSignupBody",
+      "bodyType": ""
     },
     {
       "name": "Signin",
       "method": "POST",
       "path": "/api/v1/auth/signin",
-      "responseType": "PostAuthSignin",
-      "bodyType": "PostAuthSigninBody"
+      "responseType": "PostAuthSigninBody",
+      "bodyType": ""
     },
     {
       "name": "GetMe",
@@ -622,8 +638,8 @@
       "name": "CreatePlaylist",
       "method": "POST",
       "path": "/api/v1/playlists",
-      "responseType": "PostPlaylist",
-      "bodyType": "PostPlaylistBody"
+      "responseType": "PostPlaylistBody",
+      "bodyType": ""
     },
     {
       "name": "GetPlaylistById",
@@ -636,22 +652,22 @@
       "name": "AddItemsToPlaylist",
       "method": "POST",
       "path": "/api/v1/playlists/:id/items",
-      "responseType": "",
-      "bodyType": "PostPlaylistItemsByIdBody"
+      "responseType": "PostPlaylistItemsByIdBody",
+      "bodyType": ""
     },
     {
       "name": "DeletePlaylistItems",
       "method": "DELETE",
       "path": "/api/v1/playlists/:id/items",
-      "responseType": "",
-      "bodyType": "DeletePlaylistItemsByIdBody"
+      "responseType": "DeletePlaylistItemsByIdBody",
+      "bodyType": ""
     },
     {
       "name": "MovePlaylistItem",
       "method": "POST",
       "path": "/api/v1/playlists/:id/items/move",
-      "responseType": "",
-      "bodyType": "PostPlaylistItemsByIdBody"
+      "responseType": "PostPlaylistsItemMoveByIdBody",
+      "bodyType": ""
     },
     {
       "name": "GetSystemInfo",
@@ -664,8 +680,8 @@
       "name": "RunSystemSetup",
       "method": "POST",
       "path": "/api/v1/system/setup",
-      "responseType": "",
-      "bodyType": "PostSystemSetupBody"
+      "responseType": "PostSystemSetupBody",
+      "bodyType": ""
     },
     {
       "name": "SystemExport",

@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/handlers"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -30,7 +30,7 @@ func (api *albumApi) HandleGetAlbums(c echo.Context) error {
 		res.Albums[i] = types.Album{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: handlers.ConvertAlbumCoverURL(c, album.CoverArt),
+			CoverArt: utils.ConvertAlbumCoverURL(c, album.CoverArt),
 			ArtistId: album.ArtistId,
 		}
 	}
@@ -49,7 +49,7 @@ func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
 		Album: types.Album{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: handlers.ConvertAlbumCoverURL(c, album.CoverArt),
+			CoverArt: utils.ConvertAlbumCoverURL(c, album.CoverArt),
 			ArtistId: album.ArtistId,
 		},
 	}))
@@ -77,10 +77,10 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 			Id:                track.Id,
 			Number:            track.Number,
 			Name:              track.Name,
-			CoverArt:          handlers.ConvertTrackCoverURL(c, track.CoverArt),
+			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
 			Duration:          track.Duration,
-			BestQualityFile:   handlers.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: handlers.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
 			AlbumId:           track.AlbumId,
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
@@ -93,13 +93,13 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 	return c.JSON(200, types.NewApiSuccessResponse(res))
 }
 
-func InstallAlbumHandlers(app core.App, group handlers.Group) {
+func InstallAlbumHandlers(app core.App, group Group) {
 	api := albumApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
 	group.Register(
-		handlers.Handler{
+		Handler{
 			Name:        "GetAlbums",
 			Path:        "/albums",
 			Method:      http.MethodGet,
@@ -109,7 +109,7 @@ func InstallAlbumHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "GetAlbumById",
 			Path:        "/albums/:id",
 			Method:      http.MethodGet,
@@ -119,7 +119,7 @@ func InstallAlbumHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "GetAlbumTracks",
 			Path:        "/albums/:id/tracks",
 			Method:      http.MethodGet,

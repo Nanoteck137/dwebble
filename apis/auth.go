@@ -7,7 +7,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/handlers"
 	"github.com/nanoteck137/dwebble/types"
 )
 
@@ -76,13 +75,13 @@ func (api *authApi) HandleGetMe(c echo.Context) error {
 	}))
 }
 
-func InstallAuthHandlers(app core.App, group handlers.Group) {
+func InstallAuthHandlers(app core.App, group Group) {
 	api := authApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
 	group.Register(
-		handlers.Handler{
+		Handler{
 			Name:        "Signup",
 			Path:        "/auth/signup",
 			Method:      http.MethodPost,
@@ -92,7 +91,7 @@ func InstallAuthHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "Signin",
 			Path:        "/auth/signin",
 			Method:      http.MethodPost,
@@ -102,7 +101,7 @@ func InstallAuthHandlers(app core.App, group handlers.Group) {
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
-		handlers.Handler{
+		Handler{
 			Name:        "GetMe",
 			Path:        "/auth/me",
 			Method:      http.MethodGet,

@@ -9,7 +9,7 @@ import (
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core/log"
-	"github.com/nanoteck137/dwebble/server"
+	"github.com/nanoteck137/dwebble/tools/routes"
 	"github.com/nanoteck137/pyrin/ast"
 	"github.com/nanoteck137/pyrin/client"
 	"github.com/nanoteck137/pyrin/resolve"
@@ -93,7 +93,7 @@ func (c *Context) getType(t reflect.Type) ast.Typespec {
 }
 
 func main() {
-	routes := server.ServerRoutes(nil)
+	routes := routes.ServerRoutes(nil)
 
 	// d, err := os.ReadFile("./types/api_types.go")
 	// if err != nil {
@@ -246,17 +246,19 @@ func main() {
 				log.Fatal("Failed to resolve", "name", t.Name(), "err", err)
 			}
 
-			responseType = t.Name()
+			responseType = name
 		}
 
 		if route.Body != nil {
 			t := reflect.TypeOf(route.Body)
-			_, err := resolver.Resolve(t.Name())
+			name := c.translateName(t.Name(), t.PkgPath())
+
+			_, err := resolver.Resolve(name)
 			if err != nil {
 				log.Fatal("Failed to resolve", "name", t.Name(), "err", err)
 			}
 
-			bodyType = t.Name()
+			responseType = name
 		}
 
 		s.Endpoints = append(s.Endpoints, client.Endpoint{
