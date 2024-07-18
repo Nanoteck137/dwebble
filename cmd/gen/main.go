@@ -92,23 +92,49 @@ func (c *Context) getType(t reflect.Type) ast.Typespec {
 	return nil
 }
 
+func printIndent(indent int) {
+	if indent == 0 {
+		return
+	}
+
+	for i := 0; i < indent; i++ {
+		fmt.Print("  ")
+	}
+}
+
+func checkType(t reflect.Type, indent int) {
+	switch t.Kind() {
+	case reflect.Struct:
+		printStruct(t, indent + 1)
+	case reflect.Slice:
+		checkType(t.Elem(), indent)
+	}
+}
+
+func printStruct(t reflect.Type, indent int) {
+		if t.Kind() != reflect.Struct {
+			log.Fatal("Type needs to be struct")
+		}
+
+		printIndent(indent)
+		fmt.Println("Name: ", t.Name())
+
+		for i := 0; i < t.NumField(); i++ {
+			sf := t.Field(i)
+
+			// printIndent(indent)
+			// fmt.Printf("sf.Type.Kind(): %v\n", sf.Type.Kind())
+
+			checkType(sf.Type, indent)
+		}
+	}
+
 func main() {
 	routes := routes.ServerRoutes(nil)
-
-	// d, err := os.ReadFile("./types/api_types.go")
-	// if err != nil {
-	// 	log.Fatal("Failed to read api types source", "err", err)
-	// }
-	//
-	// decls := parser.Parse(string(d))
 
 	s := client.Server{}
 
 	resolver := resolve.New()
-
-	// for _, decl := range decls {
-	// 	resolver.AddSymbolDecl(decl)
-	// }
 
 	c := Context{
 		types:    map[string]reflect.Type{},
@@ -116,30 +142,19 @@ func main() {
 		names:    map[string]string{},
 	}
 
-	_ = c
+	for _, route := range routes {
+		if route.Data != nil {
+			t := reflect.TypeOf(route.Data)
+			printStruct(t, 0)
+		}
 
-	// for _, route := range routes {
-	// 	if route.Data != nil {
-	// 		t := reflect.TypeOf(route.Data)
-	// 		pretty.Println(t.String())
-	//
-	// 		fullName := t.PkgPath() + "-" + t.Name()
-	// 		fmt.Printf("fullName: %v\n", fullName)
-	//
-	// 		name := t.Name()
-	//
-	// 		used, exists := c.nameUsed[name]
-	// 		if !exists {
-	// 			c.nameUsed[name] = 1
-	// 			c.names[fullName] = name
-	// 		} else {
-	// 			c.nameUsed[name] = used + 1
-	// 			c.names[fullName] = name + strconv.Itoa(used+1)
-	// 		}
-	//
-	// 		// name, exists := c.names[fullName]
-	// 	}
-	// }
+		if route.Body != nil {
+			t := reflect.TypeOf(route.Body)
+			printStruct(t, 0)
+		}
+	}
+
+	return
 
 	for _, route := range routes {
 		if route.Data != nil {
