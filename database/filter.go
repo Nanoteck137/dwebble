@@ -1,4 +1,4 @@
-package filtergen
+package database
 
 import (
 	"fmt"
@@ -15,27 +15,27 @@ func generateTableSelect(table *filter.Table, ids []string) *goqu.SelectDataset 
 		Where(goqu.I(table.WhereName).In(ids))
 }
 
-func Generate(e filter.FilterExpr) (exp.Expression, error) {
+func generateFilter(e filter.FilterExpr) (exp.Expression, error) {
 	switch e := e.(type) {
 	case *filter.AndExpr:
-		left, err := Generate(e.Left)
+		left, err := generateFilter(e.Left)
 		if err != nil {
 			return nil, err
 		}
 
-		right, err := Generate(e.Right)
+		right, err := generateFilter(e.Right)
 		if err != nil {
 			return nil, err
 		}
 
 		return goqu.L("(? AND ?)", left, right), nil
 	case *filter.OrExpr:
-		left, err := Generate(e.Left)
+		left, err := generateFilter(e.Left)
 		if err != nil {
 			return nil, err
 		}
 
-		right, err := Generate(e.Right)
+		right, err := generateFilter(e.Right)
 		if err != nil {
 			return nil, err
 		}
@@ -68,7 +68,7 @@ func Generate(e filter.FilterExpr) (exp.Expression, error) {
 	return nil, fmt.Errorf("Unimplemented expr %T", e)
 }
 
-func GenerateSort(e sort.SortExpr) ([]exp.OrderedExpression, error) {
+func generateSort(e sort.SortExpr) ([]exp.OrderedExpression, error) {
 	switch e := e.(type) {
 	case *sort.SortExprSort:
 		var items []exp.OrderedExpression

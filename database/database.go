@@ -9,7 +9,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	goqusqlite3 "github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/nanoteck137/dwebble/database/filtergen"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/types"
 
@@ -97,7 +96,7 @@ func init() {
 	goqu.RegisterDialect("sqlite_returning", opts)
 }
 
-func FullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expression, error) {
+func fullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expression, error) {
 	ast, err := parser.ParseExpr(filterStr)
 	if err != nil {
 		return nil, err
@@ -109,7 +108,7 @@ func FullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expr
 		return nil, err
 	}
 
-	re, err := filtergen.Generate(e)
+	re, err := generateFilter(e)
 	if err != nil {
 		return nil, err
 	}

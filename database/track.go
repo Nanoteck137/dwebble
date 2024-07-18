@@ -10,7 +10,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/core/log"
-	"github.com/nanoteck137/dwebble/database/filtergen"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/sort"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -218,7 +217,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 	a := TrackResolverAdapter{}
 
 	if filterStr != "" {
-		re, err := FullParseFilter(&a, filterStr)
+		re, err := fullParseFilter(&a, filterStr)
 		if err != nil {
 			return nil, err
 		}
@@ -238,7 +237,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 
 		re, err := r.Resolve(e)
 
-		ge, err := filtergen.GenerateSort(re)
+		ge, err := generateSort(re)
 		if err != nil {
 			return nil, err
 		}

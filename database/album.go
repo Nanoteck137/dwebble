@@ -76,7 +76,7 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album
 
 	if filterStr != "" {
 		a := AlbumResolverAdapter{}
-		re, err := FullParseFilter(&a, filterStr)
+		re, err := fullParseFilter(&a, filterStr)
 		if err != nil {
 			return nil, err
 		}
