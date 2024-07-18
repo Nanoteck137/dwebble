@@ -44,15 +44,7 @@ func (r *RouteGroup) Register(handlers ...apis.Handler) {
 
 func ServerRoutes(app core.App) []Route {
 	g := NewRouteGroup("/api/v1")
-	apis.InstallArtistHandlers(app, g)
-	apis.InstallAlbumHandlers(app, g)
-	apis.InstallTrackHandlers(app, g)
-	apis.InstallSyncHandlers(app, g)
-	apis.InstallQueueHandlers(app, g)
-	apis.InstallTagHandlers(app, g)
-	apis.InstallAuthHandlers(app, g)
-	apis.InstallPlaylistHandlers(app, g)
-	apis.InstallSystemHandlers(app, g)
+	apis.InstallHandlers(app, g)
 
 	return g.Routes
 }
