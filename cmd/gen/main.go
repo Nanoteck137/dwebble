@@ -12,6 +12,7 @@ import (
 	"github.com/nanoteck137/dwebble/tools/routes"
 	"github.com/nanoteck137/pyrin/ast"
 	"github.com/nanoteck137/pyrin/client"
+	"github.com/nanoteck137/pyrin/extract"
 	"github.com/nanoteck137/pyrin/resolve"
 	"github.com/nanoteck137/pyrin/util"
 )
@@ -105,29 +106,29 @@ func printIndent(indent int) {
 func checkType(t reflect.Type, indent int) {
 	switch t.Kind() {
 	case reflect.Struct:
-		printStruct(t, indent + 1)
+		printStruct(t, indent+1)
 	case reflect.Slice:
 		checkType(t.Elem(), indent)
 	}
 }
 
 func printStruct(t reflect.Type, indent int) {
-		if t.Kind() != reflect.Struct {
-			log.Fatal("Type needs to be struct")
-		}
-
-		printIndent(indent)
-		fmt.Println("Name: ", t.Name())
-
-		for i := 0; i < t.NumField(); i++ {
-			sf := t.Field(i)
-
-			// printIndent(indent)
-			// fmt.Printf("sf.Type.Kind(): %v\n", sf.Type.Kind())
-
-			checkType(sf.Type, indent)
-		}
+	if t.Kind() != reflect.Struct {
+		log.Fatal("Type needs to be struct")
 	}
+
+	printIndent(indent)
+	fmt.Println("Name: ", t.Name())
+
+	for i := 0; i < t.NumField(); i++ {
+		sf := t.Field(i)
+
+		// printIndent(indent)
+		// fmt.Printf("sf.Type.Kind(): %v\n", sf.Type.Kind())
+
+		checkType(sf.Type, indent)
+	}
+}
 
 func main() {
 	routes := routes.ServerRoutes(nil)
@@ -136,116 +137,30 @@ func main() {
 
 	resolver := resolve.New()
 
-	c := Context{
-		types:    map[string]reflect.Type{},
-		nameUsed: map[string]int{},
-		names:    map[string]string{},
-	}
+	c2 := extract.NewContext()
 
 	for _, route := range routes {
 		if route.Data != nil {
-			t := reflect.TypeOf(route.Data)
-			printStruct(t, 0)
+			c2.ExtractTypes(route.Data)
 		}
 
 		if route.Body != nil {
-			t := reflect.TypeOf(route.Body)
-			printStruct(t, 0)
+			c2.ExtractTypes(route.Body)
 		}
 	}
 
-	return
+	pretty.Println(c2)
 
-	for _, route := range routes {
-		if route.Data != nil {
-			t := reflect.TypeOf(route.Data)
-			pretty.Println(t.String())
-
-			fmt.Printf("t.PkgPath(): %v\n", t.PkgPath())
-
-			if t.Kind() != reflect.Struct {
-				log.Fatal("Route data need to be struct", "name", route.Name)
-			}
-
-			s := ast.StructDecl{}
-			s.Name = c.RegisterName(t.Name(), t.PkgPath())
-
-			for i := 0; i < t.NumField(); i++ {
-				sf := t.Field(i)
-
-				if sf.Type.Kind() == reflect.Struct {
-					s.Extend = sf.Name
-					continue
-				}
-
-				s.Fields = append(s.Fields, &ast.Field{
-					Name: sf.Name,
-					Type: c.getType(sf.Type),
-					Omit: false,
-				})
-			}
-
-			resolver.AddSymbolDecl(&s)
-		}
-
-		if route.Body != nil {
-			t := reflect.TypeOf(route.Body)
-			pretty.Println(t.String())
-
-			fmt.Printf("t.PkgPath(): %v\n", t.PkgPath())
-
-			if t.Kind() != reflect.Struct {
-				log.Fatal("Route data need to be struct", "name", route.Name)
-			}
-
-			s := ast.StructDecl{}
-			s.Name = c.RegisterName(t.Name(), t.PkgPath())
-
-			for i := 0; i < t.NumField(); i++ {
-				sf := t.Field(i)
-
-				if sf.Type.Kind() == reflect.Struct {
-					s.Extend = sf.Name
-					continue
-				}
-
-				s.Fields = append(s.Fields, &ast.Field{
-					Name: sf.Name,
-					Type: c.getType(sf.Type),
-					Omit: false,
-				})
-			}
-
-			resolver.AddSymbolDecl(&s)
-		}
+	decls, err := c2.ConvertToDecls()
+	if err != nil {
+		log.Fatal("Failed to convert extract context to decls", "err", err)
 	}
 
-	for _, t := range c.types {
-		s := ast.StructDecl{}
+	pretty.Println(decls)
 
-		s.Name = c.translateName(t.Name(), t.PkgPath())
-
-		for i := 0; i < t.NumField(); i++ {
-			sf := t.Field(i)
-
-			if sf.Type.Kind() == reflect.Struct {
-				s.Extend = sf.Name
-				continue
-			}
-
-			s.Fields = append(s.Fields, &ast.Field{
-				Name: sf.Name,
-				Type: c.getType(sf.Type),
-				Omit: false,
-			})
-		}
-
-		resolver.AddSymbolDecl(&s)
+	for _, decl := range decls {
+		resolver.AddSymbolDecl(decl)
 	}
-
-	pretty.Println(c)
-	//
-	// pretty.Println(resolver)
 
 	for _, route := range routes {
 		responseType := ""
@@ -254,9 +169,12 @@ func main() {
 		if route.Data != nil {
 			t := reflect.TypeOf(route.Data)
 
-			name := c.translateName(t.Name(), t.PkgPath())
+			name, err := c2.TranslateName(t.Name(), t.PkgPath())
+			if err != nil {
+				log.Fatal("Failed to translate name", "name", t.Name(), "pkg", t.PkgPath(), "err", err)
+			}
 
-			_, err := resolver.Resolve(name)
+			_, err = resolver.Resolve(name)
 			if err != nil {
 				log.Fatal("Failed to resolve", "name", t.Name(), "err", err)
 			}
@@ -266,9 +184,13 @@ func main() {
 
 		if route.Body != nil {
 			t := reflect.TypeOf(route.Body)
-			name := c.translateName(t.Name(), t.PkgPath())
 
-			_, err := resolver.Resolve(name)
+			name, err := c2.TranslateName(t.Name(), t.PkgPath())
+			if err != nil {
+				log.Fatal("Failed to translate name", "name", t.Name(), "pkg", t.PkgPath(), "err", err)
+			}
+
+			_, err = resolver.Resolve(name)
 			if err != nil {
 				log.Fatal("Failed to resolve", "name", t.Name(), "err", err)
 			}

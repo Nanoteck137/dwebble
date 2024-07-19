@@ -5,17 +5,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Picture",
+          "name": "picture",
           "type": "string",
           "omit": false
         }
@@ -26,7 +26,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Artists",
+          "name": "artists",
           "type": "[]Artist",
           "omit": false
         }
@@ -42,22 +42,22 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "CoverArt",
+          "name": "coverArt",
           "type": "string",
           "omit": false
         },
         {
-          "name": "ArtistId",
+          "name": "artistId",
           "type": "string",
           "omit": false
         }
@@ -68,7 +68,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Albums",
+          "name": "albums",
           "type": "[]Album",
           "omit": false
         }
@@ -79,7 +79,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Albums",
+          "name": "albums",
           "type": "[]Album",
           "omit": false
         }
@@ -95,67 +95,67 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Number",
+          "name": "number",
           "type": "int",
           "omit": false
         },
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "CoverArt",
+          "name": "coverArt",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Duration",
+          "name": "duration",
           "type": "int",
           "omit": false
         },
         {
-          "name": "BestQualityFile",
+          "name": "bestQualityFile",
           "type": "string",
           "omit": false
         },
         {
-          "name": "MobileQualityFile",
+          "name": "mobileQualityFile",
           "type": "string",
           "omit": false
         },
         {
-          "name": "AlbumId",
+          "name": "albumId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "ArtistId",
+          "name": "artistId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "AlbumName",
+          "name": "albumName",
           "type": "string",
           "omit": false
         },
         {
-          "name": "ArtistName",
+          "name": "artistName",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Tags",
+          "name": "tags",
           "type": "[]string",
           "omit": false
         },
         {
-          "name": "Genres",
+          "name": "genres",
           "type": "[]string",
           "omit": false
         }
@@ -166,7 +166,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Tracks",
+          "name": "tracks",
           "type": "[]Track",
           "omit": false
         }
@@ -177,7 +177,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Tracks",
+          "name": "tracks",
           "type": "[]Track",
           "omit": false
         }
@@ -193,7 +193,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "IsSyncing",
+          "name": "isSyncing",
           "type": "int",
           "omit": false
         }
@@ -204,7 +204,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Tracks",
+          "name": "tracks",
           "type": "[]Track",
           "omit": false
         }
@@ -215,12 +215,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         }
@@ -231,7 +231,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Tags",
+          "name": "tags",
           "type": "[]Tag",
           "omit": false
         }
@@ -242,12 +242,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Username",
+          "name": "username",
           "type": "string",
           "omit": false
         }
@@ -258,17 +258,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "Username",
+          "name": "username",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Password",
+          "name": "password",
           "type": "string",
           "omit": false
         },
         {
-          "name": "PasswordConfirm",
+          "name": "passwordConfirm",
           "type": "string",
           "omit": false
         }
@@ -279,7 +279,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Token",
+          "name": "token",
           "type": "string",
           "omit": false
         }
@@ -290,12 +290,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "Username",
+          "name": "username",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Password",
+          "name": "password",
           "type": "string",
           "omit": false
         }
@@ -306,12 +306,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Username",
+          "name": "username",
           "type": "string",
           "omit": false
         }
@@ -322,12 +322,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         }
@@ -338,7 +338,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Playlists",
+          "name": "playlists",
           "type": "[]Playlist",
           "omit": false
         }
@@ -354,7 +354,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         }
@@ -365,17 +365,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Items",
+          "name": "items",
           "type": "[]Track",
           "omit": false
         }
@@ -386,7 +386,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Tracks",
+          "name": "tracks",
           "type": "[]string",
           "omit": false
         }
@@ -397,7 +397,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "TrackIndices",
+          "name": "trackIndices",
           "type": "[]int",
           "omit": false
         }
@@ -408,12 +408,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "TrackId",
+          "name": "trackId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "ToIndex",
+          "name": "toIndex",
           "type": "int",
           "omit": false
         }
@@ -424,12 +424,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "Version",
+          "name": "version",
           "type": "string",
           "omit": false
         },
         {
-          "name": "IsSetup",
+          "name": "isSetup",
           "type": "int",
           "omit": false
         }
@@ -440,17 +440,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "Username",
+          "name": "username",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Password",
+          "name": "password",
           "type": "string",
           "omit": false
         },
         {
-          "name": "PasswordConfirm",
+          "name": "passwordConfirm",
           "type": "string",
           "omit": false
         }
@@ -461,17 +461,17 @@
       "extend": "",
       "fields": [
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Album",
+          "name": "album",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Artist",
+          "name": "artist",
           "type": "string",
           "omit": false
         }
@@ -482,12 +482,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Tracks",
+          "name": "tracks",
           "type": "[]ExportTrack",
           "omit": false
         }
@@ -498,12 +498,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "Username",
+          "name": "username",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Playlists",
+          "name": "playlists",
           "type": "[]ExportPlaylist",
           "omit": false
         }
@@ -514,7 +514,7 @@
       "extend": "",
       "fields": [
         {
-          "name": "Users",
+          "name": "users",
           "type": "[]ExportUser",
           "omit": false
         }
