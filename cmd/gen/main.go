@@ -74,7 +74,7 @@ func main() {
 				log.Fatal("Failed to resolve", "name", t.Name(), "err", err)
 			}
 
-			responseType = name
+			bodyType = name
 		}
 
 		s.Endpoints = append(s.Endpoints, client.Endpoint{
