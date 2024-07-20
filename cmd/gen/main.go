@@ -13,11 +13,6 @@ import (
 	"github.com/nanoteck137/pyrin/util"
 )
 
-// TODO(patrik):
-//  - Use json names
-//  - Parse omit flag
-//  - General code cleanup
-
 func main() {
 	routes := routes.ServerRoutes(nil)
 
