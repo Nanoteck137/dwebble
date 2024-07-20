@@ -27,7 +27,7 @@
             "-X github.com/nanoteck137/dwebble/config.Commit=${self.dirtyRev or self.rev or "no-commit"}"
           ];
 
-          vendorHash = "sha256-g6yq/zhRVd1pKBk9M/Rk06SvWb4Exu3bUFl8U79RBPA=";
+          vendorHash = "sha256-drGI4xNN9EHzc6Fl3jPjXXScrMXk9XnHnciKAe7WXQs=";
         };
       in
       {
