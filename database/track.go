@@ -31,12 +31,16 @@ func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
 				return t.Id, nil
 			}
 		}
+
+		return "", nil
 	case "genres":
 		for _, g := range genres {
 			if g.Name == strings.ToLower(name) {
 				return g.Id, nil
 			}
 		}
+
+		return "", nil
 	}
 
 	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)

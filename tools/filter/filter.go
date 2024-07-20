@@ -128,7 +128,9 @@ func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, err
 			return nil, err
 		}
 
-		ids = append(ids, id)
+		if id != "" {
+			ids = append(ids, id)
+		}
 	}
 
 	tbl, err := r.adapter.ResolveTable(typ)
