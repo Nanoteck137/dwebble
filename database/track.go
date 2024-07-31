@@ -121,8 +121,8 @@ type Track struct {
 	AlbumName  string
 	ArtistName string
 
-	Tags   string
-	Genres string
+	Tags   sql.NullString
+	Genres sql.NullString
 }
 
 func TrackQuery() *goqu.SelectDataset {
@@ -174,11 +174,11 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.I("artists"),
 			goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))),
 		).
-		Join(
+		LeftJoin(
 			tags.As("tags"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
 		).
-		Join(
+		LeftJoin(
 			genres.As("genres"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("genres.track_id"))),
 		)

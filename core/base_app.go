@@ -46,11 +46,6 @@ func (app *BaseApp) Bootstrap() error {
 
 	workDir := app.config.WorkDir()
 
-	app.db, err = database.Open(workDir)
-	if err != nil {
-		return err
-	}
-
 	err = os.MkdirAll(workDir.OriginalTracksDir(), 0755)
 	if err != nil {
 		return err
@@ -62,6 +57,16 @@ func (app *BaseApp) Bootstrap() error {
 	}
 
 	err = os.MkdirAll(workDir.ImagesDir(), 0755)
+	if err != nil {
+		return err
+	}
+
+	app.db, err = database.Open(workDir)
+	if err != nil {
+		return err
+	}
+
+	err = database.RunMigrateUp(app.db)
 	if err != nil {
 		return err
 	}

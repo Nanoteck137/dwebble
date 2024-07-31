@@ -11,6 +11,7 @@ import (
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/pressly/goose/v3"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -114,4 +115,8 @@ func fullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expr
 	}
 
 	return re, nil
+}
+
+func RunMigrateUp(db *Database) error {
+	return goose.Up(db.RawConn, ".")
 }

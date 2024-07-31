@@ -85,8 +85,8 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
 			ArtistName:        track.ArtistName,
-			Tags:              strings.Split(track.Tags, ","),
-			Genres:            strings.Split(track.Genres, ","),
+			Tags:              strings.Split(track.Tags.String, ","),
+			Genres:            strings.Split(track.Genres.String, ","),
 		}
 	}
 
