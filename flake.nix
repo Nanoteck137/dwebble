@@ -37,6 +37,7 @@
           buildInputs = with pkgs; [
             air
             go
+            gopls
           ];
         };
       }
