@@ -181,7 +181,8 @@ func TrackQuery() *goqu.SelectDataset {
 		LeftJoin(
 			genres.As("genres"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("genres.track_id"))),
-		)
+		).
+		Where(goqu.I("tracks.available").Eq(true))
 
 	return query
 }
