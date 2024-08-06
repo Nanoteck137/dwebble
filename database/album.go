@@ -50,11 +50,12 @@ func (a *AlbumResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, na
 }
 
 type Album struct {
-	Id       string
-	Name     string
-	CoverArt sql.NullString
-	ArtistId string
-	Path     string
+	Id         string
+	Name       string
+	CoverArt   sql.NullString
+	ArtistId   string
+	Path       string
+	ArtistName string
 }
 
 func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album, error) {
@@ -65,6 +66,7 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album
 			"albums.cover_art",
 			"albums.artist_id",
 			"albums.path",
+			"artists.name",
 		).
 		Join(
 			goqu.I("artists"),
@@ -94,7 +96,14 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album
 	var items []Album
 	for rows.Next() {
 		var item Album
-		err := rows.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
+		err := rows.Scan(
+			&item.Id, 
+			&item.Name, 
+			&item.CoverArt, 
+			&item.ArtistId, 
+			&item.Path, 
+			&item.ArtistName,
+		)
 		if err != nil {
 			return nil, err
 		}

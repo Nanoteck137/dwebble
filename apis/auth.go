@@ -69,9 +69,12 @@ func (api *authApi) HandleGetMe(c echo.Context) error {
 		return err
 	}
 
+	isOwner := api.app.DBConfig().OwnerId == user.Id
+
 	return c.JSON(200, types.NewApiSuccessResponse(types.GetAuthMe{
 		Id:       user.Id,
 		Username: user.Username,
+		IsOwner:  isOwner,
 	}))
 }
 

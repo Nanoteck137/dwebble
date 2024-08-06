@@ -28,10 +28,11 @@ func (api *albumApi) HandleGetAlbums(c echo.Context) error {
 
 	for i, album := range albums {
 		res.Albums[i] = types.Album{
-			Id:       album.Id,
-			Name:     album.Name,
-			CoverArt: utils.ConvertAlbumCoverURL(c, album.CoverArt),
-			ArtistId: album.ArtistId,
+			Id:         album.Id,
+			Name:       album.Name,
+			CoverArt:   utils.ConvertAlbumCoverURL(c, album.CoverArt),
+			ArtistId:   album.ArtistId,
+			ArtistName: album.ArtistName,
 		}
 	}
 

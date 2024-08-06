@@ -13,10 +13,11 @@ type Artist struct {
 }
 
 type Album struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
-	CoverArt string `json:"coverArt"`
-	ArtistId string `json:"artistId"`
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	CoverArt   string `json:"coverArt"`
+	ArtistId   string `json:"artistId"`
+	ArtistName string `json:"artistName"`
 }
 
 type Track struct {
@@ -127,6 +128,7 @@ type PostAuthSignin struct {
 type GetAuthMe struct {
 	Id       string `json:"id"`
 	Username string `json:"username"`
+	IsOwner  bool   `json:"isOwner"`
 }
 
 type PostPlaylist struct {

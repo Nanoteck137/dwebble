@@ -60,6 +60,11 @@
           "name": "artistId",
           "type": "string",
           "omit": false
+        },
+        {
+          "name": "artistName",
+          "type": "string",
+          "omit": false
         }
       ]
     },
@@ -313,6 +318,11 @@
         {
           "name": "username",
           "type": "string",
+          "omit": false
+        },
+        {
+          "name": "isOwner",
+          "type": "bool",
           "omit": false
         }
       ]
