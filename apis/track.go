@@ -40,8 +40,8 @@ func (api *trackApi) HandleGetTracks(c echo.Context) error {
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
 			ArtistName:        track.ArtistName,
-			Tags:              strings.Split(track.Tags.String, ","),
-			Genres:            strings.Split(track.Genres.String, ","),
+			Tags:              utils.SplitString(track.Tags.String),
+			Genres:            utils.SplitString(track.Genres.String),
 		}
 	}
 
@@ -68,8 +68,8 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
 			ArtistName:        track.ArtistName,
-			Tags:              strings.Split(track.Tags.String, ","),
-			Genres:            strings.Split(track.Genres.String, ","),
+			Tags:              utils.SplitString(track.Tags.String),
+			Genres:            utils.SplitString(track.Genres.String),
 		},
 	}))
 }

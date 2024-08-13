@@ -28,6 +28,15 @@ func createIdGenerator() func() string {
 	return res
 }
 
+func SplitString(s string) []string {
+	tags := []string{}
+	if s != "" {
+		tags = strings.Split(s, ",")
+	}
+
+	return tags
+}
+
 func Decode(input interface{}, output interface{}) error {
 	config := &mapstructure.DecoderConfig{
 		Metadata: nil,
