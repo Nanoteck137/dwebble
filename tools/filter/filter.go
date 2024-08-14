@@ -247,6 +247,5 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 		return expr, nil
 	}
 
-	// TODO(patrik): Return error
-	panic(fmt.Sprintf("Unexpected expr: %T", e))
+	return nil, fmt.Errorf("Unexpected expr: %T", e)
 }
