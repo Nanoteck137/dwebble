@@ -2,7 +2,6 @@ package apis
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
