@@ -54,6 +54,7 @@ func ReadFromDir(dir string) (*Library, error) {
 		}
 
 		if d.Name() == "album.toml" {
+			fmt.Printf("p: %v\n", p)
 			albums = append(albums, p)
 		}
 
