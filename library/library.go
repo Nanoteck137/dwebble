@@ -1,12 +1,11 @@
 package library
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
@@ -49,28 +48,17 @@ type Library struct {
 func ReadFromDir(dir string) (*Library, error) {
 	var albums []string
 
-	// filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
-	// 	if d == nil {
-	// 		return filepath.SkipDir
-	// 	}
-	//
-	// 	if d.Name() == "album.toml" {
-	// 		fmt.Printf("p: %v\n", p)
-	// 		albums = append(albums, p)
-	// 	}
-	//
-	// 	return nil
-	// })
+	filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+		if d == nil {
+			return filepath.SkipDir
+		}
 
-	data, err := os.ReadFile(path.Join(dir, "list.txt"))
-	if err != nil {
-		return nil, err
-	}
+		if d.Name() == "album.toml" {
+			albums = append(albums, p)
+		}
 
-    sc := bufio.NewScanner(bytes.NewReader(data))
-    for sc.Scan() {
-		albums = append(albums, path.Join(dir, sc.Text()))
-    }
+		return nil
+	})
 
 	artists := make(map[string]*LibraryArtist)
 
