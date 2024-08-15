@@ -8,7 +8,7 @@ import (
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
-	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/api"
 )
 
 type echoGroup struct {
@@ -35,34 +35,44 @@ func newEchoGroup(app core.App, e *echo.Echo, prefix string, m ...echo.Middlewar
 	}
 }
 
+const ErrTypeUnknownError api.ErrorType = "UNKNOWN_ERROR"
+
 func errorHandler(err error, c echo.Context) {
 	switch err := err.(type) {
-	case *types.ApiError:
-		c.JSON(err.Code, types.ApiResponse{
-			Status: types.StatusError,
-			Error:  err,
+	case *api.Error:
+		c.JSON(err.Code, api.Response{
+			Success: false,
+			Error:   err,
 		})
 	case *echo.HTTPError:
-		c.JSON(err.Code, types.ApiResponse{
-			Status: types.StatusError,
-			Error: &types.ApiError{
+		c.JSON(err.Code, api.Response{
+			Success: false,
+			Error: &api.Error{
 				Code:    err.Code,
+				Type:    ErrTypeUnknownError,
 				Message: err.Error(),
 			},
 		})
 	default:
-		c.JSON(500, types.ApiResponse{
-			Status: types.StatusError,
-			Error: &types.ApiError{
+		c.JSON(500, api.Response{
+			Success: false,
+			Error:   &api.Error{
 				Code:    500,
-				Message: err.Error(),
+				Type:    "UNKNOWN_ERROR",
+				Message: "Internal Server Error",
 			},
 		})
 	}
+
+	log.Error("HTTP API Error", "err", err)
 }
 
 func Server(app core.App) (*echo.Echo, error) {
 	e := echo.New()
+
+	e.RouteNotFound("/*", func(c echo.Context) error {
+		return RouteNotFound()
+	})
 
 	e.HTTPErrorHandler = errorHandler
 

@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/api"
 )
 
 type Handler struct {
@@ -12,6 +13,7 @@ type Handler struct {
 	Path        string
 	DataType    any
 	BodyType    types.Body
+	Errors      []api.ErrorType
 	HandlerFunc echo.HandlerFunc
 	Middlewares []echo.MiddlewareFunc
 }

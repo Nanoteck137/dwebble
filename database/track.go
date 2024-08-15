@@ -291,6 +291,8 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 	return items, nil
 }
 
+var ErrTrackNotFound = errors.New("database: track not found")
+
 func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) {
 	query := TrackQuery().
 		Where(goqu.I("tracks.id").Eq(id))
@@ -303,7 +305,7 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 	item, err := ScanTrack(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Track{}, types.ErrNoTrack
+			return Track{}, ErrTrackNotFound
 		}
 
 		return Track{}, err

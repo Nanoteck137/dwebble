@@ -1,12 +1,15 @@
 package apis
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	papi "github.com/nanoteck137/pyrin/api"
 )
 
 type trackApi struct {
@@ -51,10 +54,14 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 	id := c.Param("id")
 	track, err := api.app.DB().GetTrackById(c.Request().Context(), id)
 	if err != nil {
+		if errors.Is(err, database.ErrTrackNotFound) {
+			return TrackNotFound()
+		}
+
 		return err
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(types.GetTrackById{
+	return c.JSON(200, SuccessResponse(types.GetTrackById{
 		Track: types.Track{
 			Id:                track.Id,
 			Number:            track.Number,
@@ -81,20 +88,22 @@ func InstallTrackHandlers(app core.App, group Group) {
 	group.Register(
 		Handler{
 			Name:        "GetTracks",
-			Path:        "/tracks",
 			Method:      http.MethodGet,
+			Path:        "/tracks",
 			DataType:    types.GetTracks{},
 			BodyType:    nil,
+			Errors:      []papi.ErrorType{},
 			HandlerFunc: api.HandleGetTracks,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
 		Handler{
 			Name:        "GetTrackById",
-			Path:        "/tracks/:id",
 			Method:      http.MethodGet,
+			Path:        "/tracks/:id",
 			DataType:    types.GetTrackById{},
 			BodyType:    nil,
+			Errors:      []papi.ErrorType{ ErrTypeTrackNotFound },
 			HandlerFunc: api.HandleGetTrackById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
