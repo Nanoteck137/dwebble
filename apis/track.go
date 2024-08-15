@@ -103,7 +103,7 @@ func InstallTrackHandlers(app core.App, group Group) {
 			Path:        "/tracks/:id",
 			DataType:    types.GetTrackById{},
 			BodyType:    nil,
-			Errors:      []papi.ErrorType{ ErrTypeTrackNotFound },
+			Errors:      []papi.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: api.HandleGetTrackById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},

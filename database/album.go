@@ -97,11 +97,11 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album
 	for rows.Next() {
 		var item Album
 		err := rows.Scan(
-			&item.Id, 
-			&item.Name, 
-			&item.CoverArt, 
-			&item.ArtistId, 
-			&item.Path, 
+			&item.Id,
+			&item.Name,
+			&item.CoverArt,
+			&item.ArtistId,
+			&item.Path,
 			&item.ArtistName,
 		)
 		if err != nil {

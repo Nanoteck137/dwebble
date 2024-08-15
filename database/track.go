@@ -291,7 +291,6 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 	return items, nil
 }
 
-
 func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) {
 	query := TrackQuery().
 		Where(goqu.I("tracks.id").Eq(id))
