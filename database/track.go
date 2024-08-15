@@ -291,7 +291,6 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 	return items, nil
 }
 
-var ErrTrackNotFound = errors.New("database: track not found")
 
 func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) {
 	query := TrackQuery().
@@ -305,7 +304,7 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 	item, err := ScanTrack(row)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Track{}, ErrTrackNotFound
+			return Track{}, ErrItemNotFound
 		}
 
 		return Track{}, err
@@ -351,7 +350,7 @@ func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, err
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Track{}, types.ErrNoTrack
+			return Track{}, ErrItemNotFound
 		}
 
 		return Track{}, err
@@ -372,7 +371,7 @@ func (db *Database) GetTrackByName(ctx context.Context, name string) (Track, err
 	item, err := ScanTrack(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Track{}, types.ErrNoTrack
+			return Track{}, ErrItemNotFound
 		}
 
 		return Track{}, err
@@ -398,7 +397,7 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 	item, err := ScanTrack(row)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Track{}, types.ErrNoTrack
+			return Track{}, ErrItemNotFound
 		}
 
 		return Track{}, err

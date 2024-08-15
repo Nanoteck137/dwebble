@@ -1,13 +1,16 @@
 package apis
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/api"
 )
 
 type albumApi struct {
@@ -43,6 +46,10 @@ func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
 	id := c.Param("id")
 	album, err := api.app.DB().GetAlbumById(c.Request().Context(), id)
 	if err != nil {
+		if errors.Is(err, database.ErrItemNotFound) {
+			return AlbumNotFound()
+		}
+
 		return err
 	}
 
@@ -61,6 +68,10 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 
 	album, err := api.app.DB().GetAlbumById(c.Request().Context(), id)
 	if err != nil {
+		if errors.Is(err, database.ErrItemNotFound) {
+			return AlbumNotFound()
+		}
+
 		return err
 	}
 
@@ -95,7 +106,7 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 }
 
 func InstallAlbumHandlers(app core.App, group Group) {
-	api := albumApi{app: app}
+	a := albumApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
@@ -106,27 +117,29 @@ func InstallAlbumHandlers(app core.App, group Group) {
 			Method:      http.MethodGet,
 			DataType:    types.GetAlbums{},
 			BodyType:    nil,
-			HandlerFunc: api.HandleGetAlbums,
+			HandlerFunc: a.HandleGetAlbums,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
 		Handler{
 			Name:        "GetAlbumById",
-			Path:        "/albums/:id",
 			Method:      http.MethodGet,
+			Path:        "/albums/:id",
 			DataType:    types.GetAlbumById{},
 			BodyType:    nil,
-			HandlerFunc: api.HandleGetAlbumById,
+			Errors:      []api.ErrorType{ ErrTypeAlbumNotFound },
+			HandlerFunc: a.HandleGetAlbumById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
 		Handler{
 			Name:        "GetAlbumTracks",
-			Path:        "/albums/:id/tracks",
 			Method:      http.MethodGet,
+			Path:        "/albums/:id/tracks",
 			DataType:    types.GetAlbumTracksById{},
 			BodyType:    nil,
-			HandlerFunc: api.HandleGetAlbumTracksById,
+			Errors:      []api.ErrorType{ ErrTypeAlbumNotFound },
+			HandlerFunc: a.HandleGetAlbumTracksById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)

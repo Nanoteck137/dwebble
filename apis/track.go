@@ -54,7 +54,7 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 	id := c.Param("id")
 	track, err := api.app.DB().GetTrackById(c.Request().Context(), id)
 	if err != nil {
-		if errors.Is(err, database.ErrTrackNotFound) {
+		if errors.Is(err, database.ErrItemNotFound) {
 			return TrackNotFound()
 		}
 

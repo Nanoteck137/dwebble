@@ -56,7 +56,7 @@ func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error
 	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Artist{}, types.ErrNoArtist
+			return Artist{}, ErrItemNotFound
 		}
 
 		return Artist{}, err
@@ -80,7 +80,7 @@ func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, e
 	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Artist{}, types.ErrNoArtist
+			return Artist{}, ErrItemNotFound
 		}
 
 		return Artist{}, err
@@ -104,7 +104,7 @@ func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, e
 	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Artist{}, types.ErrNoArtist
+			return Artist{}, ErrItemNotFound
 		}
 
 		return Artist{}, err

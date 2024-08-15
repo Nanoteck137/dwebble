@@ -160,7 +160,7 @@ func (sync *SyncContext) GetOrCreateArtist(artist *LibraryArtist) (database.Arti
 	p := artist.Name
 	dbArtist, err := sync.db.GetArtistByPath(sync.ctx, p)
 	if err != nil {
-		if errors.Is(err, types.ErrNoArtist) {
+		if errors.Is(err, database.ErrItemNotFound) {
 			dbArtist, err := sync.db.CreateArtist(sync.ctx, database.CreateArtistParams{
 				Name:    artist.Name,
 				Picture: sql.NullString{},
@@ -193,7 +193,7 @@ func (sync *SyncContext) GetOrCreateAlbum(album *LibraryAlbum) (database.Album, 
 	p := artist.Id + "-" + album.Name
 	dbAlbum, err := sync.db.GetAlbumByPath(sync.ctx, p)
 	if err != nil {
-		if errors.Is(err, types.ErrNoAlbum) {
+		if errors.Is(err, database.ErrItemNotFound) {
 
 			dbAlbum, err := sync.db.CreateAlbum(sync.ctx, database.CreateAlbumParams{
 				Name:     album.Name,
@@ -234,7 +234,7 @@ func (sync *SyncContext) GetOrCreateTrack(track *LibraryTrack) (database.Track, 
 
 	dbTrack, err := sync.db.GetTrackByPath(sync.ctx, p)
 	if err != nil {
-		if errors.Is(err, types.ErrNoTrack) {
+		if errors.Is(err, database.ErrItemNotFound) {
 			dbTrack, err := sync.db.CreateTrack(sync.ctx, database.CreateTrackParams{
 				TrackNumber:       track.Number,
 				Name:              track.Name,

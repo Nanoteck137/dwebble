@@ -1,12 +1,15 @@
 package apis
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/api"
 )
 
 type artistApi struct {
@@ -38,6 +41,9 @@ func (api *artistApi) HandleGetArtistById(c echo.Context) error {
 	id := c.Param("id")
 	artist, err := api.app.DB().GetArtistById(c.Request().Context(), id)
 	if err != nil {
+		if errors.Is(err, database.ErrItemNotFound) {
+			return ArtistNotFound()
+		}
 		return err
 	}
 
@@ -55,6 +61,9 @@ func (api *artistApi) HandleGetArtistAlbumsById(c echo.Context) error {
 
 	artist, err := api.app.DB().GetArtistById(c.Request().Context(), id)
 	if err != nil {
+		if errors.Is(err, database.ErrItemNotFound) {
+			return ArtistNotFound()
+		}
 		return err
 	}
 
@@ -80,7 +89,7 @@ func (api *artistApi) HandleGetArtistAlbumsById(c echo.Context) error {
 }
 
 func InstallArtistHandlers(app core.App, group Group) {
-	api := artistApi{app: app}
+	a := artistApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
@@ -91,27 +100,29 @@ func InstallArtistHandlers(app core.App, group Group) {
 			Path:        "/artists",
 			DataType:    types.GetArtists{},
 			BodyType:    nil,
-			HandlerFunc: api.HandleGetArtists,
+			HandlerFunc: a.HandleGetArtists,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
 		Handler{
 			Name:        "GetArtistById",
-			Path:        "/artists/:id",
 			Method:      http.MethodGet,
+			Path:        "/artists/:id",
 			DataType:    types.GetArtistById{},
 			BodyType:    nil,
-			HandlerFunc: api.HandleGetArtistById,
+			Errors:      []api.ErrorType{ ErrTypeArtistNotFound },
+			HandlerFunc: a.HandleGetArtistById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
 		Handler{
 			Name:        "GetArtistAlbums",
-			Path:        "/artists/:id/albums",
 			Method:      http.MethodGet,
+			Path:        "/artists/:id/albums",
 			DataType:    types.GetArtistAlbumsById{},
 			BodyType:    nil,
-			HandlerFunc: api.HandleGetArtistAlbumsById,
+			Errors:      []api.ErrorType{ ErrTypeArtistNotFound },
+			HandlerFunc: a.HandleGetArtistAlbumsById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)

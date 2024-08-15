@@ -153,7 +153,7 @@ func (db *Database) GetAlbumById(ctx context.Context, id string) (Album, error) 
 	err = row.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Album{}, types.ErrNoAlbum
+			return Album{}, ErrItemNotFound
 		}
 
 		return Album{}, err
@@ -177,7 +177,7 @@ func (db *Database) GetAlbumByPath(ctx context.Context, path string) (Album, err
 	err = row.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Album{}, types.ErrNoAlbum
+			return Album{}, ErrItemNotFound
 		}
 
 		return Album{}, err
@@ -201,7 +201,7 @@ func (db *Database) GetAlbumByName(ctx context.Context, name string) (Album, err
 	err = row.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Album{}, types.ErrNoAlbum
+			return Album{}, ErrItemNotFound
 		}
 
 		return Album{}, err
