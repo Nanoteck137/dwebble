@@ -7,7 +7,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
-	"github.com/nanoteck137/dwebble/types"
 )
 
 type Tag struct {
@@ -55,7 +54,7 @@ func (db *Database) GetTagByName(ctx context.Context, name string) (Tag, error) 
 	err = row.Scan(&item.Id, &item.Name, &item.DisplayName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Tag{}, types.ErrNoTag
+			return Tag{}, ErrItemNotFound
 		}
 
 		return Tag{}, err

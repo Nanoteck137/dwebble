@@ -7,7 +7,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
-	"github.com/nanoteck137/dwebble/types"
 )
 
 type Genre struct {
@@ -55,7 +54,7 @@ func (db *Database) GetGenreByName(ctx context.Context, name string) (Genre, err
 	err = row.Scan(&item.Id, &item.Name, &item.DisplayName)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Genre{}, types.ErrNoGenre
+			return Genre{}, ErrItemNotFound
 		}
 		return Genre{}, err
 	}

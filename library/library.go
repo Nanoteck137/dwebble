@@ -263,7 +263,7 @@ func (sync *SyncContext) GetOrCreateTrack(track *LibraryTrack) (database.Track, 
 func (sync *SyncContext) GetOrCreateTag(tag string) (database.Tag, error) {
 	dbTag, err := sync.db.GetTagByName(sync.ctx, tag)
 	if err != nil {
-		if errors.Is(err, types.ErrNoTag) {
+		if errors.Is(err, database.ErrItemNotFound) {
 			dbTag, err := sync.db.CreateTag(sync.ctx, tag)
 
 			if err != nil {
@@ -286,7 +286,7 @@ func (sync *SyncContext) GetOrCreateTag(tag string) (database.Tag, error) {
 func (sync *SyncContext) GetOrCreateGenre(genre string) (database.Genre, error) {
 	dbGenre, err := sync.db.GetGenreByName(sync.ctx, genre)
 	if err != nil {
-		if errors.Is(err, types.ErrNoGenre) {
+		if errors.Is(err, database.ErrItemNotFound) {
 			dbGenre, err := sync.db.CreateGenre(sync.ctx, genre)
 
 			if err != nil {

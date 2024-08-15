@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"errors"
 	"fmt"
 	"io"
 
@@ -15,9 +16,10 @@ import (
 
 func User(app core.App, c echo.Context) (*database.User, error) {
 	authHeader := c.Request().Header.Get("Authorization")
-	tokenString, err := utils.ParseAuthHeader(authHeader)
-	if err != nil {
-		return nil, err
+	tokenString := utils.ParseAuthHeader(authHeader)
+	if tokenString == "" {
+		// TODO(patrik): Fix error
+		return nil, errors.New("Invalid auth header")
 	}
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -29,26 +31,30 @@ func User(app core.App, c echo.Context) (*database.User, error) {
 	})
 
 	if err != nil {
-		return nil, types.ErrInvalidToken
+		// TODO(patrik): Fix error
+		return nil, errors.New("Invalid token")
 	}
 
 	jwtValidator := jwt.NewValidator(jwt.WithIssuedAt())
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		if err := jwtValidator.Validate(token.Claims); err != nil {
-			return nil, types.ErrInvalidToken
+			// TODO(patrik): Fix error
+			return nil, errors.New("Invalid token")
 		}
 
 		userId := claims["userId"].(string)
 		user, err := app.DB().GetUserById(c.Request().Context(), userId)
 		if err != nil {
-			return nil, types.ErrInvalidToken
+			// TODO(patrik): Fix error
+			return nil, errors.New("Invalid token")
 		}
 
 		return &user, nil
 	}
 
-	return nil, types.ErrInvalidToken
+	// TODO(patrik): Fix error
+	return nil, errors.New("Invalid token")
 }
 
 func Body[T types.Body](c echo.Context) (T, error) {
@@ -62,7 +68,8 @@ func Body[T types.Body](c echo.Context) (T, error) {
 	}
 
 	if len(j) == 0 {
-		return res, types.ErrEmptyBody
+		// TODO(patrik): Fix error
+		return res, errors.New("Invalid body")
 	}
 
 	data, err := jio.ValidateJSON(&j, schema)

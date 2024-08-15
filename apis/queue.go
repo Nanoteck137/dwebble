@@ -39,7 +39,7 @@ func (api *queueApi) HandlePostQueue(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(res))
+	return c.JSON(200, SuccessResponse(res))
 }
 
 func InstallQueueHandlers(app core.App, group Group) {

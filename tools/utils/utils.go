@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/parasect"
 	"github.com/nrednav/cuid2"
 )
@@ -245,15 +244,15 @@ func FormatTime(t int) string {
 	return fmt.Sprintf("%v:%v", m, s)
 }
 
-func ParseAuthHeader(authHeader string) (string, error) {
+func ParseAuthHeader(authHeader string) string {
 	splits := strings.Split(authHeader, " ")
 	if len(splits) != 2 {
-		return "", types.ErrInvalidAuthHeader
+		return ""
 	}
 
 	if splits[0] != "Bearer" {
-		return "", types.ErrInvalidAuthHeader
+		return ""
 	}
 
-	return splits[1], nil
+	return splits[1]
 }

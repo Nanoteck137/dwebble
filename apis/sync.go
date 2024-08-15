@@ -18,7 +18,7 @@ type syncApi struct {
 }
 
 func (api *syncApi) HandleGetSync(c echo.Context) error {
-	return c.JSON(200, types.NewApiSuccessResponse(types.GetSync{
+	return c.JSON(200, SuccessResponse(types.GetSync{
 		IsSyncing: api.syncing.Load(),
 	}))
 }
@@ -51,7 +51,7 @@ func (api *syncApi) HandlePostSync(c echo.Context) error {
 		api.app.DB().Invalidate()
 	}()
 
-	return c.JSON(200, types.NewApiSuccessResponse(nil))
+	return c.JSON(200, SuccessResponse(nil))
 }
 
 func InstallSyncHandlers(app core.App, group Group) {

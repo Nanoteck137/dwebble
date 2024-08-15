@@ -141,6 +141,10 @@ github.com/nanoteck137/pyrin v0.5.0 h1:UdgWBQuWkVXib1WGFZg/CE6whguM10rHghhG6I9vP
 github.com/nanoteck137/pyrin v0.5.0/go.mod h1:cADbJqk/nCSjbFfVG3d7HmMhQ/qKsrid+rWvcjRWjfA=
 github.com/nanoteck137/pyrin v0.6.0 h1:G3lzSfH/9ldvvmcU6CSmfKoMdz3+xwcjiIVsQUiZKJ0=
 github.com/nanoteck137/pyrin v0.6.0/go.mod h1:cADbJqk/nCSjbFfVG3d7HmMhQ/qKsrid+rWvcjRWjfA=
+github.com/nanoteck137/pyrin v0.6.1 h1:AeePrwQbRArylu+MfCSdRs6pCQGJEh7FgEqa2xrrBlY=
+github.com/nanoteck137/pyrin v0.6.1/go.mod h1:cADbJqk/nCSjbFfVG3d7HmMhQ/qKsrid+rWvcjRWjfA=
+github.com/nanoteck137/pyrin v0.6.2 h1:K1AWF5dBfD2DSDx8M58hTdfBY96I0PHviglm4mhR16g=
+github.com/nanoteck137/pyrin v0.6.2/go.mod h1:cADbJqk/nCSjbFfVG3d7HmMhQ/qKsrid+rWvcjRWjfA=
 github.com/nrednav/cuid2 v1.0.0 h1:27dn1oGiG+23Wa8XJ2DHeMoMa18Zs9u1+UHI9IlcGKM=
 github.com/nrednav/cuid2 v1.0.0/go.mod h1:pdRH5Zrjwnv8DZ74XvHR3jX+bzJNfQjwLQ3JgSI2EmI=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=

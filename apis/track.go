@@ -47,7 +47,7 @@ func (api *trackApi) HandleGetTracks(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(res))
+	return c.JSON(200, SuccessResponse(res))
 }
 
 func (api *trackApi) HandleGetTrackById(c echo.Context) error {
@@ -103,7 +103,7 @@ func InstallTrackHandlers(app core.App, group Group) {
 			Path:        "/tracks/:id",
 			DataType:    types.GetTrackById{},
 			BodyType:    nil,
-			Errors:      []papi.ErrorType{ErrTypeTrackNotFound},
+			Errors:      []papi.ErrorType{ErrTypeTrackNotFound, ErrTypeUnknownError},
 			HandlerFunc: api.HandleGetTrackById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},

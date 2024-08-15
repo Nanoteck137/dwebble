@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -36,7 +37,7 @@ func (api *playlistApi) HandleGetPlaylists(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(res))
+	return c.JSON(200, SuccessResponse(res))
 }
 
 func (api *playlistApi) HandlePostPlaylist(c echo.Context) error {
@@ -58,7 +59,7 @@ func (api *playlistApi) HandlePostPlaylist(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(types.PostPlaylist{
+	return c.JSON(200, SuccessResponse(types.PostPlaylist{
 		Playlist: types.Playlist{
 			Id:   playlist.Id,
 			Name: playlist.Name,
@@ -80,7 +81,8 @@ func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 	}
 
 	if playlist.OwnerId != user.Id {
-		return types.ErrNoPlaylist
+		// TODO(patrik): Fix error
+		return errors.New("No playlist")
 	}
 
 	items, err := api.app.DB().GetPlaylistItems(c.Request().Context(), playlist.Id)
@@ -113,7 +115,7 @@ func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(types.GetPlaylistById{
+	return c.JSON(200, SuccessResponse(types.GetPlaylistById{
 		Playlist: types.Playlist{
 			Id:   playlist.Id,
 			Name: playlist.Name,
@@ -141,7 +143,8 @@ func (api *playlistApi) HandlePostPlaylistItemsById(c echo.Context) error {
 	}
 
 	if playlist.OwnerId != user.Id {
-		return types.ErrNoPlaylist
+		// TODO(patrik): Fix error
+		return errors.New("No playlist")
 	}
 
 	err = api.app.DB().AddItemsToPlaylist(c.Request().Context(), playlist.Id, body.Tracks)
@@ -149,7 +152,7 @@ func (api *playlistApi) HandlePostPlaylistItemsById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(nil))
+	return c.JSON(200, SuccessResponse(nil))
 }
 
 func (api *playlistApi) HandleDeletePlaylistItemsById(c echo.Context) error {
@@ -171,7 +174,8 @@ func (api *playlistApi) HandleDeletePlaylistItemsById(c echo.Context) error {
 	}
 
 	if playlist.OwnerId != user.Id {
-		return types.ErrNoPlaylist
+		// TODO(patrik): Fix error
+		return errors.New("No playlist")
 	}
 
 	err = api.app.DB().DeleteItemsFromPlaylist(c.Request().Context(), playlist.Id, body.TrackIndices)
@@ -179,7 +183,7 @@ func (api *playlistApi) HandleDeletePlaylistItemsById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(nil))
+	return c.JSON(200, SuccessResponse(nil))
 }
 
 func (api *playlistApi) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
@@ -201,7 +205,8 @@ func (api *playlistApi) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 	}
 
 	if playlist.OwnerId != user.Id {
-		return types.ErrNoPlaylist
+		// TODO(patrik): Fix error
+		return errors.New("No playlist")
 	}
 
 	err = api.app.DB().MovePlaylistItem(c.Request().Context(), playlist.Id, body.TrackId, body.ToIndex)
@@ -209,7 +214,7 @@ func (api *playlistApi) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(nil))
+	return c.JSON(200, SuccessResponse(nil))
 }
 
 func InstallPlaylistHandlers(app core.App, group Group) {

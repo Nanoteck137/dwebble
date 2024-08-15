@@ -9,7 +9,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/tools/utils"
-	"github.com/nanoteck137/dwebble/types"
 )
 
 type Playlist struct {
@@ -59,7 +58,7 @@ func (db *Database) GetPlaylistById(ctx context.Context, id string) (Playlist, e
 	err = row.Scan(&item.Id, &item.Name, &item.OwnerId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return Playlist{}, types.ErrNoPlaylist
+			return Playlist{}, ErrItemNotFound
 		}
 
 		return Playlist{}, err
@@ -163,7 +162,8 @@ func (db *Database) AddItemsToPlaylist(ctx context.Context, playlistId string, t
 			if err, ok := err.(sqlite3.Error); ok {
 				if errors.Is(err.ExtendedCode, sqlite3.ErrConstraintPrimaryKey) {
 					// TODO(patrik): Move and fix
-					return types.NewApiError(400, "Track already in playlist")
+					// TODO(patrik): Fix
+					return errors.New("Track already in playlist")
 				}
 			}
 			return err
@@ -256,7 +256,8 @@ func (db *Database) MovePlaylistItem(ctx context.Context, playlistId string, tra
 	}
 
 	if itemIndex == -1 {
-		return types.NewApiError(400, "Track not in playlist")
+		// TODO(patrik): Fix error
+		return errors.New("Track not in playlist")
 	}
 
 	// TODO(patrik): Maybe we should try to find the items inside the items

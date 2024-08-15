@@ -46,8 +46,5 @@ func RouteNotFound() *api.Error {
 }
 
 func SuccessResponse(data any) api.Response {
-	return api.Response{
-		Success: true,
-		Data:    data,
-	}
+	return api.SuccessResponse(data)
 }

@@ -39,7 +39,7 @@ func (api *albumApi) HandleGetAlbums(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(res))
+	return c.JSON(200, SuccessResponse(res))
 }
 
 func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
@@ -53,7 +53,7 @@ func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
 		return err
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(types.GetAlbumById{
+	return c.JSON(200, SuccessResponse(types.GetAlbumById{
 		Album: types.Album{
 			Id:       album.Id,
 			Name:     album.Name,
@@ -102,7 +102,7 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 		}
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(res))
+	return c.JSON(200, SuccessResponse(res))
 }
 
 func InstallAlbumHandlers(app core.App, group Group) {

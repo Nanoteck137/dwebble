@@ -4,14 +4,16 @@ import (
 	"github.com/nanoteck137/dwebble/apis"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/api"
 )
 
 type Route struct {
-	Name   string
-	Path   string
-	Method string
-	Data   any
-	Body   types.Body
+	Name       string
+	Path       string
+	Method     string
+	ErrorTypes []api.ErrorType
+	Data       any
+	Body       types.Body
 }
 
 type RouteGroup struct {
@@ -26,19 +28,20 @@ func NewRouteGroup(prefix string) *RouteGroup {
 	}
 }
 
-func (r *RouteGroup) AddRoute(name, path, method string, data any, body types.Body) {
+func (r *RouteGroup) AddRoute(name, path, method string, errorTypes []api.ErrorType, data any, body types.Body) {
 	r.Routes = append(r.Routes, Route{
-		Name:   name,
-		Path:   path,
-		Method: method,
-		Data:   data,
-		Body:   body,
+		Name:       name,
+		Path:       path,
+		Method:     method,
+		ErrorTypes: errorTypes,
+		Data:       data,
+		Body:       body,
 	})
 }
 
 func (r *RouteGroup) Register(handlers ...apis.Handler) {
 	for _, h := range handlers {
-		r.AddRoute(h.Name, r.Prefix+h.Path, h.Method, h.DataType, h.BodyType)
+		r.AddRoute(h.Name, r.Prefix+h.Path, h.Method, h.Errors, h.DataType, h.BodyType)
 	}
 }
 

@@ -536,6 +536,9 @@
       "name": "GetArtists",
       "method": "GET",
       "path": "/api/v1/artists",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetArtists",
       "bodyType": ""
     },
@@ -543,6 +546,10 @@
       "name": "GetArtistById",
       "method": "GET",
       "path": "/api/v1/artists/:id",
+      "errorTypes": [
+        "UNKNOWN_ERROR",
+        "ARTIST_NOT_FOUND"
+      ],
       "responseType": "GetArtistById",
       "bodyType": ""
     },
@@ -550,6 +557,10 @@
       "name": "GetArtistAlbums",
       "method": "GET",
       "path": "/api/v1/artists/:id/albums",
+      "errorTypes": [
+        "UNKNOWN_ERROR",
+        "ARTIST_NOT_FOUND"
+      ],
       "responseType": "GetArtistAlbumsById",
       "bodyType": ""
     },
@@ -557,6 +568,9 @@
       "name": "GetAlbums",
       "method": "GET",
       "path": "/api/v1/albums",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetAlbums",
       "bodyType": ""
     },
@@ -564,6 +578,10 @@
       "name": "GetAlbumById",
       "method": "GET",
       "path": "/api/v1/albums/:id",
+      "errorTypes": [
+        "ALBUM_NOT_FOUND",
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetAlbumById",
       "bodyType": ""
     },
@@ -571,6 +589,10 @@
       "name": "GetAlbumTracks",
       "method": "GET",
       "path": "/api/v1/albums/:id/tracks",
+      "errorTypes": [
+        "UNKNOWN_ERROR",
+        "ALBUM_NOT_FOUND"
+      ],
       "responseType": "GetAlbumTracksById",
       "bodyType": ""
     },
@@ -578,6 +600,9 @@
       "name": "GetTracks",
       "method": "GET",
       "path": "/api/v1/tracks",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetTracks",
       "bodyType": ""
     },
@@ -585,6 +610,10 @@
       "name": "GetTrackById",
       "method": "GET",
       "path": "/api/v1/tracks/:id",
+      "errorTypes": [
+        "UNKNOWN_ERROR",
+        "TRACK_NOT_FOUND"
+      ],
       "responseType": "GetTrackById",
       "bodyType": ""
     },
@@ -592,6 +621,9 @@
       "name": "GetSyncStatus",
       "method": "GET",
       "path": "/api/v1/sync",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetSync",
       "bodyType": ""
     },
@@ -599,6 +631,9 @@
       "name": "RunSync",
       "method": "POST",
       "path": "/api/v1/sync",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "",
       "bodyType": ""
     },
@@ -606,6 +641,9 @@
       "name": "CreateQueue",
       "method": "POST",
       "path": "/api/v1/queue",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "PostQueue",
       "bodyType": ""
     },
@@ -613,6 +651,9 @@
       "name": "GetTags",
       "method": "GET",
       "path": "/api/v1/tags",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetTags",
       "bodyType": ""
     },
@@ -620,6 +661,9 @@
       "name": "Signup",
       "method": "POST",
       "path": "/api/v1/auth/signup",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "PostAuthSignup",
       "bodyType": "PostAuthSignupBody"
     },
@@ -627,6 +671,9 @@
       "name": "Signin",
       "method": "POST",
       "path": "/api/v1/auth/signin",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "PostAuthSignin",
       "bodyType": "PostAuthSigninBody"
     },
@@ -634,6 +681,9 @@
       "name": "GetMe",
       "method": "GET",
       "path": "/api/v1/auth/me",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetAuthMe",
       "bodyType": ""
     },
@@ -641,6 +691,9 @@
       "name": "GetPlaylists",
       "method": "GET",
       "path": "/api/v1/playlists",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetPlaylists",
       "bodyType": ""
     },
@@ -648,6 +701,9 @@
       "name": "CreatePlaylist",
       "method": "POST",
       "path": "/api/v1/playlists",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "PostPlaylist",
       "bodyType": "PostPlaylistBody"
     },
@@ -655,6 +711,9 @@
       "name": "GetPlaylistById",
       "method": "GET",
       "path": "/api/v1/playlists/:id",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetPlaylistById",
       "bodyType": ""
     },
@@ -662,6 +721,9 @@
       "name": "AddItemsToPlaylist",
       "method": "POST",
       "path": "/api/v1/playlists/:id/items",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "",
       "bodyType": "PostPlaylistItemsByIdBody"
     },
@@ -669,6 +731,9 @@
       "name": "DeletePlaylistItems",
       "method": "DELETE",
       "path": "/api/v1/playlists/:id/items",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "",
       "bodyType": "DeletePlaylistItemsByIdBody"
     },
@@ -676,6 +741,9 @@
       "name": "MovePlaylistItem",
       "method": "POST",
       "path": "/api/v1/playlists/:id/items/move",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "",
       "bodyType": "PostPlaylistsItemMoveByIdBody"
     },
@@ -683,6 +751,9 @@
       "name": "GetSystemInfo",
       "method": "GET",
       "path": "/api/v1/system/info",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "GetSystemInfo",
       "bodyType": ""
     },
@@ -690,6 +761,9 @@
       "name": "RunSystemSetup",
       "method": "POST",
       "path": "/api/v1/system/setup",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "",
       "bodyType": "PostSystemSetupBody"
     },
@@ -697,6 +771,9 @@
       "name": "SystemExport",
       "method": "POST",
       "path": "/api/v1/system/export",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "PostSystemExport",
       "bodyType": ""
     },
@@ -704,6 +781,9 @@
       "name": "SystemImport",
       "method": "POST",
       "path": "/api/v1/system/import",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
       "responseType": "",
       "bodyType": ""
     }

@@ -103,17 +103,20 @@ func init() {
 func fullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expression, error) {
 	ast, err := parser.ParseExpr(filterStr)
 	if err != nil {
-		return nil, types.NewApiError(400, "Failed to parse filter: "+err.Error())
+		// TODO(patrik): Better errors
+		return nil, err 
 	}
 
 	r := filter.New(adapter)
 	e, err := r.Resolve(ast)
 	if err != nil {
-		return nil, types.NewApiError(400, err.Error())
+		// TODO(patrik): Better errors
+		return nil, err
 	}
 
 	re, err := generateFilter(e)
 	if err != nil {
+		// TODO(patrik): Better errors
 		return nil, err
 	}
 

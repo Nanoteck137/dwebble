@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/kr/pretty"
@@ -15,7 +16,7 @@ type systemApi struct {
 }
 
 func (api *systemApi) HandleGetSystemInfo(c echo.Context) error {
-	return c.JSON(200, types.NewApiSuccessResponse(types.GetSystemInfo{
+	return c.JSON(200, SuccessResponse(types.GetSystemInfo{
 		Version: config.Version,
 		IsSetup: api.app.IsSetup(),
 	}))
@@ -23,7 +24,8 @@ func (api *systemApi) HandleGetSystemInfo(c echo.Context) error {
 
 func (api *systemApi) HandlePostSystemSetup(c echo.Context) error {
 	if api.app.IsSetup() {
-		return types.NewApiError(400, "System already setup")
+		// TODO(patrik): Fix error
+		return errors.New("Server already setup")
 	}
 
 	body, err := Body[types.PostSystemSetupBody](c)
@@ -56,7 +58,7 @@ func (api *systemApi) HandlePostSystemSetup(c echo.Context) error {
 
 	api.app.UpdateDBConfig(&conf)
 
-	return c.JSON(200, types.NewApiSuccessResponse(nil))
+	return c.JSON(200, SuccessResponse(nil))
 }
 
 func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
@@ -66,7 +68,8 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 	}
 
 	if user.Id != api.app.DBConfig().OwnerId {
-		return types.NewApiError(403, "Only the owner can export")
+		// TODO(patrik): Fix error
+		return errors.New("Only the owner can export")
 	}
 
 	users, err := api.app.DB().GetAllUsers(c.Request().Context())
@@ -119,7 +122,7 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(200, types.NewApiSuccessResponse(res))
+	return c.JSON(200, SuccessResponse(res))
 }
 
 func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
@@ -129,10 +132,12 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 	}
 
 	if user.Id != api.app.DBConfig().OwnerId {
-		return types.NewApiError(403, "Only the owner can import")
+		// TODO(patrik): Fix error
+		return errors.New("Only the owner can export")
 	}
 
-	return types.NewApiError(400, "Import is not supported right now")
+	// TODO(patrik): Fix error
+	return errors.New("Import is not supported right now")
 }
 
 func InstallSystemHandlers(app core.App, group Group) {
