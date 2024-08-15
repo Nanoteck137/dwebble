@@ -216,6 +216,8 @@ func ScanTrack(scanner Scan) (Track, error) {
 	return res, nil
 }
 
+var ErrInvalidFilter = errors.New("Invalid filter")
+
 func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
 	query := TrackQuery()
 
@@ -224,7 +226,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 	if filterStr != "" {
 		re, err := fullParseFilter(&a, filterStr)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("%w: %w", ErrInvalidFilter, err)
 		}
 
 		query = query.Where(goqu.I("tracks.available").Eq(true), re)

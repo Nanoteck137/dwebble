@@ -9,7 +9,7 @@ import (
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
-	papi "github.com/nanoteck137/pyrin/api"
+	"github.com/nanoteck137/pyrin/api"
 )
 
 type trackApi struct {
@@ -22,6 +22,9 @@ func (api *trackApi) HandleGetTracks(c echo.Context) error {
 
 	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, s)
 	if err != nil {
+		if errors.Is(err, database.ErrInvalidFilter) {
+			return InvalidFilter(err)
+		}
 		return err
 	}
 
@@ -81,7 +84,7 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 }
 
 func InstallTrackHandlers(app core.App, group Group) {
-	api := trackApi{app: app}
+	a := trackApi{app: app}
 
 	requireSetup := RequireSetup(app)
 
@@ -92,8 +95,8 @@ func InstallTrackHandlers(app core.App, group Group) {
 			Path:        "/tracks",
 			DataType:    types.GetTracks{},
 			BodyType:    nil,
-			Errors:      []papi.ErrorType{},
-			HandlerFunc: api.HandleGetTracks,
+			Errors:      []api.ErrorType{ErrTypeInvalidFilter},
+			HandlerFunc: a.HandleGetTracks,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 
@@ -103,8 +106,8 @@ func InstallTrackHandlers(app core.App, group Group) {
 			Path:        "/tracks/:id",
 			DataType:    types.GetTrackById{},
 			BodyType:    nil,
-			Errors:      []papi.ErrorType{ErrTypeTrackNotFound, ErrTypeUnknownError},
-			HandlerFunc: api.HandleGetTrackById,
+			Errors:      []api.ErrorType{ErrTypeTrackNotFound},
+			HandlerFunc: a.HandleGetTrackById,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
 	)

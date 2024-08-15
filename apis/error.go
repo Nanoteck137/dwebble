@@ -11,6 +11,7 @@ const (
 	ErrTypeAlbumNotFound  api.ErrorType = "ALBUM_NOT_FOUND"
 	ErrTypeTrackNotFound  api.ErrorType = "TRACK_NOT_FOUND"
 	ErrTypeRouteNotFound  api.ErrorType = "ROUTE_NOT_FOUND"
+	ErrTypeInvalidFilter  api.ErrorType = "INVALID_FILTER"
 )
 
 func ArtistNotFound() *api.Error {
@@ -34,6 +35,14 @@ func TrackNotFound() *api.Error {
 		Code:    http.StatusNotFound,
 		Type:    ErrTypeTrackNotFound,
 		Message: "Track not found",
+	}
+}
+
+func InvalidFilter(err error) *api.Error {
+	return &api.Error{
+		Code:    http.StatusBadRequest,
+		Type:    ErrTypeInvalidFilter,
+		Message: err.Error(),
 	}
 }
 
