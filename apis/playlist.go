@@ -108,6 +108,8 @@ func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 			ArtistId:          track.ArtistId,
 			AlbumName:         track.AlbumName,
 			ArtistName:        track.ArtistName,
+			Tags:              utils.SplitString(track.Tags.String),
+			Genres:            utils.SplitString(track.Genres.String),
 		})
 	}
 
