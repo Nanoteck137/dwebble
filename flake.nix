@@ -4,9 +4,12 @@
   inputs = {
     nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url  = "github:numtide/flake-utils";
+
+    devtools.url     = "github:nanoteck137/devtools";
+    devtools.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flake-utils, ... }:
+  outputs = { self, nixpkgs, flake-utils, devtools, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [];
@@ -29,6 +32,8 @@
 
           vendorHash = "sha256-KA2J8ag8CZCipMBLIZX+uGB0U6sIlX1h7eavFoAVBlk=";
         };
+
+        tools = devtools.packages.${system};
       in
       {
         packages.default = app;
@@ -38,6 +43,8 @@
             air
             go
             gopls
+
+            tools.publishVersion
           ];
         };
       }
