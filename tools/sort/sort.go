@@ -8,6 +8,12 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
+var ErrUnknownName = errors.New("Unknown name")
+
+func UnknownName(name string) error {
+	return fmt.Errorf("%w: %s", ErrUnknownName, name)
+}
+
 type SortType int
 
 const (
@@ -38,7 +44,6 @@ func (e *SortExprDefault) sortType() {}
 func Parse(s string) (SortExpr, error) {
 	// TODO(patrik): Trim the strings
 	split := strings.Split(s, "=")
-	fmt.Printf("split: %v\n", split)
 
 	mode := split[0]
 	switch mode {

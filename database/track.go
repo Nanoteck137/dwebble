@@ -46,7 +46,7 @@ func (a *TrackResolverAdapter) MapSortName(name string) (types.Name, error) {
 		}, nil
 	}
 
-	return types.Name{}, types.UnknownName(name)
+	return types.Name{}, sort.UnknownName(name)
 
 }
 
@@ -246,7 +246,7 @@ func ScanTrack(scanner Scan) (Track, error) {
 var ErrInvalidFilter = errors.New("Invalid filter")
 var ErrInvalidSort = errors.New("Invalid sort")
 
-func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortExpr sort.SortExpr) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
 	query := TrackQuery()
 
 	a := TrackResolverAdapter{}
@@ -262,48 +262,28 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortExpr
 		query = query.Where(goqu.I("tracks.available").Eq(true))
 	}
 
-	if sortExpr != nil {
-		resolver := sort.New(&TrackResolverAdapter{})
-
-		var err error
-		sortExpr, err = resolver.Resolve(sortExpr)
-		if err != nil {
-			if errors.Is(err, types.ErrUnknownName) {
-				return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
-			}
-
-			return nil, err
-		}
-
-		exprs, err := generateSort(sortExpr)
-		if err != nil {
-			return nil, err
-		}
-
-		query = query.Order(exprs...)
-	} else {
-		query = query.Order(goqu.I("tracks.name").Asc())
+	sortExpr, err := sort.Parse(sortStr)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
 	}
 
-	// if sortStr != "" {
-	// 	e, err := sort.Parse(sortStr)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	//
-	// 	r := sort.New(&a)
-	//
-	// 	re, err := r.Resolve(e)
-	//
-	// 	ge, err := generateSort(re)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	//
-	// 	query = query.Order(ge...)
-	// } else {
-	// 	query = query.Order(goqu.I("tracks.name").Asc())
-	// }
+	resolver := sort.New(&TrackResolverAdapter{})
+
+	sortExpr, err = resolver.Resolve(sortExpr)
+	if err != nil {
+		if errors.Is(err, sort.ErrUnknownName) {
+			return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
+		}
+
+		return nil, err
+	}
+
+	exprs, err := generateSort(sortExpr)
+	if err != nil {
+		return nil, err
+	}
+
+	query = query.Order(exprs...)
 
 	rows, err := db.Query(ctx, query)
 	if err != nil {

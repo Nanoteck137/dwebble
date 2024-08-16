@@ -205,17 +205,6 @@
       ]
     },
     {
-      "name": "PostQueue",
-      "extend": "",
-      "fields": [
-        {
-          "name": "tracks",
-          "type": "[]Track",
-          "omit": false
-        }
-      ]
-    },
-    {
       "name": "Tag",
       "extend": "",
       "fields": [
@@ -579,8 +568,8 @@
       "method": "GET",
       "path": "/api/v1/albums/:id",
       "errorTypes": [
-        "ALBUM_NOT_FOUND",
-        "UNKNOWN_ERROR"
+        "UNKNOWN_ERROR",
+        "ALBUM_NOT_FOUND"
       ],
       "responseType": "GetAlbumById",
       "bodyType": ""
@@ -612,8 +601,8 @@
       "method": "GET",
       "path": "/api/v1/tracks/:id",
       "errorTypes": [
-        "TRACK_NOT_FOUND",
-        "UNKNOWN_ERROR"
+        "UNKNOWN_ERROR",
+        "TRACK_NOT_FOUND"
       ],
       "responseType": "GetTrackById",
       "bodyType": ""
@@ -636,16 +625,6 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "CreateQueue",
-      "method": "POST",
-      "path": "/api/v1/queue",
-      "errorTypes": [
-        "UNKNOWN_ERROR"
-      ],
-      "responseType": "PostQueue",
       "bodyType": ""
     },
     {
