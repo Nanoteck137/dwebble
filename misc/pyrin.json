@@ -591,7 +591,8 @@
       "path": "/api/v1/tracks",
       "errorTypes": [
         "UNKNOWN_ERROR",
-        "INVALID_FILTER"
+        "INVALID_FILTER",
+        "INVALID_SORT"
       ],
       "responseType": "GetTracks",
       "bodyType": ""

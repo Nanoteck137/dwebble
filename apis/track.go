@@ -100,7 +100,7 @@ func InstallTrackHandlers(app core.App, group Group) {
 			Path:        "/tracks",
 			DataType:    types.GetTracks{},
 			BodyType:    nil,
-			Errors:      []api.ErrorType{ErrTypeInvalidFilter},
+			Errors:      []api.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: a.HandleGetTracks,
 			Middlewares: []echo.MiddlewareFunc{requireSetup},
 		},
