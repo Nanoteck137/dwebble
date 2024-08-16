@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/sort"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin/api"
@@ -20,11 +21,21 @@ func (api *trackApi) HandleGetTracks(c echo.Context) error {
 	f := c.QueryParam("filter")
 	s := c.QueryParam("sort")
 
-	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, s)
+	sortExpr, err := sort.Parse(s)
+	if err != nil {
+		return InvalidSort(err)
+	}
+
+	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, sortExpr)
 	if err != nil {
 		if errors.Is(err, database.ErrInvalidFilter) {
 			return InvalidFilter(err)
 		}
+
+		if errors.Is(err, database.ErrInvalidSort) {
+			return InvalidSort(err)
+		}
+
 		return err
 	}
 

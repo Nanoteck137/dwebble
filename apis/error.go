@@ -12,6 +12,7 @@ const (
 	ErrTypeTrackNotFound  api.ErrorType = "TRACK_NOT_FOUND"
 	ErrTypeRouteNotFound  api.ErrorType = "ROUTE_NOT_FOUND"
 	ErrTypeInvalidFilter  api.ErrorType = "INVALID_FILTER"
+	ErrTypeSortFilter     api.ErrorType = "INVALID_SORT"
 )
 
 func ArtistNotFound() *api.Error {
@@ -42,6 +43,14 @@ func InvalidFilter(err error) *api.Error {
 	return &api.Error{
 		Code:    http.StatusBadRequest,
 		Type:    ErrTypeInvalidFilter,
+		Message: err.Error(),
+	}
+}
+
+func InvalidSort(err error) *api.Error {
+	return &api.Error{
+		Code:    http.StatusBadRequest,
+		Type:    ErrTypeSortFilter,
 		Message: err.Error(),
 	}
 }

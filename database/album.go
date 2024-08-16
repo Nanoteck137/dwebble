@@ -24,21 +24,21 @@ func (a *AlbumResolverAdapter) MapNameToId(typ, name string) (string, error) {
 	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
 }
 
-func (a *AlbumResolverAdapter) MapName(name string) (filter.Name, error) {
+func (a *AlbumResolverAdapter) MapName(name string) (types.Name, error) {
 	switch name {
 	case "artist":
-		return filter.Name{
-			Kind: filter.NameKindString,
+		return types.Name{
+			Kind: types.NameKindString,
 			Name: "artists.name",
 		}, nil
 	case "album":
-		return filter.Name{
-			Kind: filter.NameKindString,
+		return types.Name{
+			Kind: types.NameKindString,
 			Name: "albums.name",
 		}, nil
 	}
 
-	return filter.Name{}, fmt.Errorf("Unknown name: %s", name)
+	return types.Name{}, fmt.Errorf("Unknown name: %s", name)
 }
 
 func (a *AlbumResolverAdapter) ResolveTable(typ string) (filter.Table, error) {

@@ -16,11 +16,38 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-type TrackResolverAdapter struct {
+type TrackResolverAdapter struct{}
+
+func (a *TrackResolverAdapter) DefaultSort() string {
+	return "tracks.name"
 }
 
-func (a *TrackResolverAdapter) GetDefaultSort() string {
-	return "tracks.name"
+func (a *TrackResolverAdapter) MapSortName(name string) (types.Name, error) {
+	switch name {
+	case "artist":
+		return types.Name{
+			Kind: types.NameKindString,
+			Name: "artists.name",
+		}, nil
+	case "album":
+		return types.Name{
+			Kind: types.NameKindString,
+			Name: "albums.name",
+		}, nil
+	case "track":
+		return types.Name{
+			Kind: types.NameKindString,
+			Name: "tracks.name",
+		}, nil
+	case "trackNumber":
+		return types.Name{
+			Kind: types.NameKindNumber,
+			Name: "tracks.track_number",
+		}, nil
+	}
+
+	return types.Name{}, types.UnknownName(name)
+
 }
 
 func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
@@ -46,31 +73,31 @@ func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
 	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
 }
 
-func (a *TrackResolverAdapter) MapName(name string) (filter.Name, error) {
+func (a *TrackResolverAdapter) MapName(name string) (types.Name, error) {
 	switch name {
 	case "artist":
-		return filter.Name{
-			Kind: filter.NameKindString,
+		return types.Name{
+			Kind: types.NameKindString,
 			Name: "artists.name",
 		}, nil
 	case "album":
-		return filter.Name{
-			Kind: filter.NameKindString,
+		return types.Name{
+			Kind: types.NameKindString,
 			Name: "albums.name",
 		}, nil
 	case "track":
-		return filter.Name{
-			Kind: filter.NameKindString,
+		return types.Name{
+			Kind: types.NameKindString,
 			Name: "tracks.name",
 		}, nil
 	case "trackNumber":
-		return filter.Name{
-			Kind: filter.NameKindNumber,
+		return types.Name{
+			Kind: types.NameKindNumber,
 			Name: "tracks.track_number",
 		}, nil
 	}
 
-	return filter.Name{}, fmt.Errorf("Unknown name: %s", name)
+	return types.Name{}, fmt.Errorf("Unknown name: %s", name)
 }
 
 func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, error) {
@@ -217,8 +244,9 @@ func ScanTrack(scanner Scan) (Track, error) {
 }
 
 var ErrInvalidFilter = errors.New("Invalid filter")
+var ErrInvalidSort = errors.New("Invalid sort")
 
-func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortExpr sort.SortExpr) ([]Track, error) {
 	query := TrackQuery()
 
 	a := TrackResolverAdapter{}
@@ -234,25 +262,48 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 		query = query.Where(goqu.I("tracks.available").Eq(true))
 	}
 
-	if sortStr != "" {
-		e, err := sort.Parse(sortStr)
+	if sortExpr != nil {
+		resolver := sort.New(&TrackResolverAdapter{})
+
+		var err error
+		sortExpr, err = resolver.Resolve(sortExpr)
+		if err != nil {
+			if errors.Is(err, types.ErrUnknownName) {
+				return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
+			}
+
+			return nil, err
+		}
+
+		exprs, err := generateSort(sortExpr)
 		if err != nil {
 			return nil, err
 		}
 
-		r := sort.New(&a)
-
-		re, err := r.Resolve(e)
-
-		ge, err := generateSort(re)
-		if err != nil {
-			return nil, err
-		}
-
-		query = query.Order(ge...)
+		query = query.Order(exprs...)
 	} else {
 		query = query.Order(goqu.I("tracks.name").Asc())
 	}
+
+	// if sortStr != "" {
+	// 	e, err := sort.Parse(sortStr)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	//
+	// 	r := sort.New(&a)
+	//
+	// 	re, err := r.Resolve(e)
+	//
+	// 	ge, err := generateSort(re)
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	//
+	// 	query = query.Order(ge...)
+	// } else {
+	// 	query = query.Order(goqu.I("tracks.name").Asc())
+	// }
 
 	rows, err := db.Query(ctx, query)
 	if err != nil {

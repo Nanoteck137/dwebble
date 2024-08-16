@@ -1,10 +1,11 @@
 package sort
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/nanoteck137/dwebble/tools/filter"
+	"github.com/nanoteck137/dwebble/types"
 )
 
 type SortType int
@@ -35,6 +36,7 @@ func (e *SortExprRandom) sortType()  {}
 func (e *SortExprDefault) sortType() {}
 
 func Parse(s string) (SortExpr, error) {
+	// TODO(patrik): Trim the strings
 	split := strings.Split(s, "=")
 	fmt.Printf("split: %v\n", split)
 
@@ -73,16 +75,24 @@ func Parse(s string) (SortExpr, error) {
 		}, nil
 	case "random":
 		return &SortExprRandom{}, nil
+	case "", "default":
+		return &SortExprDefault{}, nil
+	default:
+		return nil, errors.New("Unknown sort mode")
 	}
+}
 
-	return &SortExprDefault{}, nil
+type ResolverAdapter interface {
+	DefaultSort() string
+
+	MapSortName(name string) (types.Name, error)
 }
 
 type Resolver struct {
-	adapter filter.ResolverAdapter
+	adapter ResolverAdapter
 }
 
-func New(adapter filter.ResolverAdapter) *Resolver {
+func New(adapter ResolverAdapter) *Resolver {
 	return &Resolver{
 		adapter: adapter,
 	}
@@ -92,7 +102,7 @@ func (r *Resolver) Resolve(e SortExpr) (SortExpr, error) {
 	switch e := e.(type) {
 	case *SortExprSort:
 		for i, item := range e.Items {
-			resolvedName, err := r.adapter.MapName(item.Name)
+			resolvedName, err := r.adapter.MapSortName(item.Name)
 			if err != nil {
 				return nil, err
 			}
@@ -104,7 +114,7 @@ func (r *Resolver) Resolve(e SortExpr) (SortExpr, error) {
 	case *SortExprRandom:
 		return e, nil
 	case *SortExprDefault:
-		defaultSort := r.adapter.GetDefaultSort()
+		defaultSort := r.adapter.DefaultSort()
 		return &SortExprSort{
 			Items: []SortItem{
 				{

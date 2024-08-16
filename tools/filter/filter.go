@@ -6,16 +6,16 @@ import (
 	"go/token"
 	"log"
 	"strconv"
+
+	"github.com/nanoteck137/dwebble/types"
 )
 
 type IdMappingFunc func(typ string, name string) string
 
 type ResolverAdapter interface {
-	GetDefaultSort() string
-
 	MapNameToId(typ, name string) (string, error)
 	// TODO(patrik): Rename to ResolveVariableName
-	MapName(name string) (Name, error)
+	MapName(name string) (types.Name, error)
 
 	ResolveTable(typ string) (Table, error)
 
@@ -83,18 +83,6 @@ func (r *Resolver) ResolveToNumber(e ast.Expr) int64 {
 	return i
 }
 
-type NameKind int
-
-const (
-	NameKindString NameKind = iota
-	NameKindNumber
-)
-
-type Name struct {
-	Kind NameKind
-	Name string
-}
-
 func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, error) {
 	n, err := r.adapter.MapName(name)
 	if err != nil {
@@ -104,9 +92,9 @@ func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, e
 	var val any
 
 	switch n.Kind {
-	case NameKindString:
+	case types.NameKindString:
 		val = r.ResolveToStr(value)
-	case NameKindNumber:
+	case types.NameKindNumber:
 		val = r.ResolveToNumber(value)
 	default:
 		return "", nil, fmt.Errorf("Unknown NameKind: %d", n.Kind)
