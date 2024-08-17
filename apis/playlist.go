@@ -98,21 +98,10 @@ func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 			return err
 		}
 
-		tracks = append(tracks, types.Track{
-			Id:                track.Id,
-			Number:            item.ItemIndex,
-			Name:              track.Name,
-			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
-			Duration:          track.Duration,
-			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
-			AlbumId:           track.AlbumId,
-			ArtistId:          track.ArtistId,
-			AlbumName:         track.AlbumName,
-			ArtistName:        track.ArtistName,
-			Tags:              utils.SplitString(track.Tags.String),
-			Genres:            utils.SplitString(track.Genres.String),
-		})
+		t := ConvertDBTrack(c, track) 
+		t.Number = item.ItemIndex
+
+		tracks = append(tracks, t)
 	}
 
 	return c.JSON(200, SuccessResponse(types.GetPlaylistById{
