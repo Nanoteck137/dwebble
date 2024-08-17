@@ -83,8 +83,6 @@ func (api *authApi) HandleGetMe(c echo.Context) error {
 func InstallAuthHandlers(app core.App, group Group) {
 	api := authApi{app: app}
 
-	requireSetup := RequireSetup(app)
-
 	group.Register(
 		Handler{
 			Name:        "Signup",
@@ -93,7 +91,7 @@ func InstallAuthHandlers(app core.App, group Group) {
 			DataType:    types.PostAuthSignup{},
 			BodyType:    types.PostAuthSignupBody{},
 			HandlerFunc: api.HandlePostSignup,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -103,7 +101,7 @@ func InstallAuthHandlers(app core.App, group Group) {
 			DataType:    types.PostAuthSignin{},
 			BodyType:    types.PostAuthSigninBody{},
 			HandlerFunc: api.HandlePostSignin,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -113,7 +111,7 @@ func InstallAuthHandlers(app core.App, group Group) {
 			DataType:    types.GetAuthMe{},
 			BodyType:    nil,
 			HandlerFunc: api.HandleGetMe,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

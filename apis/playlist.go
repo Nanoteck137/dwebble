@@ -208,8 +208,6 @@ func (api *playlistApi) HandlePostPlaylistsItemsMoveById(c echo.Context) error {
 func InstallPlaylistHandlers(app core.App, group Group) {
 	api := playlistApi{app: app}
 
-	requireSetup := RequireSetup(app)
-
 	group.Register(
 		Handler{
 			Name:        "GetPlaylists",
@@ -218,7 +216,7 @@ func InstallPlaylistHandlers(app core.App, group Group) {
 			DataType:    types.GetPlaylists{},
 			BodyType:    nil,
 			HandlerFunc: api.HandleGetPlaylists,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -228,7 +226,7 @@ func InstallPlaylistHandlers(app core.App, group Group) {
 			DataType:    types.PostPlaylist{},
 			BodyType:    types.PostPlaylistBody{},
 			HandlerFunc: api.HandlePostPlaylist,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -238,7 +236,7 @@ func InstallPlaylistHandlers(app core.App, group Group) {
 			DataType:    types.GetPlaylistById{},
 			BodyType:    nil,
 			HandlerFunc: api.HandleGetPlaylistById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -248,7 +246,7 @@ func InstallPlaylistHandlers(app core.App, group Group) {
 			DataType:    nil,
 			BodyType:    types.PostPlaylistItemsByIdBody{},
 			HandlerFunc: api.HandlePostPlaylistItemsById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -258,7 +256,7 @@ func InstallPlaylistHandlers(app core.App, group Group) {
 			DataType:    nil,
 			BodyType:    types.DeletePlaylistItemsByIdBody{},
 			HandlerFunc: api.HandleDeletePlaylistItemsById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -268,7 +266,7 @@ func InstallPlaylistHandlers(app core.App, group Group) {
 			DataType:    nil,
 			BodyType:    types.PostPlaylistsItemMoveByIdBody{},
 			HandlerFunc: api.HandlePostPlaylistsItemsMoveById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

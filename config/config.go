@@ -13,10 +13,12 @@ var Version = "no-version"
 var Commit = "no-commit"
 
 type Config struct {
-	ListenAddr string `mapstructure:"listen_addr"`
-	DataDir    string `mapstructure:"data_dir"`
-	LibraryDir string `mapstructure:"library_dir"`
-	JwtSecret  string `mapstructure:"jwt_secret"`
+	ListenAddr      string `mapstructure:"listen_addr"`
+	DataDir         string `mapstructure:"data_dir"`
+	LibraryDir      string `mapstructure:"library_dir"`
+	Username        string `mapstructure:"username"`
+	InitialPassword string `mapstructure:"initial_password"`
+	JwtSecret       string `mapstructure:"jwt_secret"`
 }
 
 func (c *Config) WorkDir() types.WorkDir {
@@ -27,6 +29,8 @@ func setDefaults() {
 	viper.SetDefault("listen_addr", ":3000")
 	viper.BindEnv("data_dir")
 	viper.BindEnv("library_dir")
+	viper.BindEnv("username")
+	viper.BindEnv("initial_password")
 	viper.BindEnv("jwt_secret")
 }
 
@@ -44,6 +48,8 @@ func validateConfig(config *Config) {
 	validate(config.ListenAddr == "", "listen_addr needs to be set")
 	validate(config.DataDir == "", "data_dir needs to be set")
 	validate(config.LibraryDir == "", "library_dir needs to be set")
+	validate(config.Username == "", "username needs to be set")
+	validate(config.InitialPassword == "", "initial_password needs to be set")
 	validate(config.JwtSecret == "", "jwt_secret needs to be set")
 
 	if hasError {

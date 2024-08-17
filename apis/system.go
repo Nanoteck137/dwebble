@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
@@ -20,45 +19,6 @@ func (api *systemApi) HandleGetSystemInfo(c echo.Context) error {
 		Version: config.Version,
 		IsSetup: api.app.IsSetup(),
 	}))
-}
-
-func (api *systemApi) HandlePostSystemSetup(c echo.Context) error {
-	if api.app.IsSetup() {
-		// TODO(patrik): Fix error
-		return errors.New("Server already setup")
-	}
-
-	body, err := Body[types.PostSystemSetupBody](c)
-	if err != nil {
-		return err
-	}
-
-	db, tx, err := api.app.DB().Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	user, err := db.CreateUser(c.Request().Context(), body.Username, body.Password)
-	if err != nil {
-		return err
-	}
-
-	conf, err := db.CreateConfig(c.Request().Context(), user.Id)
-	if err != nil {
-		return err
-	}
-
-	pretty.Println(body)
-
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-
-	api.app.UpdateDBConfig(&conf)
-
-	return c.JSON(200, SuccessResponse(nil))
 }
 
 func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
@@ -143,8 +103,6 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 func InstallSystemHandlers(app core.App, group Group) {
 	api := systemApi{app: app}
 
-	requireSetup := RequireSetup(app)
-
 	group.Register(
 		Handler{
 			Name:        "GetSystemInfo",
@@ -156,22 +114,13 @@ func InstallSystemHandlers(app core.App, group Group) {
 		},
 
 		Handler{
-			Name:        "RunSystemSetup",
-			Path:        "/system/setup",
-			Method:      http.MethodPost,
-			DataType:    nil,
-			BodyType:    types.PostSystemSetupBody{},
-			HandlerFunc: api.HandlePostSystemSetup,
-		},
-
-		Handler{
 			Name:        "SystemExport",
 			Path:        "/system/export",
 			Method:      http.MethodPost,
 			DataType:    types.PostSystemExport{},
 			BodyType:    nil,
 			HandlerFunc: api.HandlePostSystemExport,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -181,7 +130,7 @@ func InstallSystemHandlers(app core.App, group Group) {
 			DataType:    nil,
 			BodyType:    nil,
 			HandlerFunc: api.HandlePostSystemImport,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

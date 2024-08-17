@@ -45,7 +45,7 @@ func (db *Database) GetConfig(ctx context.Context) (*Config, error) {
 	err = row.Scan(&item.OwnerId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, nil
+			return nil, ErrItemNotFound
 		}
 
 		return nil, err

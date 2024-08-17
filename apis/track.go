@@ -100,8 +100,6 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 func InstallTrackHandlers(app core.App, group Group) {
 	a := trackApi{app: app}
 
-	requireSetup := RequireSetup(app)
-
 	group.Register(
 		Handler{
 			Name:        "GetTracks",
@@ -111,7 +109,7 @@ func InstallTrackHandlers(app core.App, group Group) {
 			BodyType:    nil,
 			Errors:      []api.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: a.HandleGetTracks,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -122,7 +120,7 @@ func InstallTrackHandlers(app core.App, group Group) {
 			BodyType:    nil,
 			Errors:      []api.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: a.HandleGetTrackById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

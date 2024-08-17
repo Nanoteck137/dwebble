@@ -36,8 +36,6 @@ func (api *tagApi) HandleGetTags(c echo.Context) error {
 func InstallTagHandlers(app core.App, group Group) {
 	api := tagApi{app: app}
 
-	requireSetup := RequireSetup(app)
-
 	group.Register(
 		Handler{
 			Name:        "GetTags",
@@ -46,7 +44,7 @@ func InstallTagHandlers(app core.App, group Group) {
 			DataType:    types.GetTags{},
 			BodyType:    nil,
 			HandlerFunc: api.HandleGetTags,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

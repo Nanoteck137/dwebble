@@ -60,8 +60,6 @@ func InstallSyncHandlers(app core.App, group Group) {
 		syncing: atomic.Bool{},
 	}
 
-	requireSetup := RequireSetup(app)
-
 	group.Register(
 		Handler{
 			Name:        "GetSyncStatus",
@@ -70,7 +68,7 @@ func InstallSyncHandlers(app core.App, group Group) {
 			DataType:    types.GetSync{},
 			BodyType:    nil,
 			HandlerFunc: api.HandleGetSync,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -80,7 +78,7 @@ func InstallSyncHandlers(app core.App, group Group) {
 			DataType:    nil,
 			BodyType:    nil,
 			HandlerFunc: api.HandlePostSync,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

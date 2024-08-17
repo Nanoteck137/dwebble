@@ -108,8 +108,6 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 func InstallAlbumHandlers(app core.App, group Group) {
 	a := albumApi{app: app}
 
-	requireSetup := RequireSetup(app)
-
 	group.Register(
 		Handler{
 			Name:        "GetAlbums",
@@ -118,7 +116,7 @@ func InstallAlbumHandlers(app core.App, group Group) {
 			DataType:    types.GetAlbums{},
 			BodyType:    nil,
 			HandlerFunc: a.HandleGetAlbums,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -129,7 +127,7 @@ func InstallAlbumHandlers(app core.App, group Group) {
 			BodyType:    nil,
 			Errors:      []api.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: a.HandleGetAlbumById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -140,7 +138,7 @@ func InstallAlbumHandlers(app core.App, group Group) {
 			BodyType:    nil,
 			Errors:      []api.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: a.HandleGetAlbumTracksById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

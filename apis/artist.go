@@ -91,8 +91,6 @@ func (api *artistApi) HandleGetArtistAlbumsById(c echo.Context) error {
 func InstallArtistHandlers(app core.App, group Group) {
 	a := artistApi{app: app}
 
-	requireSetup := RequireSetup(app)
-
 	group.Register(
 		Handler{
 			Name:        "GetArtists",
@@ -101,7 +99,7 @@ func InstallArtistHandlers(app core.App, group Group) {
 			DataType:    types.GetArtists{},
 			BodyType:    nil,
 			HandlerFunc: a.HandleGetArtists,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -112,7 +110,7 @@ func InstallArtistHandlers(app core.App, group Group) {
 			BodyType:    nil,
 			Errors:      []api.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: a.HandleGetArtistById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		Handler{
@@ -123,7 +121,7 @@ func InstallArtistHandlers(app core.App, group Group) {
 			BodyType:    nil,
 			Errors:      []api.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: a.HandleGetArtistAlbumsById,
-			Middlewares: []echo.MiddlewareFunc{requireSetup},
+			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

@@ -57,6 +57,8 @@
             listen_addr = "${cfg.host}:${toString cfg.port}"
             data_dir = "/var/lib/dwebble"
             library_dir = "${cfg.library}"
+            username = "${cfg.username}"
+            initial_password = "${cfg.initialPassword}"
             jwt_secret = "${cfg.jwtSecret}"
           '';
         in
@@ -78,12 +80,22 @@
 
             library = mkOption {
               type = types.path;
-              description = lib.mdDoc "path to series library";
+              description = "path to series library";
+            };
+
+            username = mkOption {
+              type = types.str;
+              description = "username of the first user";
+            };
+
+            initialPassword = mkOption {
+              type = types.str;
+              description = "initial password of the first user (should change after the first login)";
             };
 
             jwtSecret = mkOption {
               type = types.str;
-              description = lib.mdDoc "jwt secret";
+              description = "jwt secret";
             };
 
             package = mkOption {
@@ -95,13 +107,13 @@
             user = mkOption {
               type = types.str;
               default = "dwebble";
-              description = lib.mdDoc "user to use for this service";
+              description = "user to use for this service";
             };
 
             group = mkOption {
               type = types.str;
               default = "dwebble";
-              description = lib.mdDoc "group to use for this service";
+              description = "group to use for this service";
             };
 
           };
