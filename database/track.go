@@ -23,6 +23,8 @@ func (a *TrackResolverAdapter) DefaultSort() string {
 }
 
 func (a *TrackResolverAdapter) MapSortName(name string) (types.Name, error) {
+	// TODO(patrik): Include all available fields to sort on
+	// TODO(patrik): Change names to match the types.Track names
 	switch name {
 	case "artist":
 		return types.Name{
@@ -43,6 +45,11 @@ func (a *TrackResolverAdapter) MapSortName(name string) (types.Name, error) {
 		return types.Name{
 			Kind: types.NameKindNumber,
 			Name: "tracks.track_number",
+		}, nil
+	case "available":
+		return types.Name{
+			Kind: types.NameKindNumber,
+			Name: "tracks.available",
 		}, nil
 	}
 
@@ -74,6 +81,8 @@ func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
 }
 
 func (a *TrackResolverAdapter) MapName(name string) (types.Name, error) {
+	// TODO(patrik): Include all available fields to filter on
+	// TODO(patrik): Change names to match the types.Track names
 	switch name {
 	case "artist":
 		return types.Name{
@@ -84,6 +93,11 @@ func (a *TrackResolverAdapter) MapName(name string) (types.Name, error) {
 		return types.Name{
 			Kind: types.NameKindString,
 			Name: "albums.name",
+		}, nil
+	case "albumId":
+		return types.Name{
+			Kind: types.NameKindString,
+			Name: "albums.id",
 		}, nil
 	case "track":
 		return types.Name{
@@ -148,6 +162,8 @@ type Track struct {
 	AlbumName  string
 	ArtistName string
 
+	Available bool
+
 	Tags   sql.NullString
 	Genres sql.NullString
 }
@@ -187,6 +203,7 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.mobile_quality_file",
 			"tracks.album_id",
 			"tracks.artist_id",
+			"tracks.available",
 			"albums.name",
 			"artists.name",
 			"tags.tags",
@@ -208,8 +225,7 @@ func TrackQuery() *goqu.SelectDataset {
 		LeftJoin(
 			genres.As("genres"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("genres.track_id"))),
-		).
-		Where(goqu.I("tracks.available").Eq(true))
+		)
 
 	return query
 }
@@ -231,6 +247,7 @@ func ScanTrack(scanner Scan) (Track, error) {
 		&res.MobileQualityFile,
 		&res.AlbumId,
 		&res.ArtistId,
+		&res.Available,
 		&res.AlbumName,
 		&res.ArtistName,
 		&res.Tags,
@@ -246,7 +263,7 @@ func ScanTrack(scanner Scan) (Track, error) {
 var ErrInvalidFilter = errors.New("Invalid filter")
 var ErrInvalidSort = errors.New("Invalid sort")
 
-func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string, includeAll bool) ([]Track, error) {
 	query := TrackQuery()
 
 	a := TrackResolverAdapter{}
@@ -257,9 +274,15 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 			return nil, fmt.Errorf("%w: %w", ErrInvalidFilter, err)
 		}
 
-		query = query.Where(goqu.I("tracks.available").Eq(true), re)
+		if includeAll {
+			query = query.Where(re)
+		} else {
+			query = query.Where(re, goqu.I("tracks.available").Eq(true))
+		}
 	} else {
-		query = query.Where(goqu.I("tracks.available").Eq(true))
+		if !includeAll {
+			query = query.Where(goqu.I("tracks.available").Eq(true))
+		}
 	}
 
 	sortExpr, err := sort.Parse(sortStr)

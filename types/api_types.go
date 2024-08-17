@@ -32,6 +32,7 @@ type Track struct {
 	ArtistId          string   `json:"artistId"`
 	AlbumName         string   `json:"albumName"`
 	ArtistName        string   `json:"artistName"`
+	Available         bool     `json:"available"`
 	Tags              []string `json:"tags"`
 	Genres            []string `json:"genres"`
 }

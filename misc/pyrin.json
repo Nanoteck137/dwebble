@@ -155,6 +155,11 @@
           "omit": false
         },
         {
+          "name": "available",
+          "type": "bool",
+          "omit": false
+        },
+        {
           "name": "tags",
           "type": "[]string",
           "omit": false
@@ -590,9 +595,9 @@
       "method": "GET",
       "path": "/api/v1/tracks",
       "errorTypes": [
+        "INVALID_SORT",
         "UNKNOWN_ERROR",
-        "INVALID_FILTER",
-        "INVALID_SORT"
+        "INVALID_FILTER"
       ],
       "responseType": "GetTracks",
       "bodyType": ""

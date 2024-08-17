@@ -3,6 +3,7 @@ package apis
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
@@ -16,11 +17,47 @@ type trackApi struct {
 	app core.App
 }
 
+func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
+	return types.Track{
+		Id:                track.Id,
+		Number:            track.Number,
+		Name:              track.Name,
+		CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
+		Duration:          track.Duration,
+		BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
+		MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+		AlbumId:           track.AlbumId,
+		ArtistId:          track.ArtistId,
+		AlbumName:         track.AlbumName,
+		ArtistName:        track.ArtistName,
+		Available:         track.Available,
+		Tags:              utils.SplitString(track.Tags.String),
+		Genres:            utils.SplitString(track.Genres.String),
+	}
+}
+
+func ParseQueryBool(s string) bool {
+	s = strings.TrimSpace(s)
+	s = strings.ToLower(s)
+
+	switch s {
+	case "true", "1":
+		return true
+	case "false", "":
+		return false
+	default:
+		return false
+	}
+}
+
 func (api *trackApi) HandleGetTracks(c echo.Context) error {
 	f := c.QueryParam("filter")
 	s := c.QueryParam("sort")
+	includeAll := ParseQueryBool(c.QueryParam("includeAll"))
 
-	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, s)
+	_ = includeAll
+
+	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, s, includeAll)
 	if err != nil {
 		if errors.Is(err, database.ErrInvalidFilter) {
 			return InvalidFilter(err)
@@ -38,21 +75,7 @@ func (api *trackApi) HandleGetTracks(c echo.Context) error {
 	}
 
 	for i, track := range tracks {
-		res.Tracks[i] = types.Track{
-			Id:                track.Id,
-			Number:            track.Number,
-			Name:              track.Name,
-			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
-			Duration:          track.Duration,
-			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
-			AlbumId:           track.AlbumId,
-			ArtistId:          track.ArtistId,
-			AlbumName:         track.AlbumName,
-			ArtistName:        track.ArtistName,
-			Tags:              utils.SplitString(track.Tags.String),
-			Genres:            utils.SplitString(track.Genres.String),
-		}
+		res.Tracks[i] = ConvertDBTrack(c, track)
 	}
 
 	return c.JSON(200, SuccessResponse(res))
@@ -70,21 +93,7 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 	}
 
 	return c.JSON(200, SuccessResponse(types.GetTrackById{
-		Track: types.Track{
-			Id:                track.Id,
-			Number:            track.Number,
-			Name:              track.Name,
-			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
-			Duration:          track.Duration,
-			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
-			AlbumId:           track.AlbumId,
-			ArtistId:          track.ArtistId,
-			AlbumName:         track.AlbumName,
-			ArtistName:        track.ArtistName,
-			Tags:              utils.SplitString(track.Tags.String),
-			Genres:            utils.SplitString(track.Genres.String),
-		},
+		Track: ConvertDBTrack(c, track),
 	}))
 }
 
