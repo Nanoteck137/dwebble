@@ -38,14 +38,24 @@
 </form>
 
 <div class="flex flex-col">
-  <button
-    onclick={() => {
-      musicManager.clearQueue();
-      for (const track of data.tracks) {
-        musicManager.addTrackToQueue(trackToMusicTrack(track));
-      }
-    }}>Play</button
-  >
+  <div class="flex gap-2 px-4">
+    <button
+      class="rounded bg-blue-500 px-4 py-2 text-lg hover:bg-blue-600"
+      onclick={() => {
+        musicManager.clearQueue();
+        for (const track of data.tracks) {
+          musicManager.addTrackToQueue(trackToMusicTrack(track));
+        }
+      }}>Play</button
+    >
+    <form action="?/newPlaylist" method="post">
+      <input name="filter" value={data.filter} type="hidden" />
+      <input name="sort" value={data.sort} type="hidden" />
+      <button class="rounded bg-pink-500 px-4 py-2 text-lg hover:bg-pink-600"
+        >New playlist from tracks</button
+      >
+    </form>
+  </div>
   {#each data.tracks as track, i}
     <div class="group flex items-center gap-2 border-b p-2 pr-4">
       <div class="group relative">

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
@@ -66,6 +67,68 @@ func (api *playlistApi) HandlePostPlaylist(c echo.Context) error {
 	}))
 }
 
+func (api *playlistApi) HandlePostPlaylistFilter(c echo.Context) error {
+	user, err := User(api.app, c)
+	if err != nil {
+		return err
+	}
+
+	body, err := Body[types.PostPlaylistFilterBody](c)
+	if err != nil {
+		return err
+	}
+
+	db, tx, err := api.app.DB().Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	playlist, err := db.CreatePlaylist(c.Request().Context(), database.CreatePlaylistParams{
+		Name:    body.Name,
+		OwnerId: user.Id,
+	})
+	if err != nil {
+		return err
+	}
+
+	tracks, err := db.GetAllTracks(c.Request().Context(), body.Filter, body.Sort, false)
+	if err != nil {
+		if errors.Is(err, database.ErrInvalidFilter) {
+			return InvalidFilter(err)
+		}
+
+		if errors.Is(err, database.ErrInvalidSort) {
+			return InvalidSort(err)
+		}
+
+		return err
+	}
+
+	ids := make([]string, 0, len(tracks))
+
+	for _, track := range tracks {
+		ids = append(ids, track.Id)
+	}
+
+	err = db.AddItemsToPlaylistRaw(c.Request().Context(), playlist.Id, ids)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, SuccessResponse(types.PostPlaylist{
+		Playlist: types.Playlist{
+			Id:   playlist.Id,
+			Name: playlist.Name,
+		},
+	}))
+}
+
 func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 	playlistId := c.Param("id")
 
@@ -84,32 +147,26 @@ func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 		return errors.New("No playlist")
 	}
 
-	items, err := api.app.DB().GetPlaylistItems(c.Request().Context(), playlist.Id)
+	tracks, err := api.app.DB().GetPlaylistTracks(c.Request().Context(), playlist.Id)
 	if err != nil {
 		return err
 	}
 
-	tracks := []types.Track{}
-	for _, item := range items {
-		// TODO(patrik): Optimize
-		track, err := api.app.DB().GetTrackById(c.Request().Context(), item.TrackId)
-		if err != nil {
-			return err
-		}
+	pretty.Println(tracks)
 
-		t := ConvertDBTrack(c, track) 
-		t.Number = item.ItemIndex
-
-		tracks = append(tracks, t)
-	}
-
-	return c.JSON(200, SuccessResponse(types.GetPlaylistById{
+	res := types.GetPlaylistById{
 		Playlist: types.Playlist{
 			Id:   playlist.Id,
 			Name: playlist.Name,
 		},
-		Items: tracks,
-	}))
+		Items: make([]types.Track, len(tracks)),
+	}
+
+	for i, track := range tracks {
+		res.Items[i] = ConvertDBTrack(c, track)
+	}
+
+	return c.JSON(200, SuccessResponse(res))
 }
 
 func (api *playlistApi) HandlePostPlaylistItemsById(c echo.Context) error {
@@ -226,6 +283,16 @@ func InstallPlaylistHandlers(app core.App, group Group) {
 			DataType:    types.PostPlaylist{},
 			BodyType:    types.PostPlaylistBody{},
 			HandlerFunc: api.HandlePostPlaylist,
+			Middlewares: []echo.MiddlewareFunc{},
+		},
+
+		Handler{
+			Name:        "CreatePlaylistFromFilter",
+			Path:        "/playlists/filter",
+			Method:      http.MethodPost,
+			DataType:    types.PostPlaylist{},
+			BodyType:    types.PostPlaylistFilterBody{},
+			HandlerFunc: api.HandlePostPlaylistFilter,
 			Middlewares: []echo.MiddlewareFunc{},
 		},
 

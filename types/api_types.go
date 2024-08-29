@@ -146,6 +146,20 @@ func (b PostPlaylistBody) Schema() jio.Schema {
 	})
 }
 
+type PostPlaylistFilterBody struct {
+	Name   string `json:"name"`
+	Filter string `json:"filter"`
+	Sort   string `json:"sort"`
+}
+
+func (b PostPlaylistFilterBody) Schema() jio.Schema {
+	return jio.Object().Keys(jio.K{
+		"name":   jio.String().Required().Min(1),
+		"filter": jio.String(),
+		"sort":   jio.String(),
+	})
+}
+
 type PostPlaylistItemsByIdBody struct {
 	Tracks []string `json:"tracks"`
 }

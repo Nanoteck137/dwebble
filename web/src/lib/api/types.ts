@@ -135,6 +135,13 @@ export const PostPlaylistBody = z.object({
 });
 export type PostPlaylistBody = z.infer<typeof PostPlaylistBody>;
 
+export const PostPlaylistFilterBody = z.object({
+  name: z.string(),
+  filter: z.string(),
+  sort: z.string(),
+});
+export type PostPlaylistFilterBody = z.infer<typeof PostPlaylistFilterBody>;
+
 export const GetPlaylistById = z.object({
   id: z.string(),
   name: z.string(),
@@ -163,13 +170,6 @@ export const GetSystemInfo = z.object({
   isSetup: z.boolean(),
 });
 export type GetSystemInfo = z.infer<typeof GetSystemInfo>;
-
-export const PostSystemSetupBody = z.object({
-  username: z.string(),
-  password: z.string(),
-  passwordConfirm: z.string(),
-});
-export type PostSystemSetupBody = z.infer<typeof PostSystemSetupBody>;
 
 export const ExportTrack = z.object({
   name: z.string(),

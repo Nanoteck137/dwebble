@@ -25,7 +25,7 @@ export class ApiClient extends BaseApiClient {
   
   getArtistAlbums(id: string, options?: ExtraOptions) {
     const error = createError(
-      z.enum(["UNKNOWN_ERROR", "ARTIST_NOT_FOUND"]),
+      z.enum(["ARTIST_NOT_FOUND", "UNKNOWN_ERROR"]),
       z.map(z.string(), z.string()).optional(),
     )
     return this.request(`/api/v1/artists/${id}/albums`, "GET", api.GetArtistAlbumsById, error, undefined, options)
@@ -135,6 +135,14 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/playlists", "POST", api.PostPlaylist, error, body, options)
   }
   
+  createPlaylistFromFilter(body: api.PostPlaylistFilterBody, options?: ExtraOptions) {
+    const error = createError(
+      z.enum(["UNKNOWN_ERROR"]),
+      z.map(z.string(), z.string()).optional(),
+    )
+    return this.request("/api/v1/playlists/filter", "POST", api.PostPlaylist, error, body, options)
+  }
+  
   getPlaylistById(id: string, options?: ExtraOptions) {
     const error = createError(
       z.enum(["UNKNOWN_ERROR"]),
@@ -173,14 +181,6 @@ export class ApiClient extends BaseApiClient {
       z.map(z.string(), z.string()).optional(),
     )
     return this.request("/api/v1/system/info", "GET", api.GetSystemInfo, error, undefined, options)
-  }
-  
-  runSystemSetup(body: api.PostSystemSetupBody, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/system/setup", "POST", z.undefined(), error, body, options)
   }
   
   systemExport(options?: ExtraOptions) {

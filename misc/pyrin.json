@@ -365,6 +365,27 @@
       ]
     },
     {
+      "name": "PostPlaylistFilterBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetPlaylistById",
       "extend": "",
       "fields": [
@@ -435,27 +456,6 @@
         {
           "name": "isSetup",
           "type": "bool",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "PostSystemSetupBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "username",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "password",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "passwordConfirm",
-          "type": "string",
           "omit": false
         }
       ]
@@ -552,8 +552,8 @@
       "method": "GET",
       "path": "/api/v1/artists/:id/albums",
       "errorTypes": [
-        "UNKNOWN_ERROR",
-        "ARTIST_NOT_FOUND"
+        "ARTIST_NOT_FOUND",
+        "UNKNOWN_ERROR"
       ],
       "responseType": "GetArtistAlbumsById",
       "bodyType": ""
@@ -694,6 +694,16 @@
       "bodyType": "PostPlaylistBody"
     },
     {
+      "name": "CreatePlaylistFromFilter",
+      "method": "POST",
+      "path": "/api/v1/playlists/filter",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
+      "responseType": "PostPlaylist",
+      "bodyType": "PostPlaylistFilterBody"
+    },
+    {
       "name": "GetPlaylistById",
       "method": "GET",
       "path": "/api/v1/playlists/:id",
@@ -742,16 +752,6 @@
       ],
       "responseType": "GetSystemInfo",
       "bodyType": ""
-    },
-    {
-      "name": "RunSystemSetup",
-      "method": "POST",
-      "path": "/api/v1/system/setup",
-      "errorTypes": [
-        "UNKNOWN_ERROR"
-      ],
-      "responseType": "",
-      "bodyType": "PostSystemSetupBody"
     },
     {
       "name": "SystemExport",

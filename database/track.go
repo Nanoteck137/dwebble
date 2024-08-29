@@ -205,7 +205,7 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.artist_id",
 			"tracks.available",
 			"albums.name",
-			"artists.name",
+			goqu.I("artists.name").As("artist_name"),
 			"tags.tags",
 			"genres.genres",
 		).
