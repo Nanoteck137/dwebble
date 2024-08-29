@@ -1,0 +1,143 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --default-color: #ff00ff;
+
+    --bg-color: var(--default-color);
+    --fg-color: var(--default-color);
+    --bg-color-alt: var(--default-color);
+
+    --primary: var(--default-color);
+    --primary-alt: var(--default-color);
+    --on-primary: var(--default-color);
+    --secondary: var(--default-color);
+    --secondary-alt: var(--default-color);
+    --on-secondary: var(--default-color);
+    --accent: var(--default-color);
+
+    --card-bg-color: var(--default-color);
+    --card-fg-color: var(--default-color);
+
+    --modal-overlay-bg: #000000d1;
+    --overlay-bg: #00000079;
+
+    --header-bg-color: var(--default-color);
+    --header-fg-color: var(--default-color);
+    --logo-color: var(--default-color);
+
+    --input-bg-color: var(--default-color);
+    --input-fg-color: var(--default-color);
+    --input-placeholder-color: var(--default-color);
+    --input-label-color: var(--default-color);
+    --input-border-color: var(--default-color);
+    --input-focus-border-color: var(--default-color);
+}
+
+html[data-theme="tokyonight-storm"] {
+    /* From: https://github.com/folke/tokyonight.nvim/blob/main/extras/alacritty/tokyonight_storm.toml */
+    --color-bg: #24283b;
+    --color-fg: #c0caf5;
+
+    --color-black: #1d202f;
+    --color-red: #f7768e;
+    --color-green: #9ece6a;
+    --color-yellow: #e0af68;
+    --color-blue: #7aa2f7;
+    --color-magenta: #bb9af7;
+    --color-cyan: #7dcfff;
+    --color-white: #a9b1d6;
+
+    --color-bright-black: #414868;
+    --color-bright-red: #f7768e;
+    --color-bright-green: #9ece6a;
+    --color-bright-yellow: #e0af68;
+    --color-bright-blue: #7aa2f7;
+    --color-bright-magenta: #bb9af7;
+    --color-bright-cyan: #7dcfff;
+    --color-bright-white: #c0caf5;
+
+    --bg-color: var(--color-bg);
+    --fg-color: var(--color-fg);
+    --bg-color-alt: var(--color-black);
+
+    --primary: var(--color-blue);
+    --primary-alt: var(--color-cyan);
+    --on-primary: var(--color-black);
+    --secondary: var(--color-white);
+    --secondary-alt: var(--color-bright-white);
+    --on-secondary: var(--color-black);
+    --accent: var(--color-yellow);
+
+    --card-bg-color: var(--color-black);
+    --card-fg-color: var(--color-fg);
+
+    --modal-overlay-bg: #000000d1;
+    --overlay-bg: #00000079;
+
+    --header-bg-color: var(--bg-color);
+    --header-fg-color: var(--fg-color);
+    --logo-color: var(--color-yellow);
+
+    --input-bg-color: var(--color-bright-black);
+    --input-fg-color: var(--color-bright-white);
+    --input-placeholder-color: var(--color-white);
+    --input-label-color: var(--color-magenta);
+    --input-border-color: var(--color-bright-black);
+    --input-focus-border-color: var(--color-bright-magenta);
+
+    color-scheme: dark;
+}
+
+html[data-theme="light"] {
+    --bg-color: #fff;
+    --fg-color: #000;
+    --bg-color-alt: #f2f2f2;
+
+    --primary: #4785ff;
+    --primary-alt: #226bfd;
+    --on-primary: #fff;
+    --secondary: #f2f2f2;
+    --secondary-alt: #f2f2f2;
+    --on-secondary: #000;
+    --accent: #ffaf85;
+
+    --card-bg-color: #fcfcfc;
+    --card-fg-color: #171717;
+    
+    --modal-overlay-bg: #000000d1;
+    --overlay-bg: #00000079;
+
+    --header-bg-color: var(--bg-color);
+    --header-fg-color: var(--fg-color);
+    --logo-color: #FF8225;
+
+    --input-bg-color: var(--bg-color);
+    --input-fg-color: var(--fg-color);
+    --input-placeholder-color: #ccc;
+    --input-border-color: #ccc;
+    --input-focus-border-color: #666;
+
+    color-scheme: light;
+}
+
+.button-primary {
+    @apply bg-[--primary] text-[--on-primary] hover:bg-[--primary-alt]
+}
+
+.button-secondary {
+    @apply bg-[--secondary] text-[--on-secondary] hover:bg-[--secondary-alt]
+}
+
+.button-primary-outline {
+    @apply border border-[--primary] text-[--primary] hover:bg-[--primary] hover:text-[--on-primary]
+}
+
+.button-secondary-outline {
+    @apply border border-[--secondary] text-[--secondary] hover:bg-[--secondary] hover:text-[--on-secondary]
+}
+
+body[data-player="true"] main {
+    @apply mb-16 md:mb-24
+}

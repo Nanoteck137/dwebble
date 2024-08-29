@@ -43,6 +43,7 @@
             air
             go
             gopls
+            nodejs
 
             tools.publishVersion
           ];
