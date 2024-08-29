@@ -145,27 +145,27 @@ func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, na
 }
 
 type Track struct {
-	Id       string
-	Number   int
-	Name     string
-	CoverArt sql.NullString
-	Duration int
+	Id       string         `db:"id"`
+	Number   int            `db:"track_number"`
+	Name     string         `db:"name"`
+	CoverArt sql.NullString `db:"cover_art"`
+	Duration int            `db:"duration"`
 
-	Path string
+	Path string `db:"path"`
 
-	BestQualityFile   string
-	MobileQualityFile string
+	BestQualityFile   string `db:"best_quality_file"`
+	MobileQualityFile string `db:"mobile_quality_file"`
 
-	AlbumId  string
-	ArtistId string
+	AlbumId  string `db:"album_id"`
+	ArtistId string `db:"artist_id"`
 
-	AlbumName  string
-	ArtistName string
+	AlbumName  string `db:"album_name"`
+	ArtistName string `db:"artist_name"`
 
-	Available bool
+	Available bool `db:"available"`
 
-	Tags   sql.NullString
-	Genres sql.NullString
+	Tags   sql.NullString `db:"tags"`
+	Genres sql.NullString `db:"genres"`
 }
 
 func TrackQuery() *goqu.SelectDataset {
@@ -204,10 +204,10 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.album_id",
 			"tracks.artist_id",
 			"tracks.available",
-			"albums.name",
+			goqu.I("albums.name").As("album_name"),
 			goqu.I("artists.name").As("artist_name"),
-			"tags.tags",
-			"genres.genres",
+			goqu.I("tags.tags").As("tags"),
+			goqu.I("genres.genres").As("genres"),
 		).
 		Prepared(true).
 		Join(
