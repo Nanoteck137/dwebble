@@ -3,7 +3,6 @@ package apis
 import (
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
@@ -85,21 +84,7 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 	}
 
 	for i, track := range tracks {
-		res.Tracks[i] = types.Track{
-			Id:                track.Id,
-			Number:            track.Number,
-			Name:              track.Name,
-			CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
-			Duration:          track.Duration,
-			BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-			MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
-			AlbumId:           track.AlbumId,
-			ArtistId:          track.ArtistId,
-			AlbumName:         track.AlbumName,
-			ArtistName:        track.ArtistName,
-			Tags:              strings.Split(track.Tags.String, ","),
-			Genres:            strings.Split(track.Genres.String, ","),
-		}
+		res.Tracks[i] = ConvertDBTrack(c, track) 
 	}
 
 	return c.JSON(200, SuccessResponse(res))
