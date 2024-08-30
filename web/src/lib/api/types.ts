@@ -155,7 +155,7 @@ export const PostPlaylistItemsByIdBody = z.object({
 export type PostPlaylistItemsByIdBody = z.infer<typeof PostPlaylistItemsByIdBody>;
 
 export const DeletePlaylistItemsByIdBody = z.object({
-  trackIndices: z.array(z.number()),
+  trackIds: z.array(z.string()),
 });
 export type DeletePlaylistItemsByIdBody = z.infer<typeof DeletePlaylistItemsByIdBody>;
 
