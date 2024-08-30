@@ -50,23 +50,24 @@ func (a *AlbumResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, na
 }
 
 type Album struct {
-	Id         string
-	Name       string
-	CoverArt   sql.NullString
-	ArtistId   string
-	Path       string
-	ArtistName string
+	Id         string         `db:"id"`
+	Name       string         `db:"name"`
+	CoverArt   sql.NullString `db:"cover_art"`
+	ArtistId   string         `db:"artist_id"`
+	Path       string         `db:"path"`
+	ArtistName string         `db:"artist_name"`
+	Available  bool           `db:"available"`
 }
 
-func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album, error) {
-	ds := dialect.From("albums").
+func AlbumQuery() *goqu.SelectDataset {
+	query := dialect.From("albums").
 		Select(
 			"albums.id",
 			"albums.name",
 			"albums.cover_art",
 			"albums.artist_id",
 			"albums.path",
-			"artists.name",
+			goqu.I("artists.name").As("artist_name"),
 		).
 		Join(
 			goqu.I("artists"),
@@ -76,6 +77,12 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album
 		).
 		Prepared(true)
 
+	return query
+}
+
+func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr string, includeAll bool) ([]Album, error) {
+	query := AlbumQuery()
+
 	if filterStr != "" {
 		a := AlbumResolverAdapter{}
 		re, err := fullParseFilter(&a, filterStr)
@@ -83,76 +90,47 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string) ([]Album
 			return nil, err
 		}
 
-		ds = ds.Where(goqu.I("albums.available").Eq(true), re)
+		if includeAll {
+			query = query.Where(re)
+		} else {
+			query = query.Where(goqu.I("albums.available").Eq(true), re)
+		}
 	} else {
-		ds = ds.Where(goqu.I("albums.available").Eq(true))
-	}
-
-	rows, err := db.Query(ctx, ds)
-	if err != nil {
-		return nil, err
+		if !includeAll {
+			query = query.Where(goqu.I("albums.available").Eq(true))
+		}
 	}
 
 	var items []Album
-	for rows.Next() {
-		var item Album
-		err := rows.Scan(
-			&item.Id,
-			&item.Name,
-			&item.CoverArt,
-			&item.ArtistId,
-			&item.Path,
-			&item.ArtistName,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, item)
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
 	}
 
 	return items, nil
 }
 
 func (db *Database) GetAlbumsByArtist(ctx context.Context, artistId string) ([]Album, error) {
-	ds := dialect.From("albums").
-		Select("id", "name", "cover_art", "artist_id", "path").
-		Where(goqu.And(goqu.I("available").Eq(true), goqu.C("artist_id").Eq(artistId)))
-
-	rows, err := db.Query(ctx, ds)
-	if err != nil {
-		return nil, err
-	}
+	query := AlbumQuery().
+		Where(goqu.I("albums.artist_id").Eq(artistId))
 
 	var items []Album
-	for rows.Next() {
-		var item Album
-		err := rows.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, item)
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
 	}
 
 	return items, nil
 }
 
 func (db *Database) GetAlbumById(ctx context.Context, id string) (Album, error) {
-	ds := dialect.From("albums").
-		Select("id", "name", "cover_art", "artist_id", "path").
-		Where(goqu.C("id").Eq(id)).
-		Prepared(true)
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Album{}, err
-	}
+	query := AlbumQuery().
+		Where(goqu.I("albums.id").Eq(id))
 
 	var item Album
-	err = row.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
+	err := db.Get(&item, query)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return Album{}, ErrItemNotFound
 		}
 
@@ -163,20 +141,13 @@ func (db *Database) GetAlbumById(ctx context.Context, id string) (Album, error) 
 }
 
 func (db *Database) GetAlbumByPath(ctx context.Context, path string) (Album, error) {
-	ds := dialect.From("albums").
-		Select("id", "name", "cover_art", "artist_id", "path").
-		Where(goqu.C("path").Eq(path)).
-		Prepared(true)
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Album{}, err
-	}
+	query := AlbumQuery().
+		Where(goqu.I("albums.path").Eq(path))
 
 	var item Album
-	err = row.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
+	err := db.Get(&item, query)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return Album{}, ErrItemNotFound
 		}
 
@@ -187,18 +158,11 @@ func (db *Database) GetAlbumByPath(ctx context.Context, path string) (Album, err
 }
 
 func (db *Database) GetAlbumByName(ctx context.Context, name string) (Album, error) {
-	ds := dialect.From("albums").
-		Select("id", "name", "cover_art", "artist_id", "path").
-		Where(goqu.C("name").Eq(name)).
-		Prepared(true)
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Album{}, err
-	}
+	query := AlbumQuery().
+		Where(goqu.I("albums.name").Eq(name))
 
 	var item Album
-	err = row.Scan(&item.Id, &item.Name, &item.CoverArt, &item.ArtistId, &item.Path)
+	err := db.Get(&item, query)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Album{}, ErrItemNotFound
@@ -256,17 +220,9 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 		"available": changes.Available,
 	}
 
-	if changes.Name.Changed {
-		record["name"] = changes.Name.Value
-	}
-
-	if changes.ArtistId.Changed {
-		record["artist_id"] = changes.ArtistId.Value
-	}
-
-	if changes.CoverArt.Changed {
-		record["cover_art"] = changes.CoverArt.Value
-	}
+	addToRecord(record, "name", changes.Name)
+	addToRecord(record, "artist_id", changes.ArtistId)
+	addToRecord(record, "cover_art", changes.CoverArt)
 
 	ds := dialect.Update("albums").
 		Set(record).

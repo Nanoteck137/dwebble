@@ -11,51 +11,47 @@ import (
 )
 
 type Artist struct {
-	Id      string
-	Name    string
-	Picture sql.NullString
-	Path    string
+	Id        string         `db:"id"`
+	Name      string         `db:"name"`
+	Picture   sql.NullString `db:"picture"`
+	Path      string         `db:"path"`
+	Available bool           `db:"available"`
+}
+
+func ArtistQuery() *goqu.SelectDataset {
+	query := dialect.From("artists").
+		Select(
+			"artists.id",
+			"artists.name",
+			"artists.picture",
+			"artists.path",
+			"artists.available",
+		).
+		Prepared(true)
+
+	return query
 }
 
 func (db *Database) GetAllArtists(ctx context.Context) ([]Artist, error) {
-	ds := dialect.From("artists").
-		Select("id", "name", "picture", "path").
-		Where(goqu.I("available").Eq(true))
-
-	rows, err := db.Query(ctx, ds)
-	if err != nil {
-		return nil, err
-	}
+	query := ArtistQuery()
 
 	var items []Artist
-	for rows.Next() {
-		var item Artist
-		err := rows.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, item)
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
 	}
 
 	return items, nil
 }
 
 func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error) {
-	ds := dialect.From("artists").
-		Select("id", "name", "picture", "path").
-		Where(goqu.C("id").Eq(id)).
-		Prepared(true)
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Artist{}, err
-	}
+	query := ArtistQuery().
+		Where(goqu.I("artists.id").Eq(id))
 
 	var item Artist
-	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
+	err := db.Get(&item, query)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return Artist{}, ErrItemNotFound
 		}
 
@@ -66,20 +62,13 @@ func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error
 }
 
 func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, error) {
-	ds := dialect.From("artists").
-		Select("id", "name", "picture", "path").
-		Where(goqu.C("path").Eq(path)).
-		Prepared(true)
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Artist{}, err
-	}
+	query := ArtistQuery().
+		Where(goqu.I("artists.path").Eq(path))
 
 	var item Artist
-	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
+	err := db.Get(&item, query)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return Artist{}, ErrItemNotFound
 		}
 
@@ -90,18 +79,11 @@ func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, e
 }
 
 func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, error) {
-	ds := dialect.From("artists").
-		Select("id", "name", "picture", "path").
-		Where(goqu.C("name").Eq(name)).
-		Prepared(true)
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Artist{}, err
-	}
+	query := ArtistQuery().
+		Where(goqu.I("artists.name").Eq(name))
 
 	var item Artist
-	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
+	err := db.Get(&item, query)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Artist{}, ErrItemNotFound
@@ -153,17 +135,12 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 		"available": changes.Available,
 	}
 
-	if changes.Name.Changed {
-		record["name"] = changes.Name.Value
-	}
-
-	if changes.Picture.Changed {
-		record["picture"] = changes.Picture.Value
-	}
+	addToRecord(record, "name", changes.Name)
+	addToRecord(record, "picture", changes.Picture)
 
 	ds := dialect.Update("artists").
 		Set(record).
-		Where(goqu.I("id").Eq(id)).
+		Where(goqu.I("artists.id").Eq(id)).
 		Prepared(true)
 
 	_, err := db.Exec(ctx, ds)

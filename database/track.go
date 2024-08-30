@@ -168,6 +168,17 @@ type Track struct {
 	Genres sql.NullString `db:"genres"`
 }
 
+type TrackChanges struct {
+	Number            types.Change[int]
+	Name              types.Change[string]
+	CoverArt          types.Change[sql.NullString]
+	Duration          types.Change[int]
+	BestQualityFile   types.Change[string]
+	MobileQualityFile types.Change[string]
+	ArtistId          types.Change[string]
+	Available         bool
+}
+
 func TrackQuery() *goqu.SelectDataset {
 	tags := dialect.From("tracks_to_tags").
 		Select(
@@ -308,19 +319,10 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 
 	query = query.Order(exprs...)
 
-	rows, err := db.Query(ctx, query)
+	var items []Track
+	err = db.Select(&items, query)
 	if err != nil {
 		return nil, err
-	}
-
-	var items []Track
-	for rows.Next() {
-		item, err := ScanTrack(rows)
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, item)
 	}
 
 	return items, nil
@@ -329,19 +331,11 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
 	query := TrackQuery().
 		Where(goqu.I("tracks.album_id").Eq(albumId))
-	rows, err := db.Query(ctx, query)
-	if err != nil {
-		return nil, err
-	}
 
 	var items []Track
-	for rows.Next() {
-		item, err := ScanTrack(rows)
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, item)
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
 	}
 
 	return items, nil
@@ -351,14 +345,10 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 	query := TrackQuery().
 		Where(goqu.I("tracks.id").Eq(id))
 
-	row, err := db.QueryRow(ctx, query)
+	var item Track
+	err := db.Get(&item, query)
 	if err != nil {
-		return Track{}, err
-	}
-
-	item, err := ScanTrack(row)
-	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return Track{}, ErrItemNotFound
 		}
 
@@ -526,15 +516,11 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	return item, nil
 }
 
-type TrackChanges struct {
-	Number            types.Change[int]
-	Name              types.Change[string]
-	CoverArt          types.Change[sql.NullString]
-	Duration          types.Change[int]
-	BestQualityFile   types.Change[string]
-	MobileQualityFile types.Change[string]
-	ArtistId          types.Change[string]
-	Available         bool
+
+func addToRecord[T any](record goqu.Record, name string, change types.Change[T]) {
+	if change.Changed {
+		record[name] = change.Value
+	}
 }
 
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
@@ -542,33 +528,14 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 		"available": changes.Available,
 	}
 
-	if changes.Number.Changed {
-		record["track_number"] = changes.Number.Value
-	}
-
-	if changes.Name.Changed {
-		record["name"] = changes.Name.Value
-	}
-
-	if changes.CoverArt.Changed {
-		record["cover_art"] = changes.CoverArt.Value
-	}
-
-	if changes.Duration.Changed {
-		record["duration"] = changes.Duration.Value
-	}
-
-	if changes.BestQualityFile.Changed {
-		record["best_quality_file"] = changes.BestQualityFile.Value
-	}
-
-	if changes.MobileQualityFile.Changed {
-		record["mobile_quality_file"] = changes.MobileQualityFile.Value
-	}
-
-	if changes.ArtistId.Changed {
-		record["artist_id"] = changes.ArtistId.Value
-	}
+	addToRecord(record, "name", changes.Name)
+	addToRecord(record, "track_number", changes.Number)
+	addToRecord(record, "name", changes.Name)
+	addToRecord(record, "cover_art", changes.CoverArt)
+	addToRecord(record, "duration", changes.Duration)
+	addToRecord(record, "best_quality_file", changes.BestQualityFile)
+	addToRecord(record, "mobile_quality_file", changes.MobileQualityFile)
+	addToRecord(record, "artist_id", changes.ArtistId)
 
 	ds := dialect.Update("tracks").
 		Set(record).

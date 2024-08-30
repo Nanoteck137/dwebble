@@ -17,9 +17,11 @@ type albumApi struct {
 }
 
 func (api *albumApi) HandleGetAlbums(c echo.Context) error {
-	f := c.QueryParam("filter")
+	filter := c.QueryParam("filter")
+	sort := c.QueryParam("sort")
+	includeAll := ParseQueryBool(c.QueryParam("includeAll"))
 
-	albums, err := api.app.DB().GetAllAlbums(c.Request().Context(), f)
+	albums, err := api.app.DB().GetAllAlbums(c.Request().Context(), filter, sort, includeAll)
 	if err != nil {
 		return err
 	}

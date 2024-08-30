@@ -43,6 +43,7 @@ func ParseQueryBool(s string) bool {
 	switch s {
 	case "true", "1":
 		return true
+	// TODO(patrik): Add "0"
 	case "false", "":
 		return false
 	default:
@@ -83,6 +84,7 @@ func (api *trackApi) HandleGetTracks(c echo.Context) error {
 
 func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 	id := c.Param("id")
+
 	track, err := api.app.DB().GetTrackById(c.Request().Context(), id)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
