@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
@@ -152,8 +151,6 @@ func (api *playlistApi) HandleGetPlaylistById(c echo.Context) error {
 		return err
 	}
 
-	pretty.Println(tracks)
-
 	res := types.GetPlaylistById{
 		Playlist: types.Playlist{
 			Id:   playlist.Id,
@@ -223,7 +220,7 @@ func (api *playlistApi) HandleDeletePlaylistItemsById(c echo.Context) error {
 		return errors.New("No playlist")
 	}
 
-	err = api.app.DB().DeleteItemsFromPlaylist(c.Request().Context(), playlist.Id, body.TrackIndices)
+	err = api.app.DB().DeleteItemsFromPlaylist(c.Request().Context(), playlist.Id, body.TrackIds)
 	if err != nil {
 		return err
 	}

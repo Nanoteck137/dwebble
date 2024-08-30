@@ -181,12 +181,12 @@ type GetPlaylists struct {
 }
 
 type DeletePlaylistItemsByIdBody struct {
-	TrackIndices []int `json:"trackIndices"`
+	TrackIds []string `json:"trackIds"`
 }
 
 func (b DeletePlaylistItemsByIdBody) Schema() jio.Schema {
 	return jio.Object().Keys(jio.K{
-		"trackIndices": jio.Array().Items(jio.Number().Integer()).Min(1).Required(),
+		"trackIds": jio.Array().Items(jio.String().Min(1)).Min(1).Required(),
 	})
 }
 

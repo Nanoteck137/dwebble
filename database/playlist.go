@@ -256,14 +256,14 @@ func (db *Database) AddItemsToPlaylistRaw(ctx context.Context, playlistId string
 	return nil
 }
 
-// TODO(patrik): Change from trackIndices to trackIds
-func (db *Database) DeleteItemsFromPlaylist(ctx context.Context, playlistId string, trackIndices []int) error {
-	for _, trackIndex := range trackIndices {
+// TODO(patrik): Use Begin
+func (db *Database) DeleteItemsFromPlaylist(ctx context.Context, playlistId string, trackIds []string) error {
+	for _, trackId := range trackIds {
 		ds := dialect.Delete("playlist_items").
 			Where(
 				goqu.And(
 					goqu.I("playlist_id").Eq(playlistId),
-					goqu.I("item_index").Eq(trackIndex),
+					goqu.I("track_id").Eq(trackId),
 				),
 			)
 
@@ -278,14 +278,10 @@ func (db *Database) DeleteItemsFromPlaylist(ctx context.Context, playlistId stri
 		return err
 	}
 
-	for i := range items {
-		items[i].ItemIndex = i + 1
-	}
-
-	for _, item := range items {
+	for i, item := range items {
 		ds := dialect.Update("playlist_items").
 			Set(goqu.Record{
-				"item_index": item.ItemIndex,
+				"item_index": i + 1,
 			}).
 			Where(
 				goqu.And(
