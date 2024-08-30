@@ -154,6 +154,18 @@
   });
 </script>
 
+<svelte:window
+  onkeypress={(e) => {
+    if (e.key === " ") {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+
+      musicManager.requestPlayPause();
+    }
+  }}
+/>
+
 <LargePlayer
   {showPlayer}
   {playing}
