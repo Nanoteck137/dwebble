@@ -1,5 +1,3 @@
--- NOTE(patrik): Final
-
 -- +goose Up
 CREATE TABLE playlists (
     id TEXT,
