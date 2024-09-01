@@ -1,9 +1,16 @@
 package apis
 
 import (
+	"errors"
+	"io"
+	"io/fs"
+	"net/http"
+	"os"
+
 	"github.com/MadAppGang/httplog/echolog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
@@ -66,6 +73,24 @@ func errorHandler(err error, c echo.Context) {
 	log.Error("HTTP API Error", "err", err)
 }
 
+func fsFile(c echo.Context, file string, filesystem fs.FS) error {
+	f, err := filesystem.Open(file)
+	if err != nil {
+		return echo.ErrNotFound
+	}
+	defer f.Close()
+
+	fi, _ := f.Stat()
+
+	ff, ok := f.(io.ReadSeeker)
+	if !ok {
+		return errors.New("file does not implement io.ReadSeeker")
+	}
+	http.ServeContent(c.Response(), c.Request(), fi.Name(), fi.ModTime(), ff)
+
+	return nil
+}
+
 func Server(app core.App) (*echo.Echo, error) {
 	e := echo.New()
 
@@ -79,9 +104,37 @@ func Server(app core.App) (*echo.Echo, error) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
-	// e.Static("/tracks/mobile", app.WorkDir().MobileTracksDir())
-	// e.Static("/tracks/original", app.WorkDir().OriginalTracksDir())
-	// e.StaticFS("/images/default", assets.DefaultImagesFS)
+	e.Add(http.MethodGet, "/files/tracks/original/:albumId/:track", func(c echo.Context) error {
+		albumId := c.Param("albumId")
+		track := c.Param("track")
+
+		p := app.WorkDir().Album(albumId).OriginalFiles()
+		f := os.DirFS(p)
+
+		return fsFile(c, track, f)
+	})
+
+	e.Add(http.MethodGet, "/files/tracks/mobile/:albumId/:track", func(c echo.Context) error {
+		albumId := c.Param("albumId")
+		track := c.Param("track")
+
+		p := app.WorkDir().Album(albumId).MobileFiles()
+		f := os.DirFS(p)
+
+		return fsFile(c, track, f)
+	})
+
+	e.Add(http.MethodGet, "/files/albums/images/:albumId/:image", func(c echo.Context) error {
+		albumId := c.Param("albumId")
+		image := c.Param("image")
+
+		p := app.WorkDir().Album(albumId).Images()
+		f := os.DirFS(p)
+
+		return fsFile(c, image, f)
+	})
+
+	e.StaticFS("/images/default", assets.DefaultImagesFS)
 	// e.Static("/images", app.WorkDir().ImagesDir())
 
 	g := newEchoGroup(app, e, "/api/v1")

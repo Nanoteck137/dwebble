@@ -26,23 +26,24 @@ func ConvertURL(c echo.Context, path string) string {
 	return fmt.Sprintf("%s://%s%s", scheme, host, path)
 }
 
-func ConvertImageURL(c echo.Context, val sql.NullString, def string) string {
+func ConvertImageURL(c echo.Context, albumId string, val sql.NullString, def string) string {
 	coverArt := def
 	if val.Valid && val.String != "" {
 		coverArt = val.String
 	}
 
-	return ConvertURL(c, "/images/"+coverArt)
+	return ConvertURL(c, "/files/albums/images/"+albumId+"/"+coverArt)
 }
 
 func ConvertArtistPictureURL(c echo.Context, val sql.NullString) string {
-	return ConvertImageURL(c, val, DefaultArtistPictureName)
+	return ConvertURL(c, "/images/"+DefaultArtistPictureName)
 }
 
-func ConvertAlbumCoverURL(c echo.Context, val sql.NullString) string {
-	return ConvertImageURL(c, val, DefaultAlbumCoverArtName)
-}
+func ConvertAlbumCoverURL(c echo.Context, albumId string, val sql.NullString) string {
+	if val.Valid && val.String != "" {
+		coverArt := val.String
+		return ConvertURL(c, "/files/albums/images/"+albumId+"/"+coverArt)
+	}
 
-func ConvertTrackCoverURL(c echo.Context, val sql.NullString) string {
-	return ConvertImageURL(c, val, DefaultTrackCoverArtName)
+	return ConvertURL(c, "/images/"+DefaultAlbumCoverArtName)
 }

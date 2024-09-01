@@ -2,6 +2,7 @@ package apis
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -18,15 +19,16 @@ type trackApi struct {
 }
 
 func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
+	// /files/tracks/original/:albumId/:track
 	// TODO(patrik): Change types.Track to match the new database.Track
 	return types.Track{
 		Id:                track.Id,
 		Name:              track.Name,
 		Number:            int(track.Number.Int64),
-		CoverArt:          utils.ConvertTrackCoverURL(c, track.AlbumCoverArt),
+		CoverArt:          utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		Duration:          int(track.Duration.Int64),
-		BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.OriginalFilename),
-		MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileFilename),
+		BestQualityFile:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/original/%s/%s", track.AlbumId, track.OriginalFilename)),
+		MobileQualityFile: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/mobile/%s/%s", track.AlbumId, track.MobileFilename)),
 		AlbumId:           track.AlbumId,
 		ArtistId:          track.ArtistId,
 		AlbumName:         track.AlbumName,

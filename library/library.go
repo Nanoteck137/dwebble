@@ -559,7 +559,8 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 				Value:   artist.Id,
 				Changed: dbAlbum.ArtistId != artist.Id,
 			}
-			changes.Available = true
+			changes.Available.Value = true
+			changes.Available.Changed = true
 			err = db.UpdateAlbum(ctx, dbAlbum.Id, changes)
 			if err != nil {
 				return err

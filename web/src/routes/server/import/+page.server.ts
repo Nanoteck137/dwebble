@@ -25,6 +25,11 @@ export const actions: Actions = {
     const body = new FormData();
     body.set("data", JSON.stringify(data));
 
+    const coverArt = formData.get("coverArt");
+    if (coverArt) {
+      body.set("coverArt", coverArt);
+    }
+
     const files = formData.getAll("files");
     files.forEach((f) => {
       const file = f as File;

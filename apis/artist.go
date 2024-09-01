@@ -80,7 +80,7 @@ func (api *artistApi) HandleGetArtistAlbumsById(c echo.Context) error {
 		res.Albums[i] = types.Album{
 			Id:         album.Id,
 			Name:       album.Name,
-			CoverArt:   utils.ConvertAlbumCoverURL(c, album.CoverArt),
+			CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 			ArtistId:   album.ArtistId,
 			ArtistName: album.ArtistName,
 		}

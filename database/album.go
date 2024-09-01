@@ -229,18 +229,22 @@ type AlbumChanges struct {
 	CoverArt types.Change[sql.NullString]
 	Year     types.Change[sql.NullInt64]
 
-	Available bool
+	Available types.Change[bool]
 }
 
 func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumChanges) error {
-	record := goqu.Record{
-		"available": changes.Available,
-	}
+	record := goqu.Record{}
 
 	addToRecord(record, "name", changes.Name)
 	addToRecord(record, "artist_id", changes.ArtistId)
 	addToRecord(record, "cover_art", changes.CoverArt)
 	addToRecord(record, "year", changes.Year)
+
+	addToRecord(record, "available", changes.Available)
+
+	if len(record) == 0 {
+		return nil
+	}
 
 	ds := dialect.Update("albums").
 		Set(record).

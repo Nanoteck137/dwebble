@@ -49,7 +49,7 @@ func (api *albumApi) HandleGetAlbums(c echo.Context) error {
 		res.Albums[i] = types.Album{
 			Id:         album.Id,
 			Name:       album.Name,
-			CoverArt:   utils.ConvertAlbumCoverURL(c, album.CoverArt),
+			CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 			ArtistId:   album.ArtistId,
 			ArtistName: album.ArtistName,
 		}
@@ -73,7 +73,7 @@ func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
 		Album: types.Album{
 			Id:       album.Id,
 			Name:     album.Name,
-			CoverArt: utils.ConvertAlbumCoverURL(c, album.CoverArt),
+			CoverArt: utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 			ArtistId: album.ArtistId,
 		},
 	}))
@@ -250,13 +250,13 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 	pretty.Println(artist)
 
 	album, err := db.CreateAlbum(ctx, database.CreateAlbumParams{
-		Name:      body.Name,
-		ArtistId:  artist.Id,
+		Name:     body.Name,
+		ArtistId: artist.Id,
 
-		CoverArt:  sql.NullString{},
-		Year:      sql.NullInt64{},
+		CoverArt: sql.NullString{},
+		Year:     sql.NullInt64{},
 
-		Available: false,
+		Available: true,
 	})
 	if err != nil {
 		return err
@@ -279,6 +279,43 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 	}
 
 	pretty.Println(album)
+
+	coverArt := form.File["coverArt"]
+	if len(coverArt) > 0 {
+		f := coverArt[0]
+
+		ext := path.Ext(f.Filename)
+		filename := "cover" + ext
+
+		file, err := os.OpenFile(path.Join(albumDir.Images(), filename), os.O_RDWR|os.O_CREATE, 0644)
+		if err != nil {
+			return err
+		}
+
+		ff, err := f.Open()
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(file, ff)
+		if err != nil {
+			return err
+		}
+
+		err = db.UpdateAlbum(ctx, album.Id, database.AlbumChanges{
+			CoverArt: types.Change[sql.NullString]{
+				Value: sql.NullString{
+					String: filename,
+					Valid:  true,
+				},
+				Changed: true,
+			},
+		})
+
+		if err != nil {
+			return err
+		}
+	}
 
 	files := form.File["files"]
 
@@ -332,16 +369,16 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 				y, _ := strconv.Atoi(match[1])
 
 				year.Int64 = int64(y)
-				year.Valid = true;
+				year.Valid = true
 			}
 		}
 
 		_, err = db.CreateTrack(ctx, database.CreateTrackParams{
-			Name:             name,
-			AlbumId:          album.Id,
-			ArtistId:         artist.Id,
-			Number:           sql.NullInt64{},
-			Duration:         sql.NullInt64{
+			Name:     name,
+			AlbumId:  album.Id,
+			ArtistId: artist.Id,
+			Number:   sql.NullInt64{},
+			Duration: sql.NullInt64{
 				Int64: int64(trackInfo.Duration),
 				Valid: true,
 			},
