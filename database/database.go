@@ -57,8 +57,8 @@ func Open(workDir types.WorkDir) (*Database, error) {
 	return New(conn), nil
 }
 
-func (db *Database) Begin() (*Database, *sql.Tx, error) {
-	tx, err := db.RawConn.Begin()
+func (db *Database) Begin() (*Database, *sqlx.Tx, error) {
+	tx, err := db.NewRawConn.Beginx()
 	if err != nil {
 		return nil, nil, err
 	}

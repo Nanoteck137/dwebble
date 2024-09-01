@@ -4,7 +4,6 @@ import (
 	"github.com/MadAppGang/httplog/echolog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
@@ -80,10 +79,10 @@ func Server(app core.App) (*echo.Echo, error) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 
-	e.Static("/tracks/mobile", app.WorkDir().MobileTracksDir())
-	e.Static("/tracks/original", app.WorkDir().OriginalTracksDir())
-	e.StaticFS("/images/default", assets.DefaultImagesFS)
-	e.Static("/images", app.WorkDir().ImagesDir())
+	// e.Static("/tracks/mobile", app.WorkDir().MobileTracksDir())
+	// e.Static("/tracks/original", app.WorkDir().OriginalTracksDir())
+	// e.StaticFS("/images/default", assets.DefaultImagesFS)
+	// e.Static("/images", app.WorkDir().ImagesDir())
 
 	g := newEchoGroup(app, e, "/api/v1")
 	InstallHandlers(app, g)

@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/pelletier/go-toml/v2"
 )
@@ -158,13 +157,12 @@ type SyncContext struct {
 
 func (sync *SyncContext) GetOrCreateArtist(artist *LibraryArtist) (database.Artist, error) {
 	p := artist.Name
-	dbArtist, err := sync.db.GetArtistByPath(sync.ctx, p)
+	dbArtist, err := sync.db.GetArtistByName(sync.ctx, p)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
 			dbArtist, err := sync.db.CreateArtist(sync.ctx, database.CreateArtistParams{
 				Name:    artist.Name,
 				Picture: sql.NullString{},
-				Path:    p,
 			})
 
 			if err != nil {
@@ -194,12 +192,10 @@ func (sync *SyncContext) GetOrCreateAlbum(album *LibraryAlbum) (database.Album, 
 	dbAlbum, err := sync.db.GetAlbumByPath(sync.ctx, p)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
-
 			dbAlbum, err := sync.db.CreateAlbum(sync.ctx, database.CreateAlbumParams{
-				Name:     album.Name,
-				CoverArt: sql.NullString{},
-				ArtistId: artist.Id,
-				Path:     p,
+				Name:      album.Name,
+				ArtistId:  artist.Id,
+				Available: false,
 			})
 
 			if err != nil {
@@ -230,23 +226,19 @@ func (sync *SyncContext) GetOrCreateTrack(track *LibraryTrack) (database.Track, 
 		return database.Track{}, fmt.Errorf("Artist not mapped '%s'", track.Artist.Name)
 	}
 
-	p := artist.Id + "-" + album.Id + "-" + track.Name
-
-	dbTrack, err := sync.db.GetTrackByPath(sync.ctx, p)
+	dbTrack, err := sync.db.GetTrackByNameAndAlbum(sync.ctx, track.Name, album.Id)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
-			dbTrack, err := sync.db.CreateTrack(sync.ctx, database.CreateTrackParams{
-				TrackNumber:       track.Number,
+			id, err := sync.db.CreateTrack(sync.ctx, database.CreateTrackParams{
 				Name:              track.Name,
-				CoverArt:          sql.NullString{},
-				Path:              p,
-				Duration:          track.Duration,
-				BestQualityFile:   "",
-				MobileQualityFile: "",
 				AlbumId:           album.Id,
 				ArtistId:          artist.Id,
 			})
+			if err != nil {
+				return database.Track{}, err
+			}
 
+			dbTrack, err := sync.db.GetTrackById(sync.ctx, id)
 			if err != nil {
 				return database.Track{}, err
 			}
@@ -318,12 +310,12 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 		GenreMapping:  make(map[string]database.Genre),
 	}
 
-	err := db.MarkAllArtistsUnavailable(ctx)
-	if err != nil {
-		return err
-	}
+	// err := db.MarkAllArtistsUnavailable(ctx)
+	// if err != nil {
+	// 	return err
+	// }
 
-	err = db.MarkAllAlbumsUnavailable(ctx)
+	err := db.MarkAllAlbumsUnavailable(ctx)
 	if err != nil {
 		return err
 	}
@@ -333,50 +325,50 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 		return err
 	}
 
-	removeAll := func(dir string) error {
-		entries, err := os.ReadDir(dir)
-		if err != nil {
-			return err
-		}
+	// removeAll := func(dir string) error {
+	// 	entries, err := os.ReadDir(dir)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	//
+	// 	for _, entry := range entries {
+	// 		p := path.Join(dir, entry.Name())
+	// 		err = os.Remove(p)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	//
+	// 	return nil
+	// }
 
-		for _, entry := range entries {
-			p := path.Join(dir, entry.Name())
-			err = os.Remove(p)
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	err = removeAll(workDir.ImagesDir())
-	if err != nil {
-		return err
-	}
-
-	err = removeAll(workDir.OriginalTracksDir())
-	if err != nil {
-		return err
-	}
-
-	err = removeAll(workDir.MobileTracksDir())
-	if err != nil {
-		return err
-	}
+	// err = removeAll(workDir.ImagesDir())
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// err = removeAll(workDir.OriginalTracksDir())
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// err = removeAll(workDir.MobileTracksDir())
+	// if err != nil {
+	// 	return err
+	// }
 
 	for _, artist := range lib.Artists {
-		dbArtist, err := syncContext.GetOrCreateArtist(artist)
+		_, err := syncContext.GetOrCreateArtist(artist)
 		if err != nil {
 			return err
 		}
 
-		err = db.UpdateArtist(ctx, dbArtist.Id, database.ArtistChanges{
-			Available: true,
-		})
-		if err != nil {
-			return err
-		}
+		// err = db.UpdateArtist(ctx, dbArtist.Id, database.ArtistChanges{
+		// 	Available: true,
+		// })
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
 	for _, artist := range lib.Artists {
@@ -387,21 +379,21 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 			}
 
 			coverArt := ""
-			if album.CoverArt != "" {
-				p, err := filepath.Abs(album.CoverArt)
-				if err != nil {
-					return err
-				}
-
-				name := dbAlbum.Id + path.Ext(p)
-				sym := path.Join(workDir.ImagesDir(), name)
-				err = utils.SymlinkReplace(p, sym)
-				if err != nil {
-					return err
-				}
-
-				coverArt = name
-			}
+			// if album.CoverArt != "" {
+			// 	p, err := filepath.Abs(album.CoverArt)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			//
+			// 	name := dbAlbum.Id + path.Ext(p)
+			// 	sym := path.Join(workDir.ImagesDir(), name)
+			// 	err = utils.SymlinkReplace(p, sym)
+			// 	if err != nil {
+			// 		return err
+			// 	}
+			//
+			// 	coverArt = name
+			// }
 
 			for _, track := range album.Tracks {
 				dbTrack, err := syncContext.GetOrCreateTrack(track)
@@ -409,27 +401,27 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					return err
 				}
 
-				originalMedia, err := filepath.Abs(track.BestQualityFile)
-				if err != nil {
-					return err
-				}
+				// originalMedia, err := filepath.Abs(track.BestQualityFile)
+				// if err != nil {
+				// 	return err
+				// }
+				//
+				// mobileMedia, err := filepath.Abs(track.MobileQualityFile)
+				// if err != nil {
+				// 	return err
+				// }
 
-				mobileMedia, err := filepath.Abs(track.MobileQualityFile)
-				if err != nil {
-					return err
-				}
-
-				originalMediaSymlink := path.Join(workDir.OriginalTracksDir(), dbTrack.Id+path.Ext(originalMedia))
-				err = utils.SymlinkReplace(originalMedia, originalMediaSymlink)
-				if err != nil {
-					return err
-				}
-
-				mobileMediaSymlink := path.Join(workDir.MobileTracksDir(), dbTrack.Id+path.Ext(mobileMedia))
-				err = utils.SymlinkReplace(mobileMedia, mobileMediaSymlink)
-				if err != nil {
-					return err
-				}
+				// originalMediaSymlink := path.Join(workDir.OriginalTracksDir(), dbTrack.Id+path.Ext(originalMedia))
+				// err = utils.SymlinkReplace(originalMedia, originalMediaSymlink)
+				// if err != nil {
+				// 	return err
+				// }
+				//
+				// mobileMediaSymlink := path.Join(workDir.MobileTracksDir(), dbTrack.Id+path.Ext(mobileMedia))
+				// err = utils.SymlinkReplace(mobileMedia, mobileMediaSymlink)
+				// if err != nil {
+				// 	return err
+				// }
 
 				currentTrackTags, err := db.GetTrackTags(ctx, dbTrack.Id)
 				if err != nil {
@@ -524,24 +516,26 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					return fmt.Errorf("Artist not mapped '%s'", track.Artist.Name)
 				}
 
+				_ = artist
+
 				// TODO(patrik): Change all 'Changed' to conditions
 				changes := database.TrackChanges{}
-				changes.BestQualityFile.Value = path.Base(originalMediaSymlink)
-				changes.BestQualityFile.Changed = true
-				changes.MobileQualityFile.Value = path.Base(mobileMediaSymlink)
-				changes.MobileQualityFile.Changed = true
-				changes.CoverArt.Value = sql.NullString{
-					String: coverArt,
-					Valid:  coverArt != "",
-				}
-				changes.CoverArt.Changed = true
-				changes.Duration.Value = track.Duration
-				changes.Duration.Changed = true
-				changes.ArtistId = types.Change[string]{
-					Value:   artist.Id,
-					Changed: dbTrack.ArtistId != artist.Id,
-				}
-				changes.Available = true
+				// changes.BestQualityFile.Value = path.Base(originalMediaSymlink)
+				// changes.BestQualityFile.Changed = true
+				// changes.MobileQualityFile.Value = path.Base(mobileMediaSymlink)
+				// changes.MobileQualityFile.Changed = true
+				// changes.CoverArt.Value = sql.NullString{
+				// 	String: coverArt,
+				// 	Valid:  coverArt != "",
+				// }
+				// changes.CoverArt.Changed = true
+				// changes.Duration.Value = track.Duration
+				// changes.Duration.Changed = true
+				// changes.ArtistId = types.Change[string]{
+				// 	Value:   artist.Id,
+				// 	Changed: dbTrack.ArtistId != artist.Id,
+				// }
+				// changes.Available = true
 
 				err = db.UpdateTrack(ctx, dbTrack.Id, changes)
 				if err != nil {

@@ -1,6 +1,32 @@
 import { z } from "zod";
 import * as api from "./types";
-import { BaseApiClient, createError, type ExtraOptions } from "./base-client";
+import { BaseApiClient, type ExtraOptions } from "./base-client";
+
+export const GET_ARTISTS_URL = "/api/v1/artists"
+export const GET_ARTIST_BY_ID_URL = "/api/v1/artists/:id"
+export const GET_ARTIST_ALBUMS_URL = "/api/v1/artists/:id/albums"
+export const GET_ALBUMS_URL = "/api/v1/albums"
+export const GET_ALBUM_BY_ID_URL = "/api/v1/albums/:id"
+export const GET_ALBUM_TRACKS_URL = "/api/v1/albums/:id/tracks"
+export const IMPORT_ALBUM_URL = "/api/v1/albums/import"
+export const GET_TRACKS_URL = "/api/v1/tracks"
+export const GET_TRACK_BY_ID_URL = "/api/v1/tracks/:id"
+export const GET_SYNC_STATUS_URL = "/api/v1/sync"
+export const RUN_SYNC_URL = "/api/v1/sync"
+export const GET_TAGS_URL = "/api/v1/tags"
+export const SIGNUP_URL = "/api/v1/auth/signup"
+export const SIGNIN_URL = "/api/v1/auth/signin"
+export const GET_ME_URL = "/api/v1/auth/me"
+export const GET_PLAYLISTS_URL = "/api/v1/playlists"
+export const CREATE_PLAYLIST_URL = "/api/v1/playlists"
+export const CREATE_PLAYLIST_FROM_FILTER_URL = "/api/v1/playlists/filter"
+export const GET_PLAYLIST_BY_ID_URL = "/api/v1/playlists/:id"
+export const ADD_ITEMS_TO_PLAYLIST_URL = "/api/v1/playlists/:id/items"
+export const DELETE_PLAYLIST_ITEMS_URL = "/api/v1/playlists/:id/items"
+export const MOVE_PLAYLIST_ITEM_URL = "/api/v1/playlists/:id/items/move"
+export const GET_SYSTEM_INFO_URL = "/api/v1/system/info"
+export const SYSTEM_EXPORT_URL = "/api/v1/system/export"
+export const SYSTEM_IMPORT_URL = "/api/v1/system/import"
 
 export class ApiClient extends BaseApiClient {
   constructor(baseUrl: string) {
@@ -8,194 +34,102 @@ export class ApiClient extends BaseApiClient {
   }
   
   getArtists(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/artists", "GET", api.GetArtists, error, undefined, options)
+    return this.request("/api/v1/artists", "GET", api.GetArtists, z.undefined(), undefined, options)
   }
   
   getArtistById(id: string, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR", "ARTIST_NOT_FOUND"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/artists/${id}`, "GET", api.GetArtistById, error, undefined, options)
+    return this.request(`/api/v1/artists/${id}`, "GET", api.GetArtistById, z.undefined(), undefined, options)
   }
   
   getArtistAlbums(id: string, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR", "ARTIST_NOT_FOUND"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/artists/${id}/albums`, "GET", api.GetArtistAlbumsById, error, undefined, options)
+    return this.request(`/api/v1/artists/${id}/albums`, "GET", api.GetArtistAlbumsById, z.undefined(), undefined, options)
   }
   
   getAlbums(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/albums", "GET", api.GetAlbums, error, undefined, options)
+    return this.request("/api/v1/albums", "GET", api.GetAlbums, z.undefined(), undefined, options)
   }
   
   getAlbumById(id: string, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["ALBUM_NOT_FOUND", "UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/albums/${id}`, "GET", api.GetAlbumById, error, undefined, options)
+    return this.request(`/api/v1/albums/${id}`, "GET", api.GetAlbumById, z.undefined(), undefined, options)
   }
   
   getAlbumTracks(id: string, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR", "ALBUM_NOT_FOUND"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracksById, error, undefined, options)
+    return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracksById, z.undefined(), undefined, options)
+  }
+  
+  importAlbum(formData: FormData, options?: ExtraOptions) {
+    return this.requestWithFormData("/api/v1/albums/import", "POST", api.PostAlbumImport, z.undefined(), formData, options)
   }
   
   getTracks(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR", "INVALID_FILTER", "INVALID_SORT"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/tracks", "GET", api.GetTracks, error, undefined, options)
+    return this.request("/api/v1/tracks", "GET", api.GetTracks, z.undefined(), undefined, options)
   }
   
   getTrackById(id: string, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR", "TRACK_NOT_FOUND"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/tracks/${id}`, "GET", api.GetTrackById, error, undefined, options)
+    return this.request(`/api/v1/tracks/${id}`, "GET", api.GetTrackById, z.undefined(), undefined, options)
   }
   
   getSyncStatus(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/sync", "GET", api.GetSync, error, undefined, options)
+    return this.request("/api/v1/sync", "GET", api.GetSync, z.undefined(), undefined, options)
   }
   
   runSync(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/sync", "POST", z.undefined(), error, undefined, options)
+    return this.request("/api/v1/sync", "POST", z.undefined(), z.undefined(), undefined, options)
   }
   
   getTags(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/tags", "GET", api.GetTags, error, undefined, options)
+    return this.request("/api/v1/tags", "GET", api.GetTags, z.undefined(), undefined, options)
   }
   
   signup(body: api.PostAuthSignupBody, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/auth/signup", "POST", api.PostAuthSignup, error, body, options)
+    return this.request("/api/v1/auth/signup", "POST", api.PostAuthSignup, z.undefined(), body, options)
   }
   
   signin(body: api.PostAuthSigninBody, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/auth/signin", "POST", api.PostAuthSignin, error, body, options)
+    return this.request("/api/v1/auth/signin", "POST", api.PostAuthSignin, z.undefined(), body, options)
   }
   
   getMe(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/auth/me", "GET", api.GetAuthMe, error, undefined, options)
+    return this.request("/api/v1/auth/me", "GET", api.GetAuthMe, z.undefined(), undefined, options)
   }
   
   getPlaylists(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/playlists", "GET", api.GetPlaylists, error, undefined, options)
+    return this.request("/api/v1/playlists", "GET", api.GetPlaylists, z.undefined(), undefined, options)
   }
   
   createPlaylist(body: api.PostPlaylistBody, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/playlists", "POST", api.PostPlaylist, error, body, options)
+    return this.request("/api/v1/playlists", "POST", api.PostPlaylist, z.undefined(), body, options)
   }
   
   createPlaylistFromFilter(body: api.PostPlaylistFilterBody, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/playlists/filter", "POST", api.PostPlaylist, error, body, options)
+    return this.request("/api/v1/playlists/filter", "POST", api.PostPlaylist, z.undefined(), body, options)
   }
   
   getPlaylistById(id: string, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/playlists/${id}`, "GET", api.GetPlaylistById, error, undefined, options)
+    return this.request(`/api/v1/playlists/${id}`, "GET", api.GetPlaylistById, z.undefined(), undefined, options)
   }
   
   addItemsToPlaylist(id: string, body: api.PostPlaylistItemsByIdBody, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/playlists/${id}/items`, "POST", z.undefined(), error, body, options)
+    return this.request(`/api/v1/playlists/${id}/items`, "POST", z.undefined(), z.undefined(), body, options)
   }
   
   deletePlaylistItems(id: string, body: api.DeletePlaylistItemsByIdBody, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/playlists/${id}/items`, "DELETE", z.undefined(), error, body, options)
+    return this.request(`/api/v1/playlists/${id}/items`, "DELETE", z.undefined(), z.undefined(), body, options)
   }
   
   movePlaylistItem(id: string, body: api.PostPlaylistsItemMoveByIdBody, options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request(`/api/v1/playlists/${id}/items/move`, "POST", z.undefined(), error, body, options)
+    return this.request(`/api/v1/playlists/${id}/items/move`, "POST", z.undefined(), z.undefined(), body, options)
   }
   
   getSystemInfo(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/system/info", "GET", api.GetSystemInfo, error, undefined, options)
+    return this.request("/api/v1/system/info", "GET", api.GetSystemInfo, z.undefined(), undefined, options)
   }
   
   systemExport(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/system/export", "POST", api.PostSystemExport, error, undefined, options)
+    return this.request("/api/v1/system/export", "POST", api.PostSystemExport, z.undefined(), undefined, options)
   }
   
   systemImport(options?: ExtraOptions) {
-    const error = createError(
-      z.enum(["UNKNOWN_ERROR"]),
-      z.map(z.string(), z.string()).optional(),
-    )
-    return this.request("/api/v1/system/import", "POST", z.undefined(), error, undefined, options)
+    return this.request("/api/v1/system/import", "POST", z.undefined(), z.undefined(), undefined, options)
   }
 }

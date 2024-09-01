@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -8,23 +9,31 @@ import (
 	"log"
 	"mime/multipart"
 	"os"
+	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 
+	"github.com/gosimple/slug"
 	"github.com/mitchellh/mapstructure"
 	"github.com/nanoteck137/parasect"
 	"github.com/nrednav/cuid2"
 )
 
-var CreateId = createIdGenerator()
+var CreateId = createIdGenerator(32)
+var CreateSmallId = createIdGenerator(8)
 
-func createIdGenerator() func() string {
-	res, err := cuid2.Init(cuid2.WithLength(32))
+func createIdGenerator(length int) func() string {
+	res, err := cuid2.Init(cuid2.WithLength(length))
 	if err != nil {
 		log.Fatal("Failed to create id generator", "err", err)
 	}
 
 	return res
+}
+
+func Slug(s string) string {
+	return slug.Make(s)
 }
 
 func SplitString(s string) []string {
@@ -255,4 +264,130 @@ func ParseAuthHeader(authHeader string) string {
 	}
 
 	return splits[1]
+}
+
+func RunFFprobe(verbose bool, args ...string) ([]byte, error) {
+	cmd := exec.Command("ffprobe", args...)
+	if verbose {
+		cmd.Stderr = os.Stderr
+	}
+
+	data, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
+type TrackInfo struct {
+	Path   string
+
+	Duration int
+	Tags     map[string]string
+}
+
+type probeFormat struct {
+	BitRate    string            `json:"bit_rate"`
+	Tags       map[string]string `json:"tags"`
+	Duration   string            `json:"duration"`
+	FormatName string            `json:"format_name"`
+}
+
+type probeStream struct {
+	Index     int    `json:"index"`
+	CodecName string `json:"codec_name"`
+	CodecType string `json:"codec_type"`
+
+	Duration string `json:"duration"`
+
+	Tags map[string]string `json:"tags"`
+}
+
+type probe struct {
+	Streams []probeStream `json:"streams"`
+	Format  probeFormat   `json:"format"`
+}
+
+// TODO(patrik): Test
+func getNumberFromFormatString(s string) int {
+	if strings.Contains(s, "/") {
+		s = strings.Split(s, "/")[0]
+	}
+
+	num, err := strconv.Atoi(s)
+	if err != nil {
+		return -1
+	}
+
+	return num
+}
+
+// TODO(patrik): Test
+func convertMapKeysToLowercase(m map[string]string) map[string]string {
+	res := make(map[string]string)
+	for k, v := range m {
+		res[strings.ToLower(k)] = v
+	}
+
+	return res
+}
+
+type ProbeResult struct {
+	Tags     map[string]string
+	Duration int
+}
+
+func ProbeTrack(filepath string) (ProbeResult, error) {
+	data, err := RunFFprobe(false, "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", filepath)
+	if err != nil {
+		return ProbeResult{}, err
+	}
+
+	var probe probe
+	err = json.Unmarshal(data, &probe)
+	if err != nil {
+		return ProbeResult{}, err
+	}
+
+	hasGlobalTags := probe.Format.FormatName != "ogg"
+
+	var tags map[string]string
+
+	if hasGlobalTags {
+		tags = convertMapKeysToLowercase(probe.Format.Tags)
+	}
+
+	duration := 0
+	for _, s := range probe.Streams {
+		if s.CodecType == "audio" {
+			dur, err := strconv.ParseFloat(s.Duration, 32)
+			if err != nil {
+				return ProbeResult{}, err
+			}
+
+			duration = int(dur)
+			if !hasGlobalTags {
+				tags = convertMapKeysToLowercase(s.Tags)
+			}
+		}
+	}
+
+	return ProbeResult{
+		Tags:     tags,
+		Duration: duration,
+	}, nil
+}
+
+func GetTrackInfo(filepath string) (TrackInfo, error) {
+	probeResult, err := ProbeTrack(filepath)
+	if err != nil {
+		return TrackInfo{}, err
+	}
+
+	return TrackInfo{
+		Path:     filepath,
+		Duration: probeResult.Duration,
+		Tags:     probeResult.Tags,
+	}, nil
 }

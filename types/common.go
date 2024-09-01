@@ -14,16 +14,34 @@ func (d WorkDir) DatabaseFile() string {
 	return path.Join(d.String(), "data.db")
 }
 
-func (d WorkDir) OriginalTracksDir() string {
-	return path.Join(d.String(), "original-tracks")
+func (d WorkDir) Albums() string {
+	return path.Join(d.String(), "albums")
 }
 
-func (d WorkDir) MobileTracksDir() string {
-	return path.Join(d.String(), "mobile-tracks")
+func (d WorkDir) Album(slug string) AlbumDir {
+	return AlbumDir(path.Join(d.String(), "albums", slug))
 }
 
-func (d WorkDir) ImagesDir() string {
+func (d WorkDir) Artists() string {
+	return path.Join(d.String(), "artists")
+}
+
+type AlbumDir string
+
+func (d AlbumDir) String() string {
+	return string(d)
+}
+
+func (d AlbumDir) Images() string {
 	return path.Join(d.String(), "images")
+}
+
+func (d AlbumDir) OriginalFiles() string {
+	return path.Join(d.String(), "original")
+}
+
+func (d AlbumDir) MobileFiles() string {
+	return path.Join(d.String(), "mobile")
 }
 
 type Change[T any] struct {

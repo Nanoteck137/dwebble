@@ -47,19 +47,16 @@ func (app *BaseApp) Bootstrap() error {
 
 	workDir := app.config.WorkDir()
 
-	err = os.MkdirAll(workDir.OriginalTracksDir(), 0755)
-	if err != nil {
-		return err
+	dirs := []string{
+		workDir.Albums(),
+		workDir.Artists(),
 	}
 
-	err = os.MkdirAll(workDir.MobileTracksDir(), 0755)
-	if err != nil {
-		return err
-	}
-
-	err = os.MkdirAll(workDir.ImagesDir(), 0755)
-	if err != nil {
-		return err
+	for _, dir := range dirs {
+		err = os.Mkdir(dir, 0755)
+		if err != nil && !os.IsExist(err) {
+			return err
+		}
 	}
 
 	app.db, err = database.Open(workDir)

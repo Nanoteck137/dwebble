@@ -14,8 +14,6 @@ type Artist struct {
 	Id        string         `db:"id"`
 	Name      string         `db:"name"`
 	Picture   sql.NullString `db:"picture"`
-	Path      string         `db:"path"`
-	Available bool           `db:"available"`
 }
 
 func ArtistQuery() *goqu.SelectDataset {
@@ -24,8 +22,6 @@ func ArtistQuery() *goqu.SelectDataset {
 			"artists.id",
 			"artists.name",
 			"artists.picture",
-			"artists.path",
-			"artists.available",
 		).
 		Prepared(true)
 
@@ -61,23 +57,6 @@ func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error
 	return item, nil
 }
 
-func (db *Database) GetArtistByPath(ctx context.Context, path string) (Artist, error) {
-	query := ArtistQuery().
-		Where(goqu.I("artists.path").Eq(path))
-
-	var item Artist
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Artist{}, ErrItemNotFound
-		}
-
-		return Artist{}, err
-	}
-
-	return item, nil
-}
-
 func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, error) {
 	query := ArtistQuery().
 		Where(goqu.I("artists.name").Eq(name))
@@ -98,7 +77,6 @@ func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, e
 type CreateArtistParams struct {
 	Name    string
 	Picture sql.NullString
-	Path    string
 }
 
 func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams) (Artist, error) {
@@ -106,9 +84,7 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 		"id":        utils.CreateId(),
 		"name":      params.Name,
 		"picture":   params.Picture,
-		"path":      params.Path,
-		"available": false,
-	}).Returning("id", "name", "picture", "path").Prepared(true)
+	}).Returning("id", "name", "picture").Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
 	if err != nil {
@@ -116,7 +92,7 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 	}
 
 	var item Artist
-	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Path)
+	err = row.Scan(&item.Id, &item.Name, &item.Picture)
 	if err != nil {
 		return Artist{}, err
 	}
@@ -127,16 +103,17 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 type ArtistChanges struct {
 	Name      types.Change[string]
 	Picture   types.Change[sql.NullString]
-	Available bool
 }
 
 func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistChanges) error {
-	record := goqu.Record{
-		"available": changes.Available,
-	}
+	record := goqu.Record{}
 
 	addToRecord(record, "name", changes.Name)
 	addToRecord(record, "picture", changes.Picture)
+
+	if len(record) <= 0 {
+		return nil
+	}
 
 	ds := dialect.Update("artists").
 		Set(record).

@@ -100,12 +100,13 @@ func main() {
 		}
 
 		s.Endpoints = append(s.Endpoints, client.Endpoint{
-			Name:         route.Name,
-			Method:       route.Method,
-			Path:         route.Path,
-			ErrorTypes:   errorTypes,
-			ResponseType: responseType,
-			BodyType:     bodyType,
+			Name:            route.Name,
+			Method:          route.Method,
+			Path:            route.Path,
+			ErrorTypes:      errorTypes,
+			ResponseType:    responseType,
+			BodyType:        bodyType,
+			RequireFormData: route.IsMultiForm,
 		})
 	}
 

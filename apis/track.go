@@ -18,14 +18,15 @@ type trackApi struct {
 }
 
 func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
+	// TODO(patrik): Change types.Track to match the new database.Track
 	return types.Track{
 		Id:                track.Id,
-		Number:            track.Number,
 		Name:              track.Name,
-		CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
-		Duration:          track.Duration,
-		BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-		MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
+		Number:            int(track.Number.Int64),
+		CoverArt:          utils.ConvertTrackCoverURL(c, track.AlbumCoverArt),
+		Duration:          int(track.Duration.Int64),
+		BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.OriginalFilename),
+		MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileFilename),
 		AlbumId:           track.AlbumId,
 		ArtistId:          track.ArtistId,
 		AlbumName:         track.AlbumName,

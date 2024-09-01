@@ -104,42 +104,16 @@ func (db *Database) GetPlaylistTracks(ctx context.Context, playlistId string) ([
 	tracks := TrackQuery().As("tracks")
 
 	ds := dialect.From("playlist_items").
-		Select(
-			"tracks.id",
-			"tracks.track_number",
-			"tracks.name",
-			"tracks.cover_art",
-			"tracks.duration",
-			"tracks.path",
-			"tracks.best_quality_file",
-			"tracks.mobile_quality_file",
-			"tracks.album_id",
-			"tracks.artist_id",
-			"tracks.available",
-			"tracks.name",
-			"tracks.artist_name",
-			"tracks.tags",
-			"tracks.genres",
-		).
+		Select("tracks.*").
 		Join(tracks, goqu.On(goqu.I("tracks.id").Eq(goqu.I("playlist_items.track_id")))).
 		Where(goqu.I("playlist_id").Eq(playlistId)).
 		Order(goqu.I("item_index").Asc()).
 		Prepared(true)
 
-	rows, err := db.Query(ctx, ds)
+	var items []Track
+	err := db.Select(&items, ds)
 	if err != nil {
 		return nil, err
-	}
-	defer rows.Close()
-
-	var items []Track
-	for rows.Next() {
-		item, err := ScanTrack(rows)
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, item)
 	}
 
 	return items, nil

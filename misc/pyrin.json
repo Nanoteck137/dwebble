@@ -183,6 +183,33 @@
       ]
     },
     {
+      "name": "PostAlbumImport",
+      "extend": "",
+      "fields": [
+        {
+          "name": "albumId",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "PostAlbumImportBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artist",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetTracks",
       "extend": "",
       "fields": [
@@ -534,18 +561,20 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "GetArtists",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetArtistById",
       "method": "GET",
       "path": "/api/v1/artists/:id",
       "errorTypes": [
-        "UNKNOWN_ERROR",
-        "ARTIST_NOT_FOUND"
+        "ARTIST_NOT_FOUND",
+        "UNKNOWN_ERROR"
       ],
       "responseType": "GetArtistById",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetArtistAlbums",
@@ -556,7 +585,8 @@
         "ARTIST_NOT_FOUND"
       ],
       "responseType": "GetArtistAlbumsById",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetAlbums",
@@ -566,18 +596,20 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "GetAlbums",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetAlbumById",
       "method": "GET",
       "path": "/api/v1/albums/:id",
       "errorTypes": [
-        "ALBUM_NOT_FOUND",
-        "UNKNOWN_ERROR"
+        "UNKNOWN_ERROR",
+        "ALBUM_NOT_FOUND"
       ],
       "responseType": "GetAlbumById",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetAlbumTracks",
@@ -588,30 +620,44 @@
         "ALBUM_NOT_FOUND"
       ],
       "responseType": "GetAlbumTracksById",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "ImportAlbum",
+      "method": "POST",
+      "path": "/api/v1/albums/import",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
+      "responseType": "PostAlbumImport",
+      "bodyType": "PostAlbumImportBody",
+      "requireFormData": true
     },
     {
       "name": "GetTracks",
       "method": "GET",
       "path": "/api/v1/tracks",
       "errorTypes": [
+        "INVALID_SORT",
         "UNKNOWN_ERROR",
-        "INVALID_FILTER",
-        "INVALID_SORT"
+        "INVALID_FILTER"
       ],
       "responseType": "GetTracks",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetTrackById",
       "method": "GET",
       "path": "/api/v1/tracks/:id",
       "errorTypes": [
-        "UNKNOWN_ERROR",
-        "TRACK_NOT_FOUND"
+        "TRACK_NOT_FOUND",
+        "UNKNOWN_ERROR"
       ],
       "responseType": "GetTrackById",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetSyncStatus",
@@ -621,7 +667,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "GetSync",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "RunSync",
@@ -631,7 +678,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetTags",
@@ -641,7 +689,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "GetTags",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "Signup",
@@ -651,7 +700,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "PostAuthSignup",
-      "bodyType": "PostAuthSignupBody"
+      "bodyType": "PostAuthSignupBody",
+      "requireFormData": false
     },
     {
       "name": "Signin",
@@ -661,7 +711,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "PostAuthSignin",
-      "bodyType": "PostAuthSigninBody"
+      "bodyType": "PostAuthSigninBody",
+      "requireFormData": false
     },
     {
       "name": "GetMe",
@@ -671,7 +722,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "GetAuthMe",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "GetPlaylists",
@@ -681,7 +733,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "GetPlaylists",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "CreatePlaylist",
@@ -691,7 +744,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "PostPlaylist",
-      "bodyType": "PostPlaylistBody"
+      "bodyType": "PostPlaylistBody",
+      "requireFormData": false
     },
     {
       "name": "CreatePlaylistFromFilter",
@@ -701,7 +755,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "PostPlaylist",
-      "bodyType": "PostPlaylistFilterBody"
+      "bodyType": "PostPlaylistFilterBody",
+      "requireFormData": false
     },
     {
       "name": "GetPlaylistById",
@@ -711,7 +766,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "GetPlaylistById",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "AddItemsToPlaylist",
@@ -721,7 +777,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "",
-      "bodyType": "PostPlaylistItemsByIdBody"
+      "bodyType": "PostPlaylistItemsByIdBody",
+      "requireFormData": false
     },
     {
       "name": "DeletePlaylistItems",
@@ -731,7 +788,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "",
-      "bodyType": "DeletePlaylistItemsByIdBody"
+      "bodyType": "DeletePlaylistItemsByIdBody",
+      "requireFormData": false
     },
     {
       "name": "MovePlaylistItem",
@@ -741,7 +799,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "",
-      "bodyType": "PostPlaylistsItemMoveByIdBody"
+      "bodyType": "PostPlaylistsItemMoveByIdBody",
+      "requireFormData": false
     },
     {
       "name": "GetSystemInfo",
@@ -751,7 +810,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "GetSystemInfo",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "SystemExport",
@@ -761,7 +821,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "PostSystemExport",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     },
     {
       "name": "SystemImport",
@@ -771,7 +832,8 @@
         "UNKNOWN_ERROR"
       ],
       "responseType": "",
-      "bodyType": ""
+      "bodyType": "",
+      "requireFormData": false
     }
   ]
 }

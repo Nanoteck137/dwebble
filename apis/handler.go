@@ -13,6 +13,7 @@ type Handler struct {
 	Path        string
 	DataType    any
 	BodyType    types.Body
+	IsMultiForm bool
 	Errors      []api.ErrorType
 	HandlerFunc echo.HandlerFunc
 	Middlewares []echo.MiddlewareFunc

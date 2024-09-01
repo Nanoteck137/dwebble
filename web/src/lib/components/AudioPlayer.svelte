@@ -154,17 +154,16 @@
   });
 </script>
 
-<svelte:window
+<!-- TODO(patrik): Fix this because input fields need space -->
+<!-- <svelte:window
   onkeypress={(e) => {
     if (e.key === " ") {
       e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
 
       musicManager.requestPlayPause();
     }
   }}
-/>
+/> -->
 
 <LargePlayer
   {showPlayer}

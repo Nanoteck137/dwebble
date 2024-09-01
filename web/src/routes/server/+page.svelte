@@ -16,7 +16,7 @@
 
     const data = await res.json();
     const parsedData = await Schema.parseAsync(data);
-    if (parsedData.status === "error") {
+    if (!parsedData.success) {
       console.error("Failed to get sync status", parsedData.error.message);
       return;
     }
@@ -56,3 +56,5 @@
 
 <p>Version: {PUBLIC_VERSION}</p>
 <p>Commit: {PUBLIC_COMMIT}</p>
+
+<a href="/server/import">Import Album</a>

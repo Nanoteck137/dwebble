@@ -14,6 +14,7 @@ type Route struct {
 	ErrorTypes []api.ErrorType
 	Data       any
 	Body       types.Body
+	IsMultiForm bool
 }
 
 type RouteGroup struct {
@@ -28,20 +29,21 @@ func NewRouteGroup(prefix string) *RouteGroup {
 	}
 }
 
-func (r *RouteGroup) AddRoute(name, path, method string, errorTypes []api.ErrorType, data any, body types.Body) {
+func (r *RouteGroup) AddRoute(name, path, method string, errorTypes []api.ErrorType, data any, body types.Body, isMultiForm bool) {
 	r.Routes = append(r.Routes, Route{
-		Name:       name,
-		Path:       path,
-		Method:     method,
-		ErrorTypes: errorTypes,
-		Data:       data,
-		Body:       body,
+		Name:        name,
+		Path:        path,
+		Method:      method,
+		ErrorTypes:  errorTypes,
+		Data:        data,
+		Body:        body,
+		IsMultiForm: isMultiForm,
 	})
 }
 
 func (r *RouteGroup) Register(handlers ...apis.Handler) {
 	for _, h := range handlers {
-		r.AddRoute(h.Name, r.Prefix+h.Path, h.Method, h.Errors, h.DataType, h.BodyType)
+		r.AddRoute(h.Name, r.Prefix+h.Path, h.Method, h.Errors, h.DataType, h.BodyType, h.IsMultiForm)
 	}
 }
 

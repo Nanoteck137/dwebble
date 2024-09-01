@@ -5,7 +5,7 @@
     nixpkgs.url      = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url  = "github:numtide/flake-utils";
 
-    pyrin.url        = "github:nanoteck137/pyrin/v0.6.5";
+    pyrin.url        = "github:nanoteck137/pyrin/v0.7.0";
     pyrin.inputs.nixpkgs.follows = "nixpkgs";
 
     devtools.url     = "github:nanoteck137/devtools";

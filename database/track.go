@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go/ast"
 	"strings"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/core/log"
@@ -145,80 +146,102 @@ func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, na
 }
 
 type Track struct {
-	Id       string         `db:"id"`
-	Number   int            `db:"track_number"`
-	Name     string         `db:"name"`
-	CoverArt sql.NullString `db:"cover_art"`
-	Duration int            `db:"duration"`
-
-	Path string `db:"path"`
-
-	BestQualityFile   string `db:"best_quality_file"`
-	MobileQualityFile string `db:"mobile_quality_file"`
+	Id   string `db:"id"`
+	Name string `db:"name"`
 
 	AlbumId  string `db:"album_id"`
 	ArtistId string `db:"artist_id"`
 
-	AlbumName  string `db:"album_name"`
-	ArtistName string `db:"artist_name"`
+	Number   sql.NullInt64 `db:"track_number"`
+	Duration sql.NullInt64 `db:"duration"`
+	Year     sql.NullInt64 `db:"year"`
 
-	Available bool `db:"available"`
+	ExportName       string `db:"export_name"`
+	OriginalFilename string `db:"original_filename"`
+	MobileFilename   string `db:"mobile_filename"`
+
+	AlbumName     string         `db:"album_name"`
+	AlbumCoverArt sql.NullString `db:"album_cover_art"`
+	ArtistName    string         `db:"artist_name"`
+
+	Created int64 `db:"created"`
+	Updated int64 `db:"updated"`
 
 	Tags   sql.NullString `db:"tags"`
 	Genres sql.NullString `db:"genres"`
+
+	Available bool `db:"available"`
 }
 
 type TrackChanges struct {
-	Number            types.Change[int]
-	Name              types.Change[string]
-	CoverArt          types.Change[sql.NullString]
-	Duration          types.Change[int]
-	BestQualityFile   types.Change[string]
-	MobileQualityFile types.Change[string]
-	ArtistId          types.Change[string]
-	Available         bool
+	Name     types.Change[string]
+	AlbumId  types.Change[string]
+	ArtistId types.Change[string]
+
+	Number   types.Change[sql.NullInt64]
+	Duration types.Change[sql.NullInt64]
+	Year     types.Change[sql.NullInt64]
+
+	ExportName       types.Change[string]
+	OriginalFilename types.Change[string]
+	MobileFilename   types.Change[string]
+
+	Updated   types.Change[int64]
+
+	Available bool
 }
 
 func TrackQuery() *goqu.SelectDataset {
-	tags := dialect.From("tracks_to_tags").
-		Select(
-			goqu.I("tracks_to_tags.track_id").As("track_id"),
-			goqu.Func("group_concat", goqu.I("tags.display_name"), ",").As("tags"),
-		).
-		Join(
-			goqu.I("tags"),
-			goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.id"))),
-		).
-		GroupBy(goqu.I("tracks_to_tags.track_id"))
-
-	genres := dialect.From("tracks_to_genres").
-		Select(
-			goqu.I("tracks_to_genres.track_id").As("track_id"),
-			goqu.Func("group_concat", goqu.I("genres.display_name"), ",").As("genres"),
-		).
-		Join(
-			goqu.I("genres"),
-			goqu.On(goqu.I("tracks_to_genres.genre_id").Eq(goqu.I("genres.id"))),
-		).
-		GroupBy(goqu.I("tracks_to_genres.track_id"))
+	// TODO(patrik): Add Back
+	// tags := dialect.From("tracks_to_tags").
+	// 	Select(
+	// 		goqu.I("tracks_to_tags.track_id").As("track_id"),
+	// 		goqu.Func("group_concat", goqu.I("tags.display_name"), ",").As("tags"),
+	// 	).
+	// 	Join(
+	// 		goqu.I("tags"),
+	// 		goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.id"))),
+	// 	).
+	// 	GroupBy(goqu.I("tracks_to_tags.track_id"))
+	//
+	// genres := dialect.From("tracks_to_genres").
+	// 	Select(
+	// 		goqu.I("tracks_to_genres.track_id").As("track_id"),
+	// 		goqu.Func("group_concat", goqu.I("genres.display_name"), ",").As("genres"),
+	// 	).
+	// 	Join(
+	// 		goqu.I("genres"),
+	// 		goqu.On(goqu.I("tracks_to_genres.genre_id").Eq(goqu.I("genres.id"))),
+	// 	).
+	// 	GroupBy(goqu.I("tracks_to_genres.track_id"))
 
 	query := dialect.From("tracks").
 		Select(
 			"tracks.id",
-			"tracks.track_number",
 			"tracks.name",
-			"tracks.cover_art",
-			"tracks.duration",
-			"tracks.path",
-			"tracks.best_quality_file",
-			"tracks.mobile_quality_file",
+
 			"tracks.album_id",
 			"tracks.artist_id",
-			"tracks.available",
+
+			"tracks.track_number",
+			"tracks.duration",
+			"tracks.year",
+
+			"tracks.export_name",
+			"tracks.original_filename",
+			"tracks.mobile_filename",
+
+			"tracks.created",
+			"tracks.updated",
+
 			goqu.I("albums.name").As("album_name"),
+			goqu.I("albums.cover_art").As("album_cover_art"),
 			goqu.I("artists.name").As("artist_name"),
-			goqu.I("tags.tags").As("tags"),
-			goqu.I("genres.genres").As("genres"),
+
+			// goqu.I("tags.tags").As("tags"),
+			// goqu.I("genres.genres").As("genres"),
+
+			"tracks.available",
 		).
 		Prepared(true).
 		Join(
@@ -228,47 +251,21 @@ func TrackQuery() *goqu.SelectDataset {
 		Join(
 			goqu.I("artists"),
 			goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))),
-		).
-		LeftJoin(
-			tags.As("tags"),
-			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
-		).
-		LeftJoin(
-			genres.As("genres"),
-			goqu.On(goqu.I("tracks.id").Eq(goqu.I("genres.track_id"))),
 		)
+		// LeftJoin(
+		// 	tags.As("tags"),
+		// 	goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
+		// ).
+		// LeftJoin(
+		// 	genres.As("genres"),
+		// 	goqu.On(goqu.I("tracks.id").Eq(goqu.I("genres.track_id"))),
+		// )
 
 	return query
 }
 
 type Scan interface {
 	Scan(dest ...any) error
-}
-
-func ScanTrack(scanner Scan) (Track, error) {
-	var res Track
-	err := scanner.Scan(
-		&res.Id,
-		&res.Number,
-		&res.Name,
-		&res.CoverArt,
-		&res.Duration,
-		&res.Path,
-		&res.BestQualityFile,
-		&res.MobileQualityFile,
-		&res.AlbumId,
-		&res.ArtistId,
-		&res.Available,
-		&res.AlbumName,
-		&res.ArtistName,
-		&res.Tags,
-		&res.Genres,
-	)
-	if err != nil {
-		return Track{}, err
-	}
-
-	return res, nil
 }
 
 var ErrInvalidFilter = errors.New("Invalid filter")
@@ -358,72 +355,72 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 	return item, nil
 }
 
-func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, error) {
-	ds := dialect.From("tracks").
-		Select(
-			"id",
-			"track_number",
-			"name",
-			"cover_art",
-			"duration",
-			"path",
-			"best_quality_file",
-			"mobile_quality_file",
-			"album_id",
-			"artist_id",
-		).
-		Where(goqu.C("path").Eq(path)).
-		Prepared(true)
+// func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, error) {
+// 	ds := dialect.From("tracks").
+// 		Select(
+// 			"id",
+// 			"track_number",
+// 			"name",
+// 			"cover_art",
+// 			"duration",
+// 			"path",
+// 			"best_quality_file",
+// 			"mobile_quality_file",
+// 			"album_id",
+// 			"artist_id",
+// 		).
+// 		Where(goqu.C("path").Eq(path)).
+// 		Prepared(true)
+//
+// 	row, err := db.QueryRow(ctx, ds)
+// 	if err != nil {
+// 		return Track{}, err
+// 	}
+//
+// 	var item Track
+// 	err = row.Scan(
+// 		&item.Id,
+// 		&item.Number,
+// 		&item.Name,
+// 		&item.CoverArt,
+// 		&item.Duration,
+// 		&item.Path,
+// 		&item.BestQualityFile,
+// 		&item.MobileQualityFile,
+// 		&item.AlbumId,
+// 		&item.ArtistId,
+// 	)
+// 	if err != nil {
+// 		if err == sql.ErrNoRows {
+// 			return Track{}, ErrItemNotFound
+// 		}
+//
+// 		return Track{}, err
+// 	}
+//
+// 	return item, nil
+// }
 
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Track{}, err
-	}
-
-	var item Track
-	err = row.Scan(
-		&item.Id,
-		&item.Number,
-		&item.Name,
-		&item.CoverArt,
-		&item.Duration,
-		&item.Path,
-		&item.BestQualityFile,
-		&item.MobileQualityFile,
-		&item.AlbumId,
-		&item.ArtistId,
-	)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return Track{}, ErrItemNotFound
-		}
-
-		return Track{}, err
-	}
-
-	return item, nil
-}
-
-func (db *Database) GetTrackByName(ctx context.Context, name string) (Track, error) {
-	query := TrackQuery().
-		Where(goqu.I("tracks.name").Eq(name))
-
-	row, err := db.QueryRow(ctx, query)
-	if err != nil {
-		return Track{}, err
-	}
-
-	item, err := ScanTrack(row)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Track{}, ErrItemNotFound
-		}
-
-		return Track{}, err
-	}
-
-	return item, nil
-}
+// func (db *Database) GetTrackByName(ctx context.Context, name string) (Track, error) {
+// 	query := TrackQuery().
+// 		Where(goqu.I("tracks.name").Eq(name))
+//
+// 	row, err := db.QueryRow(ctx, query)
+// 	if err != nil {
+// 		return Track{}, err
+// 	}
+//
+// 	item, err := ScanTrack(row)
+// 	if err != nil {
+// 		if errors.Is(err, sql.ErrNoRows) {
+// 			return Track{}, ErrItemNotFound
+// 		}
+//
+// 		return Track{}, err
+// 	}
+//
+// 	return item, nil
+// }
 
 func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, albumId string) (Track, error) {
 	query := TrackQuery().
@@ -434,12 +431,8 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 			),
 		)
 
-	row, err := db.QueryRow(ctx, query)
-	if err != nil {
-		return Track{}, err
-	}
-
-	item, err := ScanTrack(row)
+	var item Track
+	err := db.Get(&item, query)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return Track{}, ErrItemNotFound
@@ -452,70 +445,62 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 }
 
 type CreateTrackParams struct {
-	TrackNumber       int
-	Name              string
-	CoverArt          sql.NullString
-	Path              string
-	Duration          int
-	BestQualityFile   string
-	MobileQualityFile string
-	AlbumId           string
-	ArtistId          string
+	Name string
+
+	AlbumId  string
+	ArtistId string
+
+	Number   sql.NullInt64
+	Duration sql.NullInt64
+	Year     sql.NullInt64
+
+	ExportName       string
+	OriginalFilename string
+	MobileFilename   string
+
+	Available bool
 }
 
-func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (Track, error) {
+func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (string, error) {
+	t := time.Now().UnixMilli()
+
 	ds := dialect.Insert("tracks").Rows(goqu.Record{
-		"id":                  utils.CreateId(),
-		"track_number":        params.TrackNumber,
-		"name":                params.Name,
-		"cover_art":           params.CoverArt,
-		"duration":            params.Duration,
-		"best_quality_file":   params.BestQualityFile,
-		"mobile_quality_file": params.MobileQualityFile,
-		"album_id":            params.AlbumId,
-		"artist_id":           params.ArtistId,
-		"path":                params.Path,
-		"available":           false,
+		"id":   utils.CreateId(),
+		"name": params.Name,
+
+		"album_id":  params.AlbumId,
+		"artist_id": params.ArtistId,
+
+		"track_number": params.Number,
+		"duration":     params.Duration,
+		"year":         params.Year,
+
+		"export_name":       params.ExportName,
+		"original_filename": params.OriginalFilename,
+		"mobile_filename":   params.MobileFilename,
+
+		"created": t,
+		"updated": t,
+
+		"available": params.Available,
 	}).
-		Returning(
-			"id",
-			"track_number",
-			"name",
-			"cover_art",
-			"duration",
-			"path",
-			"best_quality_file",
-			"mobile_quality_file",
-			"album_id",
-			"artist_id",
-		).
+		Returning("id").
 		Prepared(true)
+
+	var item string
 
 	row, err := db.QueryRow(ctx, ds)
 	if err != nil {
-		return Track{}, err
+		return "", err
 	}
 
-	var item Track
-	err = row.Scan(
-		&item.Id,
-		&item.Number,
-		&item.Name,
-		&item.CoverArt,
-		&item.Duration,
-		&item.Path,
-		&item.BestQualityFile,
-		&item.MobileQualityFile,
-		&item.AlbumId,
-		&item.ArtistId,
-	)
+	err = row.Scan(&item)
 	if err != nil {
-		return Track{}, err
+		return "", err
 	}
 
 	return item, nil
 }
-
 
 func addToRecord[T any](record goqu.Record, name string, change types.Change[T]) {
 	if change.Changed {
@@ -526,16 +511,20 @@ func addToRecord[T any](record goqu.Record, name string, change types.Change[T])
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
 	record := goqu.Record{
 		"available": changes.Available,
+		"updated": time.Now().UnixMilli(),
 	}
 
 	addToRecord(record, "name", changes.Name)
-	addToRecord(record, "track_number", changes.Number)
-	addToRecord(record, "name", changes.Name)
-	addToRecord(record, "cover_art", changes.CoverArt)
-	addToRecord(record, "duration", changes.Duration)
-	addToRecord(record, "best_quality_file", changes.BestQualityFile)
-	addToRecord(record, "mobile_quality_file", changes.MobileQualityFile)
+	addToRecord(record, "album_id", changes.AlbumId)
 	addToRecord(record, "artist_id", changes.ArtistId)
+
+	addToRecord(record, "track_number", changes.Number)
+	addToRecord(record, "duration", changes.Duration)
+	addToRecord(record, "year", changes.Year)
+
+	addToRecord(record, "export_name", changes.ExportName)
+	addToRecord(record, "original_filename", changes.OriginalFilename)
+	addToRecord(record, "mobile_filename", changes.MobileFilename)
 
 	ds := dialect.Update("tracks").
 		Set(record).
