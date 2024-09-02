@@ -2,9 +2,10 @@
   import { Track } from "$lib/api/types.js";
   import { musicManager } from "$lib/music-manager.js";
   import { trackToMusicTrack } from "$lib/utils.js";
-  import { onMount } from "svelte";
 
   const { data } = $props();
+
+  let editAlbumName = $state(false);
 
   let files = $state<File[]>([]);
   let fileSelector = $state<HTMLInputElement>();
@@ -13,6 +14,8 @@
 
   let deleteTrack = $state<Track>();
   let confirmTrackDeletionDialog = $state<HTMLDialogElement>();
+
+  let editAlbumArtist = $state<HTMLDialogElement>();
 </script>
 
 <p>Edit Album</p>
@@ -24,8 +27,44 @@
   }}>Delete Album</button
 >
 
-<p>{data.album.name}</p>
-<p>{data.album.artistName}</p>
+<div>
+  {#if editAlbumName}
+    <form action="?/editAlbumName" method="post">
+      <input name="albumId" value={data.album.id} type="hidden" />
+      <input
+        class="text-black"
+        name="albumName"
+        value={data.album.name}
+        type="text"
+      />
+      <button>Save</button>
+      <button
+        type="button"
+        onclick={() => {
+          editAlbumName = !editAlbumName;
+        }}>Edit</button
+      >
+    </form>
+  {:else}
+    <div class="flex gap-2">
+      <p>{data.album.name}</p>
+      <button
+        onclick={() => {
+          editAlbumName = !editAlbumName;
+        }}>Edit</button
+      >
+    </div>
+  {/if}
+</div>
+
+<p>Album Artist: {data.album.artistName}</p>
+
+<button
+  onclick={() => {
+    editAlbumArtist?.showModal();
+  }}>Change Album Artist</button
+>
+
 <p>{data.album.coverArt}</p>
 
 <div class="flex flex-col">
@@ -135,5 +174,24 @@
   <form action="?/deleteTrack" method="post">
     <input name="trackId" value={deleteTrack?.id} type="hidden" />
     <button>DELETE</button>
+  </form>
+</dialog>
+
+<dialog
+  class="rounded bg-[--bg-color] p-4 text-[--fg-color] backdrop:bg-black/45"
+  bind:this={editAlbumArtist}
+>
+  <form action="?/editAlbumArtist" method="post">
+    <input name="albumId" value={data.album.id} type="hidden" />
+    <input name="artistName" value={data.album.artistName} type="text" />
+
+    <button
+      type="button"
+      onclick={() => {
+        editAlbumArtist?.close();
+      }}>Close</button
+    >
+
+    <button>Change Artist</button>
   </form>
 </dialog>

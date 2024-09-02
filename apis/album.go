@@ -71,10 +71,11 @@ func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
 
 	return c.JSON(200, SuccessResponse(types.GetAlbumById{
 		Album: types.Album{
-			Id:       album.Id,
-			Name:     album.Name,
-			CoverArt: utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
-			ArtistId: album.ArtistId,
+			Id:         album.Id,
+			Name:       album.Name,
+			CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
+			ArtistId:   album.ArtistId,
+			ArtistName: album.ArtistName,
 		},
 	}))
 }
@@ -199,6 +200,92 @@ func processOriginalVersion(input string, outputDir, name string) (string, utils
 	return filename, info, nil
 }
 
+var _ types.Body = (*PatchAlbumBody)(nil)
+
+type PatchAlbumBody struct {
+	Name       *string `json:"name"`
+	ArtistId   *string `json:"artistId"`
+	ArtistName *string `json:"artistName"`
+	Year       *int64  `json:"year"`
+}
+
+func (PatchAlbumBody) Schema() jio.Schema {
+	panic("unimplemented")
+}
+
+func (api *albumApi) HandlePatchAlbum(c echo.Context) error {
+	id := c.Param("id")
+
+	var body PatchAlbumBody
+	d := json.NewDecoder(c.Request().Body)
+	err := d.Decode(&body)
+	if err != nil {
+		return err
+	}
+
+	album, err := api.app.DB().GetAlbumById(c.Request().Context(), id)
+	if err != nil {
+		// TODO(patrik): Handle error
+		return err
+	}
+
+	var name types.Change[string]
+	if body.Name != nil {
+		n := strings.TrimSpace(*body.Name)
+		name.Value = n
+		name.Changed = n != album.Name
+	}
+
+	ctx := context.TODO()
+
+	var artistId types.Change[string]
+	if body.ArtistId != nil {
+		artistId.Value = *body.ArtistId
+		artistId.Changed = *body.ArtistId != album.ArtistId
+	} else if body.ArtistName != nil {
+		artistName := strings.TrimSpace(*body.ArtistName)
+
+		artist, err := api.app.DB().GetArtistByName(ctx, artistName)
+		if err != nil {
+			if errors.Is(err, database.ErrItemNotFound) {
+				artist, err = api.app.DB().CreateArtist(ctx, database.CreateArtistParams{
+					Name:    artistName,
+					Picture: sql.NullString{},
+				})
+
+				if err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+
+		artistId.Value = artist.Id
+		artistId.Changed = artist.Id != album.ArtistId
+	}
+
+	var year types.Change[sql.NullInt64]
+	if body.Year != nil {
+		year.Value = sql.NullInt64{
+			Int64: *body.Year,
+			Valid: *body.Year != 0,
+		}
+		year.Changed = *body.Year != album.Year.Int64
+	}
+
+	err = api.app.DB().UpdateAlbum(c.Request().Context(), album.Id, database.AlbumChanges{
+		Name:     name,
+		ArtistId: artistId,
+		Year:     year,
+	})
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+}
+
 // TODO(patrik): Move the album folder to trash can system
 func (api *albumApi) HandleDeleteAlbum(c echo.Context) error {
 	id := c.Param("id")
@@ -226,7 +313,6 @@ func (api *albumApi) HandleDeleteAlbum(c echo.Context) error {
 
 	return c.JSON(200, pyrinapi.SuccessResponse(nil))
 }
-
 
 func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 	form, err := c.MultipartForm()
@@ -511,8 +597,8 @@ func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
 		}
 
 		_, err = db.CreateTrack(ctx, database.CreateTrackParams{
-			Name:     name,
-			AlbumId:  album.Id,
+			Name:    name,
+			AlbumId: album.Id,
 			// TODO(patrik): Wrong artist
 			ArtistId: album.ArtistId,
 			Number:   sql.NullInt64{},
@@ -573,6 +659,15 @@ func InstallAlbumHandlers(app core.App, group Group) {
 			Errors:      []api.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: a.HandleGetAlbumTracksById,
 			Middlewares: []echo.MiddlewareFunc{},
+		},
+
+		Handler{
+			Name:        "EditAlbum",
+			Method:      http.MethodPatch,
+			Path:        "/albums/:id",
+			DataType:    nil,
+			BodyType:    PatchAlbumBody{},
+			HandlerFunc: a.HandlePatchAlbum,
 		},
 
 		Handler{

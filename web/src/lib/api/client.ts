@@ -8,6 +8,7 @@ export const GET_ARTIST_ALBUMS_URL = "/api/v1/artists/:id/albums"
 export const GET_ALBUMS_URL = "/api/v1/albums"
 export const GET_ALBUM_BY_ID_URL = "/api/v1/albums/:id"
 export const GET_ALBUM_TRACKS_URL = "/api/v1/albums/:id/tracks"
+export const EDIT_ALBUM_URL = "/api/v1/albums/:id"
 export const DELETE_ALBUM_URL = "/api/v1/albums/:id"
 export const IMPORT_ALBUM_URL = "/api/v1/albums/import"
 export const IMPORT_TRACK_TO_ALBUM_URL = "/api/v1/albums/:id/import/track"
@@ -58,6 +59,10 @@ export class ApiClient extends BaseApiClient {
   
   getAlbumTracks(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracksById, z.undefined(), undefined, options)
+  }
+  
+  editAlbum(id: string, body: api.PatchAlbumBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/albums/${id}`, "PATCH", z.undefined(), z.undefined(), body, options)
   }
   
   deleteAlbum(id: string, options?: ExtraOptions) {

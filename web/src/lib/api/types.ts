@@ -61,6 +61,14 @@ export const GetAlbumTracksById = z.object({
 });
 export type GetAlbumTracksById = z.infer<typeof GetAlbumTracksById>;
 
+export const PatchAlbumBody = z.object({
+  name: z.string().nullable(),
+  artistId: z.string().nullable(),
+  artistName: z.string().nullable(),
+  year: z.number().nullable(),
+});
+export type PatchAlbumBody = z.infer<typeof PatchAlbumBody>;
+
 export const PostAlbumImport = z.object({
   albumId: z.string(),
 });

@@ -71,4 +71,52 @@ export const actions: Actions = {
       throw error(res.error.code, { message: res.error.message });
     }
   },
+
+  editAlbumName: async ({ locals, request }) => {
+    const formData = await request.formData();
+
+    const albumId = formData.get("albumId");
+    if (!albumId) {
+      throw error(400, { message: "albumId is not set" });
+    }
+
+    const albumName = formData.get("albumName");
+    if (!albumName) {
+      throw error(400, { message: "albumName is not set" });
+    }
+
+    const res = await locals.apiClient.editAlbum(albumId.toString(), {
+      name: albumName.toString(),
+      artistId: null,
+      artistName: null,
+      year: null,
+    });
+    if (!res.success) {
+      throw error(res.error.code, { message: res.error.message });
+    }
+  },
+
+  editAlbumArtist: async ({ locals, request }) => {
+    const formData = await request.formData();
+
+    const albumId = formData.get("albumId");
+    if (!albumId) {
+      throw error(400, { message: "albumId is not set" });
+    }
+
+    const artistName = formData.get("artistName");
+    if (!artistName) {
+      throw error(400, { message: "artistName is not set" });
+    }
+
+    const res = await locals.apiClient.editAlbum(albumId.toString(), {
+      name: null,
+      artistId: null,
+      artistName: artistName.toString(),
+      year: null,
+    });
+    if (!res.success) {
+      throw error(res.error.code, { message: res.error.message });
+    }
+  },
 };
