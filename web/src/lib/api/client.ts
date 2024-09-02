@@ -8,7 +8,9 @@ export const GET_ARTIST_ALBUMS_URL = "/api/v1/artists/:id/albums"
 export const GET_ALBUMS_URL = "/api/v1/albums"
 export const GET_ALBUM_BY_ID_URL = "/api/v1/albums/:id"
 export const GET_ALBUM_TRACKS_URL = "/api/v1/albums/:id/tracks"
+export const DELETE_ALBUM_URL = "/api/v1/albums/:id"
 export const IMPORT_ALBUM_URL = "/api/v1/albums/import"
+export const IMPORT_TRACK_TO_ALBUM_URL = "/api/v1/albums/:id/import/track"
 export const GET_TRACKS_URL = "/api/v1/tracks"
 export const GET_TRACK_BY_ID_URL = "/api/v1/tracks/:id"
 export const GET_SYNC_STATUS_URL = "/api/v1/sync"
@@ -57,8 +59,16 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracksById, z.undefined(), undefined, options)
   }
   
+  deleteAlbum(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/albums/${id}`, "DELETE", z.undefined(), z.undefined(), undefined, options)
+  }
+  
   importAlbum(formData: FormData, options?: ExtraOptions) {
     return this.requestWithFormData("/api/v1/albums/import", "POST", api.PostAlbumImport, z.undefined(), formData, options)
+  }
+  
+  importTrackToAlbum(id: string, formData: FormData, options?: ExtraOptions) {
+    return this.requestWithFormData(`/api/v1/albums/${id}/import/track`, "POST", z.undefined(), z.undefined(), formData, options)
   }
   
   getTracks(options?: ExtraOptions) {

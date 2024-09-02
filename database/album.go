@@ -222,6 +222,20 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 	return item, nil
 }
 
+func (db *Database) RemoveAlbum(ctx context.Context, id string) error {
+	query := dialect.Delete("albums").
+		Prepared(true).
+		Where(goqu.I("albums.id").Eq(id))
+
+	// TODO(patrik): Check result?
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 type AlbumChanges struct {
 	Name     types.Change[string]
 	ArtistId types.Change[string]

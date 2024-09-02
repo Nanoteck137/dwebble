@@ -141,3 +141,7 @@ html[data-theme="light"] {
 body[data-player="true"] main {
     @apply mb-16 md:mb-24
 }
+
+html:has(dialog[open]:modal) {
+  overflow: hidden;
+}

@@ -199,6 +199,34 @@ func processOriginalVersion(input string, outputDir, name string) (string, utils
 	return filename, info, nil
 }
 
+func (api *albumApi) HandleDeleteAlbum(c echo.Context) error {
+	id := c.Param("id")
+
+	db, tx, err := api.app.DB().Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = db.RemoveAlbumTracks(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+
+	err = db.RemoveAlbum(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+}
+
+
 func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -403,6 +431,113 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 	}))
 }
 
+func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
+	id := c.Param("id")
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		return err
+	}
+
+	db, tx, err := api.app.DB().Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	ctx := context.TODO()
+	album, err := db.GetAlbumById(ctx, id)
+	if err != nil {
+		// TODO(patrik): Handle error
+		return err
+	}
+
+	albumDir := api.app.WorkDir().Album(album.Id)
+
+	files := form.File["files"]
+	for _, f := range files {
+		now := time.Now()
+
+		// TODO(patrik): Maybe save the original filename to use when exporting
+		ext := path.Ext(f.Filename)
+		originalName := strings.TrimSuffix(f.Filename, ext)
+		filename := originalName + "-" + strconv.FormatInt(now.Unix(), 10)
+
+		file, err := os.CreateTemp("", "track.*"+ext)
+		if err != nil {
+			return err
+		}
+		defer os.Remove(file.Name())
+
+		ff, err := f.Open()
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(file, ff)
+		if err != nil {
+			return err
+		}
+
+		file.Close()
+
+		mobileFile, err := processMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
+		if err != nil {
+			return err
+		}
+
+		originalFile, trackInfo, err := processOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
+		if err != nil {
+			return err
+		}
+
+		name := originalName
+		dateRegex := regexp.MustCompile(`^([12]\d\d\d)`)
+
+		if tag, exists := trackInfo.Tags["title"]; exists {
+			name = tag
+		}
+
+		var year sql.NullInt64
+		if tag, exists := trackInfo.Tags["date"]; exists {
+			match := dateRegex.FindStringSubmatch(tag)
+			if len(match) > 0 {
+				y, _ := strconv.Atoi(match[1])
+
+				year.Int64 = int64(y)
+				year.Valid = true
+			}
+		}
+
+		_, err = db.CreateTrack(ctx, database.CreateTrackParams{
+			Name:     name,
+			AlbumId:  album.Id,
+			// TODO(patrik): Wrong artist
+			ArtistId: album.ArtistId,
+			Number:   sql.NullInt64{},
+			Duration: sql.NullInt64{
+				Int64: int64(trackInfo.Duration),
+				Valid: true,
+			},
+			Year:             year,
+			ExportName:       originalName,
+			OriginalFilename: originalFile,
+			MobileFilename:   mobileFile,
+			Available:        true,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+}
+
 func InstallAlbumHandlers(app core.App, group Group) {
 	a := albumApi{app: app}
 
@@ -440,6 +575,15 @@ func InstallAlbumHandlers(app core.App, group Group) {
 		},
 
 		Handler{
+			Name:        "DeleteAlbum",
+			Method:      http.MethodDelete,
+			Path:        "/albums/:id",
+			DataType:    nil,
+			BodyType:    nil,
+			HandlerFunc: a.HandleDeleteAlbum,
+		},
+
+		Handler{
 			Name:        "ImportAlbum",
 			Method:      http.MethodPost,
 			Path:        "/albums/import",
@@ -447,6 +591,16 @@ func InstallAlbumHandlers(app core.App, group Group) {
 			BodyType:    PostAlbumImportBody{},
 			IsMultiForm: true,
 			HandlerFunc: a.HandlePostAlbumImport,
+		},
+
+		Handler{
+			Name:        "ImportTrackToAlbum",
+			Method:      http.MethodPost,
+			Path:        "/albums/:id/import/track",
+			DataType:    nil,
+			BodyType:    nil,
+			IsMultiForm: true,
+			HandlerFunc: a.HandlePostAlbumImportTrackById,
 		},
 	)
 }

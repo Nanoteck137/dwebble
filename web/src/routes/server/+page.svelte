@@ -57,4 +57,7 @@
 <p>Version: {PUBLIC_VERSION}</p>
 <p>Commit: {PUBLIC_COMMIT}</p>
 
-<a href="/server/import">Import Album</a>
+<div class="flex flex-col">
+  <a href="/server/import">Import Album</a>
+  <a href="/server/edit/album">Edit Albums</a>
+</div>
