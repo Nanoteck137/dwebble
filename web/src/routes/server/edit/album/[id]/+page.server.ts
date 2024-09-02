@@ -57,4 +57,18 @@ export const actions: Actions = {
       throw error(res.error.code, { message: res.error.message });
     }
   },
+
+  deleteTrack: async ({ locals, request }) => {
+    const formData = await request.formData();
+
+    const trackId = formData.get("trackId");
+    if (!trackId) {
+      throw error(400, { message: "trackId is not set" });
+    }
+
+    const res = await locals.apiClient.removeTrack(trackId.toString());
+    if (!res.success) {
+      throw error(res.error.code, { message: res.error.message });
+    }
+  },
 };

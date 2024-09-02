@@ -553,6 +553,20 @@ func (db *Database) RemoveAlbumTracks(ctx context.Context, albumId string) error
 	return nil
 }
 
+func (db *Database) RemoveTrack(ctx context.Context, id string) error {
+	query := dialect.Delete("tracks").
+		Prepared(true).
+		Where(goqu.I("tracks.id").Eq(id))
+
+	// TODO(patrik): Check result?
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *Database) MarkAllTracksUnavailable(ctx context.Context) error {
 	ds := dialect.Update("tracks").Set(goqu.Record{
 		"available": false,

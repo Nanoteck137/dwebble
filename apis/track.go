@@ -102,6 +102,30 @@ func (api *trackApi) HandleGetTrackById(c echo.Context) error {
 	}))
 }
 
+// TODO(patrik): Move the track file to a trash can system
+func (api *trackApi) HandleDeleteTrack(c echo.Context) error {
+	id := c.Param("id")
+
+	db, tx, err := api.app.DB().Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = db.RemoveTrack(c.Request().Context(), id)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(200, SuccessResponse(nil))
+}
+
+
 func InstallTrackHandlers(app core.App, group Group) {
 	a := trackApi{app: app}
 
@@ -126,6 +150,15 @@ func InstallTrackHandlers(app core.App, group Group) {
 			Errors:      []api.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: a.HandleGetTrackById,
 			Middlewares: []echo.MiddlewareFunc{},
+		},
+
+		Handler{
+			Name:        "RemoveTrack",
+			Method:      http.MethodDelete,
+			Path:        "/tracks/:id",
+			DataType:    nil,
+			BodyType:    nil,
+			HandlerFunc: a.HandleDeleteTrack,
 		},
 	)
 }

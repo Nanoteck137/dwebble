@@ -199,6 +199,7 @@ func processOriginalVersion(input string, outputDir, name string) (string, utils
 	return filename, info, nil
 }
 
+// TODO(patrik): Move the album folder to trash can system
 func (api *albumApi) HandleDeleteAlbum(c echo.Context) error {
 	id := c.Param("id")
 

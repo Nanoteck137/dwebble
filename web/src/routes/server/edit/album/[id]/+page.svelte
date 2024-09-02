@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { Track } from "$lib/api/types.js";
+  import { musicManager } from "$lib/music-manager.js";
+  import { trackToMusicTrack } from "$lib/utils.js";
   import { onMount } from "svelte";
 
   const { data } = $props();
@@ -7,6 +10,9 @@
   let fileSelector = $state<HTMLInputElement>();
 
   let confirmAlbumDeletionDialog = $state<HTMLDialogElement>();
+
+  let deleteTrack = $state<Track>();
+  let confirmTrackDeletionDialog = $state<HTMLDialogElement>();
 </script>
 
 <p>Edit Album</p>
@@ -22,9 +28,28 @@
 <p>{data.album.artistName}</p>
 <p>{data.album.coverArt}</p>
 
-{#each data.tracks as track (track.id)}
-  <p>{track.name}</p>
-{/each}
+<div class="flex flex-col">
+  {#each data.tracks as track (track.id)}
+    <div class="flex gap-2">
+      <button
+        class="text-blue-400"
+        onclick={() => {
+          musicManager.clearQueue();
+          musicManager.addTrackToQueue(trackToMusicTrack(track), true);
+        }}>Play</button
+      >
+
+      <p>{track.name}</p>
+      <button
+        class="text-red-400"
+        onclick={() => {
+          deleteTrack = track;
+          confirmTrackDeletionDialog?.showModal();
+        }}>Delete</button
+      >
+    </div>
+  {/each}
+</div>
 
 <button
   onclick={() => {
@@ -90,6 +115,25 @@
 
   <form action="?/deleteAlbum" method="post">
     <input name="albumId" value={data.album.id} type="hidden" />
+    <button>DELETE</button>
+  </form>
+</dialog>
+
+<dialog
+  class="rounded bg-[--bg-color] p-4 text-[--fg-color] backdrop:bg-black/45"
+  bind:this={confirmTrackDeletionDialog}
+>
+  <p>Are you sure?</p>
+  <p>{deleteTrack?.name}</p>
+
+  <button
+    onclick={() => {
+      confirmTrackDeletionDialog?.close();
+    }}>Close</button
+  >
+
+  <form action="?/deleteTrack" method="post">
+    <input name="trackId" value={deleteTrack?.id} type="hidden" />
     <button>DELETE</button>
   </form>
 </dialog>
