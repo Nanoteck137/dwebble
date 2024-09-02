@@ -3,14 +3,15 @@ package cli
 import (
 	"fmt"
 
+	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:     config.AppName,
-	Version: config.Version,
+	Use: dwebble.AppName,
+	Version: dwebble.Version,
 }
 
 func Execute() {
@@ -22,7 +23,7 @@ func Execute() {
 func versionTemplate() string {
 	return fmt.Sprintf(
 		"%s: %s (%s)\n",
-		config.AppName, config.Version, config.Commit)
+		dwebble.AppName, dwebble.Version, dwebble.Commit)
 }
 
 func init() {

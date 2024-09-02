@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/nanoteck137/dwebble/config"
+	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -16,7 +16,7 @@ type systemApi struct {
 
 func (api *systemApi) HandleGetSystemInfo(c echo.Context) error {
 	return c.JSON(200, SuccessResponse(types.GetSystemInfo{
-		Version: config.Version,
+		Version: dwebble.Version,
 		IsSetup: api.app.IsSetup(),
 	}))
 }

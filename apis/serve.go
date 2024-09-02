@@ -10,8 +10,8 @@ import (
 	"github.com/MadAppGang/httplog/echolog"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/assets"
-	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/pyrin/api"
@@ -100,7 +100,7 @@ func Server(app core.App) (*echo.Echo, error) {
 
 	e.HTTPErrorHandler = errorHandler
 
-	e.Use(echolog.LoggerWithName(config.AppName))
+	e.Use(echolog.LoggerWithName(dwebble.AppName))
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORS())
 

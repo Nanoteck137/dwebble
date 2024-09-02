@@ -29,11 +29,11 @@
           src = ./.;
 
           ldflags = [
-            "-X github.com/nanoteck137/dwebble/config.Version=${version}"
-            "-X github.com/nanoteck137/dwebble/config.Commit=${self.dirtyRev or self.rev or "no-commit"}"
+            "-X github.com/nanoteck137/dwebble.Version=${version}"
+            "-X github.com/nanoteck137/dwebble.Commit=${self.dirtyRev or self.rev or "no-commit"}"
           ];
 
-          vendorHash = "sha256-UCeWbwSeQRlPI1uS/nOMgOZLgR/pY6axzC5hsVE0kPo=";
+          vendorHash = "sha256-ITNTEG7Esspp0eRdMC9G37GIinI8UAqQH3ukXAL940g=";
         };
 
         tools = devtools.packages.${system};
