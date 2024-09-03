@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
@@ -219,21 +220,21 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 
 	for _, track := range export.Tracks {
 		_, err := db.CreateTrack(ctx, database.CreateTrackParams{
-			Id:               track.Id,
-			Name:             track.Name,
-			AlbumId:          track.AlbumId,
-			ArtistId:         track.ArtistId,
-			Number:           sql.NullInt64{
-				Int64: 0,
-				Valid: false,
+			Id:       track.Id,
+			Name:     track.Name,
+			AlbumId:  track.AlbumId,
+			ArtistId: track.ArtistId,
+			Number: sql.NullInt64{
+				Int64: track.Number,
+				Valid: track.Number != 0,
 			},
-			Duration:         sql.NullInt64{
-				Int64: 0,
-				Valid: false,
+			Duration: sql.NullInt64{
+				Int64: track.Duration,
+				Valid: track.Duration != 0,
 			},
-			Year:             sql.NullInt64{
-				Int64: 0,
-				Valid: false,
+			Year: sql.NullInt64{
+				Int64: track.Year,
+				Valid: track.Year != 0,
 			},
 			ExportName:       track.ExportName,
 			OriginalFilename: track.OriginalFilename,
@@ -246,6 +247,62 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 			var e sqlite3.Error
 			if errors.As(err, &e) {
 				if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+					err := db.UpdateTrack(ctx, track.Id, database.TrackChanges{
+						Name: types.Change[string]{
+							Value:   track.Name,
+							Changed: true,
+						},
+						AlbumId: types.Change[string]{
+							Value:   track.AlbumId,
+							Changed: true,
+						},
+						ArtistId: types.Change[string]{
+							Value:   track.ArtistId,
+							Changed: true,
+						},
+						Number: types.Change[sql.NullInt64]{
+							Value: sql.NullInt64{
+								Int64: track.Number,
+								Valid: track.Number != 0,
+							},
+							Changed: true,
+						},
+						Duration: types.Change[sql.NullInt64]{
+							Value:   sql.NullInt64{
+								Int64: track.Duration,
+								Valid: track.Duration != 0,
+							},
+							Changed: false,
+						},
+						Year: types.Change[sql.NullInt64]{
+							Value:   sql.NullInt64{
+								Int64: track.Year,
+								Valid: track.Year != 0,
+							},
+							Changed: true,
+						},
+						ExportName: types.Change[string]{
+							Value:   track.ExportName,
+							Changed: true,
+						},
+						OriginalFilename: types.Change[string]{
+							Value:   track.OriginalFilename,
+							Changed: true,
+						},
+						MobileFilename: types.Change[string]{
+							Value:   track.MobileFilename,
+							Changed: true,
+						},
+						Updated: types.Change[int64]{
+							Value:   time.Now().UnixMilli(),
+							Changed: true,
+						},
+						Available: true,
+					})
+					if err != nil {
+						return err
+					}
+
 					continue
 				}
 			}
