@@ -108,6 +108,21 @@ func (db *Database) RemoveTagFromTrack(ctx context.Context, tagSlug, trackId str
 	return nil
 }
 
+func (db *Database) RemoveAllTagsFromTrack(ctx context.Context, trackId string) error {
+	ds := dialect.Delete("tracks_to_tags").
+		Where(goqu.And(
+			goqu.I("track_id").Eq(trackId),
+		)).
+		Prepared(true)
+
+	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *Database) GetTrackTags(ctx context.Context, trackId string) ([]Tag, error) {
 	query := dialect.From("tracks_to_tags").
 		Select("tags.id", "tags.name", "tags.display_name").
