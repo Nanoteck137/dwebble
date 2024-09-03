@@ -171,6 +171,7 @@ type TrackChanges struct {
 
 	Updated types.Change[int64]
 
+	// TODO(patrik): Use types.Change
 	Available bool
 }
 
