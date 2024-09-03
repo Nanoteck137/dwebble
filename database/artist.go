@@ -11,9 +11,9 @@ import (
 )
 
 type Artist struct {
-	Id        string         `db:"id"`
-	Name      string         `db:"name"`
-	Picture   sql.NullString `db:"picture"`
+	Id      string         `db:"id"`
+	Name    string         `db:"name"`
+	Picture sql.NullString `db:"picture"`
 }
 
 func ArtistQuery() *goqu.SelectDataset {
@@ -75,15 +75,21 @@ func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, e
 }
 
 type CreateArtistParams struct {
+	Id      string
 	Name    string
 	Picture sql.NullString
 }
 
 func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams) (Artist, error) {
+	id := params.Id
+	if id == "" {
+		id = utils.CreateId()
+	}
+
 	ds := dialect.Insert("artists").Rows(goqu.Record{
-		"id":        utils.CreateId(),
-		"name":      params.Name,
-		"picture":   params.Picture,
+		"id":      id,
+		"name":    params.Name,
+		"picture": params.Picture,
 	}).Returning("id", "name", "picture").Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
@@ -101,8 +107,8 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 }
 
 type ArtistChanges struct {
-	Name      types.Change[string]
-	Picture   types.Change[sql.NullString]
+	Name    types.Change[string]
+	Picture types.Change[sql.NullString]
 }
 
 func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistChanges) error {

@@ -186,7 +186,7 @@ type TrackChanges struct {
 	OriginalFilename types.Change[string]
 	MobileFilename   types.Change[string]
 
-	Updated   types.Change[int64]
+	Updated types.Change[int64]
 
 	Available bool
 }
@@ -445,6 +445,7 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 }
 
 type CreateTrackParams struct {
+	Id   string
 	Name string
 
 	AlbumId  string
@@ -458,14 +459,29 @@ type CreateTrackParams struct {
 	OriginalFilename string
 	MobileFilename   string
 
+	Created int64
+	Updated int64
+
 	Available bool
 }
 
 func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (string, error) {
 	t := time.Now().UnixMilli()
+	created := params.Created
+	updated := params.Updated
+
+	if created == 0 && updated == 0 {
+		created = t
+		updated = t
+	}
+
+	id := params.Id
+	if id == "" {
+		id  = utils.CreateId()
+	}
 
 	ds := dialect.Insert("tracks").Rows(goqu.Record{
-		"id":   utils.CreateId(),
+		"id":   id,
 		"name": params.Name,
 
 		"album_id":  params.AlbumId,
@@ -511,7 +527,7 @@ func addToRecord[T any](record goqu.Record, name string, change types.Change[T])
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
 	record := goqu.Record{
 		"available": changes.Available,
-		"updated": time.Now().UnixMilli(),
+		"updated":   time.Now().UnixMilli(),
 	}
 
 	addToRecord(record, "name", changes.Name)

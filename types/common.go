@@ -14,6 +14,10 @@ func (d WorkDir) DatabaseFile() string {
 	return path.Join(d.String(), "data.db")
 }
 
+func (d WorkDir) ExportFile() string {
+	return path.Join(d.String(), "export.json")
+}
+
 func (d WorkDir) Albums() string {
 	return path.Join(d.String(), "albums")
 }

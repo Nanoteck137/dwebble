@@ -182,6 +182,7 @@ func (db *Database) GetAlbumByName(ctx context.Context, name string) (Album, err
 }
 
 type CreateAlbumParams struct {
+	Id       string
 	Name     string
 	ArtistId string
 
@@ -192,7 +193,10 @@ type CreateAlbumParams struct {
 }
 
 func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (Album, error) {
-	id := utils.Slug(params.Name) + "-" + utils.CreateSmallId()
+	id := params.Id
+	if id == "" {
+		id = utils.Slug(params.Name) + "-" + utils.CreateSmallId()
+	}
 
 	ds := dialect.Insert("albums").
 		Rows(goqu.Record{
