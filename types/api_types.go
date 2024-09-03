@@ -21,19 +21,29 @@ type Album struct {
 }
 
 type Track struct {
-	Id                string   `json:"id"`
-	Number            int      `json:"number"`
-	Name              string   `json:"name"`
-	CoverArt          string   `json:"coverArt"`
-	Duration          int      `json:"duration"`
-	BestQualityFile   string   `json:"bestQualityFile"`
-	MobileQualityFile string   `json:"mobileQualityFile"`
-	AlbumId           string   `json:"albumId"`
-	ArtistId          string   `json:"artistId"`
-	AlbumName         string   `json:"albumName"`
-	ArtistName        string   `json:"artistName"`
-	Available         bool     `json:"available"`
-	Tags              []string `json:"tags"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
+
+	AlbumId  string `json:"albumId"`
+	ArtistId string `json:"artistId"`
+
+	Number   *int64 `json:"number"`
+	Duration *int64 `json:"duration"`
+	Year     *int64 `json:"year"`
+
+	OriginalMediaUrl string `json:"originalMediaUrl"`
+	MobileMediaUrl   string `json:"mobileMediaUrl"`
+	CoverArtUrl    string `json:"coverArtUrl"`
+
+	AlbumName  string `json:"albumName"`
+	ArtistName string `json:"artistName"`
+
+	// Created int64 `json:"created"`
+	// Updated int64 `json:"updated"`
+
+	Tags []string `json:"tags"`
+
+	Available bool `json:"available"`
 }
 
 type Tag struct {

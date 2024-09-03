@@ -41,7 +41,7 @@
       <div class="group relative">
         <img
           class="aspect-square w-14 min-w-14 rounded object-cover"
-          src={track.coverArt}
+          src={track.coverArtUrl}
           alt={`${track.name} Cover Art`}
           loading="lazy"
         />
@@ -132,7 +132,7 @@
       <div class="group relative">
         <img
           class="aspect-square w-14 min-w-14 rounded object-cover"
-          src={track.coverArt}
+          src={track.coverArtUrl}
           alt={`${track.name} Cover Art`}
           loading="lazy"
         />

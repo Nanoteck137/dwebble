@@ -65,7 +65,7 @@
           </div>
           <div>
             <p class="group-hover:hidden">
-              {formatTime(track.duration)}
+              {formatTime(track.duration ?? 0)}
             </p>
             <button
               class="hidden rounded-full p-1 hover:bg-black/20 group-hover:block"

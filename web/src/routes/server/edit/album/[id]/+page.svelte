@@ -87,7 +87,12 @@
       >
 
       <div class="flex flex-col">
-        <p>{track.name}</p>
+        <p>
+          {#if track.number}
+            <span>{track.number} - </span>
+          {/if}
+          <span>{track.name}</span>
+        </p>
         <p>Tags: {track.tags.join(", ")}</p>
       </div>
 
@@ -218,6 +223,28 @@
       value={editTrack?.tags.join(",")}
       type="text"
     />
+
+    <div>
+      <label for="trackNumber">Number</label>
+      <input
+        class="w-full text-black"
+        id="trackNumber"
+        name="trackNumber"
+        value={editTrack?.number === 0 ? undefined : editTrack?.number}
+        type="number"
+      />
+    </div>
+
+    <div>
+      <label for="trackYear">Year</label>
+      <input
+        class="w-full text-black"
+        id="trackYear"
+        name="trackYear"
+        value={editTrack?.year === 0 ? undefined : editTrack?.year}
+        type="number"
+      />
+    </div>
 
     <button
       type="button"

@@ -40,18 +40,19 @@ export type GetAlbumById = z.infer<typeof GetAlbumById>;
 
 export const Track = z.object({
   id: z.string(),
-  number: z.number(),
   name: z.string(),
-  coverArt: z.string(),
-  duration: z.number(),
-  bestQualityFile: z.string(),
-  mobileQualityFile: z.string(),
   albumId: z.string(),
   artistId: z.string(),
+  number: z.number().nullable(),
+  duration: z.number().nullable(),
+  year: z.number().nullable(),
+  originalMediaUrl: z.string(),
+  mobileMediaUrl: z.string(),
+  coverArtUrl: z.string(),
   albumName: z.string(),
   artistName: z.string(),
-  available: z.boolean(),
   tags: z.array(z.string()),
+  available: z.boolean(),
 });
 export type Track = z.infer<typeof Track>;
 
@@ -92,6 +93,7 @@ export const PatchTrackBody = z.object({
   artistId: z.string().nullable().optional(),
   artistName: z.string().nullable().optional(),
   year: z.number().nullable().optional(),
+  number: z.number().nullable().optional(),
   tags: z.array(z.string()).nullable().optional(),
 });
 export type PatchTrackBody = z.infer<typeof PatchTrackBody>;

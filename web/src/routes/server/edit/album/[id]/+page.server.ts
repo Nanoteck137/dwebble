@@ -138,12 +138,23 @@ export const actions: Actions = {
       throw error(400, { message: "trackTags is not set" });
     }
 
+    const trackNumber = formData.get("trackNumber");
+    if (trackNumber === null) {
+      throw error(400, { message: "trackNumber is not set" });
+    }
+
+    console.log("Track Number", trackNumber);
+
     let t = trackTags.toString().split(",");
     t = t.map((t) => t.trim()).filter((t) => t !== "");
 
     const res = await locals.apiClient.editTrack(trackId.toString(), {
       name: trackName.toString(),
       tags: t,
+      number:
+        trackNumber.toString() !== ""
+          ? parseInt(trackNumber.toString())
+          : null,
     });
     if (!res.success) {
       throw error(res.error.code, { message: res.error.message });

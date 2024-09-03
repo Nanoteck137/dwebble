@@ -24,22 +24,36 @@ type trackApi struct {
 }
 
 func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
-	// /files/tracks/original/:albumId/:track
-	// TODO(patrik): Change types.Track to match the new database.Track
+	var number *int64
+	if track.Number.Valid {
+		number = &track.Number.Int64
+	}
+
+	var duration *int64
+	if track.Duration.Valid {
+		duration = &track.Duration.Int64
+	}
+
+	var year *int64
+	if track.Year.Valid {
+		year = &track.Year.Int64
+	}
+
 	return types.Track{
-		Id:                track.Id,
-		Name:              track.Name,
-		Number:            int(track.Number.Int64),
-		CoverArt:          utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-		Duration:          int(track.Duration.Int64),
-		BestQualityFile:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/original/%s/%s", track.AlbumId, track.OriginalFilename)),
-		MobileQualityFile: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/mobile/%s/%s", track.AlbumId, track.MobileFilename)),
-		AlbumId:           track.AlbumId,
-		ArtistId:          track.ArtistId,
-		AlbumName:         track.AlbumName,
-		ArtistName:        track.ArtistName,
-		Available:         track.Available,
-		Tags:              utils.SplitString(track.Tags.String),
+		Id:               track.Id,
+		Name:             track.Name,
+		AlbumId:          track.AlbumId,
+		ArtistId:         track.ArtistId,
+		Number:           number,
+		Duration:         duration,
+		Year:             year,
+		OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/original/%s/%s", track.AlbumId, track.OriginalFilename)),
+		MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/mobile/%s/%s", track.AlbumId, track.MobileFilename)),
+		CoverArtUrl:      utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+		AlbumName:        track.AlbumName,
+		ArtistName:       track.ArtistName,
+		Tags:             utils.SplitString(track.Tags.String),
+		Available:        track.Available,
 	}
 }
 
@@ -205,10 +219,20 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 		year.Changed = *body.Year != track.Year.Int64
 	}
 
+	var number types.Change[sql.NullInt64]
+	if body.Number != nil {
+		number.Value = sql.NullInt64{
+			Int64: *body.Number,
+			Valid: *body.Number != 0,
+		}
+		number.Changed = *body.Number != track.Number.Int64
+	}
+
 	// TODO(patrik): Use transaction
 	err = api.app.DB().UpdateTrack(ctx, track.Id, database.TrackChanges{
 		Name:      name,
 		Year:      year,
+		Number:    number,
 		Available: true,
 	})
 	if err != nil {

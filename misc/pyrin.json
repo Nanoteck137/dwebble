@@ -105,32 +105,7 @@
           "omit": false
         },
         {
-          "name": "number",
-          "type": "int",
-          "omit": false
-        },
-        {
           "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "coverArt",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "duration",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "bestQualityFile",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "mobileQualityFile",
           "type": "string",
           "omit": false
         },
@@ -145,6 +120,36 @@
           "omit": false
         },
         {
+          "name": "number",
+          "type": "*int",
+          "omit": false
+        },
+        {
+          "name": "duration",
+          "type": "*int",
+          "omit": false
+        },
+        {
+          "name": "year",
+          "type": "*int",
+          "omit": false
+        },
+        {
+          "name": "originalMediaUrl",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "mobileMediaUrl",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "coverArtUrl",
+          "type": "string",
+          "omit": false
+        },
+        {
           "name": "albumName",
           "type": "string",
           "omit": false
@@ -155,13 +160,13 @@
           "omit": false
         },
         {
-          "name": "available",
-          "type": "bool",
+          "name": "tags",
+          "type": "[]string",
           "omit": false
         },
         {
-          "name": "tags",
-          "type": "[]string",
+          "name": "available",
+          "type": "bool",
           "omit": false
         }
       ]
@@ -267,6 +272,11 @@
         },
         {
           "name": "year",
+          "type": "*int",
+          "omit": true
+        },
+        {
+          "name": "number",
           "type": "*int",
           "omit": true
         },
@@ -604,8 +614,8 @@
       "method": "GET",
       "path": "/api/v1/albums/:id/tracks",
       "errorTypes": [
-        "UNKNOWN_ERROR",
-        "ALBUM_NOT_FOUND"
+        "ALBUM_NOT_FOUND",
+        "UNKNOWN_ERROR"
       ],
       "responseType": "GetAlbumTracksById",
       "bodyType": "",
