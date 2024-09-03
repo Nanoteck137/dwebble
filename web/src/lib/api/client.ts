@@ -15,6 +15,7 @@ export const IMPORT_TRACK_TO_ALBUM_URL = "/api/v1/albums/:id/import/track"
 export const GET_TRACKS_URL = "/api/v1/tracks"
 export const GET_TRACK_BY_ID_URL = "/api/v1/tracks/:id"
 export const REMOVE_TRACK_URL = "/api/v1/tracks/:id"
+export const EDIT_TRACK_URL = "/api/v1/tracks/:id"
 export const GET_SYNC_STATUS_URL = "/api/v1/sync"
 export const RUN_SYNC_URL = "/api/v1/sync"
 export const GET_TAGS_URL = "/api/v1/tags"
@@ -87,6 +88,10 @@ export class ApiClient extends BaseApiClient {
   
   removeTrack(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}`, "DELETE", z.undefined(), z.undefined(), undefined, options)
+  }
+  
+  editTrack(id: string, body: api.PatchTrackBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/tracks/${id}`, "PATCH", z.undefined(), z.undefined(), body, options)
   }
   
   getSyncStatus(options?: ExtraOptions) {

@@ -1,17 +1,22 @@
 package apis
 
 import (
+	"context"
+	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/faceair/jio"
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin/api"
+	pyrinapi "github.com/nanoteck137/pyrin/api"
 )
 
 type trackApi struct {
@@ -124,6 +129,117 @@ func (api *trackApi) HandleDeleteTrack(c echo.Context) error {
 	return c.JSON(200, SuccessResponse(nil))
 }
 
+var _ types.Body = (*PatchTrackBody)(nil)
+
+type PatchTrackBody struct {
+	Name       *string   `json:"name,omitempty"`
+	ArtistId   *string   `json:"artistId,omitempty"`
+	ArtistName *string   `json:"artistName,omitempty"`
+	Year       *int64    `json:"year,omitempty"`
+	Number     *int64    `json:"number,omitempty"`
+	Tags       *[]string `json:"tags,omitempty"`
+}
+
+func (PatchTrackBody) Schema() jio.Schema {
+	panic("unimplemented")
+}
+
+func (api *trackApi) HandlePatchTrack(c echo.Context) error {
+	id := c.Param("id")
+
+	var body PatchTrackBody
+	d := json.NewDecoder(c.Request().Body)
+	err := d.Decode(&body)
+	if err != nil {
+		return err
+	}
+
+	ctx := context.TODO()
+
+	track, err := api.app.DB().GetTrackById(ctx, id)
+	if err != nil {
+		// TODO(patrik): Handle error
+		return err
+	}
+
+	var name types.Change[string]
+	if body.Name != nil {
+		n := strings.TrimSpace(*body.Name)
+		name.Value = n
+		name.Changed = n != track.Name
+	}
+
+	// var artistId types.Change[string]
+	// if body.ArtistId != nil {
+	// 	artistId.Value = *body.ArtistId
+	// 	artistId.Changed = *body.ArtistId != album.ArtistId
+	// } else if body.ArtistName != nil {
+	// 	artistName := strings.TrimSpace(*body.ArtistName)
+	//
+	// 	artist, err := api.app.DB().GetArtistByName(ctx, artistName)
+	// 	if err != nil {
+	// 		if errors.Is(err, database.ErrItemNotFound) {
+	// 			artist, err = api.app.DB().CreateArtist(ctx, database.CreateArtistParams{
+	// 				Name:    artistName,
+	// 				Picture: sql.NullString{},
+	// 			})
+	//
+	// 			if err != nil {
+	// 				return err
+	// 			}
+	// 		} else {
+	// 			return err
+	// 		}
+	// 	}
+	//
+	// 	artistId.Value = artist.Id
+	// 	artistId.Changed = artist.Id != album.ArtistId
+	// }
+
+	var year types.Change[sql.NullInt64]
+	if body.Year != nil {
+		year.Value = sql.NullInt64{
+			Int64: *body.Year,
+			Valid: *body.Year != 0,
+		}
+		year.Changed = *body.Year != track.Year.Int64
+	}
+
+	// TODO(patrik): Use transaction
+	err = api.app.DB().UpdateTrack(ctx, track.Id, database.TrackChanges{
+		Name:      name,
+		Year:      year,
+		Available: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	if body.Tags != nil {
+		tags := *body.Tags
+
+		err = api.app.DB().RemoveAllTagsFromTrack(ctx, track.Id)
+		if err != nil {
+			return err
+		}
+
+		for _, tag := range tags {
+			slug := utils.Slug(tag)
+
+			err := api.app.DB().CreateTag(ctx, slug, tag)
+			if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+				return err
+			}
+
+			err = api.app.DB().AddTagToTrack(ctx, slug, track.Id)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+}
 
 func InstallTrackHandlers(app core.App, group Group) {
 	a := trackApi{app: app}
@@ -158,6 +274,15 @@ func InstallTrackHandlers(app core.App, group Group) {
 			DataType:    nil,
 			BodyType:    nil,
 			HandlerFunc: a.HandleDeleteTrack,
+		},
+
+		Handler{
+			Name:        "EditTrack",
+			Method:      http.MethodPatch,
+			Path:        "/tracks/:id",
+			DataType:    nil,
+			BodyType:    PatchTrackBody{},
+			HandlerFunc: a.HandlePatchTrack,
 		},
 	)
 }

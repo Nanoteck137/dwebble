@@ -119,4 +119,34 @@ export const actions: Actions = {
       throw error(res.error.code, { message: res.error.message });
     }
   },
+
+  editTrack: async ({ locals, request }) => {
+    const formData = await request.formData();
+
+    const trackId = formData.get("trackId");
+    if (!trackId) {
+      throw error(400, { message: "trackId is not set" });
+    }
+
+    const trackName = formData.get("trackName");
+    if (!trackName) {
+      throw error(400, { message: "trackName is not set" });
+    }
+
+    const trackTags = formData.get("trackTags");
+    if (trackTags === null) {
+      throw error(400, { message: "trackTags is not set" });
+    }
+
+    let t = trackTags.toString().split(",");
+    t = t.map((t) => t.trim()).filter((t) => t !== "");
+
+    const res = await locals.apiClient.editTrack(trackId.toString(), {
+      name: trackName.toString(),
+      tags: t,
+    });
+    if (!res.success) {
+      throw error(res.error.code, { message: res.error.message });
+    }
+  },
 };

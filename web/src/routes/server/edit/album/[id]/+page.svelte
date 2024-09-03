@@ -16,6 +16,14 @@
   let confirmTrackDeletionDialog = $state<HTMLDialogElement>();
 
   let editAlbumArtist = $state<HTMLDialogElement>();
+
+  let editTrack = $state<Track>();
+  let editTrackDialog = $state<HTMLDialogElement>();
+
+  function openTrackEditor(track: Track) {
+    editTrack = track;
+    editTrackDialog?.showModal();
+  }
 </script>
 
 <p>Edit Album</p>
@@ -78,13 +86,23 @@
         }}>Play</button
       >
 
-      <p>{track.name}</p>
+      <div class="flex flex-col">
+        <p>{track.name}</p>
+        <p>Tags: {track.tags.join(", ")}</p>
+      </div>
+
       <button
         class="text-red-400"
         onclick={() => {
           deleteTrack = track;
           confirmTrackDeletionDialog?.showModal();
         }}>Delete</button
+      >
+      <button
+        class="text-blue-400"
+        onclick={() => {
+          openTrackEditor(track);
+        }}>Edit</button
       >
     </div>
   {/each}
@@ -160,25 +178,6 @@
 
 <dialog
   class="rounded bg-[--bg-color] p-4 text-[--fg-color] backdrop:bg-black/45"
-  bind:this={confirmTrackDeletionDialog}
->
-  <p>Are you sure?</p>
-  <p>{deleteTrack?.name}</p>
-
-  <button
-    onclick={() => {
-      confirmTrackDeletionDialog?.close();
-    }}>Close</button
-  >
-
-  <form action="?/deleteTrack" method="post">
-    <input name="trackId" value={deleteTrack?.id} type="hidden" />
-    <button>DELETE</button>
-  </form>
-</dialog>
-
-<dialog
-  class="rounded bg-[--bg-color] p-4 text-[--fg-color] backdrop:bg-black/45"
   bind:this={editAlbumArtist}
 >
   <form action="?/editAlbumArtist" method="post">
@@ -193,5 +192,40 @@
     >
 
     <button>Change Artist</button>
+  </form>
+</dialog>
+
+<dialog
+  class="w-[400px] rounded bg-[--bg-color] p-4 text-[--fg-color] backdrop:bg-black/45"
+  bind:this={editTrackDialog}
+>
+  <form class="flex flex-col" action="?/editTrack" method="post">
+    <input
+      class="text-black"
+      name="trackId"
+      value={editTrack?.id ?? ""}
+      type="hidden"
+    />
+    <input
+      class="text-black"
+      name="trackName"
+      value={editTrack?.name}
+      type="text"
+    />
+    <input
+      class="text-black"
+      name="trackTags"
+      value={editTrack?.tags.join(",")}
+      type="text"
+    />
+
+    <button
+      type="button"
+      onclick={() => {
+        editTrackDialog?.close();
+      }}>Close</button
+    >
+
+    <button>Save</button>
   </form>
 </dialog>

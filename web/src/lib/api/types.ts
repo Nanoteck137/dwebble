@@ -87,6 +87,15 @@ export type GetTracks = z.infer<typeof GetTracks>;
 export const GetTrackById = Track;
 export type GetTrackById = z.infer<typeof GetTrackById>;
 
+export const PatchTrackBody = z.object({
+  name: z.string().nullable().optional(),
+  artistId: z.string().nullable().optional(),
+  artistName: z.string().nullable().optional(),
+  year: z.number().nullable().optional(),
+  tags: z.array(z.string()).nullable().optional(),
+});
+export type PatchTrackBody = z.infer<typeof PatchTrackBody>;
+
 export const GetSync = z.object({
   isSyncing: z.boolean(),
 });
