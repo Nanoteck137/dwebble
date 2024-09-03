@@ -295,7 +295,8 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 
 func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
 	query := TrackQuery().
-		Where(goqu.I("tracks.album_id").Eq(albumId))
+		Where(goqu.I("tracks.album_id").Eq(albumId)).
+		Order(goqu.I("tracks.track_number").Asc().NullsLast(), goqu.I("tracks.name").Asc())
 
 	var items []Track
 	err := db.Select(&items, query)
