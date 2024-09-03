@@ -52,7 +52,6 @@ export const Track = z.object({
   artistName: z.string(),
   available: z.boolean(),
   tags: z.array(z.string()),
-  genres: z.array(z.string()),
 });
 export type Track = z.infer<typeof Track>;
 
@@ -189,28 +188,4 @@ export const GetSystemInfo = z.object({
   isSetup: z.boolean(),
 });
 export type GetSystemInfo = z.infer<typeof GetSystemInfo>;
-
-export const ExportTrack = z.object({
-  name: z.string(),
-  album: z.string(),
-  artist: z.string(),
-});
-export type ExportTrack = z.infer<typeof ExportTrack>;
-
-export const ExportPlaylist = z.object({
-  name: z.string(),
-  tracks: z.array(ExportTrack),
-});
-export type ExportPlaylist = z.infer<typeof ExportPlaylist>;
-
-export const ExportUser = z.object({
-  username: z.string(),
-  playlists: z.array(ExportPlaylist),
-});
-export type ExportUser = z.infer<typeof ExportUser>;
-
-export const PostSystemExport = z.object({
-  users: z.array(ExportUser),
-});
-export type PostSystemExport = z.infer<typeof PostSystemExport>;
 

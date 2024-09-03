@@ -19,6 +19,7 @@ import (
 )
 
 var ErrItemNotFound = errors.New("database: item not found")
+var ErrItemAlreadyExists = errors.New("database: item already exists")
 
 var dialect = goqu.Dialect("sqlite_returning")
 

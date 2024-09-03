@@ -34,7 +34,6 @@ type Track struct {
 	ArtistName        string   `json:"artistName"`
 	Available         bool     `json:"available"`
 	Tags              []string `json:"tags"`
-	Genres            []string `json:"genres"`
 }
 
 type Tag struct {

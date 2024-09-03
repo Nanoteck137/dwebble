@@ -62,16 +62,8 @@ func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
 	switch typ {
 	case "tags":
 		for _, t := range tags {
-			if t.Name == strings.ToLower(name) {
-				return t.Id, nil
-			}
-		}
-
-		return "", nil
-	case "genres":
-		for _, g := range genres {
-			if g.Name == strings.ToLower(name) {
-				return g.Id, nil
+			if t.Slug == utils.Slug(name) {
+				return t.Slug, nil
 			}
 		}
 
@@ -121,13 +113,7 @@ func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, error) {
 		return filter.Table{
 			Name:       "tracks_to_tags",
 			SelectName: "track_id",
-			WhereName:  "tag_id",
-		}, nil
-	case "genres":
-		return filter.Table{
-			Name:       "tracks_to_genres",
-			SelectName: "track_id",
-			WhereName:  "genre_id",
+			WhereName:  "tag_slug",
 		}, nil
 	}
 
@@ -138,8 +124,6 @@ func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, na
 	switch name {
 	case "hasTag":
 		return resolver.InTable(name, "tags", args)
-	case "hasGenre":
-		return resolver.InTable(name, "genres", args)
 	}
 
 	return nil, fmt.Errorf("Unknown function name: %s", name)
@@ -168,7 +152,6 @@ type Track struct {
 	Updated int64 `db:"updated"`
 
 	Tags   sql.NullString `db:"tags"`
-	Genres sql.NullString `db:"genres"`
 
 	Available bool `db:"available"`
 }
@@ -193,27 +176,16 @@ type TrackChanges struct {
 
 func TrackQuery() *goqu.SelectDataset {
 	// TODO(patrik): Add Back
-	// tags := dialect.From("tracks_to_tags").
-	// 	Select(
-	// 		goqu.I("tracks_to_tags.track_id").As("track_id"),
-	// 		goqu.Func("group_concat", goqu.I("tags.display_name"), ",").As("tags"),
-	// 	).
-	// 	Join(
-	// 		goqu.I("tags"),
-	// 		goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.id"))),
-	// 	).
-	// 	GroupBy(goqu.I("tracks_to_tags.track_id"))
-	//
-	// genres := dialect.From("tracks_to_genres").
-	// 	Select(
-	// 		goqu.I("tracks_to_genres.track_id").As("track_id"),
-	// 		goqu.Func("group_concat", goqu.I("genres.display_name"), ",").As("genres"),
-	// 	).
-	// 	Join(
-	// 		goqu.I("genres"),
-	// 		goqu.On(goqu.I("tracks_to_genres.genre_id").Eq(goqu.I("genres.id"))),
-	// 	).
-	// 	GroupBy(goqu.I("tracks_to_genres.track_id"))
+	tags := dialect.From("tracks_to_tags").
+		Select(
+			goqu.I("tracks_to_tags.track_id").As("track_id"),
+			goqu.Func("group_concat", goqu.I("tags.name"), ",").As("tags"),
+		).
+		Join(
+			goqu.I("tags"),
+			goqu.On(goqu.I("tracks_to_tags.tag_slug").Eq(goqu.I("tags.slug"))),
+		).
+		GroupBy(goqu.I("tracks_to_tags.track_id"))
 
 	query := dialect.From("tracks").
 		Select(
@@ -238,8 +210,7 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.I("albums.cover_art").As("album_cover_art"),
 			goqu.I("artists.name").As("artist_name"),
 
-			// goqu.I("tags.tags").As("tags"),
-			// goqu.I("genres.genres").As("genres"),
+			goqu.I("tags.tags").As("tags"),
 
 			"tracks.available",
 		).
@@ -251,15 +222,11 @@ func TrackQuery() *goqu.SelectDataset {
 		Join(
 			goqu.I("artists"),
 			goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))),
+		).
+		LeftJoin(
+			tags.As("tags"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
 		)
-		// LeftJoin(
-		// 	tags.As("tags"),
-		// 	goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
-		// ).
-		// LeftJoin(
-		// 	genres.As("genres"),
-		// 	goqu.On(goqu.I("tracks.id").Eq(goqu.I("genres.track_id"))),
-		// )
 
 	return query
 }
@@ -597,7 +564,6 @@ func (db *Database) MarkAllTracksUnavailable(ctx context.Context) error {
 }
 
 var tags []Tag
-var genres []Genre
 
 func (db *Database) Invalidate() {
 	log.Debug("Database.Invalidate")
@@ -605,7 +571,6 @@ func (db *Database) Invalidate() {
 	ctx := context.Background()
 
 	tags, _ = db.GetAllTags(ctx)
-	genres, _ = db.GetAllGenres(ctx)
 }
 
 func TrackMapNameToId(typ string, name string) string {
@@ -614,12 +579,6 @@ func TrackMapNameToId(typ string, name string) string {
 		for _, t := range tags {
 			if t.Name == strings.ToLower(name) {
 				return t.Name
-			}
-		}
-	case "genres":
-		for _, g := range genres {
-			if g.Name == strings.ToLower(name) {
-				return g.Id
 			}
 		}
 	}

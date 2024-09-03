@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/pelletier/go-toml/v2"
 )
@@ -23,7 +24,6 @@ type LibraryTrack struct {
 	BestQualityFile   string
 	MobileQualityFile string
 	Tags              []string
-	Genres            []string
 	Artist            *LibraryArtist
 	Album             *LibraryAlbum
 }
@@ -128,7 +128,6 @@ func ReadFromDir(dir string) (*Library, error) {
 				BestQualityFile:   path.Join(base, bestQualityFile),
 				MobileQualityFile: path.Join(base, mobileQualityFile),
 				Tags:              t.Tags,
-				Genres:            t.Genres,
 				Artist:            artist,
 				Album:             album,
 			})
@@ -152,7 +151,6 @@ type SyncContext struct {
 	ArtistMapping map[*LibraryArtist]database.Artist
 	AlbumMapping  map[*LibraryAlbum]database.Album
 	TagMapping    map[string]database.Tag
-	GenreMapping  map[string]database.Genre
 }
 
 func (sync *SyncContext) GetOrCreateArtist(artist *LibraryArtist) (database.Artist, error) {
@@ -252,50 +250,24 @@ func (sync *SyncContext) GetOrCreateTrack(track *LibraryTrack) (database.Track, 
 	return dbTrack, nil
 }
 
-func (sync *SyncContext) GetOrCreateTag(tag string) (database.Tag, error) {
-	dbTag, err := sync.db.GetTagByName(sync.ctx, tag)
+func (sync *SyncContext) GetOrCreateTag(tag string) error {
+	slug := utils.Slug(tag)
+
+	_, err := sync.db.GetTagBySlug(sync.ctx, tag)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
-			dbTag, err := sync.db.CreateTag(sync.ctx, tag)
-
+			err := sync.db.CreateTag(sync.ctx, slug, tag)
 			if err != nil {
-				return database.Tag{}, nil
+				return nil
 			}
 
-			sync.TagMapping[tag] = dbTag
-
-			return dbTag, nil
+			return nil
 		}
 
-		return database.Tag{}, err
+		return err
 	}
 
-	sync.TagMapping[tag] = dbTag
-
-	return dbTag, nil
-}
-
-func (sync *SyncContext) GetOrCreateGenre(genre string) (database.Genre, error) {
-	dbGenre, err := sync.db.GetGenreByName(sync.ctx, genre)
-	if err != nil {
-		if errors.Is(err, database.ErrItemNotFound) {
-			dbGenre, err := sync.db.CreateGenre(sync.ctx, genre)
-
-			if err != nil {
-				return database.Genre{}, nil
-			}
-
-			sync.GenreMapping[genre] = dbGenre
-
-			return dbGenre, nil
-		}
-
-		return database.Genre{}, err
-	}
-
-	sync.GenreMapping[genre] = dbGenre
-
-	return dbGenre, nil
+	return nil
 }
 
 func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
@@ -307,7 +279,6 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 		ArtistMapping: make(map[*LibraryArtist]database.Artist),
 		AlbumMapping:  make(map[*LibraryAlbum]database.Album),
 		TagMapping:    make(map[string]database.Tag),
-		GenreMapping:  make(map[string]database.Genre),
 	}
 
 	// err := db.MarkAllArtistsUnavailable(ctx)
@@ -438,12 +409,12 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 					}
 
 					if !hasTag {
-						dbTag, err := syncContext.GetOrCreateTag(tag)
+						err := syncContext.GetOrCreateTag(tag)
 						if err != nil {
 							return err
 						}
 
-						err = db.AddTagToTrack(ctx, dbTag.Id, dbTrack.Id)
+						err = db.AddTagToTrack(ctx, utils.Slug(tag), dbTrack.Id)
 						if err != nil {
 							return err
 						}
@@ -461,50 +432,6 @@ func (lib *Library) Sync(workDir types.WorkDir, db *database.Database) error {
 
 					if !hasTag {
 						err := db.RemoveTagFromTrack(ctx, t.Name, dbTrack.Id)
-						if err != nil {
-							return err
-						}
-					}
-				}
-
-				currentTrackGenres, err := db.GetTrackGenres(ctx, dbTrack.Id)
-				if err != nil {
-					return err
-				}
-
-				for _, genre := range track.Genres {
-					hasGenre := false
-					for _, g := range currentTrackGenres {
-						if g.Name == strings.ToLower(genre) {
-							hasGenre = true
-							break
-						}
-					}
-
-					if !hasGenre {
-						dbGenre, err := syncContext.GetOrCreateGenre(genre)
-						if err != nil {
-							return err
-						}
-
-						db.AddGenreToTrack(ctx, dbGenre.Id, dbTrack.Id)
-						if err != nil {
-							return err
-						}
-					}
-				}
-
-				for _, g := range currentTrackGenres {
-					hasGenre := false
-					for _, trackGenre := range track.Genres {
-						if g.Name == strings.ToLower(trackGenre) {
-							hasGenre = true
-							break
-						}
-					}
-
-					if !hasGenre {
-						err = db.RemoveGenreFromTrack(ctx, g.Id, dbTrack.Id)
 						if err != nil {
 							return err
 						}

@@ -55,7 +55,6 @@ type ExportTrack struct {
 	Updated int64
 
 	Tags   []string
-	Genres []string
 }
 
 type ExportAlbum struct {
@@ -131,7 +130,6 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 			Created:          track.Created,
 			Updated:          track.Updated,
 			Tags:             utils.SplitString(track.Tags.String),
-			Genres:           utils.SplitString(track.Genres.String),
 		}
 	}
 
@@ -309,6 +307,21 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 
 			return err
 		}
+
+		for _, tag := range track.Tags {
+			slug := utils.Slug(tag)
+
+			err := db.CreateTag(ctx, slug, tag)
+			if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+				return err
+			}
+
+			err = db.AddTagToTrack(ctx, slug, track.Id)
+			if err != nil {
+				return err
+			}
+		}
+
 	}
 
 	err = tx.Commit()

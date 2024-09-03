@@ -71,10 +71,6 @@
         </div>
 
         <p class="line-clamp-1 text-xs">
-          {track.genres.join(", ")}
-        </p>
-
-        <p class="line-clamp-1 text-xs">
           {#if track.tags.length > 0}
             {track.tags.join(", ")}
           {:else}
@@ -174,10 +170,6 @@
               {track.artistName}
             </a>
           </div>
-
-          <p class="line-clamp-1 text-start text-xs">
-            {track.genres.join(", ")}
-          </p>
 
           <p class="line-clamp-1 text-start text-xs">
             {#if track.tags.length > 0}

@@ -35,7 +35,6 @@ func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
 		ArtistName:        track.ArtistName,
 		Available:         track.Available,
 		Tags:              utils.SplitString(track.Tags.String),
-		Genres:            utils.SplitString(track.Genres.String),
 	}
 }
 

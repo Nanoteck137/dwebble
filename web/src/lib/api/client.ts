@@ -146,7 +146,7 @@ export class ApiClient extends BaseApiClient {
   }
   
   systemExport(options?: ExtraOptions) {
-    return this.request("/api/v1/system/export", "POST", api.PostSystemExport, z.undefined(), undefined, options)
+    return this.request("/api/v1/system/export", "POST", z.undefined(), z.undefined(), undefined, options)
   }
   
   systemImport(options?: ExtraOptions) {
