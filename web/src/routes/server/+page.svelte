@@ -61,3 +61,7 @@
   <a href="/server/import">Import Album</a>
   <a href="/server/edit/album">Edit Albums</a>
 </div>
+
+<form action="?/runExport" method="post">
+  <button>Run Export</button>
+</form>

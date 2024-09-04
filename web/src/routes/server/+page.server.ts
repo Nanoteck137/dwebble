@@ -12,4 +12,10 @@ export const actions: Actions = {
       throw error(res.error.code, res.error.message);
     }
   },
+  runExport: async ({ locals }) => {
+    const res = await locals.apiClient.systemExport();
+    if (!res.success) {
+      throw error(res.error.code, res.error.message);
+    }
+  },
 };
