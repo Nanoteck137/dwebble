@@ -64,7 +64,7 @@ func errorHandler(err error, c echo.Context) {
 			Success: false,
 			Error: &api.Error{
 				Code:    500,
-				Type:    "UNKNOWN_ERROR",
+				Type:    ErrTypeUnknownError,
 				Message: "Internal Server Error",
 			},
 		})
