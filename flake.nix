@@ -27,6 +27,7 @@
           pname = "dwebble";
           version = fullVersion;
           src = ./.;
+          subPackages = ["cmd/dwebble"];
 
           ldflags = [
             "-X github.com/nanoteck137/dwebble.Version=${version}"
