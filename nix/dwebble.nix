@@ -84,6 +84,7 @@ in
         Restart = "on-failure";
         RestartSec = "5s";
 
+        PrivateTmp = true;
         ProtectHome = true;
         ProtectHostname = true;
         ProtectKernelLogs = true;
