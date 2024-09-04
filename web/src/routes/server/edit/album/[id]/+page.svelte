@@ -82,13 +82,7 @@
 
 <p>{data.album.coverArt}</p>
 
-<!-- <button
-        class="text-blue-400"
-        onclick={() => {
-          musicManager.clearQueue();
-          musicManager.addTrackToQueue(trackToMusicTrack(track), true);
-        }}>Play</button
-      > -->
+<!--  -->
 
 <!-- <p>
           {#if track.number}
@@ -108,6 +102,14 @@
         <p>Number: {track.number == null ? "NULL" : track.number}</p>
         <p>Year: {track.year == null ? "NULL" : track.year}</p>
         <p>Tags: {track.tags.join(", ")}</p>
+
+        <button
+          class="rounded bg-purple-400 px-2 py-1"
+          onclick={() => {
+            musicManager.clearQueue();
+            musicManager.addTrackToQueue(trackToMusicTrack(track), true);
+          }}>Play</button
+        >
 
         <button
           class="rounded bg-blue-400 px-2 py-1"
@@ -241,12 +243,14 @@
     action="?/editTrack"
     method="post"
     use:enhance={() => {
-      return async ({ result }) => {
+      return async ({ result, formElement }) => {
         await applyAction(result);
 
         if (result.type === "success") {
           editTrackDialog?.close();
           await invalidateAll();
+          formElement.reset();
+          editTrack = undefined;
         }
       };
     }}
