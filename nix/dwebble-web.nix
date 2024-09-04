@@ -53,7 +53,7 @@ in
         HOST = "${cfg.host}";
         API_ADDRESS = "${cfg.apiAddress}";
         HOST_HEADER = "x-forwarded-host";
-        BODY_SIZE_LIMIT = "0";
+        BODY_SIZE_LIMIT = "Infinity";
       };
 
       serviceConfig = {
