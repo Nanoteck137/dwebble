@@ -12,7 +12,7 @@ export function trackToMusicTrack(track: Track): MusicTrack {
   return {
     name: track.name,
     artistName: track.artistName,
-    source: track.mobileQualityFile,
-    coverArt: track.coverArt,
+    source: track.mobileMediaUrl,
+    coverArt: track.coverArtUrl,
   };
 }
