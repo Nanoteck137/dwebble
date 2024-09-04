@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
 	"regexp"
 	"strconv"
@@ -121,83 +120,6 @@ func (PostAlbumImportBody) Schema() jio.Schema {
 
 type PostAlbumImport struct {
 	AlbumId string `json:"albumId"`
-}
-
-// TODO(patrik): Move this
-func processMobileVersion(input string, outputDir, name string) (string, error) {
-	inputExt := path.Ext(input)
-	isLossyInput := inputExt == ".opus" || inputExt == ".mp3"
-
-	outputExt := ".opus"
-	if isLossyInput {
-		outputExt = inputExt
-	}
-
-	filename := utils.Slug(name) + outputExt
-
-	var args []string
-	args = append(args, "-i", input, "-map_metadata", "-1")
-
-	if outputExt == inputExt {
-		args = append(args, "-codec", "copy")
-	}
-
-	args = append(args, path.Join(outputDir, filename))
-
-	cmd := exec.Command("ffmpeg", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return "", err
-	}
-
-	return filename, nil
-}
-
-func processOriginalVersion(input string, outputDir, name string) (string, utils.TrackInfo, error) {
-	inputExt := path.Ext(input)
-	// isLossyInput := inputExt == ".opus"
-
-	outputExt := inputExt
-	switch inputExt {
-	case ".wav":
-		outputExt = ".flac"
-	}
-
-	// .opus -> .opus
-	// .mp3  -> .mp3
-	// .wav  -> .flac
-	// .flac -> .flac
-
-	filename := utils.Slug(name) + outputExt
-
-	var args []string
-	args = append(args, "-i", input, "-map_metadata", "-1")
-
-	if outputExt == inputExt {
-		args = append(args, "-codec", "copy")
-	}
-
-	out := path.Join(outputDir, filename)
-	args = append(args, out)
-
-	cmd := exec.Command("ffmpeg", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		return "", utils.TrackInfo{}, err
-	}
-
-	info, err := utils.GetTrackInfo(input)
-	if err != nil {
-		return "", utils.TrackInfo{}, err
-	}
-
-	return filename, info, nil
 }
 
 var _ types.Body = (*PatchAlbumBody)(nil)
@@ -402,6 +324,7 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 		ext := path.Ext(f.Filename)
 		filename := "cover" + ext
 
+		// TODO(patrik): Close file
 		file, err := os.OpenFile(path.Join(albumDir.Images(), filename), os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
 			return err
@@ -460,12 +383,12 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 
 		file.Close()
 
-		mobileFile, err := processMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
+		mobileFile, err := utils.ProcessMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
 		if err != nil {
 			return err
 		}
 
-		originalFile, trackInfo, err := processOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
+		originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
 		if err != nil {
 			return err
 		}
@@ -581,12 +504,12 @@ func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
 
 		file.Close()
 
-		mobileFile, err := processMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
+		mobileFile, err := utils.ProcessMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
 		if err != nil {
 			return err
 		}
 
-		originalFile, trackInfo, err := processOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
+		originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
 		if err != nil {
 			return err
 		}

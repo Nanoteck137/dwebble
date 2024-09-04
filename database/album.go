@@ -197,7 +197,7 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 	if id == "" {
 		id = utils.Slug(params.Name) + "-" + utils.CreateSmallId()
 	}
-
+	
 	ds := dialect.Insert("albums").
 		Rows(goqu.Record{
 			"id":        id,
