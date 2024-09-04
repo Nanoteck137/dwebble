@@ -38,6 +38,12 @@
           ];
 
           vendorHash = "sha256-ITNTEG7Esspp0eRdMC9G37GIinI8UAqQH3ukXAL940g=";
+
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+
+          postFixup = ''
+            wrapProgram $out/bin/dwebble --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}
+          '';
         };
 
         dwebbleWeb = pkgs.buildNpmPackage {
