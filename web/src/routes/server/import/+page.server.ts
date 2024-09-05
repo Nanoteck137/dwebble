@@ -1,29 +1,38 @@
-import { PostAlbumImportBody } from "$lib/api/types";
-import { error, redirect } from "@sveltejs/kit";
+import type { PostAlbumImportBody } from "$lib/api/types";
+import { error, fail, redirect } from "@sveltejs/kit";
+import { z } from "zod";
 import type { Actions } from "./$types";
+
+const ImportSchema = z.object({
+  albumName: z.string().min(1),
+  artistName: z.string().min(1),
+});
 
 export const actions: Actions = {
   import: async ({ locals, request }) => {
     const formData = await request.formData();
     console.log(formData);
 
-    const albumName = formData.get("albumName");
-    if (!albumName) {
-      throw error(400, "'albumName' needs to be set");
+    const parsed = await ImportSchema.safeParseAsync(
+      Object.fromEntries(formData),
+    );
+
+    if (!parsed.success) {
+      const flatten = parsed.error.flatten();
+      return fail(400, {
+        errors: flatten.fieldErrors,
+      });
     }
 
-    const artistName = formData.get("artistName");
-    if (!artistName) {
-      throw error(400, "'artistName' needs to be set");
-    }
+    const data = parsed.data;
 
-    const data: PostAlbumImportBody = {
-      name: albumName.toString(),
-      artist: artistName.toString(),
+    const bodyData: PostAlbumImportBody = {
+      name: data.albumName,
+      artist: data.artistName,
     };
 
     const body = new FormData();
-    body.set("data", JSON.stringify(data));
+    body.set("data", JSON.stringify(bodyData));
 
     const coverArt = formData.get("coverArt");
     if (coverArt) {
@@ -38,9 +47,9 @@ export const actions: Actions = {
 
     const res = await locals.apiClient.importAlbum(body);
     if (!res.success) {
-      throw error(res.error.code, { message: res.error.message });
+      error(res.error.code, { message: res.error.message });
     }
 
-    throw redirect(302, `/server/edit/album/${res.data.albumId}`);
+    redirect(302, `/server/edit/album/${res.data.albumId}`);
   },
 };

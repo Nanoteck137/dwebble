@@ -1,7 +1,13 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
   import { X } from "lucide-svelte";
-  import { Input } from "postcss";
+  import type { ActionData, PageData } from "./$types";
+
+  const { data, form }: { data: PageData; form: ActionData } = $props();
+
+  $effect(() => {
+    console.log("Form", form);
+  });
 
   let files = $state<File[]>([]);
   let fileSelector = $state<HTMLInputElement>();
@@ -37,6 +43,11 @@
         type="text"
         placeholder="Album Name"
       />
+      {#if form?.errors?.albumName}
+        {#each form?.errors?.albumName as error}
+          <p class="text-red-400">{error}</p>
+        {/each}
+      {/if}
     </div>
 
     <div class="flex flex-col gap-1">
@@ -48,6 +59,11 @@
         type="text"
         placeholder="Artist Name"
       />
+      {#if form?.errors?.artistName}
+        {#each form?.errors?.artistName as error}
+          <p class="text-red-400">{error}</p>
+        {/each}
+      {/if}
     </div>
 
     <p>Cover Art: {coverArt?.name}</p>
