@@ -1,9 +1,10 @@
 <script lang="ts">
   import { applyAction, enhance } from "$app/forms";
-  import { invalidate, invalidateAll } from "$app/navigation";
+  import { invalidateAll } from "$app/navigation";
   import { Track } from "$lib/api/types.js";
   import { musicManager } from "$lib/music-manager.js";
   import { trackToMusicTrack } from "$lib/utils.js";
+  import TrackEdit from "./TrackEdit.svelte";
 
   const { data } = $props();
 
@@ -81,18 +82,6 @@
 >
 
 <p>{data.album.coverArt}</p>
-
-<!--  -->
-
-<!-- <p>
-          {#if track.number}
-            <span>{track.number} - </span>
-          {/if}
-          <span>{track.name}</span>
-        </p>
-        <p>Tags: {track.tags.join(", ")}</p> -->
-
-<!-- -->
 
 <div class="flex flex-col">
   {#each data.tracks as track (track.id)}
@@ -235,14 +224,10 @@
 </dialog>
 
 <dialog
-  class="w-[400px] rounded bg-[--bg-color] p-4 text-[--fg-color] backdrop:bg-black/45"
+  class="w-full rounded bg-[--bg-color] p-4 text-[--fg-color] backdrop:bg-black/45"
   bind:this={editTrackDialog}
 >
-  <form
-    class="flex flex-col"
-    action="?/editTrack"
-    method="post"
-    use:enhance={() => {
+  <!-- use:enhance={() => {
       return async ({ result, formElement }) => {
         await applyAction(result);
 
@@ -253,56 +238,23 @@
           editTrack = undefined;
         }
       };
-    }}
-  >
-    <input
-      class="text-black"
-      name="trackId"
-      value={editTrack?.id ?? ""}
-      type="hidden"
-    />
-    <input
-      class="text-black"
-      name="trackName"
-      value={editTrack?.name}
-      type="text"
-    />
-    <input
-      class="text-black"
-      name="trackTags"
-      value={editTrack?.tags.join(",")}
-      type="text"
-    />
+    }} -->
 
-    <div>
-      <label for="trackNumber">Number</label>
-      <input
-        class="w-full text-black"
-        id="trackNumber"
-        name="trackNumber"
-        value={editTrack?.number === 0 ? undefined : editTrack?.number}
-        type="number"
-      />
+  <form class="flex flex-col" action="?/editTracks" method="post">
+    <div class="flex flex-col gap-2">
+      {#each data.tracks as track (track.id)}
+        <TrackEdit {track} />
+      {/each}
     </div>
 
     <div>
-      <label for="trackYear">Year</label>
-      <input
-        class="w-full text-black"
-        id="trackYear"
-        name="trackYear"
-        value={editTrack?.year === 0 ? undefined : editTrack?.year}
-        type="number"
-      />
+      <button>Save</button>
+      <button
+        type="button"
+        onclick={() => {
+          editTrackDialog?.close();
+        }}>Close</button
+      >
     </div>
-
-    <button
-      type="button"
-      onclick={() => {
-        editTrackDialog?.close();
-      }}>Close</button
-    >
-
-    <button>Save</button>
   </form>
 </dialog>

@@ -160,4 +160,48 @@ export const actions: Actions = {
       throw error(res.error.code, { message: res.error.message });
     }
   },
+
+  editTracks: async ({ locals, request }) => {
+    const formData = await request.formData();
+    console.log(formData);
+
+    type TrackEdit = {
+      id: string;
+      num: number;
+      name: string;
+      year: number;
+      tags: string[];
+    };
+
+    const trackIds = formData.getAll("trackId");
+    const trackNumbers = formData.getAll("trackNumber");
+    const trackName = formData.getAll("trackName");
+    const trackYear = formData.getAll("trackYear");
+    const trackTags = formData.getAll("trackTags");
+
+    const trackEdits: TrackEdit[] = [];
+    for (let i = 0; i < trackIds.length; i++) {
+      let tags = trackTags[i].toString().split(",");
+      tags = tags.map((t) => t.trim()).filter((t) => t !== "");
+      trackEdits.push({
+        id: trackIds[i].toString(),
+        num: parseInt(trackNumbers[i].toString()),
+        name: trackName[i].toString(),
+        year: parseInt(trackYear[i].toString()),
+        tags: tags,
+      });
+    }
+
+    for (const track of trackEdits) {
+      const res = await locals.apiClient.editTrack(track.id, {
+        name: track.name,
+        number: track.num,
+        year: track.year,
+        tags: track.tags,
+      });
+      if (!res.success) {
+        error(res.error.code, { message: res.error.message });
+      }
+    }
+  },
 };
