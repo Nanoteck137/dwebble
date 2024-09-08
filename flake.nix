@@ -30,7 +30,7 @@
           pname = "dwebble";
           version = fullVersion;
           src = ./.;
-          subPackages = ["cmd/dwebble"];
+          subPackages = ["cmd/dwebble" "cmd/dwebble-import"];
 
           ldflags = [
             "-X github.com/nanoteck137/dwebble.Version=${version}"
@@ -43,6 +43,7 @@
 
           postFixup = ''
             wrapProgram $out/bin/dwebble --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}
+            wrapProgram $out/bin/dwebble-import --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}
           '';
         };
 

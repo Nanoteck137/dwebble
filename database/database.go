@@ -11,6 +11,7 @@ import (
 	goqusqlite3 "github.com/doug-martin/goqu/v9/dialect/sqlite3"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
+	"github.com/nanoteck137/dwebble/migrations"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/pressly/goose/v3"
@@ -121,6 +122,10 @@ func init() {
 	opts := goqusqlite3.DialectOptions()
 	opts.SupportsReturn = true
 	goqu.RegisterDialect("sqlite_returning", opts)
+
+	// TODO(patrik): Move?
+	goose.SetBaseFS(migrations.Migrations)
+	goose.SetDialect("sqlite3")
 }
 
 func fullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expression, error) {
@@ -149,3 +154,4 @@ func fullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expr
 func RunMigrateUp(db *Database) error {
 	return goose.Up(db.RawConn, ".")
 }
+

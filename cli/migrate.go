@@ -5,7 +5,6 @@ import (
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/migrations"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
@@ -78,10 +77,6 @@ var fixCmd = &cobra.Command{
 }
 
 func init() {
-	// TODO(patrik): Move?
-	goose.SetBaseFS(migrations.Migrations)
-	goose.SetDialect("sqlite3")
-
 	migrateCmd.AddCommand(upCmd)
 	migrateCmd.AddCommand(downCmd)
 	migrateCmd.AddCommand(createCmd)

@@ -86,6 +86,13 @@ func (db *Database) AddTagToTrack(ctx context.Context, tagSlug, trackId string) 
 
 	_, err := db.Exec(ctx, ds)
 	if err != nil {
+		var e sqlite3.Error
+		if errors.As(err, &e) {
+			if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+				return ErrItemAlreadyExists
+			}
+		}
+
 		return err
 	}
 
