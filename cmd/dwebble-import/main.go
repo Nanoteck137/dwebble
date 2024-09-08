@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -15,12 +14,80 @@ import (
 	"time"
 
 	"github.com/kr/pretty"
+	"github.com/nanoteck137/dwebble"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/pelletier/go-toml/v2"
+	"github.com/spf13/cobra"
 )
+
+var rootCmd = &cobra.Command{
+	Use:     dwebble.AppName + "-import" + " <OUT>",
+	Version: dwebble.Version,
+	Args:    cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		out := args[0]
+		dir, _ := cmd.Flags().GetString("dir")
+
+		workDir := types.WorkDir(out)
+
+		dirs := []string{
+			workDir.Albums(),
+			workDir.Artists(),
+		}
+
+		for _, dir := range dirs {
+			err := os.Mkdir(dir, 0755)
+			if err != nil && !os.IsExist(err) {
+				log.Fatal("Failed", "err", err)
+			}
+		}
+
+		db, err := database.Open(workDir)
+		if err != nil {
+			log.Fatal("Failed", "err", err)
+		}
+
+		err = database.RunMigrateUp(db)
+		if err != nil {
+			log.Fatal("Failed", "err", err)
+		}
+
+		ctx := context.TODO()
+
+		var albums []string
+		err = filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+			if d.Name() == "album.toml" {
+				albums = append(albums, path.Dir(p))
+			}
+
+			return nil
+		})
+		if err != nil {
+			log.Fatal("Failed", "err", err)
+		}
+
+		for _, album := range albums {
+			err = importAlbum(ctx, db, workDir, album)
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
+		}
+	},
+}
+
+func init() {
+	rootCmd.Flags().String("dir", ".", "Search directory")
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		log.Fatal("Failed to run root command", "err", err)
+	}
+}
 
 func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkDir, albumPath string) error {
 	d, err := os.ReadFile(path.Join(albumPath, "album.toml"))
@@ -242,55 +309,5 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 }
 
 func main() {
-	out := "./work"
-	err := os.MkdirAll(out, 0755)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	workDir := types.WorkDir(out)
-
-	dirs := []string{
-		workDir.Albums(),
-		workDir.Artists(),
-	}
-
-	for _, dir := range dirs {
-		err = os.Mkdir(dir, 0755)
-		if err != nil && !os.IsExist(err) {
-			log.Fatal(err)
-		}
-	}
-
-	db, err := database.Open(workDir)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = database.RunMigrateUp(db)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ctx := context.TODO()
-
-	var albums []string
-	err = filepath.WalkDir("/Volumes/media/music/Anime/Abyss", func(p string, d fs.DirEntry, err error) error {
-		if d.Name() == "album.toml" {
-			albums = append(albums, path.Dir(p))
-		}
-
-		return nil
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, album := range albums {
-		err = importAlbum(ctx, db, workDir, album)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
+	Execute()
 }
