@@ -5,14 +5,11 @@ import { redirect, type Handle } from "@sveltejs/kit";
 const apiAddress = env.API_ADDRESS ? env.API_ADDRESS : "";
 
 export const handle: Handle = async ({ event, resolve }) => {
+  console.log("URL", event.request.url);
   const url = new URL(event.request.url);
+  console.log("URL OBJ", url);
 
-  let addr = apiAddress;
-  if (addr === "") {
-    addr = url.origin;
-  }
-  console.log(addr);
-  const client = new ApiClient(addr);
+  const client = new ApiClient(apiAddress);
 
   const auth = event.cookies.get("auth");
   if (auth) {
