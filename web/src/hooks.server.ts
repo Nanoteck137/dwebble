@@ -8,9 +8,10 @@ export const handle: Handle = async ({ event, resolve }) => {
   const url = new URL(event.request.url);
 
   let addr = apiAddress;
-  if (addr == "") {
+  if (addr === "") {
     addr = url.origin;
   }
+  console.log(addr);
   const client = new ApiClient(addr);
 
   const auth = event.cookies.get("auth");
