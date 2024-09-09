@@ -15,6 +15,9 @@ CREATE TABLE albums (
     cover_art TEXT,
     year INT,
 
+    created INTEGER NOT NULL,
+    updated INTEGER NOT NULL,
+
     available BOOL NOT NULL,
 
     CONSTRAINT albums_pk PRIMARY KEY(id),

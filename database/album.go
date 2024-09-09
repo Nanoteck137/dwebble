@@ -6,14 +6,49 @@ import (
 	"errors"
 	"fmt"
 	"go/ast"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/filter"
+	"github.com/nanoteck137/dwebble/tools/sort"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
 
 type AlbumResolverAdapter struct {
+}
+
+func (*AlbumResolverAdapter) DefaultSort() string {
+	return "albums.name"
+}
+
+func (*AlbumResolverAdapter) MapSortName(name string) (types.Name, error) {
+	// TODO(patrik): Include all available fields to sort on
+	switch name {
+	case "album":
+		return types.Name{
+			Kind: types.NameKindString,
+			Name: "albums.name",
+		}, nil
+	case "available":
+		return types.Name{
+			Kind: types.NameKindNumber,
+			Name: "albums.available",
+		}, nil
+	case "created":
+		return types.Name{
+			Kind: types.NameKindNumber,
+			Name: "albums.created",
+		}, nil
+	case "updated":
+		return types.Name{
+			Kind: types.NameKindNumber,
+			Name: "albums.updated",
+		}, nil
+	}
+
+	return types.Name{}, sort.UnknownName(name)
+
 }
 
 func (a *AlbumResolverAdapter) GetDefaultSort() string {
@@ -59,6 +94,9 @@ type Album struct {
 
 	ArtistName string `db:"artist_name"`
 
+	Created int64 `db:"created"`
+	Updated int64 `db:"updated"`
+
 	Available bool `db:"available"`
 }
 
@@ -71,6 +109,9 @@ func AlbumQuery() *goqu.SelectDataset {
 
 			"albums.cover_art",
 			"albums.year",
+
+			"albums.created",
+			"albums.updated",
 
 			goqu.I("artists.name").As("artist_name"),
 
@@ -108,8 +149,31 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr 
 		}
 	}
 
+	sortExpr, err := sort.Parse(sortStr)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
+	}
+
+	resolver := sort.New(&AlbumResolverAdapter{})
+
+	sortExpr, err = resolver.Resolve(sortExpr)
+	if err != nil {
+		if errors.Is(err, sort.ErrUnknownName) {
+			return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
+		}
+
+		return nil, err
+	}
+
+	exprs, err := generateSort(sortExpr)
+	if err != nil {
+		return nil, err
+	}
+
+	query = query.Order(exprs...)
+
 	var items []Album
-	err := db.Select(&items, query)
+	err = db.Select(&items, query)
 	if err != nil {
 		return nil, err
 	}
@@ -189,15 +253,27 @@ type CreateAlbumParams struct {
 	CoverArt sql.NullString
 	Year     sql.NullInt64
 
+	Created int64
+	Updated int64
+
 	Available bool
 }
 
 func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (Album, error) {
+	t := time.Now().UnixMilli()
+	created := params.Created
+	updated := params.Updated
+
+	if created == 0 && updated == 0 {
+		created = t
+		updated = t
+	}
+
 	id := params.Id
 	if id == "" {
 		id = utils.Slug(params.Name) + "-" + utils.CreateSmallId()
 	}
-	
+
 	ds := dialect.Insert("albums").
 		Rows(goqu.Record{
 			"id":        id,
@@ -206,6 +282,9 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 
 			"cover_art": params.CoverArt,
 			"year":      params.Year,
+
+			"created": created,
+			"updated": updated,
 
 			"available": params.Available,
 		}).
@@ -247,6 +326,8 @@ type AlbumChanges struct {
 	CoverArt types.Change[sql.NullString]
 	Year     types.Change[sql.NullInt64]
 
+	Created types.Change[int64]
+
 	Available types.Change[bool]
 }
 
@@ -258,11 +339,15 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 	addToRecord(record, "cover_art", changes.CoverArt)
 	addToRecord(record, "year", changes.Year)
 
+	addToRecord(record, "created", changes.Created)
+
 	addToRecord(record, "available", changes.Available)
 
 	if len(record) == 0 {
 		return nil
 	}
+
+	record["updated"] = time.Now().UnixMilli()
 
 	ds := dialect.Update("albums").
 		Set(record).

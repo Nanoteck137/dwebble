@@ -52,6 +52,8 @@ func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
 		CoverArtUrl:      utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		AlbumName:        track.AlbumName,
 		ArtistName:       track.ArtistName,
+		Created:          track.Created,
+		Updated:          track.Updated,
 		Tags:             utils.SplitString(track.Tags.String),
 		Available:        track.Available,
 	}
@@ -233,7 +235,10 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 		Name:      name,
 		Year:      year,
 		Number:    number,
-		Available: true,
+		Available: types.Change[bool]{
+			Value:   true,
+			Changed: true,
+		},
 	})
 	if err != nil {
 		return err

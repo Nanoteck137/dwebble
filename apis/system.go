@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
@@ -52,7 +51,6 @@ type ExportTrack struct {
 	MobileFilename   string
 
 	Created int64
-	Updated int64
 
 	Tags   []string
 }
@@ -128,7 +126,6 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 			OriginalFilename: track.OriginalFilename,
 			MobileFilename:   track.MobileFilename,
 			Created:          track.Created,
-			Updated:          track.Updated,
 			Tags:             utils.SplitString(track.Tags.String),
 		}
 	}
@@ -238,7 +235,6 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 			OriginalFilename: track.OriginalFilename,
 			MobileFilename:   track.MobileFilename,
 			Created:          track.Created,
-			Updated:          track.Updated,
 			Available:        true,
 		})
 		if err != nil {
@@ -291,11 +287,14 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 							Value:   track.MobileFilename,
 							Changed: true,
 						},
-						Updated: types.Change[int64]{
-							Value:   time.Now().UnixMilli(),
+						Created: types.Change[int64]{
+							Value:   track.Created,
 							Changed: true,
 						},
-						Available: true,
+						Available: types.Change[bool]{
+							Value:   true,
+							Changed: true,
+						},
 					})
 					if err != nil {
 						return err

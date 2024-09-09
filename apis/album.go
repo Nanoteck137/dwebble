@@ -30,6 +30,18 @@ type albumApi struct {
 	app core.App
 }
 
+func ConvertDBAlbum(c echo.Context, album database.Album) types.Album {
+	return types.Album{
+		Id:         album.Id,
+		Name:       album.Name,
+		CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
+		ArtistId:   album.ArtistId,
+		ArtistName: album.ArtistName,
+		Created:    album.Created,
+		Updated:    album.Updated,
+	}
+}
+
 func (api *albumApi) HandleGetAlbums(c echo.Context) error {
 	filter := c.QueryParam("filter")
 	sort := c.QueryParam("sort")
@@ -45,13 +57,7 @@ func (api *albumApi) HandleGetAlbums(c echo.Context) error {
 	}
 
 	for i, album := range albums {
-		res.Albums[i] = types.Album{
-			Id:         album.Id,
-			Name:       album.Name,
-			CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
-			ArtistId:   album.ArtistId,
-			ArtistName: album.ArtistName,
-		}
+		res.Albums[i] = ConvertDBAlbum(c, album) 
 	}
 
 	return c.JSON(200, SuccessResponse(res))
@@ -69,13 +75,7 @@ func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
 	}
 
 	return c.JSON(200, SuccessResponse(types.GetAlbumById{
-		Album: types.Album{
-			Id:         album.Id,
-			Name:       album.Name,
-			CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
-			ArtistId:   album.ArtistId,
-			ArtistName: album.ArtistName,
-		},
+		Album: ConvertDBAlbum(c, album),
 	}))
 }
 

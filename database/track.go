@@ -151,7 +151,7 @@ type Track struct {
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
 
-	Tags   sql.NullString `db:"tags"`
+	Tags sql.NullString `db:"tags"`
 
 	Available bool `db:"available"`
 }
@@ -169,10 +169,10 @@ type TrackChanges struct {
 	OriginalFilename types.Change[string]
 	MobileFilename   types.Change[string]
 
-	Updated types.Change[int64]
+	Created types.Change[int64]
 
 	// TODO(patrik): Use types.Change
-	Available bool
+	Available types.Change[bool]
 }
 
 func TrackQuery() *goqu.SelectDataset {
@@ -446,7 +446,7 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 
 	id := params.Id
 	if id == "" {
-		id  = utils.CreateId()
+		id = utils.CreateId()
 	}
 
 	ds := dialect.Insert("tracks").Rows(goqu.Record{
@@ -464,8 +464,8 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"original_filename": params.OriginalFilename,
 		"mobile_filename":   params.MobileFilename,
 
-		"created": t,
-		"updated": t,
+		"created": created,
+		"updated": updated,
 
 		"available": params.Available,
 	}).
@@ -494,10 +494,7 @@ func addToRecord[T any](record goqu.Record, name string, change types.Change[T])
 }
 
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
-	record := goqu.Record{
-		"available": changes.Available,
-		"updated":   time.Now().UnixMilli(),
-	}
+	record := goqu.Record{}
 
 	addToRecord(record, "name", changes.Name)
 	addToRecord(record, "album_id", changes.AlbumId)
@@ -510,6 +507,16 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	addToRecord(record, "export_name", changes.ExportName)
 	addToRecord(record, "original_filename", changes.OriginalFilename)
 	addToRecord(record, "mobile_filename", changes.MobileFilename)
+
+	addToRecord(record, "created", changes.Created)
+
+	addToRecord(record, "available", changes.Available)
+
+	if len(record) == 0 {
+		return nil
+	}
+
+	record["updated"] = time.Now().UnixMilli()
 
 	ds := dialect.Update("tracks").
 		Set(record).

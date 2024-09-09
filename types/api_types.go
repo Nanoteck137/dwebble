@@ -18,6 +18,8 @@ type Album struct {
 	CoverArt   string `json:"coverArt"`
 	ArtistId   string `json:"artistId"`
 	ArtistName string `json:"artistName"`
+	Created    int64  `json:"created"`
+	Updated    int64  `json:"updated"`
 }
 
 type Track struct {
@@ -33,13 +35,13 @@ type Track struct {
 
 	OriginalMediaUrl string `json:"originalMediaUrl"`
 	MobileMediaUrl   string `json:"mobileMediaUrl"`
-	CoverArtUrl    string `json:"coverArtUrl"`
+	CoverArtUrl      string `json:"coverArtUrl"`
 
 	AlbumName  string `json:"albumName"`
 	ArtistName string `json:"artistName"`
 
-	// Created int64 `json:"created"`
-	// Updated int64 `json:"updated"`
+	Created int64 `json:"created"`
+	Updated int64 `json:"updated"`
 
 	Tags []string `json:"tags"`
 

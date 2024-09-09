@@ -22,6 +22,8 @@ export const Album = z.object({
   coverArt: z.string(),
   artistId: z.string(),
   artistName: z.string(),
+  created: z.number(),
+  updated: z.number(),
 });
 export type Album = z.infer<typeof Album>;
 
@@ -51,6 +53,8 @@ export const Track = z.object({
   coverArtUrl: z.string(),
   albumName: z.string(),
   artistName: z.string(),
+  created: z.number(),
+  updated: z.number(),
   tags: z.array(z.string()),
   available: z.boolean(),
 });
