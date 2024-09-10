@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { applyAction, enhance } from "$app/forms";
-  import { invalidateAll } from "$app/navigation";
   import { Track } from "$lib/api/types.js";
   import { musicManager } from "$lib/music-manager.js";
   import { formatTime, trackToMusicTrack } from "$lib/utils.js";
-  import { EllipsisVertical, Play } from "lucide-svelte";
+  import { Delete, EllipsisVertical, Play, Trash, X } from "lucide-svelte";
   import TrackEdit from "./TrackEdit.svelte";
+  import { Dialog, DropdownMenu, Label, Separator } from "bits-ui";
 
   const { data } = $props();
 
@@ -25,14 +24,7 @@
   }
 
   let editAlbumArtist = $state<HTMLDialogElement>();
-
-  let editTrack = $state<Track>();
   let editTrackDialog = $state<HTMLDialogElement>();
-
-  function openTrackEditor(track: Track) {
-    editTrack = track;
-    editTrackDialog?.showModal();
-  }
 </script>
 
 <p>Edit Album</p>
@@ -92,7 +84,7 @@
 
 <div class="flex flex-col">
   {#each data.tracks as track (track.id)}
-    <div class="flex items-center gap-2 border-b p-2">
+    <div class="flex items-center gap-2 border-b py-2 pl-2 pr-4">
       <div class="flex flex-grow flex-col">
         <p title={track.name}>
           {#if track.number}
@@ -100,6 +92,13 @@
           {/if}
           {track.name}
         </p>
+        <p class="text-xs">Artist: {track.artistName}</p>
+        {#if track.year}
+          <p class="text-xs">Year: {track.year}</p>
+        {/if}
+        {#if track.tags.length > 0}
+          <p class="text-xs">Tags: {track.tags.join(", ")}</p>
+        {/if}
         <!-- <a title={track.artistName} href={`/artist/${track.artistId}`}>
           {track.artistName}
         </a> -->
@@ -108,9 +107,42 @@
         <p class="">
           {formatTime(track.duration ?? 0)}
         </p>
-        <button class="rounded-full p-1 hover:bg-black/20">
-          <EllipsisVertical size="30" />
-        </button>
+        <DropdownMenu.Root disableFocusFirstItem={true}>
+          <DropdownMenu.Trigger>
+            <EllipsisVertical size="24" />
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content
+            class="w-full max-w-[240px] rounded border border-gray-600 bg-[--bg-color] px-2 py-2"
+          >
+            <DropdownMenu.Item
+              class="select-none rounded px-2 py-2 data-[highlighted]:bg-gray-400 data-[highlighted]:text-black"
+            >
+              <button
+                class="flex h-full w-full items-center gap-2"
+                onclick={() => {
+                  musicManager.clearQueue();
+                  musicManager.addTrackToQueue(trackToMusicTrack(track), true);
+                }}
+              >
+                <Play size="20" />
+                <p>Play</p>
+              </button>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              class="select-none rounded px-2 py-2 data-[highlighted]:bg-red-400 data-[highlighted]:text-black"
+            >
+              <button
+                class="flex h-full w-full items-center gap-2"
+                onclick={() => {
+                  openDeleteConfirm(track);
+                }}
+              >
+                <Trash size="20" />
+                <p>Remove</p>
+              </button>
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
     </div>
   {/each}
