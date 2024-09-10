@@ -1,6 +1,4 @@
 <script lang="ts">
-  import AlbumList from "$lib/components/album/AlbumList.svelte";
-
   const { data } = $props();
 </script>
 
