@@ -185,32 +185,32 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 		name.Changed = n != track.Name
 	}
 
-	// var artistId types.Change[string]
-	// if body.ArtistId != nil {
-	// 	artistId.Value = *body.ArtistId
-	// 	artistId.Changed = *body.ArtistId != album.ArtistId
-	// } else if body.ArtistName != nil {
-	// 	artistName := strings.TrimSpace(*body.ArtistName)
-	//
-	// 	artist, err := api.app.DB().GetArtistByName(ctx, artistName)
-	// 	if err != nil {
-	// 		if errors.Is(err, database.ErrItemNotFound) {
-	// 			artist, err = api.app.DB().CreateArtist(ctx, database.CreateArtistParams{
-	// 				Name:    artistName,
-	// 				Picture: sql.NullString{},
-	// 			})
-	//
-	// 			if err != nil {
-	// 				return err
-	// 			}
-	// 		} else {
-	// 			return err
-	// 		}
-	// 	}
-	//
-	// 	artistId.Value = artist.Id
-	// 	artistId.Changed = artist.Id != album.ArtistId
-	// }
+	var artistId types.Change[string]
+	if body.ArtistId != nil {
+		artistId.Value = *body.ArtistId
+		artistId.Changed = *body.ArtistId != track.ArtistId
+	} else if body.ArtistName != nil {
+		artistName := strings.TrimSpace(*body.ArtistName)
+
+		artist, err := api.app.DB().GetArtistByName(ctx, artistName)
+		if err != nil {
+			if errors.Is(err, database.ErrItemNotFound) {
+				artist, err = api.app.DB().CreateArtist(ctx, database.CreateArtistParams{
+					Name:    artistName,
+					Picture: sql.NullString{},
+				})
+
+				if err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+
+		artistId.Value = artist.Id
+		artistId.Changed = artist.Id != track.ArtistId
+	}
 
 	var year types.Change[sql.NullInt64]
 	if body.Year != nil {
@@ -232,9 +232,10 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 
 	// TODO(patrik): Use transaction
 	err = api.app.DB().UpdateTrack(ctx, track.Id, database.TrackChanges{
-		Name:      name,
-		Year:      year,
-		Number:    number,
+		Name:     name,
+		ArtistId: artistId,
+		Year:     year,
+		Number:   number,
 		Available: types.Change[bool]{
 			Value:   true,
 			Changed: true,
