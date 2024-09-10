@@ -22,7 +22,7 @@ CREATE TABLE playlist_items (
         REFERENCES playlists(id),
 
     CONSTRAINT playlist_items_track_id_fk FOREIGN KEY (track_id)
-        REFERENCES tracks(id)
+        REFERENCES tracks(id) ON DELETE CASCADE
 );
 
 -- +goose Down

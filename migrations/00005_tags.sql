@@ -13,7 +13,7 @@ CREATE TABLE tracks_to_tags (
     CONSTRAINT tracks_to_tags_pk PRIMARY KEY(track_id, tag_slug),
 
     CONSTRAINT tracks_to_tags_track_id_fk FOREIGN KEY (track_id)
-        REFERENCES tracks(id) ON UPDATE CASCADE,
+        REFERENCES tracks(id) ON DELETE CASCADE,
     CONSTRAINT tracks_to_tags_tag_id_fk FOREIGN KEY (tag_slug)
         REFERENCES tags(slug)
 );
