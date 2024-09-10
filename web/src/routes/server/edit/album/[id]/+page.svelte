@@ -3,7 +3,8 @@
   import { invalidateAll } from "$app/navigation";
   import { Track } from "$lib/api/types.js";
   import { musicManager } from "$lib/music-manager.js";
-  import { trackToMusicTrack } from "$lib/utils.js";
+  import { formatTime, trackToMusicTrack } from "$lib/utils.js";
+  import { EllipsisVertical, Play } from "lucide-svelte";
   import TrackEdit from "./TrackEdit.svelte";
 
   const { data } = $props();
@@ -83,9 +84,39 @@
 
 <p>{data.album.coverArt}</p>
 
+<button
+  onclick={() => {
+    editTrackDialog?.showModal();
+  }}>Edit Tracks</button
+>
+
 <div class="flex flex-col">
   {#each data.tracks as track (track.id)}
-    <div class="border-b">
+    <div class="flex items-center gap-2 border-b p-2">
+      <div class="flex flex-grow flex-col">
+        <p title={track.name}>
+          {#if track.number}
+            <span>{track.number}.</span>
+          {/if}
+          {track.name}
+        </p>
+        <!-- <a title={track.artistName} href={`/artist/${track.artistId}`}>
+          {track.artistName}
+        </a> -->
+      </div>
+      <div class="flex items-center gap-2">
+        <p class="">
+          {formatTime(track.duration ?? 0)}
+        </p>
+        <button class="rounded-full p-1 hover:bg-black/20">
+          <EllipsisVertical size="30" />
+        </button>
+      </div>
+    </div>
+  {/each}
+</div>
+
+<!-- <div class="border-b">
       <p>{track.name}</p>
       <div class="px-4">
         <p>Number: {track.number == null ? "NULL" : track.number}</p>
@@ -114,9 +145,7 @@
           }}>Delete</button
         >
       </div>
-    </div>
-  {/each}
-</div>
+    </div> -->
 
 <button
   onclick={() => {

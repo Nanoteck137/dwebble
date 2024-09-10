@@ -1,5 +1,7 @@
 import type { Track } from "$lib/api/types";
 import type { MusicTrack } from "$lib/music-manager";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function formatTime(s: number) {
   const min = Math.floor(s / 60);
@@ -15,4 +17,8 @@ export function trackToMusicTrack(track: Track): MusicTrack {
     source: track.mobileMediaUrl,
     coverArt: track.coverArtUrl,
   };
+}
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
