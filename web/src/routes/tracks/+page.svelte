@@ -51,13 +51,13 @@
     <form action="?/newPlaylist" method="post">
       <input name="filter" value={data.filter} type="hidden" />
       <input name="sort" value={data.sort} type="hidden" />
-      <button class="rounded bg-pink-500 px-4 py-2 text-lg hover:bg-pink-600"
-        >New playlist from tracks</button
-      >
+      <button class="rounded bg-pink-500 px-4 py-2 text-lg hover:bg-pink-600">
+        New playlist from tracks
+      </button>
     </form>
   </div>
   {#each data.tracks as track, i}
-    <div class="group flex items-center gap-2 border-b p-2 pr-4">
+    <div class="flex items-center gap-2 border-b p-2 pr-4">
       <div class="group relative">
         <img
           class="aspect-square w-14 min-w-14 rounded object-cover"
@@ -85,16 +85,17 @@
           <p class="line-clamp-1 w-fit font-medium" title={track.name}>
             {track.name}
           </p>
-          <a
-            class="line-clamp-1 w-fit text-sm hover:underline"
-            title={track.artistName}
-            href={`/artists/${track.artistId}`}
-          >
-            {track.artistName}
-          </a>
         </div>
 
-        <p class="line-clamp-1 text-xs">
+        <a
+          class="line-clamp-1 w-fit text-sm font-light hover:underline"
+          title={track.artistName}
+          href={`/artists/${track.artistId}`}
+        >
+          {track.artistName}
+        </a>
+
+        <p class="line-clamp-1 text-xs font-light">
           {#if track.tags.length > 0}
             {track.tags.join(", ")}
           {:else}
@@ -103,7 +104,13 @@
         </p>
       </div>
       <div class="flex items-center">
-        <form action="?/quickAddToPlaylist" method="post" use:enhance>
+        <!-- TODO(patrik): Move to dropdown menu -->
+        <form
+          class="jusitfy-center flex items-center"
+          action="?/quickAddToPlaylist"
+          method="post"
+          use:enhance
+        >
           <input type="hidden" name="trackId" value={track.id} />
           <button title="Quick Add"><Plus size="28" /></button>
         </form>

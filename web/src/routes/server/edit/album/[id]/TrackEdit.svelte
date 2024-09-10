@@ -76,5 +76,15 @@
         type="text"
       />
     </div>
+
+    <div class="flex flex-col gap-1">
+      <input
+        class="w-full rounded bg-[--bg-color] text-xs"
+        id={id("trackArtist")}
+        name="trackArtist"
+        value={track.artistName}
+        type="text"
+      />
+    </div>
   </div>
 </div>

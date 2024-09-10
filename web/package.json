@@ -46,6 +46,9 @@
   "overrides": {
     "svelte-hmr": {
       "svelte": "^5.0.0-next.1"
+    },
+    "@melt-ui/svelte": {
+      "svelte": "^5.0.0-next.1"
     }
   }
 }

@@ -169,6 +169,7 @@ export const actions: Actions = {
       id: string;
       num: number;
       name: string;
+      artist: string;
       year: number;
       tags: string[];
     };
@@ -178,6 +179,7 @@ export const actions: Actions = {
     const trackName = formData.getAll("trackName");
     const trackYear = formData.getAll("trackYear");
     const trackTags = formData.getAll("trackTags");
+    const trackArtist = formData.getAll("trackArtist");
 
     const trackEdits: TrackEdit[] = [];
     for (let i = 0; i < trackIds.length; i++) {
@@ -187,6 +189,7 @@ export const actions: Actions = {
         id: trackIds[i].toString(),
         num: parseInt(trackNumbers[i].toString()),
         name: trackName[i].toString(),
+        artist: trackArtist[i].toString(),
         year: parseInt(trackYear[i].toString()),
         tags: tags,
       });
@@ -197,6 +200,7 @@ export const actions: Actions = {
         name: track.name,
         number: track.num,
         year: track.year,
+        artistName: track.artist,
         tags: track.tags,
       });
       if (!res.success) {

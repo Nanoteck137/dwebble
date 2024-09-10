@@ -29,7 +29,9 @@
       {#each tracks as track}
         <div class="group flex items-center gap-2 border-b pb-1 pr-4">
           <p class="w-10 text-right font-medium group-hover:hidden">
-            {track.number}.
+            {#if track.number}
+              <span>{track.number}.</span>
+            {/if}
           </p>
           <button
             class="hidden h-10 w-10 items-center justify-end group-hover:flex"
@@ -49,16 +51,13 @@
             <Play size="30" />
           </button>
           <div class="flex flex-grow flex-col">
-            <p
-              class="line-clamp-1 font-medium group-hover:underline"
-              title={track.name}
-            >
+            <p class="line-clamp-1 font-medium" title={track.name}>
               {track.name}
             </p>
             <a
               class="line-clamp-1 w-fit text-sm hover:underline"
               title={track.artistName}
-              href={`/artist/${track.artistId}`}
+              href={`/artists/${track.artistId}`}
             >
               {track.artistName}
             </a>

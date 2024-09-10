@@ -22,6 +22,7 @@ export const Album = z.object({
   coverArt: z.string(),
   artistId: z.string(),
   artistName: z.string(),
+  year: z.number().nullable(),
   created: z.number(),
   updated: z.number(),
 });
