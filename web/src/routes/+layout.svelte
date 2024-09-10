@@ -16,6 +16,7 @@
   import AudioPlayer from "$lib/components/AudioPlayer.svelte";
   import Link from "$lib/components/Link.svelte";
   import { browser } from "$app/environment";
+  import { fade } from "svelte/transition";
 
   let { children, data } = $props();
 
@@ -62,6 +63,7 @@
     onclick={() => {
       showSideMenu = false;
     }}
+    transition:fade
   ></button>
 {/if}
 
