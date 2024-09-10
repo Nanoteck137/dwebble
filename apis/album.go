@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -31,12 +32,18 @@ type albumApi struct {
 }
 
 func ConvertDBAlbum(c echo.Context, album database.Album) types.Album {
+	var year *int64
+	if album.Year.Valid {
+		year = &album.Year.Int64
+	}
+
 	return types.Album{
 		Id:         album.Id,
 		Name:       album.Name,
 		CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 		ArtistId:   album.ArtistId,
 		ArtistName: album.ArtistName,
+		Year:       year,
 		Created:    album.Created,
 		Updated:    album.Updated,
 	}
@@ -105,21 +112,6 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 	}
 
 	return c.JSON(200, SuccessResponse(res))
-}
-
-var _ types.Body = (*PostAlbumImportBody)(nil)
-
-type PostAlbumImportBody struct {
-	Name   string `json:"name"`
-	Artist string `json:"artist"`
-}
-
-func (PostAlbumImportBody) Schema() jio.Schema {
-	panic("unimplemented")
-}
-
-type PostAlbumImport struct {
-	AlbumId string `json:"albumId"`
 }
 
 var _ types.Body = (*PatchAlbumBody)(nil)
@@ -220,12 +212,12 @@ func (api *albumApi) HandleDeleteAlbum(c echo.Context) error {
 
 	err = db.RemoveAlbumTracks(c.Request().Context(), id)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to remove album tracks: %w", err)
 	}
 
 	err = db.RemoveAlbum(c.Request().Context(), id)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to remove album: %w", err)
 	}
 
 	err = tx.Commit()
@@ -234,6 +226,21 @@ func (api *albumApi) HandleDeleteAlbum(c echo.Context) error {
 	}
 
 	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+}
+
+var _ types.Body = (*PostAlbumImportBody)(nil)
+
+type PostAlbumImportBody struct {
+	Name   string `json:"name"`
+	Artist string `json:"artist"`
+}
+
+func (PostAlbumImportBody) Schema() jio.Schema {
+	panic("unimplemented")
+}
+
+type PostAlbumImport struct {
+	AlbumId string `json:"albumId"`
 }
 
 func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
@@ -596,7 +603,9 @@ func InstallAlbumHandlers(app core.App, group Group) {
 			HandlerFunc: a.HandleGetAlbumTracksById,
 			Middlewares: []echo.MiddlewareFunc{},
 		},
+	)
 
+	group.Register(
 		Handler{
 			Name:        "EditAlbum",
 			Method:      http.MethodPatch,
