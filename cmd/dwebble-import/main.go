@@ -60,6 +60,10 @@ var rootCmd = &cobra.Command{
 
 		var albums []string
 		err = filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+			if d == nil {
+				return nil
+			}
+
 			if d.Name() == "album.toml" {
 				albums = append(albums, path.Dir(p))
 			}
@@ -90,6 +94,12 @@ func Execute() {
 }
 
 func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkDir, albumPath string) error {
+	db, tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
 	d, err := os.ReadFile(path.Join(albumPath, "album.toml"))
 	if err != nil {
 		return err
@@ -303,6 +313,11 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 				return err
 			}
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
 	}
 
 	return nil
