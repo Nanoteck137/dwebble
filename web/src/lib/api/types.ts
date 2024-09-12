@@ -103,11 +103,6 @@ export const PatchTrackBody = z.object({
 });
 export type PatchTrackBody = z.infer<typeof PatchTrackBody>;
 
-export const GetSync = z.object({
-  isSyncing: z.boolean(),
-});
-export type GetSync = z.infer<typeof GetSync>;
-
 export const Tag = z.object({
   id: z.string(),
   name: z.string(),

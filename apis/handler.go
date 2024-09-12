@@ -27,7 +27,6 @@ func InstallHandlers(app core.App, g Group) {
 	InstallArtistHandlers(app, g)
 	InstallAlbumHandlers(app, g)
 	InstallTrackHandlers(app, g)
-	InstallSyncHandlers(app, g)
 	InstallQueueHandlers(app, g)
 	InstallTagHandlers(app, g)
 	InstallAuthHandlers(app, g)

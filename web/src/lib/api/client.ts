@@ -16,8 +16,6 @@ export const GET_TRACKS_URL = "/api/v1/tracks"
 export const GET_TRACK_BY_ID_URL = "/api/v1/tracks/:id"
 export const REMOVE_TRACK_URL = "/api/v1/tracks/:id"
 export const EDIT_TRACK_URL = "/api/v1/tracks/:id"
-export const GET_SYNC_STATUS_URL = "/api/v1/sync"
-export const RUN_SYNC_URL = "/api/v1/sync"
 export const GET_TAGS_URL = "/api/v1/tags"
 export const SIGNUP_URL = "/api/v1/auth/signup"
 export const SIGNIN_URL = "/api/v1/auth/signin"
@@ -92,14 +90,6 @@ export class ApiClient extends BaseApiClient {
   
   editTrack(id: string, body: api.PatchTrackBody, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}`, "PATCH", z.undefined(), z.undefined(), body, options)
-  }
-  
-  getSyncStatus(options?: ExtraOptions) {
-    return this.request("/api/v1/sync", "GET", api.GetSync, z.undefined(), undefined, options)
-  }
-  
-  runSync(options?: ExtraOptions) {
-    return this.request("/api/v1/sync", "POST", z.undefined(), z.undefined(), undefined, options)
   }
   
   getTags(options?: ExtraOptions) {
