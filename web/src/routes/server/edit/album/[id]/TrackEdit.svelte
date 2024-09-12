@@ -17,7 +17,7 @@
 
 <input name="trackId" value={track.id} type="hidden" />
 
-<div class="flex flex-col gap-2 border-b pb-2">
+<div id="track-{track.id}" class="flex flex-col gap-2 border-b pb-2">
   <div class="flex gap-2">
     <button
       type="button"
