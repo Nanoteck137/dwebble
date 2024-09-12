@@ -61,13 +61,7 @@ func (a *TrackResolverAdapter) MapSortName(name string) (types.Name, error) {
 func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
 	switch typ {
 	case "tags":
-		for _, t := range tags {
-			if t.Slug == utils.Slug(name) {
-				return t.Slug, nil
-			}
-		}
-
-		return "", nil
+		return utils.Slug(name), nil
 	}
 
 	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
