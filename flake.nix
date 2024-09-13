@@ -42,8 +42,8 @@
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
           postFixup = ''
-            wrapProgram $out/bin/dwebble --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}
-            wrapProgram $out/bin/dwebble-import --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}
+            wrapProgram $out/bin/dwebble --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg pkgs.imagemagick ]}
+            wrapProgram $out/bin/dwebble-import --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg pkgs.imagemagick ]}
           '';
         };
 
