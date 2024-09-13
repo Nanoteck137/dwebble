@@ -13,14 +13,21 @@ type Artist struct {
 }
 
 type Album struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	CoverArt   string `json:"coverArt"`
-	ArtistId   string `json:"artistId"`
-	ArtistName string `json:"artistName"`
-	Year       *int64 `json:"year"`
-	Created    int64  `json:"created"`
-	Updated    int64  `json:"updated"`
+	Id         string   `json:"id"`
+	Name       string   `json:"name"`
+	CoverArt   CoverArt `json:"coverArt"`
+	ArtistId   string   `json:"artistId"`
+	ArtistName string   `json:"artistName"`
+	Year       *int64   `json:"year"`
+	Created    int64    `json:"created"`
+	Updated    int64    `json:"updated"`
+}
+
+type CoverArt struct {
+	Original string `json:"original"`
+	Small    string `json:"small"`
+	Medium   string `json:"medium"`
+	Large    string `json:"large"`
 }
 
 type Track struct {
@@ -34,9 +41,9 @@ type Track struct {
 	Duration *int64 `json:"duration"`
 	Year     *int64 `json:"year"`
 
-	OriginalMediaUrl string `json:"originalMediaUrl"`
-	MobileMediaUrl   string `json:"mobileMediaUrl"`
-	CoverArtUrl      string `json:"coverArtUrl"`
+	OriginalMediaUrl string   `json:"originalMediaUrl"`
+	MobileMediaUrl   string   `json:"mobileMediaUrl"`
+	CoverArt         CoverArt `json:"coverArt"`
 
 	AlbumName  string `json:"albumName"`
 	ArtistName string `json:"artistName"`

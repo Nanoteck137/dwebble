@@ -38,6 +38,32 @@
       "fields": null
     },
     {
+      "name": "CoverArt",
+      "extend": "",
+      "fields": [
+        {
+          "name": "original",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "small",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "medium",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "large",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "Album",
       "extend": "",
       "fields": [
@@ -53,7 +79,7 @@
         },
         {
           "name": "coverArt",
-          "type": "string",
+          "type": "CoverArt",
           "omit": false
         },
         {
@@ -160,8 +186,8 @@
           "omit": false
         },
         {
-          "name": "coverArtUrl",
-          "type": "string",
+          "name": "coverArt",
+          "type": "CoverArt",
           "omit": false
         },
         {

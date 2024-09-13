@@ -8,10 +8,10 @@
   {#each data.albums as album}
     <div class="flex flex-col items-center">
       <div class="group">
-        <a class="relative" href={`/server/edit/album/${album.id}`}>
+        <a class="relative" href="/server/edit/album/{album.id}">
           <img
             class="aspect-square w-40 rounded object-cover group-hover:brightness-75"
-            src={album.coverArt}
+            src={album.coverArt.medium}
             alt={`${album.name} Cover Art`}
             loading="lazy"
           />
@@ -24,7 +24,7 @@
         <a
           class="line-clamp-2 w-40 text-sm font-medium group-hover:underline"
           title={album.name}
-          href={`/albums/${album.id}`}
+          href="/server/edit/album/{album.id}"
         >
           {album.name}
         </a>
@@ -32,7 +32,7 @@
       <a
         class="line-clamp-1 w-40 text-xs hover:underline"
         title={album.artistName}
-        href={`/artist/${album.artistId}`}
+        href={`/artists/${album.artistId}`}
       >
         {album.artistName}
       </a>

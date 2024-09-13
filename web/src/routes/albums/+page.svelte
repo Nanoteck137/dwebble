@@ -15,7 +15,7 @@
           <a class="relative" href={`/albums/${album.id}`}>
             <img
               class="aspect-square w-40 rounded object-cover group-hover:brightness-75"
-              src={album.coverArt}
+              src={album.coverArt.medium}
               alt={`${album.name} Cover Art`}
               loading="lazy"
             />

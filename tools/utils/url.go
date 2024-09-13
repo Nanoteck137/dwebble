@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/nanoteck137/dwebble/types"
 )
 
 const (
@@ -39,11 +40,22 @@ func ConvertArtistPictureURL(c echo.Context, val sql.NullString) string {
 	return ConvertURL(c, "/images/"+DefaultArtistPictureName)
 }
 
-func ConvertAlbumCoverURL(c echo.Context, albumId string, val sql.NullString) string {
+func ConvertAlbumCoverURL(c echo.Context, albumId string, val sql.NullString) types.CoverArt {
 	if val.Valid && val.String != "" {
 		coverArt := val.String
-		return ConvertURL(c, "/files/albums/images/"+albumId+"/"+coverArt)
+		return types.CoverArt{
+			Original: ConvertURL(c, "/files/albums/images/"+albumId+"/"+coverArt),
+			Small:    ConvertURL(c, "/files/albums/images/"+albumId+"/"+"cover-128.png"),
+			Medium:   ConvertURL(c, "/files/albums/images/"+albumId+"/"+"cover-256.png"),
+			Large:    ConvertURL(c, "/files/albums/images/"+albumId+"/"+"cover-512.png"),
+		}
 	}
 
-	return ConvertURL(c, "/images/"+DefaultAlbumCoverArtName)
+	url := ConvertURL(c, "/images/"+DefaultAlbumCoverArtName)
+	return types.CoverArt{
+		Original: url,
+		Small:    url,
+		Medium:   url,
+		Large:    url,
+	}
 }

@@ -17,7 +17,6 @@ import (
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/library"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/pelletier/go-toml/v2"
@@ -129,7 +128,7 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 		return err
 	}
 
-	var metadata library.AlbumMetadata
+	var metadata AlbumMetadata
 	err = toml.Unmarshal(d, &metadata)
 	if err != nil {
 		return err
@@ -196,20 +195,42 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 		p := path.Join(albumPath, metadata.CoverArt)
 
 		ext := path.Ext(metadata.CoverArt)
-		filename := "cover" + ext
+		filename := "cover-original" + ext
+
+		dst := path.Join(albumDir.Images(), filename)
 
 		// TODO(patrik): Close file
-		file, err := os.OpenFile(path.Join(albumDir.Images(), filename), os.O_RDWR|os.O_CREATE, 0644)
+		file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
 			return err
 		}
+		defer file.Close()
 
 		ff, err := os.Open(p)
 		if err != nil {
 			return err
 		}
+		defer ff.Close()
 
 		_, err = io.Copy(file, ff)
+		if err != nil {
+			return err
+		}
+
+		i := path.Join(albumDir.Images(), "cover-128.png")
+		err = utils.CreateResizedImage(dst, i, 128)
+		if err != nil {
+			return err
+		}
+
+		i = path.Join(albumDir.Images(), "cover-256.png")
+		err = utils.CreateResizedImage(dst, i, 256)
+		if err != nil {
+			return err
+		}
+
+		i = path.Join(albumDir.Images(), "cover-512.png")
+		err = utils.CreateResizedImage(dst, i, 512)
 		if err != nil {
 			return err
 		}

@@ -85,6 +85,7 @@
             go
             gopls
             nodejs
+            imagemagick
 
             pyrin.packages.${system}.default
             tools.publishVersion

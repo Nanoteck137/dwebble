@@ -329,10 +329,12 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 		f := coverArt[0]
 
 		ext := path.Ext(f.Filename)
-		filename := "cover" + ext
+		filename := "cover-original" + ext
+
+		dst := path.Join(albumDir.Images(), filename)
 
 		// TODO(patrik): Close file
-		file, err := os.OpenFile(path.Join(albumDir.Images(), filename), os.O_RDWR|os.O_CREATE, 0644)
+		file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
 			return err
 		}
@@ -343,6 +345,24 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 		}
 
 		_, err = io.Copy(file, ff)
+		if err != nil {
+			return err
+		}
+
+		i := path.Join(albumDir.Images(), "cover-128.png")
+		err = utils.CreateResizedImage(dst, i, 128)
+		if err != nil {
+			return err
+		}
+
+		i = path.Join(albumDir.Images(), "cover-256.png")
+		err = utils.CreateResizedImage(dst, i, 256)
+		if err != nil {
+			return err
+		}
+
+		i = path.Join(albumDir.Images(), "cover-512.png")
+		err = utils.CreateResizedImage(dst, i, 512)
 		if err != nil {
 			return err
 		}

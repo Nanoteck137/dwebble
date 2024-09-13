@@ -49,7 +49,7 @@ func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
 		Year:             year,
 		OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/original/%s/%s", track.AlbumId, track.OriginalFilename)),
 		MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/mobile/%s/%s", track.AlbumId, track.MobileFilename)),
-		CoverArtUrl:      utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+		CoverArt:      utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		AlbumName:        track.AlbumName,
 		ArtistName:       track.ArtistName,
 		Created:          track.Created,

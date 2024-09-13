@@ -6,7 +6,7 @@
 </script>
 
 <TrackList
-  cover={data.album.coverArt}
+  cover={data.album.coverArt.large}
   name={data.album.name}
   tracks={data.tracks}
 />

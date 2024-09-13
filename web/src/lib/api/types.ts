@@ -16,10 +16,18 @@ export type GetArtists = z.infer<typeof GetArtists>;
 export const GetArtistById = Artist;
 export type GetArtistById = z.infer<typeof GetArtistById>;
 
+export const CoverArt = z.object({
+  original: z.string(),
+  small: z.string(),
+  medium: z.string(),
+  large: z.string(),
+});
+export type CoverArt = z.infer<typeof CoverArt>;
+
 export const Album = z.object({
   id: z.string(),
   name: z.string(),
-  coverArt: z.string(),
+  coverArt: CoverArt,
   artistId: z.string(),
   artistName: z.string(),
   year: z.number().nullable(),
@@ -51,7 +59,7 @@ export const Track = z.object({
   year: z.number().nullable(),
   originalMediaUrl: z.string(),
   mobileMediaUrl: z.string(),
-  coverArtUrl: z.string(),
+  coverArt: CoverArt,
   albumName: z.string(),
   artistName: z.string(),
   created: z.number(),

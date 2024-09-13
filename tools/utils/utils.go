@@ -414,3 +414,22 @@ func GetTrackInfo(filepath string) (TrackInfo, error) {
 		Tags:     probeResult.Tags,
 	}, nil
 }
+
+func CreateResizedImage(src string, dest string, dim int) error {
+	args := []string{
+		"convert",
+		src,
+		"-gravity", "Center",
+		"-extent", "1:1",
+		"-resize", fmt.Sprintf("%dx%d", dim, dim),
+		dest,
+	}
+
+	cmd := exec.Command("magick", args...)
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

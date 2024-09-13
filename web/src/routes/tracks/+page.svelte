@@ -61,7 +61,7 @@
       <div class="group relative">
         <img
           class="aspect-square w-14 min-w-14 rounded object-cover"
-          src={track.coverArtUrl}
+          src={track.coverArt.small}
           alt={`${track.name} Cover Art`}
           loading="lazy"
         />

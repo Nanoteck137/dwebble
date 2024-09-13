@@ -21,12 +21,17 @@
 <div class="flex gap-2 p-2">
   <img
     class="aspect-square w-60 rounded object-cover"
-    src={data.album.coverArt}
+    src={data.album.coverArt.medium}
     alt="Album Cover Art"
   />
 
   <div class="flex flex-col py-2">
-    <p class="text-3xl font-medium">{data.album.name}</p>
+    <a
+      class="text-3xl font-medium hover:underline"
+      href="/albums/{data.album.id}"
+    >
+      {data.album.name}
+    </a>
     <a class="text-lg hover:underline" href="/artists/{data.album.artistId}">
       {data.album.artistName}
     </a>
