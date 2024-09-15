@@ -2,7 +2,7 @@
   import { EllipsisVertical, Play, Plus, X } from "lucide-svelte";
   import type { PageData } from "./$types";
   import { musicManager } from "$lib/music-manager";
-  import { trackToMusicTrack } from "$lib/utils";
+  import { shuffle, trackToMusicTrack } from "$lib/utils";
   import { enhance } from "$app/forms";
 
   export let data: PageData;
@@ -55,6 +55,20 @@
         New playlist from tracks
       </button>
     </form>
+
+    <button
+      class="rounded bg-purple-500 px-4 py-2 text-lg hover:bg-purple-600"
+      onclick={() => {
+        let tracks = shuffle([...data.tracks]);
+
+        musicManager.clearQueue();
+        for (const track of tracks) {
+          musicManager.addTrackToQueue(trackToMusicTrack(track));
+        }
+      }}
+    >
+      Shuffle Play
+    </button>
   </div>
   {#each data.tracks as track, i}
     <div class="flex items-center gap-2 border-b p-2 pr-4">
