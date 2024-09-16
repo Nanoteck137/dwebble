@@ -13,9 +13,12 @@
 
     devtools.url     = "github:nanoteck137/devtools";
     devtools.inputs.nixpkgs.follows = "nixpkgs";
+
+    tagopus.url      = "github:nanoteck137/tagopus/v0.1.1";
+    tagopus.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flake-utils, gitignore, devtools, pyrin, ... }:
+  outputs = { self, nixpkgs, flake-utils, gitignore, devtools, pyrin, tagopus, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [];
@@ -30,20 +33,21 @@
           pname = "dwebble";
           version = fullVersion;
           src = ./.;
-          subPackages = ["cmd/dwebble" "cmd/dwebble-import"];
+          subPackages = ["cmd/dwebble" "cmd/dwebble-import" "cmd/dwebble-dl"];
 
           ldflags = [
             "-X github.com/nanoteck137/dwebble.Version=${version}"
             "-X github.com/nanoteck137/dwebble.Commit=${self.dirtyRev or self.rev or "no-commit"}"
           ];
 
-          vendorHash = "sha256-ITNTEG7Esspp0eRdMC9G37GIinI8UAqQH3ukXAL940g=";
+          vendorHash = "sha256-pY/x9kCtp11ngqVFHsTksKUukhzDk6LN17I5kJ/da2A=";
 
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
           postFixup = ''
             wrapProgram $out/bin/dwebble --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg pkgs.imagemagick ]}
             wrapProgram $out/bin/dwebble-import --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg pkgs.imagemagick ]}
+            wrapProgram $out/bin/dwebble-dl --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg pkgs.imagemagick tagopus.packages.${system}.default ]}
           '';
         };
 
@@ -88,6 +92,7 @@
             imagemagick
 
             pyrin.packages.${system}.default
+            tagopus.packages.${system}.default
             tools.publishVersion
           ];
         };
