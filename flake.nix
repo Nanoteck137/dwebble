@@ -40,7 +40,7 @@
             "-X github.com/nanoteck137/dwebble.Commit=${self.dirtyRev or self.rev or "no-commit"}"
           ];
 
-          vendorHash = "sha256-pY/x9kCtp11ngqVFHsTksKUukhzDk6LN17I5kJ/da2A=";
+          vendorHash = "sha256-QzGDSyjefKd7Gx/B9zuzJ3kZUErNi+pJ5uPzkwekdes=";
 
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
