@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"fmt"
-
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core/log"
@@ -20,14 +18,8 @@ func Execute() {
 	}
 }
 
-func versionTemplate() string {
-	return fmt.Sprintf(
-		"%s: %s (%s)\n",
-		dwebble.AppName, dwebble.Version, dwebble.Commit)
-}
-
 func init() {
-	rootCmd.SetVersionTemplate(versionTemplate())
+	rootCmd.SetVersionTemplate(dwebble.VersionTemplate(dwebble.AppName))
 
 	cobra.OnInitialize(config.InitConfig)
 
