@@ -47,8 +47,10 @@ type AlbumMetadata struct {
 	Tracks   []TrackMetadata `toml:"tracks"`
 }
 
+var AppName = dwebble.AppName + "-import"
+
 var rootCmd = &cobra.Command{
-	Use:     dwebble.AppName + "-import" + " <OUT>",
+	Use:     AppName + " <OUT>",
 	Version: dwebble.Version,
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
@@ -107,6 +109,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	rootCmd.SetVersionTemplate(dwebble.VersionTemplate(AppName))
 	rootCmd.Flags().String("dir", ".", "Search directory")
 }
 
