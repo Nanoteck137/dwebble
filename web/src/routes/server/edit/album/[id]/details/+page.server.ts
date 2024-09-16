@@ -27,4 +27,13 @@ export const actions: Actions = {
 
     throw redirect(302, `/server/edit/album/${params.id}`);
   },
+
+  delete: async ({ locals, params }) => {
+    const res = await locals.apiClient.deleteAlbum(params.id);
+    if (!res.success) {
+      throw error(res.error.code, { message: res.error.message });
+    }
+
+    throw redirect(301, "/server/edit/album");
+  },
 };
