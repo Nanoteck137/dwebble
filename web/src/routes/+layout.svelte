@@ -59,7 +59,7 @@
 
 {#if showSideMenu}
   <button
-    class="fixed bottom-0 left-0 right-0 top-0 z-50 bg-[--modal-overlay-bg]"
+    class="fixed bottom-0 left-0 right-0 top-0 z-50 w-full bg-[--modal-overlay-bg]"
     onclick={() => {
       showSideMenu = false;
     }}
