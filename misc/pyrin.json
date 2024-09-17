@@ -905,6 +905,17 @@
       "responseType": "",
       "bodyType": "",
       "requireFormData": false
+    },
+    {
+      "name": "Process",
+      "method": "POST",
+      "path": "/api/v1/system/process",
+      "errorTypes": [
+        "UNKNOWN_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "",
+      "requireFormData": false
     }
   ]
 }

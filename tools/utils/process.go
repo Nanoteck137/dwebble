@@ -18,7 +18,7 @@ func ProcessMobileVersion(input string, outputDir, name string) (string, error) 
 	filename := Slug(name) + outputExt
 
 	var args []string
-	args = append(args, "-i", input, "-map_metadata", "-1")
+	args = append(args, "-y", "-i", input, "-map_metadata", "-1", "-b:a", "128K")
 
 	if outputExt == inputExt {
 		args = append(args, "-codec", "copy")

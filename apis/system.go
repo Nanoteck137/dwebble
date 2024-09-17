@@ -5,8 +5,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"path"
+	"strings"
 
 	"github.com/kr/pretty"
 	"github.com/labstack/echo/v4"
@@ -331,6 +334,33 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 	return c.JSON(200, SuccessResponse(nil))
 }
 
+func (api *systemApi) HandlePostSystemProcess(c echo.Context) error {
+	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), "", "", false)
+	if err != nil {
+		return err
+	}
+
+	for _, track := range tracks {
+		albumDir := api.app.WorkDir().Album(track.AlbumId)
+
+		file := path.Join(albumDir.OriginalFiles(), track.OriginalFilename)
+
+		filename := track.MobileFilename
+		filename = strings.TrimSuffix(filename, path.Ext(filename))
+
+		fmt.Printf("file: %v\n", file)
+
+		m, err := utils.ProcessMobileVersion(file, albumDir.MobileFiles(), filename)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("m: %v\n", m)
+	}
+
+	return nil
+}
+
 func InstallSystemHandlers(app core.App, group Group) {
 	api := systemApi{app: app}
 
@@ -361,6 +391,17 @@ func InstallSystemHandlers(app core.App, group Group) {
 			DataType:    nil,
 			BodyType:    nil,
 			HandlerFunc: api.HandlePostSystemImport,
+			Middlewares: []echo.MiddlewareFunc{},
+		},
+
+		// TODO(patrik): Rename
+		Handler{
+			Name:        "Process",
+			Path:        "/system/process",
+			Method:      http.MethodPost,
+			DataType:    nil,
+			BodyType:    nil,
+			HandlerFunc: api.HandlePostSystemProcess,
 			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
