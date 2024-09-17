@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"os"
 	"path"
@@ -340,6 +339,7 @@ func (api *systemApi) HandlePostSystemProcess(c echo.Context) error {
 		return err
 	}
 
+	// TODO(patrik): Use goroutines
 	for _, track := range tracks {
 		albumDir := api.app.WorkDir().Album(track.AlbumId)
 
@@ -348,14 +348,10 @@ func (api *systemApi) HandlePostSystemProcess(c echo.Context) error {
 		filename := track.MobileFilename
 		filename = strings.TrimSuffix(filename, path.Ext(filename))
 
-		fmt.Printf("file: %v\n", file)
-
-		m, err := utils.ProcessMobileVersion(file, albumDir.MobileFiles(), filename)
+		_, err := utils.ProcessMobileVersion(file, albumDir.MobileFiles(), filename)
 		if err != nil {
 			return err
 		}
-
-		fmt.Printf("m: %v\n", m)
 	}
 
 	return nil
