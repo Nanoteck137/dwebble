@@ -59,7 +59,7 @@
 
 {#if showSideMenu}
   <button
-    class="fixed inset-0 z-50 bg-[--modal-overlay-bg]"
+    class="fixed bottom-0 left-0 right-0 top-0 z-50 bg-[--modal-overlay-bg]"
     onclick={() => {
       showSideMenu = false;
     }}
@@ -67,7 +67,7 @@
   ></button>
 
   <aside
-    class={`text-[--fg-color]"} fixed bottom-0 top-0 z-50 flex w-80 flex-col bg-[--bg-color] px-4`}
+    class={`fixed bottom-0 top-0 z-50 flex w-80 flex-col bg-[--bg-color] px-4 text-[--fg-color]`}
     transition:fly={{ x: -400 }}
   >
     <div class="flex h-16 items-center gap-4 px-2 py-2">
