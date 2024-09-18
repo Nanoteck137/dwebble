@@ -383,7 +383,6 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 	}
 
 	files := form.File["files"]
-
 	for _, f := range files {
 		now := time.Now()
 
@@ -559,12 +558,24 @@ func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
 			}
 		}
 
+		var number int
+		if tag, exists := trackInfo.Tags["track"]; exists {
+			y, _ := strconv.Atoi(tag)
+			number = y
+		}
+
+		if number == 0 {
+			number = utils.ExtractNumber(originalName)
+		}
+
 		_, err = db.CreateTrack(ctx, database.CreateTrackParams{
-			Name:    name,
-			AlbumId: album.Id,
-			// TODO(patrik): Wrong artist
+			Name:     name,
+			AlbumId:  album.Id,
 			ArtistId: album.ArtistId,
-			Number:   sql.NullInt64{},
+			Number:   sql.NullInt64{
+				Int64: int64(number),
+				Valid: number != 0,
+			},
 			Duration: sql.NullInt64{
 				Int64: int64(trackInfo.Duration),
 				Valid: true,
