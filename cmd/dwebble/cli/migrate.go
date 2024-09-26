@@ -4,17 +4,12 @@ import (
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
-	"github.com/nanoteck137/dwebble/database"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
 
 var migrateCmd = &cobra.Command{
 	Use: "migrate",
-}
-
-func runMigrateUp(db *database.Database) error {
-	return goose.Up(db.RawConn, ".")
 }
 
 var upCmd = &cobra.Command{
@@ -27,7 +22,7 @@ var upCmd = &cobra.Command{
 			log.Fatal("Failed to bootstrap app", "err", err)
 		}
 
-		err = runMigrateUp(app.DB())
+		err = app.DB().RunMigrateUp()
 		if err != nil {
 			log.Fatal("Failed to run migrate up", "err", err)
 		}
@@ -44,7 +39,7 @@ var downCmd = &cobra.Command{
 			log.Fatal("Failed to bootstrap app", "err", err)
 		}
 
-		err = goose.Down(app.DB().RawConn, ".")
+		err = app.DB().RunMigrateDown()
 		if err != nil {
 			log.Fatal("Failed to run migrate down", "err", err)
 		}
