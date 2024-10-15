@@ -448,3 +448,19 @@ func (c *Client) SystemImport(options Options) (*any, error) {
 	}
 	return Request[any](data)
 }
+
+func (c *Client) Process(options Options) (*any, error) {
+	path := "/api/v1/system/process"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[any](data)
+}

@@ -30,6 +30,7 @@ export const MOVE_PLAYLIST_ITEM_URL = "/api/v1/playlists/:id/items/move"
 export const GET_SYSTEM_INFO_URL = "/api/v1/system/info"
 export const SYSTEM_EXPORT_URL = "/api/v1/system/export"
 export const SYSTEM_IMPORT_URL = "/api/v1/system/import"
+export const PROCESS_URL = "/api/v1/system/process"
 
 export class ApiClient extends BaseApiClient {
   constructor(baseUrl: string) {
@@ -146,5 +147,9 @@ export class ApiClient extends BaseApiClient {
   
   systemImport(options?: ExtraOptions) {
     return this.request("/api/v1/system/import", "POST", z.undefined(), z.undefined(), undefined, options)
+  }
+  
+  process(options?: ExtraOptions) {
+    return this.request("/api/v1/system/process", "POST", z.undefined(), z.undefined(), undefined, options)
   }
 }
