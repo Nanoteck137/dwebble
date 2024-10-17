@@ -48,8 +48,8 @@ func (api *artistApi) HandleGetArtistById(c pyrin.Context) (any, error) {
 
 	return types.GetArtistById{
 		Artist: types.Artist{
-			Id:      artist.Id,
-			Name:    artist.Name,
+			Id:   artist.Id,
+			Name: artist.Name,
 			// TODO(patrik): Fix
 			// Picture: utils.ConvertArtistPictureURL(c, artist.Picture),
 		},
@@ -80,8 +80,8 @@ func (api *artistApi) HandleGetArtistAlbumsById(c pyrin.Context) (any, error) {
 	for i, album := range albums {
 		// TODO(patrik): Fix not all fields filled in
 		res.Albums[i] = types.Album{
-			Id:         album.Id,
-			Name:       album.Name,
+			Id:   album.Id,
+			Name: album.Name,
 			// TODO(patrik): Fix
 			// CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 			ArtistId:   album.ArtistId,

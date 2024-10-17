@@ -38,8 +38,8 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) types.Album {
 	}
 
 	return types.Album{
-		Id:   album.Id,
-		Name: album.Name,
+		Id:         album.Id,
+		Name:       album.Name,
 		CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 		ArtistId:   album.ArtistId,
 		ArtistName: album.ArtistName,

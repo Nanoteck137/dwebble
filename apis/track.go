@@ -40,22 +40,22 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) types.Track {
 	}
 
 	return types.Track{
-		Id:       track.Id,
-		Name:     track.Name,
-		AlbumId:  track.AlbumId,
-		ArtistId: track.ArtistId,
-		Number:   number,
-		Duration: duration,
-		Year:     year,
+		Id:               track.Id,
+		Name:             track.Name,
+		AlbumId:          track.AlbumId,
+		ArtistId:         track.ArtistId,
+		Number:           number,
+		Duration:         duration,
+		Year:             year,
 		OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/original/%s/%s", track.AlbumId, track.OriginalFilename)),
 		MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/mobile/%s/%s", track.AlbumId, track.MobileFilename)),
 		CoverArt:         utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-		AlbumName:  track.AlbumName,
-		ArtistName: track.ArtistName,
-		Created:    track.Created,
-		Updated:    track.Updated,
-		Tags:       utils.SplitString(track.Tags.String),
-		Available:  track.Available,
+		AlbumName:        track.AlbumName,
+		ArtistName:       track.ArtistName,
+		Created:          track.Created,
+		Updated:          track.Updated,
+		Tags:             utils.SplitString(track.Tags.String),
+		Available:        track.Available,
 	}
 }
 

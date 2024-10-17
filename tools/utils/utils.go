@@ -304,7 +304,7 @@ func RunFFprobe(verbose bool, args ...string) ([]byte, error) {
 }
 
 type TrackInfo struct {
-	Path   string
+	Path string
 
 	Duration int
 	Tags     map[string]string

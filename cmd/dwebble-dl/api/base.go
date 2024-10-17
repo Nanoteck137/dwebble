@@ -107,7 +107,6 @@ func Request[D any](data RequestData) (*D, error) {
 	if res.Status == "error" {
 		return nil, res.Error
 	}
-	
 
 	return &res.Data, nil
 }
@@ -116,4 +115,3 @@ func Request[D any](data RequestData) (*D, error) {
 func Sprintf(format string, a ...any) string {
 	return fmt.Sprintf(format, a...)
 }
-

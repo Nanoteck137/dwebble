@@ -81,7 +81,7 @@ func (db *Database) CreateTag(ctx context.Context, slug, name string) error {
 func (db *Database) AddTagToTrack(ctx context.Context, tagSlug, trackId string) error {
 	ds := dialect.Insert("tracks_to_tags").Rows(goqu.Record{
 		"track_id": trackId,
-		"tag_slug":   tagSlug,
+		"tag_slug": tagSlug,
 	}).Prepared(true)
 
 	_, err := db.Exec(ctx, ds)
@@ -134,7 +134,7 @@ func (db *Database) GetTrackTags(ctx context.Context, trackId string) ([]Tag, er
 	query := dialect.From("tracks_to_tags").
 		Select("tags.id", "tags.name", "tags.display_name").
 		Join(
-			goqu.I("tags"), 
+			goqu.I("tags"),
 			goqu.On(goqu.I("tracks_to_tags.tag_id").Eq(goqu.I("tags.id"))),
 		).
 		Where(goqu.I("tracks_to_tags.track_id").Eq(trackId)).

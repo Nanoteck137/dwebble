@@ -8,12 +8,12 @@ import (
 )
 
 type Route struct {
-	Name       string
-	Path       string
-	Method     string
-	ErrorTypes []api.ErrorType
-	Data       any
-	Body       types.Body
+	Name        string
+	Path        string
+	Method      string
+	ErrorTypes  []api.ErrorType
+	Data        any
+	Body        types.Body
 	IsMultiForm bool
 }
 

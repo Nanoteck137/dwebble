@@ -81,7 +81,7 @@ func main() {
 
 		globalErrorTypes := []api.ErrorType{
 			apis.ErrTypeUnknownError,
-		};
+		}
 
 		types := make(map[api.ErrorType]struct{})
 

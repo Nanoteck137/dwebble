@@ -81,7 +81,6 @@ func InitConfig() {
 		os.Exit(-1)
 	}
 
-
 	hide := func(s string) string {
 		var res string
 		for i := 0; i < len(s); i++ {
