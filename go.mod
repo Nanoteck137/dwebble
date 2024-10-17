@@ -14,11 +14,11 @@ require (
 	github.com/gosimple/slug v1.14.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/kr/pretty v0.3.1
-	github.com/labstack/echo/v4 v4.11.4
+	github.com/labstack/echo/v4 v4.12.0
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nanoteck137/parasect v0.2.1
-	github.com/nanoteck137/pyrin v0.7.0
+	github.com/nanoteck137/pyrin v0.8.1
 	github.com/nrednav/cuid2 v1.0.0
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/pressly/goose/v3 v3.17.0

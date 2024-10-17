@@ -12,7 +12,10 @@ import (
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/api"
 )
+
+type ErrorType = api.ErrorType
 
 func User(app core.App, c echo.Context) (*database.User, error) {
 	authHeader := c.Request().Header.Get("Authorization")
