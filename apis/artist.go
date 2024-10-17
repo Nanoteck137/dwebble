@@ -6,6 +6,7 @@ import (
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 )
@@ -28,8 +29,7 @@ func (api *artistApi) HandleGetArtists(c pyrin.Context) (any, error) {
 		res.Artists[i] = types.Artist{
 			Id:      artist.Id,
 			Name:    artist.Name,
-			// TODO(patrik): Fix
-			// Picture: utils.ConvertArtistPictureURL(c, artist.Picture),
+			Picture: utils.ConvertArtistPictureURL(c, artist.Picture),
 		}
 	}
 

@@ -22,7 +22,7 @@ import (
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
-	"github.com/nanoteck137/pyrin/api"
+	"github.com/nanoteck137/pyrin"
 	pyrinapi "github.com/nanoteck137/pyrin/api"
 	vld "github.com/tiendc/go-validator"
 )
@@ -31,15 +31,15 @@ type albumApi struct {
 	app core.App
 }
 
-func ConvertDBAlbum(c echo.Context, album database.Album) types.Album {
+func ConvertDBAlbum(c pyrin.Context, album database.Album) types.Album {
 	var year *int64
 	if album.Year.Valid {
 		year = &album.Year.Int64
 	}
 
 	return types.Album{
-		Id:         album.Id,
-		Name:       album.Name,
+		Id:   album.Id,
+		Name: album.Name,
 		CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 		ArtistId:   album.ArtistId,
 		ArtistName: album.ArtistName,
@@ -49,14 +49,19 @@ func ConvertDBAlbum(c echo.Context, album database.Album) types.Album {
 	}
 }
 
-func (api *albumApi) HandleGetAlbums(c echo.Context) error {
-	filter := c.QueryParam("filter")
-	sort := c.QueryParam("sort")
-	includeAll := ParseQueryBool(c.QueryParam("includeAll"))
+func (api *albumApi) HandleGetAlbums(c pyrin.Context) (any, error) {
+	// TODO(patrik): Add to pyrin
+	// filter := c.QueryParam("filter")
+	// sort := c.QueryParam("sort")
+	// includeAll := ParseQueryBool(c.QueryParam("includeAll"))
+
+	filter := ""
+	sort := ""
+	includeAll := false
 
 	albums, err := api.app.DB().GetAllAlbums(c.Request().Context(), filter, sort, includeAll)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	res := types.GetAlbums{
@@ -64,43 +69,43 @@ func (api *albumApi) HandleGetAlbums(c echo.Context) error {
 	}
 
 	for i, album := range albums {
-		res.Albums[i] = ConvertDBAlbum(c, album) 
+		res.Albums[i] = ConvertDBAlbum(c, album)
 	}
 
-	return c.JSON(200, SuccessResponse(res))
+	return res, nil
 }
 
-func (api *albumApi) HandleGetAlbumById(c echo.Context) error {
+func (api *albumApi) HandleGetAlbumById(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 	album, err := api.app.DB().GetAlbumById(c.Request().Context(), id)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
-			return AlbumNotFound()
+			return nil, AlbumNotFound()
 		}
 
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, SuccessResponse(types.GetAlbumById{
+	return types.GetAlbumById{
 		Album: ConvertDBAlbum(c, album),
-	}))
+	}, nil
 }
 
-func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
+func (api *albumApi) HandleGetAlbumTracksById(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 
 	album, err := api.app.DB().GetAlbumById(c.Request().Context(), id)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
-			return AlbumNotFound()
+			return nil, AlbumNotFound()
 		}
 
-		return err
+		return nil, err
 	}
 
 	tracks, err := api.app.DB().GetTracksByAlbum(c.Request().Context(), album.Id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	res := types.GetAlbumTracksById{
@@ -111,7 +116,7 @@ func (api *albumApi) HandleGetAlbumTracksById(c echo.Context) error {
 		res.Tracks[i] = ConvertDBTrack(c, track)
 	}
 
-	return c.JSON(200, SuccessResponse(res))
+	return res, nil
 }
 
 var _ types.Body = (*PatchAlbumBody)(nil)
@@ -451,7 +456,7 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 			Name:     name,
 			AlbumId:  album.Id,
 			ArtistId: artist.Id,
-			Number:   sql.NullInt64{
+			Number: sql.NullInt64{
 				Int64: int64(number),
 				Valid: number != 0,
 			},
@@ -572,7 +577,7 @@ func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
 			Name:     name,
 			AlbumId:  album.Id,
 			ArtistId: album.ArtistId,
-			Number:   sql.NullInt64{
+			Number: sql.NullInt64{
 				Int64: int64(number),
 				Valid: number != 0,
 			},
@@ -599,80 +604,74 @@ func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
 	return c.JSON(200, pyrinapi.SuccessResponse(nil))
 }
 
-func InstallAlbumHandlers(app core.App, group Group) {
+func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 	a := albumApi{app: app}
 
 	group.Register(
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "GetAlbums",
 			Path:        "/albums",
 			Method:      http.MethodGet,
 			DataType:    types.GetAlbums{},
-			BodyType:    nil,
 			HandlerFunc: a.HandleGetAlbums,
-			Middlewares: []echo.MiddlewareFunc{},
 		},
 
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "GetAlbumById",
 			Method:      http.MethodGet,
 			Path:        "/albums/:id",
 			DataType:    types.GetAlbumById{},
-			BodyType:    nil,
-			Errors:      []api.ErrorType{ErrTypeAlbumNotFound},
+			Errors:      []ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: a.HandleGetAlbumById,
-			Middlewares: []echo.MiddlewareFunc{},
 		},
 
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "GetAlbumTracks",
 			Method:      http.MethodGet,
 			Path:        "/albums/:id/tracks",
 			DataType:    types.GetAlbumTracksById{},
-			BodyType:    nil,
-			Errors:      []api.ErrorType{ErrTypeAlbumNotFound},
+			Errors:      []ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: a.HandleGetAlbumTracksById,
-			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 
-	group.Register(
-		Handler{
-			Name:        "EditAlbum",
-			Method:      http.MethodPatch,
-			Path:        "/albums/:id",
-			DataType:    nil,
-			BodyType:    PatchAlbumBody{},
-			HandlerFunc: a.HandlePatchAlbum,
-		},
-
-		Handler{
-			Name:        "DeleteAlbum",
-			Method:      http.MethodDelete,
-			Path:        "/albums/:id",
-			DataType:    nil,
-			BodyType:    nil,
-			HandlerFunc: a.HandleDeleteAlbum,
-		},
-
-		Handler{
-			Name:        "ImportAlbum",
-			Method:      http.MethodPost,
-			Path:        "/albums/import",
-			DataType:    PostAlbumImport{},
-			BodyType:    PostAlbumImportBody{},
-			IsMultiForm: true,
-			HandlerFunc: a.HandlePostAlbumImport,
-		},
-
-		Handler{
-			Name:        "ImportTrackToAlbum",
-			Method:      http.MethodPost,
-			Path:        "/albums/:id/import/track",
-			DataType:    nil,
-			BodyType:    nil,
-			IsMultiForm: true,
-			HandlerFunc: a.HandlePostAlbumImportTrackById,
-		},
-	)
+	// group.Register(
+	// 	Handler{
+	// 		Name:        "EditAlbum",
+	// 		Method:      http.MethodPatch,
+	// 		Path:        "/albums/:id",
+	// 		DataType:    nil,
+	// 		BodyType:    PatchAlbumBody{},
+	// 		HandlerFunc: a.HandlePatchAlbum,
+	// 	},
+	//
+	// 	Handler{
+	// 		Name:        "DeleteAlbum",
+	// 		Method:      http.MethodDelete,
+	// 		Path:        "/albums/:id",
+	// 		DataType:    nil,
+	// 		BodyType:    nil,
+	// 		HandlerFunc: a.HandleDeleteAlbum,
+	// 	},
+	//
+	// 	Handler{
+	// 		Name:        "ImportAlbum",
+	// 		Method:      http.MethodPost,
+	// 		Path:        "/albums/import",
+	// 		DataType:    PostAlbumImport{},
+	// 		BodyType:    PostAlbumImportBody{},
+	// 		IsMultiForm: true,
+	// 		HandlerFunc: a.HandlePostAlbumImport,
+	// 	},
+	//
+	// 	Handler{
+	// 		Name:        "ImportTrackToAlbum",
+	// 		Method:      http.MethodPost,
+	// 		Path:        "/albums/:id/import/track",
+	// 		DataType:    nil,
+	// 		BodyType:    nil,
+	// 		IsMultiForm: true,
+	// 		HandlerFunc: a.HandlePostAlbumImportTrackById,
+	// 	},
+	// )
 }

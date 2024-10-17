@@ -1,6 +1,10 @@
 package types
 
-import "github.com/faceair/jio"
+import (
+	"github.com/faceair/jio"
+	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/validate"
+)
 
 type Body interface {
 	Schema() jio.Schema
@@ -110,10 +114,16 @@ type GetTags struct {
 	Tags []Tag `json:"tags"`
 }
 
+var _ pyrin.Body = (*PostAuthSignupBody)(nil)
+
 type PostAuthSignupBody struct {
 	Username        string `json:"username"`
 	Password        string `json:"password"`
 	PasswordConfirm string `json:"passwordConfirm"`
+}
+
+func (b PostAuthSignupBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
 }
 
 func (b PostAuthSignupBody) Schema() jio.Schema {
@@ -129,9 +139,15 @@ type PostAuthSignup struct {
 	Username string `json:"username"`
 }
 
+var _ pyrin.Body = (*PostAuthSigninBody)(nil)
+
 type PostAuthSigninBody struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+func (b PostAuthSigninBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
 }
 
 func (b PostAuthSigninBody) Schema() jio.Schema {
@@ -155,8 +171,14 @@ type PostPlaylist struct {
 	Playlist
 }
 
+var _ pyrin.Body = (*PostPlaylistBody)(nil)
+
 type PostPlaylistBody struct {
 	Name string `json:"name"`
+}
+
+func (b PostPlaylistBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
 }
 
 func (b PostPlaylistBody) Schema() jio.Schema {
@@ -165,10 +187,16 @@ func (b PostPlaylistBody) Schema() jio.Schema {
 	})
 }
 
+var _ pyrin.Body = (*PostPlaylistFilterBody)(nil)
+
 type PostPlaylistFilterBody struct {
 	Name   string `json:"name"`
 	Filter string `json:"filter"`
 	Sort   string `json:"sort"`
+}
+
+func (b PostPlaylistFilterBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
 }
 
 func (b PostPlaylistFilterBody) Schema() jio.Schema {
@@ -179,8 +207,14 @@ func (b PostPlaylistFilterBody) Schema() jio.Schema {
 	})
 }
 
+var _ pyrin.Body = (*PostPlaylistItemsByIdBody)(nil)
+
 type PostPlaylistItemsByIdBody struct {
 	Tracks []string `json:"tracks"`
+}
+
+func (b PostPlaylistItemsByIdBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
 }
 
 func (b PostPlaylistItemsByIdBody) Schema() jio.Schema {
@@ -199,8 +233,14 @@ type GetPlaylists struct {
 	Playlists []Playlist `json:"playlists"`
 }
 
+var _ pyrin.Body = (*DeletePlaylistItemsByIdBody)(nil)
+
 type DeletePlaylistItemsByIdBody struct {
 	TrackIds []string `json:"trackIds"`
+}
+
+func (b DeletePlaylistItemsByIdBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
 }
 
 func (b DeletePlaylistItemsByIdBody) Schema() jio.Schema {
@@ -209,9 +249,15 @@ func (b DeletePlaylistItemsByIdBody) Schema() jio.Schema {
 	})
 }
 
+var _ pyrin.Body = (*PostPlaylistsItemMoveByIdBody)(nil)
+
 type PostPlaylistsItemMoveByIdBody struct {
 	TrackId string `json:"trackId"`
 	ToIndex int    `json:"toIndex"`
+}
+
+func (b PostPlaylistsItemMoveByIdBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
 }
 
 func (b PostPlaylistsItemMoveByIdBody) Schema() jio.Schema {
