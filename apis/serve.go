@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble"
+	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/pyrin"
 )
@@ -35,9 +36,6 @@ func fsFile(w http.ResponseWriter, r *http.Request, file string, filesystem fs.F
 }
 
 func Server(app core.App) (*pyrin.Server, error) {
-	// TODO(patrik): Add to pyrin
-	// e.StaticFS("/images/default", assets.DefaultImagesFS)
-
 	s := pyrin.NewServer(&pyrin.ServerConfig{
 		LogName: dwebble.AppName,
 		RegisterHandlers: func(router pyrin.Router) {
@@ -46,6 +44,14 @@ func Server(app core.App) (*pyrin.Server, error) {
 
 			g = router.Group("/files")
 			g.Register(
+				pyrin.NormalHandler{
+					Method:      http.MethodGet,
+					Path:        "/images/default/:image",
+					HandlerFunc: func(c pyrin.Context) error {
+						image := c.Param("image")
+						return fsFile(c.Response(), c.Request(), image, assets.DefaultImagesFS)
+					},
+				},
 				pyrin.NormalHandler{
 					Method:      http.MethodGet,
 					Path:        "/albums/images/:albumId/:image",
