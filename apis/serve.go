@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/labstack/echo/v4"
+	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/pyrin"
 )
@@ -35,19 +36,10 @@ func fsFile(w http.ResponseWriter, r *http.Request, file string, filesystem fs.F
 
 func Server(app core.App) (*pyrin.Server, error) {
 	// TODO(patrik): Add to pyrin
-	// e.RouteNotFound("/*", func(c echo.Context) error {
-	// 	return RouteNotFound()
-	// })
-	//
-	// TODO(patrik): Add to pyrin
-	// e.Use(echolog.LoggerWithName(dwebble.AppName))
-	// e.Use(middleware.Recover())
-	// e.Use(middleware.CORS())
-	//
-	// TODO(patrik): Add to pyrin
 	// e.StaticFS("/images/default", assets.DefaultImagesFS)
 
 	s := pyrin.NewServer(&pyrin.ServerConfig{
+		LogName: dwebble.AppName,
 		RegisterHandlers: func(router pyrin.Router) {
 			g := router.Group("/api/v1")
 			InstallHandlers(app, g)
@@ -57,7 +49,6 @@ func Server(app core.App) (*pyrin.Server, error) {
 				pyrin.NormalHandler{
 					Method:      http.MethodGet,
 					Path:        "/albums/images/:albumId/:image",
-					Middlewares: []echo.MiddlewareFunc{},
 					HandlerFunc: func(c pyrin.Context) error {
 						albumId := c.Param("albumId")
 						image := c.Param("image")
@@ -70,8 +61,7 @@ func Server(app core.App) (*pyrin.Server, error) {
 				},
 				pyrin.NormalHandler{
 					Method:      http.MethodGet,
-					Path:        "/files/tracks/mobile/:albumId/:track",
-					Middlewares: []echo.MiddlewareFunc{},
+					Path:        "/tracks/mobile/:albumId/:track",
 					HandlerFunc: func(c pyrin.Context) error {
 						albumId := c.Param("albumId")
 						track := c.Param("track")
@@ -84,8 +74,7 @@ func Server(app core.App) (*pyrin.Server, error) {
 				},
 				pyrin.NormalHandler{
 					Method:      http.MethodGet,
-					Path:        "/files/tracks/original/:albumId/:track",
-					Middlewares: []echo.MiddlewareFunc{},
+					Path:        "/tracks/original/:albumId/:track",
 					HandlerFunc: func(c pyrin.Context) error {
 						albumId := c.Param("albumId")
 						track := c.Param("track")

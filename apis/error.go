@@ -3,66 +3,53 @@ package apis
 import (
 	"net/http"
 
-	"github.com/nanoteck137/pyrin/api"
+	"github.com/nanoteck137/pyrin"
 )
 
 const (
-	ErrTypeArtistNotFound api.ErrorType = "ARTIST_NOT_FOUND"
-	ErrTypeAlbumNotFound  api.ErrorType = "ALBUM_NOT_FOUND"
-	ErrTypeTrackNotFound  api.ErrorType = "TRACK_NOT_FOUND"
-	ErrTypeRouteNotFound  api.ErrorType = "ROUTE_NOT_FOUND"
-	ErrTypeInvalidFilter  api.ErrorType = "INVALID_FILTER"
-	ErrTypeInvalidSort    api.ErrorType = "INVALID_SORT"
+	ErrTypeArtistNotFound pyrin.ErrorType = "ARTIST_NOT_FOUND"
+	ErrTypeAlbumNotFound  pyrin.ErrorType = "ALBUM_NOT_FOUND"
+	ErrTypeTrackNotFound  pyrin.ErrorType = "TRACK_NOT_FOUND"
+	ErrTypeInvalidFilter  pyrin.ErrorType = "INVALID_FILTER"
+	ErrTypeInvalidSort    pyrin.ErrorType = "INVALID_SORT"
 )
 
-func ArtistNotFound() *api.Error {
-	return &api.Error{
+func ArtistNotFound() *pyrin.Error {
+	return &pyrin.Error{
 		Code:    http.StatusNotFound,
 		Type:    ErrTypeArtistNotFound,
 		Message: "Artist not found",
 	}
 }
 
-func AlbumNotFound() *api.Error {
-	return &api.Error{
+func AlbumNotFound() *pyrin.Error {
+	return &pyrin.Error{
 		Code:    http.StatusNotFound,
 		Type:    ErrTypeAlbumNotFound,
 		Message: "Album not found",
 	}
 }
 
-func TrackNotFound() *api.Error {
-	return &api.Error{
+func TrackNotFound() *pyrin.Error {
+	return &pyrin.Error{
 		Code:    http.StatusNotFound,
 		Type:    ErrTypeTrackNotFound,
 		Message: "Track not found",
 	}
 }
 
-func InvalidFilter(err error) *api.Error {
-	return &api.Error{
+func InvalidFilter(err error) *pyrin.Error {
+	return &pyrin.Error{
 		Code:    http.StatusBadRequest,
 		Type:    ErrTypeInvalidFilter,
 		Message: err.Error(),
 	}
 }
 
-func InvalidSort(err error) *api.Error {
-	return &api.Error{
+func InvalidSort(err error) *pyrin.Error {
+	return &pyrin.Error{
 		Code:    http.StatusBadRequest,
 		Type:    ErrTypeInvalidSort,
 		Message: err.Error(),
 	}
-}
-
-func RouteNotFound() *api.Error {
-	return &api.Error{
-		Code:    http.StatusNotFound,
-		Type:    ErrTypeRouteNotFound,
-		Message: "Route not found",
-	}
-}
-
-func SuccessResponse(data any) api.Response {
-	return api.SuccessResponse(data)
 }

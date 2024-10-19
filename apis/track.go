@@ -9,13 +9,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	pyrinapi "github.com/nanoteck137/pyrin/api"
 	"github.com/nanoteck137/pyrin/tools/validate"
 )
 
@@ -75,14 +73,11 @@ func ParseQueryBool(s string) bool {
 }
 
 func (api *trackApi) HandleGetTracks(c pyrin.Context) (any, error) {
-	// TODO(patrik): Fix
-	// f := c.QueryParam("filter")
-	// s := c.QueryParam("sort")
-	// includeAll := ParseQueryBool(c.QueryParam("includeAll"))
+	q := c.Request().URL.Query()
 
-	f := ""
-	s := ""
-	includeAll := false
+	f := q.Get("filter")
+	s := q.Get("sort")
+	includeAll := ParseQueryBool(q.Get("includeAll"))
 
 	// TODO(patrik): Fix
 	_ = includeAll
@@ -104,29 +99,27 @@ func (api *trackApi) HandleGetTracks(c pyrin.Context) (any, error) {
 		Tracks: make([]types.Track, len(tracks)),
 	}
 
-	// TODO(patrik): Fix
-	// for i, track := range tracks {
-	// 	res.Tracks[i] = ConvertDBTrack(c, track)
-	// }
+	for i, track := range tracks {
+		res.Tracks[i] = ConvertDBTrack(c, track)
+	}
 
 	return res, nil
 }
 
 func (api *trackApi) HandleGetTrackById(c pyrin.Context) (any, error) {
-	// id := c.Param("id")
+	id := c.Param("id")
 
-	// track, err := api.app.DB().GetTrackById(c.Request().Context(), id)
-	// if err != nil {
-	// 	if errors.Is(err, database.ErrItemNotFound) {
-	// 		return TrackNotFound()
-	// 	}
-	//
-	// 	return err
-	// }
+	track, err := api.app.DB().GetTrackById(c.Request().Context(), id)
+	if err != nil {
+		if errors.Is(err, database.ErrItemNotFound) {
+			return nil, TrackNotFound()
+		}
+
+		return nil, err
+	}
 
 	return types.GetTrackById{
-		// TODO(patrik): Fix
-		// Track: ConvertDBTrack(c, track),
+		Track: ConvertDBTrack(c, track),
 	}, nil
 }
 
@@ -165,18 +158,18 @@ type PatchTrackBody struct {
 }
 
 // Validate implements pyrin.Body.
-func (*PatchTrackBody) Validate(validator validate.Validator) error {
+func (b PatchTrackBody) Validate(validator validate.Validator) error {
 	panic("unimplemented")
 }
 
-func (api *trackApi) HandlePatchTrack(c echo.Context) error {
+func (api *trackApi) HandlePatchTrack(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 
 	var body PatchTrackBody
 	d := json.NewDecoder(c.Request().Body)
 	err := d.Decode(&body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ctx := context.TODO()
@@ -184,7 +177,7 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 	track, err := api.app.DB().GetTrackById(ctx, id)
 	if err != nil {
 		// TODO(patrik): Handle error
-		return err
+		return nil, err
 	}
 
 	var name types.Change[string]
@@ -210,10 +203,10 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 				})
 
 				if err != nil {
-					return err
+					return nil, err
 				}
 			} else {
-				return err
+				return nil, err
 			}
 		}
 
@@ -251,7 +244,7 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 		},
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if body.Tags != nil {
@@ -259,7 +252,7 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 
 		err = api.app.DB().RemoveAllTagsFromTrack(ctx, track.Id)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for _, tag := range tags {
@@ -267,17 +260,17 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 
 			err := api.app.DB().CreateTag(ctx, slug, tag)
 			if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
-				return err
+				return nil, err
 			}
 
 			err = api.app.DB().AddTagToTrack(ctx, slug, track.Id)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+	return nil, nil
 }
 
 func InstallTrackHandlers(app core.App, group pyrin.Group) {
@@ -289,7 +282,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Method:      http.MethodGet,
 			Path:        "/tracks",
 			DataType:    types.GetTracks{},
-			Errors:      []ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
+			Errors:      []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: a.HandleGetTracks,
 		},
 
@@ -298,7 +291,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Method:      http.MethodGet,
 			Path:        "/tracks/:id",
 			DataType:    types.GetTrackById{},
-			Errors:      []ErrorType{ErrTypeTrackNotFound},
+			Errors:      []pyrin.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: a.HandleGetTrackById,
 		},
 
@@ -309,12 +302,12 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: a.HandleDeleteTrack,
 		},
 
-		// pyrin.ApiHandler{
-		// 	Name:        "EditTrack",
-		// 	Method:      http.MethodPatch,
-		// 	Path:        "/tracks/:id",
-		// 	BodyType:    PatchTrackBody{},
-		// 	HandlerFunc: a.HandlePatchTrack,
-		// },
+		pyrin.ApiHandler{
+			Name:        "EditTrack",
+			Method:      http.MethodPatch,
+			Path:        "/tracks/:id",
+			BodyType:    PatchTrackBody{},
+			HandlerFunc: a.HandlePatchTrack,
+		},
 	)
 }

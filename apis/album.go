@@ -50,14 +50,11 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) types.Album {
 }
 
 func (api *albumApi) HandleGetAlbums(c pyrin.Context) (any, error) {
-	// TODO(patrik): Add to pyrin
-	// filter := c.QueryParam("filter")
-	// sort := c.QueryParam("sort")
-	// includeAll := ParseQueryBool(c.QueryParam("includeAll"))
+	q := c.Request().URL.Query()
 
-	filter := ""
-	sort := ""
-	includeAll := false
+	filter := q.Get("filter")
+	sort := q.Get("sort")
+	includeAll := ParseQueryBool(q.Get("includeAll"))
 
 	albums, err := api.app.DB().GetAllAlbums(c.Request().Context(), filter, sort, includeAll)
 	if err != nil {
@@ -621,7 +618,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Method:      http.MethodGet,
 			Path:        "/albums/:id",
 			DataType:    types.GetAlbumById{},
-			Errors:      []ErrorType{ErrTypeAlbumNotFound},
+			Errors:      []pyrin.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: a.HandleGetAlbumById,
 		},
 
@@ -630,7 +627,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Method:      http.MethodGet,
 			Path:        "/albums/:id/tracks",
 			DataType:    types.GetAlbumTracksById{},
-			Errors:      []ErrorType{ErrTypeAlbumNotFound},
+			Errors:      []pyrin.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: a.HandleGetAlbumTracksById,
 		},
 	)

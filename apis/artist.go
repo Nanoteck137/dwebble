@@ -50,8 +50,7 @@ func (api *artistApi) HandleGetArtistById(c pyrin.Context) (any, error) {
 		Artist: types.Artist{
 			Id:   artist.Id,
 			Name: artist.Name,
-			// TODO(patrik): Fix
-			// Picture: utils.ConvertArtistPictureURL(c, artist.Picture),
+			Picture: utils.ConvertArtistPictureURL(c, artist.Picture),
 		},
 	}, nil
 }
@@ -82,8 +81,7 @@ func (api *artistApi) HandleGetArtistAlbumsById(c pyrin.Context) (any, error) {
 		res.Albums[i] = types.Album{
 			Id:   album.Id,
 			Name: album.Name,
-			// TODO(patrik): Fix
-			// CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
+			CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 			ArtistId:   album.ArtistId,
 			ArtistName: album.ArtistName,
 		}
@@ -109,7 +107,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Method:      http.MethodGet,
 			Path:        "/artists/:id",
 			DataType:    types.GetArtistById{},
-			Errors:      []ErrorType{ErrTypeArtistNotFound},
+			Errors:      []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: a.HandleGetArtistById,
 		},
 
@@ -118,7 +116,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Method:      http.MethodGet,
 			Path:        "/artists/:id/albums",
 			DataType:    types.GetArtistAlbumsById{},
-			Errors:      []ErrorType{ErrTypeArtistNotFound},
+			Errors:      []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: a.HandleGetArtistAlbumsById,
 		},
 	)
