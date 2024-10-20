@@ -22,15 +22,13 @@ func main() {
 
 	d, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
-		log.Fatal("Failed to marshal server", "err", err)
+		log.Fatal("Failed to marshal server", err)
 	}
-
-	fmt.Printf("string(d): %v\n", string(d))
 
 	out := "./misc/pyrin.json"
 	err = os.WriteFile(out, d, 0644)
 	if err != nil {
-		log.Fatal("Failed to write pyrin.json", "err", err)
+		log.Fatal("Failed to write pyrin.json", err)
 	}
 
 	fmt.Println("Wrote 'misc/pyrin.json'")

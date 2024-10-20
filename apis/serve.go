@@ -1,39 +1,14 @@
 package apis
 
 import (
-	"errors"
-	"io"
-	"io/fs"
 	"net/http"
 	"os"
 
-	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/pyrin"
 )
-
-// TODO(patrik): Add to pyrin
-func fsFile(w http.ResponseWriter, r *http.Request, file string, filesystem fs.FS) error {
-	f, err := filesystem.Open(file)
-	if err != nil {
-		// TODO(patrik): Add NoContentError to pyrin
-		return echo.ErrNotFound
-	}
-	defer f.Close()
-
-	fi, _ := f.Stat()
-
-	ff, ok := f.(io.ReadSeeker)
-	if !ok {
-		return errors.New("file does not implement io.ReadSeeker")
-	}
-
-	http.ServeContent(w, r, fi.Name(), fi.ModTime(), ff)
-
-	return nil
-}
 
 func RegisterHandlers(app core.App, router pyrin.Router) {
 	g := router.Group("/api/v1")
@@ -46,7 +21,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 			Path:   "/images/default/:image",
 			HandlerFunc: func(c pyrin.Context) error {
 				image := c.Param("image")
-				return fsFile(c.Response(), c.Request(), image, assets.DefaultImagesFS)
+				return pyrin.ServeFile(c.Response(), c.Request(), assets.DefaultImagesFS, image)
 			},
 		},
 		pyrin.NormalHandler{
@@ -59,7 +34,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 				p := app.WorkDir().Album(albumId).Images()
 				f := os.DirFS(p)
 
-				return fsFile(c.Response(), c.Request(), image, f)
+				return pyrin.ServeFile(c.Response(), c.Request(), f, image)
 			},
 		},
 		pyrin.NormalHandler{
@@ -72,7 +47,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 				p := app.WorkDir().Album(albumId).MobileFiles()
 				f := os.DirFS(p)
 
-				return fsFile(c.Response(), c.Request(), track, f)
+				return pyrin.ServeFile(c.Response(), c.Request(), f, track)
 			},
 		},
 		pyrin.NormalHandler{
@@ -85,7 +60,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 				p := app.WorkDir().Album(albumId).OriginalFiles()
 				f := os.DirFS(p)
 
-				return fsFile(c.Response(), c.Request(), track, f)
+				return pyrin.ServeFile(c.Response(), c.Request(), f, track)
 			},
 		},
 	)
