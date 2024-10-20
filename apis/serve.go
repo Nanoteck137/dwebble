@@ -35,63 +35,67 @@ func fsFile(w http.ResponseWriter, r *http.Request, file string, filesystem fs.F
 	return nil
 }
 
+func RegisterHandlers(app core.App, router pyrin.Router) {
+	g := router.Group("/api/v1")
+	InstallHandlers(app, g)
+
+	g = router.Group("/files")
+	g.Register(
+		pyrin.NormalHandler{
+			Method: http.MethodGet,
+			Path:   "/images/default/:image",
+			HandlerFunc: func(c pyrin.Context) error {
+				image := c.Param("image")
+				return fsFile(c.Response(), c.Request(), image, assets.DefaultImagesFS)
+			},
+		},
+		pyrin.NormalHandler{
+			Method: http.MethodGet,
+			Path:   "/albums/images/:albumId/:image",
+			HandlerFunc: func(c pyrin.Context) error {
+				albumId := c.Param("albumId")
+				image := c.Param("image")
+
+				p := app.WorkDir().Album(albumId).Images()
+				f := os.DirFS(p)
+
+				return fsFile(c.Response(), c.Request(), image, f)
+			},
+		},
+		pyrin.NormalHandler{
+			Method: http.MethodGet,
+			Path:   "/tracks/mobile/:albumId/:track",
+			HandlerFunc: func(c pyrin.Context) error {
+				albumId := c.Param("albumId")
+				track := c.Param("track")
+
+				p := app.WorkDir().Album(albumId).MobileFiles()
+				f := os.DirFS(p)
+
+				return fsFile(c.Response(), c.Request(), track, f)
+			},
+		},
+		pyrin.NormalHandler{
+			Method: http.MethodGet,
+			Path:   "/tracks/original/:albumId/:track",
+			HandlerFunc: func(c pyrin.Context) error {
+				albumId := c.Param("albumId")
+				track := c.Param("track")
+
+				p := app.WorkDir().Album(albumId).OriginalFiles()
+				f := os.DirFS(p)
+
+				return fsFile(c.Response(), c.Request(), track, f)
+			},
+		},
+	)
+}
+
 func Server(app core.App) (*pyrin.Server, error) {
 	s := pyrin.NewServer(&pyrin.ServerConfig{
 		LogName: dwebble.AppName,
 		RegisterHandlers: func(router pyrin.Router) {
-			g := router.Group("/api/v1")
-			InstallHandlers(app, g)
-
-			g = router.Group("/files")
-			g.Register(
-				pyrin.NormalHandler{
-					Method:      http.MethodGet,
-					Path:        "/images/default/:image",
-					HandlerFunc: func(c pyrin.Context) error {
-						image := c.Param("image")
-						return fsFile(c.Response(), c.Request(), image, assets.DefaultImagesFS)
-					},
-				},
-				pyrin.NormalHandler{
-					Method:      http.MethodGet,
-					Path:        "/albums/images/:albumId/:image",
-					HandlerFunc: func(c pyrin.Context) error {
-						albumId := c.Param("albumId")
-						image := c.Param("image")
-
-						p := app.WorkDir().Album(albumId).Images()
-						f := os.DirFS(p)
-
-						return fsFile(c.Response(), c.Request(), image, f)
-					},
-				},
-				pyrin.NormalHandler{
-					Method:      http.MethodGet,
-					Path:        "/tracks/mobile/:albumId/:track",
-					HandlerFunc: func(c pyrin.Context) error {
-						albumId := c.Param("albumId")
-						track := c.Param("track")
-
-						p := app.WorkDir().Album(albumId).MobileFiles()
-						f := os.DirFS(p)
-
-						return fsFile(c.Response(), c.Request(), track, f)
-					},
-				},
-				pyrin.NormalHandler{
-					Method:      http.MethodGet,
-					Path:        "/tracks/original/:albumId/:track",
-					HandlerFunc: func(c pyrin.Context) error {
-						albumId := c.Param("albumId")
-						track := c.Param("track")
-
-						p := app.WorkDir().Album(albumId).OriginalFiles()
-						f := os.DirFS(p)
-
-						return fsFile(c.Response(), c.Request(), track, f)
-					},
-				},
-			)
+			RegisterHandlers(app, router)
 		},
 	})
 
