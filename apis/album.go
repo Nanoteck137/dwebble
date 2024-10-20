@@ -17,13 +17,12 @@ import (
 
 	"github.com/faceair/jio"
 	"github.com/kr/pretty"
-	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	pyrinapi "github.com/nanoteck137/pyrin/api"
+	"github.com/nanoteck137/pyrin/tools/validate"
 	vld "github.com/tiendc/go-validator"
 )
 
@@ -116,7 +115,7 @@ func (api *albumApi) HandleGetAlbumTracksById(c pyrin.Context) (any, error) {
 	return res, nil
 }
 
-var _ types.Body = (*PatchAlbumBody)(nil)
+var _ pyrin.Body = (*PatchAlbumBody)(nil)
 
 type PatchAlbumBody struct {
 	Name       *string `json:"name"`
@@ -125,24 +124,24 @@ type PatchAlbumBody struct {
 	Year       *int64  `json:"year"`
 }
 
-func (PatchAlbumBody) Schema() jio.Schema {
+func (b PatchAlbumBody) Validate(validator validate.Validator) error {
 	panic("unimplemented")
 }
 
-func (api *albumApi) HandlePatchAlbum(c echo.Context) error {
+func (api *albumApi) HandlePatchAlbum(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 
 	var body PatchAlbumBody
 	d := json.NewDecoder(c.Request().Body)
 	err := d.Decode(&body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	album, err := api.app.DB().GetAlbumById(c.Request().Context(), id)
 	if err != nil {
 		// TODO(patrik): Handle error
-		return err
+		return nil, err
 	}
 
 	var name types.Change[string]
@@ -170,10 +169,10 @@ func (api *albumApi) HandlePatchAlbum(c echo.Context) error {
 				})
 
 				if err != nil {
-					return err
+					return nil, err
 				}
 			} else {
-				return err
+				return nil, err
 			}
 		}
 
@@ -196,45 +195,49 @@ func (api *albumApi) HandlePatchAlbum(c echo.Context) error {
 		Year:     year,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+	return nil, nil
 }
 
 // TODO(patrik): Move the album folder to trash can system
-func (api *albumApi) HandleDeleteAlbum(c echo.Context) error {
+func (api *albumApi) HandleDeleteAlbum(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 
 	db, tx, err := api.app.DB().Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer tx.Rollback()
 
 	err = db.RemoveAlbumTracks(c.Request().Context(), id)
 	if err != nil {
-		return fmt.Errorf("Failed to remove album tracks: %w", err)
+		return nil, fmt.Errorf("Failed to remove album tracks: %w", err)
 	}
 
 	err = db.RemoveAlbum(c.Request().Context(), id)
 	if err != nil {
-		return fmt.Errorf("Failed to remove album: %w", err)
+		return nil, fmt.Errorf("Failed to remove album: %w", err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+	return nil, nil
 }
 
-var _ types.Body = (*PostAlbumImportBody)(nil)
+var _ pyrin.Body = (*PostAlbumImportBody)(nil)
 
 type PostAlbumImportBody struct {
 	Name   string `json:"name"`
 	Artist string `json:"artist"`
+}
+
+func (b PostAlbumImportBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
 }
 
 func (PostAlbumImportBody) Schema() jio.Schema {
@@ -245,17 +248,21 @@ type PostAlbumImport struct {
 	AlbumId string `json:"albumId"`
 }
 
-func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
-	form, err := c.MultipartForm()
+const defaultMemory = 32 << 20 // 32 MB
+
+func (api *albumApi) HandlePostAlbumImport(c pyrin.Context) (any, error) {
+	err := c.Request().ParseMultipartForm(defaultMemory)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	form := c.Request().MultipartForm
 
 	data := form.Value["data"][0]
 	var body PostAlbumImportBody
 	err = json.Unmarshal(([]byte)(data), &body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	errs := vld.Validate(
@@ -267,12 +274,12 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 		),
 	)
 	if errs != nil {
-		return errs
+		return nil, errs
 	}
 
 	db, tx, err := api.app.DB().Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer tx.Rollback()
 
@@ -286,10 +293,10 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 				Picture: sql.NullString{},
 			})
 			if err != nil {
-				return err
+				return nil, err
 			}
 		} else {
-			return err
+			return nil, err
 		}
 	}
 
@@ -305,7 +312,7 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 		Available: true,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	albumDir := api.app.WorkDir().Album(album.Id)
@@ -320,7 +327,7 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 	for _, dir := range dirs {
 		err := os.Mkdir(dir, 0755)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -338,35 +345,35 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 		// TODO(patrik): Close file
 		file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		ff, err := f.Open()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		_, err = io.Copy(file, ff)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		i := path.Join(albumDir.Images(), "cover-128.png")
 		err = utils.CreateResizedImage(dst, i, 128)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		i = path.Join(albumDir.Images(), "cover-256.png")
 		err = utils.CreateResizedImage(dst, i, 256)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		i = path.Join(albumDir.Images(), "cover-512.png")
 		err = utils.CreateResizedImage(dst, i, 512)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		err = db.UpdateAlbum(ctx, album.Id, database.AlbumChanges{
@@ -380,7 +387,7 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 		})
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -395,30 +402,30 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 
 		file, err := os.CreateTemp("", "track.*"+ext)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		defer os.Remove(file.Name())
 
 		ff, err := f.Open()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		_, err = io.Copy(file, ff)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		file.Close()
 
 		mobileFile, err := utils.ProcessMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		name := originalName
@@ -468,31 +475,33 @@ func (api *albumApi) HandlePostAlbumImport(c echo.Context) error {
 			Available:        true,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, pyrinapi.SuccessResponse(PostAlbumImport{
+	return PostAlbumImport{
 		AlbumId: album.Id,
-	}))
+	}, nil
 }
 
-func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
+func (api *albumApi) HandlePostAlbumImportTrackById(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 
-	form, err := c.MultipartForm()
+	err := c.Request().ParseMultipartForm(defaultMemory)
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	form := c.Request().MultipartForm
 
 	db, tx, err := api.app.DB().Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer tx.Rollback()
 
@@ -500,7 +509,7 @@ func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
 	album, err := db.GetAlbumById(ctx, id)
 	if err != nil {
 		// TODO(patrik): Handle error
-		return err
+		return nil, err
 	}
 
 	albumDir := api.app.WorkDir().Album(album.Id)
@@ -516,30 +525,30 @@ func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
 
 		file, err := os.CreateTemp("", "track.*"+ext)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		defer os.Remove(file.Name())
 
 		ff, err := f.Open()
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		_, err = io.Copy(file, ff)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		file.Close()
 
 		mobileFile, err := utils.ProcessMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		name := originalName
@@ -589,16 +598,16 @@ func (api *albumApi) HandlePostAlbumImportTrackById(c echo.Context) error {
 			Available:        true,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+	return nil, nil
 }
 
 func InstallAlbumHandlers(app core.App, group pyrin.Group) {
@@ -632,43 +641,38 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 		},
 	)
 
-	// group.Register(
-	// 	Handler{
-	// 		Name:        "EditAlbum",
-	// 		Method:      http.MethodPatch,
-	// 		Path:        "/albums/:id",
-	// 		DataType:    nil,
-	// 		BodyType:    PatchAlbumBody{},
-	// 		HandlerFunc: a.HandlePatchAlbum,
-	// 	},
-	//
-	// 	Handler{
-	// 		Name:        "DeleteAlbum",
-	// 		Method:      http.MethodDelete,
-	// 		Path:        "/albums/:id",
-	// 		DataType:    nil,
-	// 		BodyType:    nil,
-	// 		HandlerFunc: a.HandleDeleteAlbum,
-	// 	},
-	//
-	// 	Handler{
-	// 		Name:        "ImportAlbum",
-	// 		Method:      http.MethodPost,
-	// 		Path:        "/albums/import",
-	// 		DataType:    PostAlbumImport{},
-	// 		BodyType:    PostAlbumImportBody{},
-	// 		IsMultiForm: true,
-	// 		HandlerFunc: a.HandlePostAlbumImport,
-	// 	},
-	//
-	// 	Handler{
-	// 		Name:        "ImportTrackToAlbum",
-	// 		Method:      http.MethodPost,
-	// 		Path:        "/albums/:id/import/track",
-	// 		DataType:    nil,
-	// 		BodyType:    nil,
-	// 		IsMultiForm: true,
-	// 		HandlerFunc: a.HandlePostAlbumImportTrackById,
-	// 	},
-	// )
+	group.Register(
+		pyrin.ApiHandler{
+			Name:        "EditAlbum",
+			Method:      http.MethodPatch,
+			Path:        "/albums/:id",
+			BodyType:    PatchAlbumBody{},
+			HandlerFunc: a.HandlePatchAlbum,
+		},
+
+		pyrin.ApiHandler{
+			Name:        "DeleteAlbum",
+			Method:      http.MethodDelete,
+			Path:        "/albums/:id",
+			HandlerFunc: a.HandleDeleteAlbum,
+		},
+
+		pyrin.ApiHandler{
+			Name:        "ImportAlbum",
+			Method:      http.MethodPost,
+			Path:        "/albums/import",
+			DataType:    PostAlbumImport{},
+			BodyType:    PostAlbumImportBody{},
+			RequireForm: true,
+			HandlerFunc: a.HandlePostAlbumImport,
+		},
+
+		pyrin.ApiHandler{
+			Name:        "ImportTrackToAlbum",
+			Method:      http.MethodPost,
+			Path:        "/albums/:id/import/track",
+			RequireForm: true,
+			HandlerFunc: a.HandlePostAlbumImportTrackById,
+		},
+	)
 }
