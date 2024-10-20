@@ -79,9 +79,6 @@ func (api *trackApi) HandleGetTracks(c pyrin.Context) (any, error) {
 	s := q.Get("sort")
 	includeAll := ParseQueryBool(q.Get("includeAll"))
 
-	// TODO(patrik): Fix
-	_ = includeAll
-
 	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, s, includeAll)
 	if err != nil {
 		if errors.Is(err, database.ErrInvalidFilter) {
