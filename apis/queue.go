@@ -3,6 +3,7 @@ package apis
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/pyrin"
 )
 
 type queueApi struct {
@@ -41,7 +42,8 @@ func (api *queueApi) HandlePostQueue(c echo.Context) error {
 	// return c.JSON(200, SuccessResponse(res))
 }
 
-func InstallQueueHandlers(app core.App, group Group) {
+// TODO(patrik): Add back
+func InstallQueueHandlers(app core.App, group pyrin.Group) {
 	// api := queueApi{app: app}
 	//
 	// requireSetup := RequireSetup(app)

@@ -8,7 +8,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use: dwebble.AppName,
+	Use:     dwebble.AppName,
 	Version: dwebble.Version,
 }
 

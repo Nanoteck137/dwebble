@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin"
 )
 
 const (
@@ -14,7 +14,7 @@ const (
 	DefaultTrackCoverArtName = "default/default_album.png"
 )
 
-func ConvertURL(c echo.Context, path string) string {
+func ConvertURL(c pyrin.Context, path string) string {
 	host := c.Request().Host
 
 	scheme := "http"
@@ -27,7 +27,7 @@ func ConvertURL(c echo.Context, path string) string {
 	return fmt.Sprintf("%s://%s%s", scheme, host, path)
 }
 
-func ConvertImageURL(c echo.Context, albumId string, val sql.NullString, def string) string {
+func ConvertImageURL(c pyrin.Context, albumId string, val sql.NullString, def string) string {
 	coverArt := def
 	if val.Valid && val.String != "" {
 		coverArt = val.String
@@ -36,11 +36,11 @@ func ConvertImageURL(c echo.Context, albumId string, val sql.NullString, def str
 	return ConvertURL(c, "/files/albums/images/"+albumId+"/"+coverArt)
 }
 
-func ConvertArtistPictureURL(c echo.Context, val sql.NullString) string {
+func ConvertArtistPictureURL(c pyrin.Context, val sql.NullString) string {
 	return ConvertURL(c, "/images/"+DefaultArtistPictureName)
 }
 
-func ConvertAlbumCoverURL(c echo.Context, albumId string, val sql.NullString) types.CoverArt {
+func ConvertAlbumCoverURL(c pyrin.Context, albumId string, val sql.NullString) types.CoverArt {
 	if val.Valid && val.String != "" {
 		coverArt := val.String
 		return types.CoverArt{

@@ -11,24 +11,24 @@ import (
 	"strings"
 
 	"github.com/kr/pretty"
-	"github.com/labstack/echo/v4"
 	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin"
 )
 
 type systemApi struct {
 	app core.App
 }
 
-func (api *systemApi) HandleGetSystemInfo(c echo.Context) error {
-	return c.JSON(200, SuccessResponse(types.GetSystemInfo{
+func (api *systemApi) HandleGetSystemInfo(c pyrin.Context) (any, error) {
+	return types.GetSystemInfo{
 		Version: dwebble.Version,
 		IsSetup: api.app.IsSetup(),
-	}))
+	}, nil
 }
 
 type ExportArtist struct {
@@ -54,7 +54,7 @@ type ExportTrack struct {
 
 	Created int64
 
-	Tags   []string
+	Tags []string
 }
 
 type ExportAlbum struct {
@@ -72,7 +72,7 @@ type Export struct {
 	Tracks  []ExportTrack
 }
 
-func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
+func (api *systemApi) HandlePostSystemExport(c pyrin.Context) (any, error) {
 	db := api.app.DB()
 
 	ctx := context.TODO()
@@ -81,7 +81,7 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 
 	artists, err := db.GetAllArtists(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	export.Artists = make([]ExportArtist, len(artists))
@@ -95,7 +95,7 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 
 	albums, err := db.GetAllAlbums(ctx, "", "", false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	export.Albums = make([]ExportAlbum, len(albums))
@@ -111,7 +111,7 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 
 	tracks, err := db.GetAllTracks(ctx, "", "", false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	export.Tracks = make([]ExportTrack, len(tracks))
@@ -136,33 +136,33 @@ func (api *systemApi) HandlePostSystemExport(c echo.Context) error {
 
 	d, err := json.MarshalIndent(export, "", "  ")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = os.WriteFile(api.app.WorkDir().ExportFile(), d, 0644)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, SuccessResponse(nil))
+	return nil, nil
 }
 
-func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
+func (api *systemApi) HandlePostSystemImport(c pyrin.Context) (any, error) {
 	db, tx, err := api.app.DB().Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer tx.Rollback()
 
 	d, err := os.ReadFile(api.app.WorkDir().ExportFile())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var export Export
 	err = json.Unmarshal(d, &export)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ctx := context.TODO()
@@ -184,7 +184,7 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 				}
 			}
 
-			return err
+			return nil, err
 		}
 	}
 
@@ -211,7 +211,7 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 				}
 			}
 
-			return err
+			return nil, err
 		}
 	}
 
@@ -264,14 +264,14 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 							Changed: true,
 						},
 						Duration: types.Change[sql.NullInt64]{
-							Value:   sql.NullInt64{
+							Value: sql.NullInt64{
 								Int64: track.Duration,
 								Valid: track.Duration != 0,
 							},
 							Changed: false,
 						},
 						Year: types.Change[sql.NullInt64]{
-							Value:   sql.NullInt64{
+							Value: sql.NullInt64{
 								Int64: track.Year,
 								Valid: track.Year != 0,
 							},
@@ -299,14 +299,14 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 						},
 					})
 					if err != nil {
-						return err
+						return nil, err
 					}
 
 					continue
 				}
 			}
 
-			return err
+			return nil, err
 		}
 
 		for _, tag := range track.Tags {
@@ -314,12 +314,12 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 
 			err := db.CreateTag(ctx, slug, tag)
 			if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
-				return err
+				return nil, err
 			}
 
 			err = db.AddTagToTrack(ctx, slug, track.Id)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 
@@ -327,16 +327,16 @@ func (api *systemApi) HandlePostSystemImport(c echo.Context) error {
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, SuccessResponse(nil))
+	return nil, nil
 }
 
-func (api *systemApi) HandlePostSystemProcess(c echo.Context) error {
+func (api *systemApi) HandlePostSystemProcess(c pyrin.Context) (any, error) {
 	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), "", "", false)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// TODO(patrik): Use goroutines
@@ -350,55 +350,45 @@ func (api *systemApi) HandlePostSystemProcess(c echo.Context) error {
 
 		_, err := utils.ProcessMobileVersion(file, albumDir.MobileFiles(), filename)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
-func InstallSystemHandlers(app core.App, group Group) {
+func InstallSystemHandlers(app core.App, group pyrin.Group) {
 	api := systemApi{app: app}
 
 	group.Register(
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "GetSystemInfo",
 			Path:        "/system/info",
 			Method:      http.MethodGet,
 			DataType:    types.GetSystemInfo{},
-			BodyType:    nil,
 			HandlerFunc: api.HandleGetSystemInfo,
 		},
 
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "SystemExport",
 			Path:        "/system/export",
 			Method:      http.MethodPost,
-			DataType:    nil,
-			BodyType:    nil,
 			HandlerFunc: api.HandlePostSystemExport,
-			Middlewares: []echo.MiddlewareFunc{},
 		},
 
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "SystemImport",
 			Path:        "/system/import",
 			Method:      http.MethodPost,
-			DataType:    nil,
-			BodyType:    nil,
 			HandlerFunc: api.HandlePostSystemImport,
-			Middlewares: []echo.MiddlewareFunc{},
 		},
 
 		// TODO(patrik): Rename
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "Process",
 			Path:        "/system/process",
 			Method:      http.MethodPost,
-			DataType:    nil,
-			BodyType:    nil,
 			HandlerFunc: api.HandlePostSystemProcess,
-			Middlewares: []echo.MiddlewareFunc{},
 		},
 	)
 }

@@ -9,21 +9,19 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/faceair/jio"
-	"github.com/labstack/echo/v4"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
-	"github.com/nanoteck137/pyrin/api"
-	pyrinapi "github.com/nanoteck137/pyrin/api"
+	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/validate"
 )
 
 type trackApi struct {
 	app core.App
 }
 
-func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
+func ConvertDBTrack(c pyrin.Context, track database.Track) types.Track {
 	var number *int64
 	if track.Number.Valid {
 		number = &track.Number.Int64
@@ -49,7 +47,7 @@ func ConvertDBTrack(c echo.Context, track database.Track) types.Track {
 		Year:             year,
 		OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/original/%s/%s", track.AlbumId, track.OriginalFilename)),
 		MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/mobile/%s/%s", track.AlbumId, track.MobileFilename)),
-		CoverArt:      utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+		CoverArt:         utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		AlbumName:        track.AlbumName,
 		ArtistName:       track.ArtistName,
 		Created:          track.Created,
@@ -74,24 +72,24 @@ func ParseQueryBool(s string) bool {
 	}
 }
 
-func (api *trackApi) HandleGetTracks(c echo.Context) error {
-	f := c.QueryParam("filter")
-	s := c.QueryParam("sort")
-	includeAll := ParseQueryBool(c.QueryParam("includeAll"))
+func (api *trackApi) HandleGetTracks(c pyrin.Context) (any, error) {
+	q := c.Request().URL.Query()
 
-	_ = includeAll
+	f := q.Get("filter")
+	s := q.Get("sort")
+	includeAll := ParseQueryBool(q.Get("includeAll"))
 
 	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, s, includeAll)
 	if err != nil {
 		if errors.Is(err, database.ErrInvalidFilter) {
-			return InvalidFilter(err)
+			return nil, InvalidFilter(err)
 		}
 
 		if errors.Is(err, database.ErrInvalidSort) {
-			return InvalidSort(err)
+			return nil, InvalidSort(err)
 		}
 
-		return err
+		return nil, err
 	}
 
 	res := types.GetTracks{
@@ -102,50 +100,50 @@ func (api *trackApi) HandleGetTracks(c echo.Context) error {
 		res.Tracks[i] = ConvertDBTrack(c, track)
 	}
 
-	return c.JSON(200, SuccessResponse(res))
+	return res, nil
 }
 
-func (api *trackApi) HandleGetTrackById(c echo.Context) error {
+func (api *trackApi) HandleGetTrackById(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 
 	track, err := api.app.DB().GetTrackById(c.Request().Context(), id)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
-			return TrackNotFound()
+			return nil, TrackNotFound()
 		}
 
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, SuccessResponse(types.GetTrackById{
+	return types.GetTrackById{
 		Track: ConvertDBTrack(c, track),
-	}))
+	}, nil
 }
 
 // TODO(patrik): Move the track file to a trash can system
-func (api *trackApi) HandleDeleteTrack(c echo.Context) error {
+func (api *trackApi) HandleDeleteTrack(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 
 	db, tx, err := api.app.DB().Begin()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer tx.Rollback()
 
 	err = db.RemoveTrack(c.Request().Context(), id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return c.JSON(200, SuccessResponse(nil))
+	return nil, nil
 }
 
-var _ types.Body = (*PatchTrackBody)(nil)
+var _ pyrin.Body = (*PatchTrackBody)(nil)
 
 type PatchTrackBody struct {
 	Name       *string   `json:"name,omitempty"`
@@ -156,18 +154,19 @@ type PatchTrackBody struct {
 	Tags       *[]string `json:"tags,omitempty"`
 }
 
-func (PatchTrackBody) Schema() jio.Schema {
+// Validate implements pyrin.Body.
+func (b PatchTrackBody) Validate(validator validate.Validator) error {
 	panic("unimplemented")
 }
 
-func (api *trackApi) HandlePatchTrack(c echo.Context) error {
+func (api *trackApi) HandlePatchTrack(c pyrin.Context) (any, error) {
 	id := c.Param("id")
 
 	var body PatchTrackBody
 	d := json.NewDecoder(c.Request().Body)
 	err := d.Decode(&body)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	ctx := context.TODO()
@@ -175,7 +174,7 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 	track, err := api.app.DB().GetTrackById(ctx, id)
 	if err != nil {
 		// TODO(patrik): Handle error
-		return err
+		return nil, err
 	}
 
 	var name types.Change[string]
@@ -201,10 +200,10 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 				})
 
 				if err != nil {
-					return err
+					return nil, err
 				}
 			} else {
-				return err
+				return nil, err
 			}
 		}
 
@@ -242,7 +241,7 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 		},
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if body.Tags != nil {
@@ -250,7 +249,7 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 
 		err = api.app.DB().RemoveAllTagsFromTrack(ctx, track.Id)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for _, tag := range tags {
@@ -258,59 +257,52 @@ func (api *trackApi) HandlePatchTrack(c echo.Context) error {
 
 			err := api.app.DB().CreateTag(ctx, slug, tag)
 			if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
-				return err
+				return nil, err
 			}
 
 			err = api.app.DB().AddTagToTrack(ctx, slug, track.Id)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 	}
 
-	return c.JSON(200, pyrinapi.SuccessResponse(nil))
+	return nil, nil
 }
 
-func InstallTrackHandlers(app core.App, group Group) {
+func InstallTrackHandlers(app core.App, group pyrin.Group) {
 	a := trackApi{app: app}
 
 	group.Register(
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "GetTracks",
 			Method:      http.MethodGet,
 			Path:        "/tracks",
 			DataType:    types.GetTracks{},
-			BodyType:    nil,
-			Errors:      []api.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
+			Errors:      []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: a.HandleGetTracks,
-			Middlewares: []echo.MiddlewareFunc{},
 		},
 
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "GetTrackById",
 			Method:      http.MethodGet,
 			Path:        "/tracks/:id",
 			DataType:    types.GetTrackById{},
-			BodyType:    nil,
-			Errors:      []api.ErrorType{ErrTypeTrackNotFound},
+			Errors:      []pyrin.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: a.HandleGetTrackById,
-			Middlewares: []echo.MiddlewareFunc{},
 		},
 
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "RemoveTrack",
 			Method:      http.MethodDelete,
 			Path:        "/tracks/:id",
-			DataType:    nil,
-			BodyType:    nil,
 			HandlerFunc: a.HandleDeleteTrack,
 		},
 
-		Handler{
+		pyrin.ApiHandler{
 			Name:        "EditTrack",
 			Method:      http.MethodPatch,
 			Path:        "/tracks/:id",
-			DataType:    nil,
 			BodyType:    PatchTrackBody{},
 			HandlerFunc: a.HandlePatchTrack,
 		},

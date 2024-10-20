@@ -97,7 +97,7 @@ func (app *BaseApp) Bootstrap() error {
 				return err
 			}
 
-			app.dbConfig = &conf;
+			app.dbConfig = &conf
 		} else {
 			return err
 		}

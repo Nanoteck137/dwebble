@@ -158,4 +158,3 @@ func fullParseFilter(adapter filter.ResolverAdapter, filterStr string) (exp.Expr
 func RunMigrateUp(db *Database) error {
 	return goose.Up(db.RawConn, ".")
 }
-
