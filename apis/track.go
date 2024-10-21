@@ -17,10 +17,6 @@ import (
 	"github.com/nanoteck137/pyrin/tools/validate"
 )
 
-type trackApi struct {
-	app core.App
-}
-
 func ConvertDBTrack(c pyrin.Context, track database.Track) types.Track {
 	var number *int64
 	if track.Number.Valid {
@@ -72,77 +68,6 @@ func ParseQueryBool(s string) bool {
 	}
 }
 
-func (api *trackApi) HandleGetTracks(c pyrin.Context) (any, error) {
-	q := c.Request().URL.Query()
-
-	f := q.Get("filter")
-	s := q.Get("sort")
-	includeAll := ParseQueryBool(q.Get("includeAll"))
-
-	tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), f, s, includeAll)
-	if err != nil {
-		if errors.Is(err, database.ErrInvalidFilter) {
-			return nil, InvalidFilter(err)
-		}
-
-		if errors.Is(err, database.ErrInvalidSort) {
-			return nil, InvalidSort(err)
-		}
-
-		return nil, err
-	}
-
-	res := types.GetTracks{
-		Tracks: make([]types.Track, len(tracks)),
-	}
-
-	for i, track := range tracks {
-		res.Tracks[i] = ConvertDBTrack(c, track)
-	}
-
-	return res, nil
-}
-
-func (api *trackApi) HandleGetTrackById(c pyrin.Context) (any, error) {
-	id := c.Param("id")
-
-	track, err := api.app.DB().GetTrackById(c.Request().Context(), id)
-	if err != nil {
-		if errors.Is(err, database.ErrItemNotFound) {
-			return nil, TrackNotFound()
-		}
-
-		return nil, err
-	}
-
-	return types.GetTrackById{
-		Track: ConvertDBTrack(c, track),
-	}, nil
-}
-
-// TODO(patrik): Move the track file to a trash can system
-func (api *trackApi) HandleDeleteTrack(c pyrin.Context) (any, error) {
-	id := c.Param("id")
-
-	db, tx, err := api.app.DB().Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-
-	err = db.RemoveTrack(c.Request().Context(), id)
-	if err != nil {
-		return nil, err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, nil
-}
-
 var _ pyrin.Body = (*PatchTrackBody)(nil)
 
 type PatchTrackBody struct {
@@ -159,152 +84,213 @@ func (b PatchTrackBody) Validate(validator validate.Validator) error {
 	panic("unimplemented")
 }
 
-func (api *trackApi) HandlePatchTrack(c pyrin.Context) (any, error) {
-	id := c.Param("id")
+func InstallTrackHandlers(app core.App, group pyrin.Group) {
+	group.Register(
+		pyrin.ApiHandler{
+			Name:     "GetTracks",
+			Method:   http.MethodGet,
+			Path:     "/tracks",
+			DataType: types.GetTracks{},
+			Errors:   []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				q := c.Request().URL.Query()
 
-	var body PatchTrackBody
-	d := json.NewDecoder(c.Request().Body)
-	err := d.Decode(&body)
-	if err != nil {
-		return nil, err
-	}
+				f := q.Get("filter")
+				s := q.Get("sort")
+				includeAll := ParseQueryBool(q.Get("includeAll"))
 
-	ctx := context.TODO()
+				tracks, err := app.DB().GetAllTracks(c.Request().Context(), f, s, includeAll)
+				if err != nil {
+					if errors.Is(err, database.ErrInvalidFilter) {
+						return nil, InvalidFilter(err)
+					}
 
-	track, err := api.app.DB().GetTrackById(ctx, id)
-	if err != nil {
-		// TODO(patrik): Handle error
-		return nil, err
-	}
+					if errors.Is(err, database.ErrInvalidSort) {
+						return nil, InvalidSort(err)
+					}
 
-	var name types.Change[string]
-	if body.Name != nil {
-		n := strings.TrimSpace(*body.Name)
-		name.Value = n
-		name.Changed = n != track.Name
-	}
+					return nil, err
+				}
 
-	var artistId types.Change[string]
-	if body.ArtistId != nil {
-		artistId.Value = *body.ArtistId
-		artistId.Changed = *body.ArtistId != track.ArtistId
-	} else if body.ArtistName != nil {
-		artistName := strings.TrimSpace(*body.ArtistName)
+				res := types.GetTracks{
+					Tracks: make([]types.Track, len(tracks)),
+				}
 
-		artist, err := api.app.DB().GetArtistByName(ctx, artistName)
-		if err != nil {
-			if errors.Is(err, database.ErrItemNotFound) {
-				artist, err = api.app.DB().CreateArtist(ctx, database.CreateArtistParams{
-					Name:    artistName,
-					Picture: sql.NullString{},
-				})
+				for i, track := range tracks {
+					res.Tracks[i] = ConvertDBTrack(c, track)
+				}
 
+				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "GetTrackById",
+			Method:   http.MethodGet,
+			Path:     "/tracks/:id",
+			DataType: types.GetTrackById{},
+			Errors:   []pyrin.ErrorType{ErrTypeTrackNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				track, err := app.DB().GetTrackById(c.Request().Context(), id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TrackNotFound()
+					}
+
+					return nil, err
+				}
+
+				return types.GetTrackById{
+					Track: ConvertDBTrack(c, track),
+				}, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:   "RemoveTrack",
+			Method: http.MethodDelete,
+			Path:   "/tracks/:id",
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				// TODO(patrik): Move the track file to a trash can system
+				id := c.Param("id")
+
+				db, tx, err := app.DB().Begin()
 				if err != nil {
 					return nil, err
 				}
-			} else {
-				return nil, err
-			}
-		}
+				defer tx.Rollback()
 
-		artistId.Value = artist.Id
-		artistId.Changed = artist.Id != track.ArtistId
-	}
+				err = db.RemoveTrack(c.Request().Context(), id)
+				if err != nil {
+					return nil, err
+				}
 
-	var year types.Change[sql.NullInt64]
-	if body.Year != nil {
-		year.Value = sql.NullInt64{
-			Int64: *body.Year,
-			Valid: *body.Year != 0,
-		}
-		year.Changed = *body.Year != track.Year.Int64
-	}
+				err = tx.Commit()
+				if err != nil {
+					return nil, err
+				}
 
-	var number types.Change[sql.NullInt64]
-	if body.Number != nil {
-		number.Value = sql.NullInt64{
-			Int64: *body.Number,
-			Valid: *body.Number != 0,
-		}
-		number.Changed = *body.Number != track.Number.Int64
-	}
-
-	// TODO(patrik): Use transaction
-	err = api.app.DB().UpdateTrack(ctx, track.Id, database.TrackChanges{
-		Name:     name,
-		ArtistId: artistId,
-		Year:     year,
-		Number:   number,
-		Available: types.Change[bool]{
-			Value:   true,
-			Changed: true,
-		},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if body.Tags != nil {
-		tags := *body.Tags
-
-		err = api.app.DB().RemoveAllTagsFromTrack(ctx, track.Id)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, tag := range tags {
-			slug := utils.Slug(tag)
-
-			err := api.app.DB().CreateTag(ctx, slug, tag)
-			if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
-				return nil, err
-			}
-
-			err = api.app.DB().AddTagToTrack(ctx, slug, track.Id)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return nil, nil
-}
-
-func InstallTrackHandlers(app core.App, group pyrin.Group) {
-	a := trackApi{app: app}
-
-	group.Register(
-		pyrin.ApiHandler{
-			Name:        "GetTracks",
-			Method:      http.MethodGet,
-			Path:        "/tracks",
-			DataType:    types.GetTracks{},
-			Errors:      []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
-			HandlerFunc: a.HandleGetTracks,
+				return nil, nil
+			},
 		},
 
 		pyrin.ApiHandler{
-			Name:        "GetTrackById",
-			Method:      http.MethodGet,
-			Path:        "/tracks/:id",
-			DataType:    types.GetTrackById{},
-			Errors:      []pyrin.ErrorType{ErrTypeTrackNotFound},
-			HandlerFunc: a.HandleGetTrackById,
-		},
+			Name:     "EditTrack",
+			Method:   http.MethodPatch,
+			Path:     "/tracks/:id",
+			BodyType: PatchTrackBody{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
 
-		pyrin.ApiHandler{
-			Name:        "RemoveTrack",
-			Method:      http.MethodDelete,
-			Path:        "/tracks/:id",
-			HandlerFunc: a.HandleDeleteTrack,
-		},
+				var body PatchTrackBody
+				d := json.NewDecoder(c.Request().Body)
+				err := d.Decode(&body)
+				if err != nil {
+					return nil, err
+				}
 
-		pyrin.ApiHandler{
-			Name:        "EditTrack",
-			Method:      http.MethodPatch,
-			Path:        "/tracks/:id",
-			BodyType:    PatchTrackBody{},
-			HandlerFunc: a.HandlePatchTrack,
+				ctx := context.TODO()
+
+				track, err := app.DB().GetTrackById(ctx, id)
+				if err != nil {
+					// TODO(patrik): Handle error
+					return nil, err
+				}
+
+				var name types.Change[string]
+				if body.Name != nil {
+					n := strings.TrimSpace(*body.Name)
+					name.Value = n
+					name.Changed = n != track.Name
+				}
+
+				var artistId types.Change[string]
+				if body.ArtistId != nil {
+					artistId.Value = *body.ArtistId
+					artistId.Changed = *body.ArtistId != track.ArtistId
+				} else if body.ArtistName != nil {
+					artistName := strings.TrimSpace(*body.ArtistName)
+
+					artist, err := app.DB().GetArtistByName(ctx, artistName)
+					if err != nil {
+						if errors.Is(err, database.ErrItemNotFound) {
+							artist, err = app.DB().CreateArtist(ctx, database.CreateArtistParams{
+								Name:    artistName,
+								Picture: sql.NullString{},
+							})
+
+							if err != nil {
+								return nil, err
+							}
+						} else {
+							return nil, err
+						}
+					}
+
+					artistId.Value = artist.Id
+					artistId.Changed = artist.Id != track.ArtistId
+				}
+
+				var year types.Change[sql.NullInt64]
+				if body.Year != nil {
+					year.Value = sql.NullInt64{
+						Int64: *body.Year,
+						Valid: *body.Year != 0,
+					}
+					year.Changed = *body.Year != track.Year.Int64
+				}
+
+				var number types.Change[sql.NullInt64]
+				if body.Number != nil {
+					number.Value = sql.NullInt64{
+						Int64: *body.Number,
+						Valid: *body.Number != 0,
+					}
+					number.Changed = *body.Number != track.Number.Int64
+				}
+
+				// TODO(patrik): Use transaction
+				err = app.DB().UpdateTrack(ctx, track.Id, database.TrackChanges{
+					Name:     name,
+					ArtistId: artistId,
+					Year:     year,
+					Number:   number,
+					Available: types.Change[bool]{
+						Value:   true,
+						Changed: true,
+					},
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				if body.Tags != nil {
+					tags := *body.Tags
+
+					err = app.DB().RemoveAllTagsFromTrack(ctx, track.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					for _, tag := range tags {
+						slug := utils.Slug(tag)
+
+						err := app.DB().CreateTag(ctx, slug, tag)
+						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+							return nil, err
+						}
+
+						err = app.DB().AddTagToTrack(ctx, slug, track.Id)
+						if err != nil {
+							return nil, err
+						}
+					}
+				}
+
+				return nil, nil
+			},
 		},
 	)
 }

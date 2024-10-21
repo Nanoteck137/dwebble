@@ -14,6 +14,8 @@ import (
 	"github.com/nanoteck137/pyrin"
 )
 
+const defaultMemory = 32 << 20 // 32 MB
+
 func User(app core.App, c pyrin.Context) (*database.User, error) {
 	authHeader := c.Request().Header.Get("Authorization")
 	tokenString := utils.ParseAuthHeader(authHeader)
