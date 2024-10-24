@@ -5,11 +5,11 @@ go 1.21.0
 toolchain go1.21.5
 
 require (
-	github.com/MadAppGang/httplog/echolog v1.3.0
 	github.com/charmbracelet/huh v0.6.0
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/faceair/jio v1.0.1
 	github.com/golang-cz/devslog v0.0.8
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gosimple/slug v1.14.0
 	github.com/jmoiron/sqlx v1.4.0
@@ -18,7 +18,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nanoteck137/parasect v0.2.1
-	github.com/nanoteck137/pyrin v0.8.7
+	github.com/nanoteck137/pyrin v0.8.8
 	github.com/nrednav/cuid2 v1.0.0
 	github.com/pelletier/go-toml/v2 v2.1.0
 	github.com/pressly/goose/v3 v3.17.0
@@ -29,6 +29,7 @@ require (
 
 require (
 	github.com/MadAppGang/httplog v1.3.0 // indirect
+	github.com/MadAppGang/httplog/echolog v1.3.0 // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
@@ -44,8 +45,8 @@ require (
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/fatih/color v1.14.1 // indirect
+	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
