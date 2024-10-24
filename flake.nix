@@ -8,9 +8,6 @@
     gitignore.url = "github:hercules-ci/gitignore.nix";
     gitignore.inputs.nixpkgs.follows = "nixpkgs";
 
-    pyrin.url        = "github:nanoteck137/pyrin/v0.7.0";
-    pyrin.inputs.nixpkgs.follows = "nixpkgs";
-
     devtools.url     = "github:nanoteck137/devtools";
     devtools.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -18,7 +15,7 @@
     tagopus.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flake-utils, gitignore, devtools, pyrin, tagopus, ... }:
+  outputs = { self, nixpkgs, flake-utils, gitignore, devtools, tagopus, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         overlays = [];
@@ -91,7 +88,6 @@
             nodejs
             imagemagick
 
-            pyrin.packages.${system}.default
             tagopus.packages.${system}.default
             tools.publishVersion
           ];
