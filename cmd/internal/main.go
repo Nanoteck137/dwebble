@@ -33,8 +33,7 @@ var genCmd = &cobra.Command{
 			log.Fatal("Failed to marshal server", err)
 		}
 
-		out := "./misc/pyrin.json"
-		err = os.WriteFile(out, d, 0644)
+		err = os.WriteFile("misc/pyrin.json", d, 0644)
 		if err != nil {
 			log.Fatal("Failed to write pyrin.json", err)
 		}
