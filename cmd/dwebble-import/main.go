@@ -181,8 +181,6 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 	dirs := []string{
 		albumDir.String(),
 		albumDir.Images(),
-		albumDir.OriginalFiles(),
-		albumDir.MobileFiles(),
 	}
 
 	for _, dir := range dirs {

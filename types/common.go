@@ -18,16 +18,24 @@ func (d WorkDir) ExportFile() string {
 	return path.Join(d.String(), "export.json")
 }
 
+func (d WorkDir) Artists() string {
+	return path.Join(d.String(), "artists")
+}
+
 func (d WorkDir) Albums() string {
 	return path.Join(d.String(), "albums")
 }
 
-func (d WorkDir) Album(slug string) AlbumDir {
-	return AlbumDir(path.Join(d.String(), "albums", slug))
+func (d WorkDir) Album(id string) AlbumDir {
+	return AlbumDir(path.Join(d.Albums(), id))
 }
 
-func (d WorkDir) Artists() string {
-	return path.Join(d.String(), "artists")
+func (d WorkDir) Tracks() string {
+	return path.Join(d.String(), "tracks")
+}
+
+func (d WorkDir) Track(id string) string {
+	return path.Join(d.Tracks(), id)
 }
 
 type AlbumDir string
@@ -38,14 +46,6 @@ func (d AlbumDir) String() string {
 
 func (d AlbumDir) Images() string {
 	return path.Join(d.String(), "images")
-}
-
-func (d AlbumDir) OriginalFiles() string {
-	return path.Join(d.String(), "original")
-}
-
-func (d AlbumDir) MobileFiles() string {
-	return path.Join(d.String(), "mobile")
 }
 
 type Change[T any] struct {

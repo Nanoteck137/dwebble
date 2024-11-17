@@ -1,10 +1,11 @@
 -- +goose Up
 CREATE TABLE artists (
     id TEXT NOT NULL,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL CHECK(name<>''),
     picture TEXT,
 
-    CONSTRAINT artists_pk PRIMARY KEY (id)
+    CONSTRAINT artists_pk PRIMARY KEY (id),
+    UNIQUE (name COLLATE NOCASE)
 );
 
 CREATE TABLE albums (

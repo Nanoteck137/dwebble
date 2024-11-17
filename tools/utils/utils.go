@@ -46,6 +46,10 @@ func ExtractNumber(s string) int {
 var CreateId = createIdGenerator(32)
 var CreateSmallId = createIdGenerator(8)
 
+var CreateArtistId = createIdGenerator(10)
+var CreateAlbumId = createIdGenerator(16)
+var CreateTrackId = createIdGenerator(32)
+
 func createIdGenerator(length int) func() string {
 	res, err := cuid2.Init(cuid2.WithLength(length))
 	if err != nil {
