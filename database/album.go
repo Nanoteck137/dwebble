@@ -252,7 +252,7 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 
 	id := params.Id
 	if id == "" {
-		id = utils.Slug(params.Name) + "-" + utils.CreateSmallId()
+		id = utils.CreateAlbumId()
 	}
 
 	ds := dialect.Insert("albums").

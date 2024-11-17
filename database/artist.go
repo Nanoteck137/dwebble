@@ -83,7 +83,7 @@ type CreateArtistParams struct {
 func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams) (Artist, error) {
 	id := params.Id
 	if id == "" {
-		id = utils.CreateId()
+		id = utils.CreateArtistId()
 	}
 
 	ds := dialect.Insert("artists").Rows(goqu.Record{
