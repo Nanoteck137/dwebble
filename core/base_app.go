@@ -48,8 +48,9 @@ func (app *BaseApp) Bootstrap() error {
 	workDir := app.config.WorkDir()
 
 	dirs := []string{
-		workDir.Albums(),
 		workDir.Artists(),
+		workDir.Albums(),
+		workDir.Tracks(),
 	}
 
 	for _, dir := range dirs {
