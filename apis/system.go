@@ -360,17 +360,20 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 
 				// TODO(patrik): Use goroutines
 				for _, track := range tracks {
-					albumDir := app.WorkDir().Album(track.AlbumId)
+					// TODO(patrik): Fix
+					// albumDir := app.WorkDir().Album(track.AlbumId)
 
-					file := path.Join(albumDir.OriginalFiles(), track.OriginalFilename)
+					// TODO(patrik): Fix
+					// file := path.Join(albumDir.OriginalFiles(), track.OriginalFilename)
 
 					filename := track.MobileFilename
 					filename = strings.TrimSuffix(filename, path.Ext(filename))
 
-					_, err := utils.ProcessMobileVersion(file, albumDir.MobileFiles(), filename)
-					if err != nil {
-						return nil, err
-					}
+					// TODO(patrik): Fix
+					// _, err := utils.ProcessMobileVersion(file, albumDir.MobileFiles(), filename)
+					// if err != nil {
+					// 	return nil, err
+					// }
 				}
 
 				return nil, nil

@@ -350,21 +350,24 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				// TODO(patrik): Fix
 				albumDir := app.WorkDir().Album(album.Id)
+				_ = albumDir
 
-				dirs := []string{
-					albumDir.String(),
-					albumDir.Images(),
-					albumDir.OriginalFiles(),
-					albumDir.MobileFiles(),
-				}
-
-				for _, dir := range dirs {
-					err := os.Mkdir(dir, 0755)
-					if err != nil {
-						return nil, err
-					}
-				}
+				// dirs := []string{
+				// 	albumDir.String(),
+				// 	albumDir.Images(),
+				// 	// TODO(patrik): Fix
+				// 	// albumDir.OriginalFiles(),
+				// 	// albumDir.MobileFiles(),
+				// }
+				//
+				// for _, dir := range dirs {
+				// 	err := os.Mkdir(dir, 0755)
+				// 	if err != nil {
+				// 		return nil, err
+				// 	}
+				// }
 
 				pretty.Println(album)
 
@@ -375,7 +378,9 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					ext := path.Ext(f.Filename)
 					filename := "cover-original" + ext
 
-					dst := path.Join(albumDir.Images(), filename)
+					// TODO(patrik): Fix
+					// dst := path.Join(albumDir.Images(), filename)
+					dst := ""
 
 					// TODO(patrik): Close file
 					file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE, 0644)
@@ -393,23 +398,24 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 
-					i := path.Join(albumDir.Images(), "cover-128.png")
-					err = utils.CreateResizedImage(dst, i, 128)
-					if err != nil {
-						return nil, err
-					}
-
-					i = path.Join(albumDir.Images(), "cover-256.png")
-					err = utils.CreateResizedImage(dst, i, 256)
-					if err != nil {
-						return nil, err
-					}
-
-					i = path.Join(albumDir.Images(), "cover-512.png")
-					err = utils.CreateResizedImage(dst, i, 512)
-					if err != nil {
-						return nil, err
-					}
+					// TODO(patrik): Fix
+					// i := path.Join(albumDir.Images(), "cover-128.png")
+					// err = utils.CreateResizedImage(dst, i, 128)
+					// if err != nil {
+					// 	return nil, err
+					// }
+					//
+					// i = path.Join(albumDir.Images(), "cover-256.png")
+					// err = utils.CreateResizedImage(dst, i, 256)
+					// if err != nil {
+					// 	return nil, err
+					// }
+					//
+					// i = path.Join(albumDir.Images(), "cover-512.png")
+					// err = utils.CreateResizedImage(dst, i, 512)
+					// if err != nil {
+					// 	return nil, err
+					// }
 
 					err = db.UpdateAlbum(ctx, album.Id, database.AlbumChanges{
 						CoverArt: types.Change[sql.NullString]{
@@ -453,12 +459,14 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 					file.Close()
 
-					mobileFile, err := utils.ProcessMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
+					// TODO(patrik): Fix
+					mobileFile, err := utils.ProcessMobileVersion(file.Name(), "", filename)
 					if err != nil {
 						return nil, err
 					}
 
-					originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
+					// TODO(patrik): Fix
+					originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), "", filename)
 					if err != nil {
 						return nil, err
 					}
@@ -554,6 +562,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				}
 
 				albumDir := app.WorkDir().Album(album.Id)
+				_ = albumDir
 
 				files := form.File["files"]
 				for _, f := range files {
@@ -582,12 +591,14 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 					file.Close()
 
-					mobileFile, err := utils.ProcessMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
+					// TODO(patrik): Fix
+					mobileFile, err := utils.ProcessMobileVersion(file.Name(), "", filename)
 					if err != nil {
 						return nil, err
 					}
 
-					originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
+					// TODO(patrik): Fix
+					originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), "", filename)
 					if err != nil {
 						return nil, err
 					}

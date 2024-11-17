@@ -101,7 +101,7 @@ var rootCmd = &cobra.Command{
 		}
 		defer tx.Rollback()
 
-		oldWorkDir := OldWorkDir(".")
+		oldWorkDir := OldWorkDir("/mnt/fastboi/apps/dwebble")
 
 		d, err := os.ReadFile(oldWorkDir.ExportFile())
 		if err != nil {
@@ -120,10 +120,8 @@ var rootCmd = &cobra.Command{
 		}
 
 		ctx := context.TODO()
-		_ = ctx
 
 		artistMapping := make(map[string]string)
-		_ = artistMapping
 
 		for _, artist := range export.Artists {
 			dbArtist, err := db.CreateArtist(ctx, database.CreateArtistParams{
@@ -187,6 +185,40 @@ var rootCmd = &cobra.Command{
 				log.Fatal("Failed", "err", err)
 			}
 
+			oldAlbumDir := oldWorkDir.Album(album.Id)
+			albumDir := workDir.Album(dbAlbum.Id)
+
+			err = os.Mkdir(albumDir, 0755)
+			if err != nil && !os.IsExist(err) {
+				log.Fatal("Failed", "err", err)
+			}
+
+			srcName := path.Join(oldAlbumDir.Images(), album.CoverArt)
+			dstName := path.Join(albumDir, album.CoverArt)
+
+			_, err = utils.CopyFile(srcName, dstName)
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
+
+			i := path.Join(albumDir, "cover-128.png")
+			err = utils.CreateResizedImage(dstName, i, 128)
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
+
+			i = path.Join(albumDir, "cover-256.png")
+			err = utils.CreateResizedImage(dstName, i, 256)
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
+
+			i = path.Join(albumDir, "cover-512.png")
+			err = utils.CreateResizedImage(dstName, i, 512)
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
+
 			albumMapping[album.Id] = dbAlbum.Id
 		}
 
@@ -232,6 +264,50 @@ var rootCmd = &cobra.Command{
 					}
 				}
 
+				log.Fatal("Failed", "err", err)
+			}
+
+			d := workDir.Track(dbTrackId)
+			err = os.Mkdir(d, 0755)
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
+
+			oldAlbumDir := oldWorkDir.Album(track.AlbumId)
+
+			originalFilename := "track.original" + path.Ext(track.OriginalFilename)
+			{
+				srcName := path.Join(oldAlbumDir.OriginalFiles(), track.OriginalFilename)
+				dstName := path.Join(d, originalFilename)
+
+				_, err = utils.CopyFile(srcName, dstName)
+				if err != nil {
+					log.Fatal("Failed", "err", err)
+				}
+			}
+
+			mobileFilename := "track.mobile" + path.Ext(track.MobileFilename)
+			{
+				srcName := path.Join(oldAlbumDir.MobileFiles(), track.MobileFilename)
+				dstName := path.Join(d, mobileFilename)
+
+				_, err = utils.CopyFile(srcName, dstName)
+				if err != nil {
+					log.Fatal("Failed", "err", err)
+				}
+			}
+
+			err = db.UpdateTrack(ctx, dbTrackId, database.TrackChanges{
+				OriginalFilename: types.Change[string]{
+					Value:   originalFilename,
+					Changed: true,
+				},
+				MobileFilename: types.Change[string]{
+					Value:   mobileFilename,
+					Changed: true,
+				},
+			})
+			if err != nil {
 				log.Fatal("Failed", "err", err)
 			}
 

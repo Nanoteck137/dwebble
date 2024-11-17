@@ -26,8 +26,8 @@ func (d WorkDir) Albums() string {
 	return path.Join(d.String(), "albums")
 }
 
-func (d WorkDir) Album(id string) AlbumDir {
-	return AlbumDir(path.Join(d.Albums(), id))
+func (d WorkDir) Album(id string) string {
+	return path.Join(d.Albums(), id)
 }
 
 func (d WorkDir) Tracks() string {
@@ -36,16 +36,6 @@ func (d WorkDir) Tracks() string {
 
 func (d WorkDir) Track(id string) string {
 	return path.Join(d.Tracks(), id)
-}
-
-type AlbumDir string
-
-func (d AlbumDir) String() string {
-	return string(d)
-}
-
-func (d AlbumDir) Images() string {
-	return path.Join(d.String(), "images")
 }
 
 type Change[T any] struct {

@@ -419,6 +419,7 @@ func GetTrackInfo(filepath string) (TrackInfo, error) {
 	}, nil
 }
 
+// TODO(patrik): Update to the new from sewaddle
 func CreateResizedImage(src string, dest string, dim int) error {
 	args := []string{
 		"convert",

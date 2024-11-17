@@ -31,7 +31,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 				albumId := c.Param("albumId")
 				image := c.Param("image")
 
-				p := app.WorkDir().Album(albumId).Images()
+				p := app.WorkDir().Album(albumId)
 				f := os.DirFS(p)
 
 				return pyrin.ServeFile(c.Response(), c.Request(), f, image)
@@ -39,28 +39,15 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 		},
 		pyrin.NormalHandler{
 			Method: http.MethodGet,
-			Path:   "/tracks/mobile/:albumId/:track",
+			Path:   "/tracks/:trackId/:file",
 			HandlerFunc: func(c pyrin.Context) error {
-				albumId := c.Param("albumId")
-				track := c.Param("track")
+				trackId := c.Param("trackId")
+				file := c.Param("file")
 
-				p := app.WorkDir().Album(albumId).MobileFiles()
+				p := app.WorkDir().Track(trackId)
 				f := os.DirFS(p)
 
-				return pyrin.ServeFile(c.Response(), c.Request(), f, track)
-			},
-		},
-		pyrin.NormalHandler{
-			Method: http.MethodGet,
-			Path:   "/tracks/original/:albumId/:track",
-			HandlerFunc: func(c pyrin.Context) error {
-				albumId := c.Param("albumId")
-				track := c.Param("track")
-
-				p := app.WorkDir().Album(albumId).OriginalFiles()
-				f := os.DirFS(p)
-
-				return pyrin.ServeFile(c.Response(), c.Request(), f, track)
+				return pyrin.ServeFile(c.Response(), c.Request(), f, file)
 			},
 		},
 	)
