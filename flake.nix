@@ -87,6 +87,7 @@
             gopls
             nodejs
             imagemagick
+            ffmpeg
 
             tagopus.packages.${system}.default
             tools.publishVersion
