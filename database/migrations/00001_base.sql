@@ -10,7 +10,7 @@ CREATE TABLE artists (
 
 CREATE TABLE albums (
     id TEXT NOT NULL,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL CHECK(name<>''),
     artist_id TEXT NOT NULL,
 
     cover_art TEXT,
@@ -18,8 +18,6 @@ CREATE TABLE albums (
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL,
-
-    available BOOL NOT NULL,
 
     CONSTRAINT albums_pk PRIMARY KEY(id),
 
@@ -29,7 +27,7 @@ CREATE TABLE albums (
 
 CREATE TABLE tracks (
     id TEXT NOT NULL,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL CHECK(name<>''),
 
     album_id TEXT NOT NULL,
     artist_id TEXT NOT NULL,
@@ -44,8 +42,6 @@ CREATE TABLE tracks (
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL,
-
-    available BOOL NOT NULL,
 
     CONSTRAINT tracks_pk PRIMARY KEY(id),
 

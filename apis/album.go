@@ -88,9 +88,8 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				filter := q.Get("filter")
 				sort := q.Get("sort")
-				includeAll := ParseQueryBool(q.Get("includeAll"))
 
-				albums, err := app.DB().GetAllAlbums(c.Request().Context(), filter, sort, includeAll)
+				albums, err := app.DB().GetAllAlbums(c.Request().Context(), filter, sort)
 				if err != nil {
 					return nil, err
 				}
@@ -343,8 +342,6 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 					CoverArt: sql.NullString{},
 					Year:     sql.NullInt64{},
-
-					Available: true,
 				})
 				if err != nil {
 					return nil, err
@@ -515,7 +512,6 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 						ExportName:       originalName,
 						OriginalFilename: originalFile,
 						MobileFilename:   mobileFile,
-						Available:        true,
 					})
 					if err != nil {
 						return nil, err
@@ -647,7 +643,6 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 						ExportName:       originalName,
 						OriginalFilename: originalFile,
 						MobileFilename:   mobileFile,
-						Available:        true,
 					})
 					if err != nil {
 						return nil, err

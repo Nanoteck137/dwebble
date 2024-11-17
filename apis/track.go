@@ -49,7 +49,6 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) types.Track {
 		Created:          track.Created,
 		Updated:          track.Updated,
 		Tags:             utils.SplitString(track.Tags.String),
-		Available:        track.Available,
 	}
 }
 
@@ -257,10 +256,6 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					ArtistId: artistId,
 					Year:     year,
 					Number:   number,
-					Available: types.Change[bool]{
-						Value:   true,
-						Changed: true,
-					},
 				})
 				if err != nil {
 					return nil, err

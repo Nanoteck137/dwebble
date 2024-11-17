@@ -30,11 +30,6 @@ func (*AlbumResolverAdapter) MapSortName(name string) (types.Name, error) {
 			Kind: types.NameKindString,
 			Name: "albums.name",
 		}, nil
-	case "available":
-		return types.Name{
-			Kind: types.NameKindNumber,
-			Name: "albums.available",
-		}, nil
 	case "created":
 		return types.Name{
 			Kind: types.NameKindNumber,
@@ -96,8 +91,6 @@ type Album struct {
 
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
-
-	Available bool `db:"available"`
 }
 
 func AlbumQuery() *goqu.SelectDataset {
@@ -114,8 +107,6 @@ func AlbumQuery() *goqu.SelectDataset {
 			"albums.updated",
 
 			goqu.I("artists.name").As("artist_name"),
-
-			"albums.available",
 		).
 		Join(
 			goqu.I("artists"),
@@ -128,7 +119,7 @@ func AlbumQuery() *goqu.SelectDataset {
 	return query
 }
 
-func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr string, includeAll bool) ([]Album, error) {
+func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr string) ([]Album, error) {
 	query := AlbumQuery()
 
 	if filterStr != "" {
@@ -138,16 +129,8 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr 
 			return nil, err
 		}
 
-		if includeAll {
 			query = query.Where(re)
-		} else {
-			query = query.Where(goqu.I("albums.available").Eq(true), re)
-		}
-	} else {
-		if !includeAll {
-			query = query.Where(goqu.I("albums.available").Eq(true))
-		}
-	}
+	} 
 
 	sortExpr, err := sort.Parse(sortStr)
 	if err != nil {
@@ -255,8 +238,6 @@ type CreateAlbumParams struct {
 
 	Created int64
 	Updated int64
-
-	Available bool
 }
 
 func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (Album, error) {
@@ -285,10 +266,8 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 
 			"created": created,
 			"updated": updated,
-
-			"available": params.Available,
 		}).
-		Returning("id", "name", "artist_id", "cover_art", "year", "available").
+		Returning("id", "name", "artist_id", "cover_art", "year").
 		Prepared(true)
 
 	row, err := db.QueryRow(ctx, ds)
@@ -297,7 +276,7 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 	}
 
 	var item Album
-	err = row.Scan(&item.Id, &item.Name, &item.ArtistId, &item.CoverArt, &item.Year, &item.Available)
+	err = row.Scan(&item.Id, &item.Name, &item.ArtistId, &item.CoverArt, &item.Year)
 	if err != nil {
 		return Album{}, err
 	}
@@ -327,8 +306,6 @@ type AlbumChanges struct {
 	Year     types.Change[sql.NullInt64]
 
 	Created types.Change[int64]
-
-	Available types.Change[bool]
 }
 
 func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumChanges) error {
@@ -341,8 +318,6 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 
 	addToRecord(record, "created", changes.Created)
 
-	addToRecord(record, "available", changes.Available)
-
 	if len(record) == 0 {
 		return nil
 	}
@@ -353,19 +328,6 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 		Set(record).
 		Where(goqu.I("id").Eq(id)).
 		Prepared(true)
-
-	_, err := db.Exec(ctx, ds)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (db *Database) MarkAllAlbumsUnavailable(ctx context.Context) error {
-	ds := dialect.Update("albums").Set(goqu.Record{
-		"available": false,
-	})
 
 	_, err := db.Exec(ctx, ds)
 	if err != nil {

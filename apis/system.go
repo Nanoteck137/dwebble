@@ -101,7 +101,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				albums, err := db.GetAllAlbums(ctx, "", "", false)
+				albums, err := db.GetAllAlbums(ctx, "", "")
 				if err != nil {
 					return nil, err
 				}
@@ -214,7 +214,6 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 							Int64: album.Year,
 							Valid: album.Year != 0,
 						},
-						Available: true,
 					})
 					if err != nil {
 						var e sqlite3.Error
@@ -250,7 +249,6 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 						OriginalFilename: track.OriginalFilename,
 						MobileFilename:   track.MobileFilename,
 						Created:          track.Created,
-						Available:        true,
 					})
 					if err != nil {
 						var e sqlite3.Error
@@ -304,10 +302,6 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 									},
 									Created: types.Change[int64]{
 										Value:   track.Created,
-										Changed: true,
-									},
-									Available: types.Change[bool]{
-										Value:   true,
 										Changed: true,
 									},
 								})

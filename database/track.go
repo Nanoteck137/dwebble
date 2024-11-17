@@ -47,11 +47,6 @@ func (a *TrackResolverAdapter) MapSortName(name string) (types.Name, error) {
 			Kind: types.NameKindNumber,
 			Name: "tracks.track_number",
 		}, nil
-	case "available":
-		return types.Name{
-			Kind: types.NameKindNumber,
-			Name: "tracks.available",
-		}, nil
 	}
 
 	return types.Name{}, sort.UnknownName(name)
@@ -146,8 +141,6 @@ type Track struct {
 	Updated int64 `db:"updated"`
 
 	Tags sql.NullString `db:"tags"`
-
-	Available bool `db:"available"`
 }
 
 type TrackChanges struct {
@@ -164,9 +157,6 @@ type TrackChanges struct {
 	MobileFilename   types.Change[string]
 
 	Created types.Change[int64]
-
-	// TODO(patrik): Use types.Change
-	Available types.Change[bool]
 }
 
 func TrackQuery() *goqu.SelectDataset {
@@ -206,8 +196,6 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.I("artists.name").As("artist_name"),
 
 			goqu.I("tags.tags").As("tags"),
-
-			"tracks.available",
 		).
 		Prepared(true).
 		Join(
@@ -244,15 +232,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 			return nil, fmt.Errorf("%w: %w", ErrInvalidFilter, err)
 		}
 
-		if includeAll {
-			query = query.Where(re)
-		} else {
-			query = query.Where(re, goqu.I("tracks.available").Eq(true))
-		}
-	} else {
-		if !includeAll {
-			query = query.Where(goqu.I("tracks.available").Eq(true))
-		}
+		query = query.Where(re)
 	}
 
 	sortExpr, err := sort.Parse(sortStr)
@@ -424,8 +404,6 @@ type CreateTrackParams struct {
 
 	Created int64
 	Updated int64
-
-	Available bool
 }
 
 func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (string, error) {
@@ -460,8 +438,6 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 
 		"created": created,
 		"updated": updated,
-
-		"available": params.Available,
 	}).
 		Returning("id").
 		Prepared(true)
@@ -504,8 +480,6 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 
 	addToRecord(record, "created", changes.Created)
 
-	addToRecord(record, "available", changes.Available)
-
 	if len(record) == 0 {
 		return nil
 	}
@@ -546,19 +520,6 @@ func (db *Database) RemoveTrack(ctx context.Context, id string) error {
 
 	// TODO(patrik): Check result?
 	_, err := db.Exec(ctx, query)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (db *Database) MarkAllTracksUnavailable(ctx context.Context) error {
-	ds := dialect.Update("tracks").Set(goqu.Record{
-		"available": false,
-	})
-
-	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
