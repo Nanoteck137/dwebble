@@ -53,7 +53,7 @@ func ProcessOriginalVersion(input string, outputDir, name string) (string, Track
 	// .wav  -> .flac
 	// .flac -> .flac
 
-	filename := Slug(name) + outputExt
+	filename := name + outputExt
 
 	var args []string
 	args = append(args, "-i", input, "-map_metadata", "-1", "-vn")
