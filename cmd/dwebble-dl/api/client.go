@@ -9,10 +9,10 @@ func (c *Client) GetArtists(options Options) (*GetArtists, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetArtists](data)
 }
@@ -25,10 +25,10 @@ func (c *Client) GetArtistById(id string, options Options) (*GetArtistById, erro
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetArtistById](data)
 }
@@ -41,10 +41,10 @@ func (c *Client) GetArtistAlbums(id string, options Options) (*GetArtistAlbumsBy
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetArtistAlbumsById](data)
 }
@@ -57,10 +57,10 @@ func (c *Client) GetAlbums(options Options) (*GetAlbums, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetAlbums](data)
 }
@@ -73,10 +73,10 @@ func (c *Client) GetAlbumById(id string, options Options) (*GetAlbumById, error)
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetAlbumById](data)
 }
@@ -89,10 +89,10 @@ func (c *Client) GetAlbumTracks(id string, options Options) (*GetAlbumTracksById
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetAlbumTracksById](data)
 }
@@ -105,10 +105,10 @@ func (c *Client) EditAlbum(id string, body PatchAlbumBody, options Options) (*an
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "PATCH",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[any](data)
 }
@@ -121,10 +121,10 @@ func (c *Client) DeleteAlbum(id string, options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "DELETE",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[any](data)
 }
@@ -137,10 +137,10 @@ func (c *Client) ImportAlbum(body PostAlbumImportBody, options Options) (*PostAl
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[PostAlbumImport](data)
 }
@@ -153,10 +153,10 @@ func (c *Client) ImportTrackToAlbum(id string, options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[any](data)
 }
@@ -169,10 +169,10 @@ func (c *Client) GetTracks(options Options) (*GetTracks, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetTracks](data)
 }
@@ -185,10 +185,10 @@ func (c *Client) GetTrackById(id string, options Options) (*GetTrackById, error)
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetTrackById](data)
 }
@@ -201,10 +201,10 @@ func (c *Client) RemoveTrack(id string, options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "DELETE",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[any](data)
 }
@@ -217,28 +217,12 @@ func (c *Client) EditTrack(id string, body PatchTrackBody, options Options) (*an
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "PATCH",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[any](data)
-}
-
-func (c *Client) GetTags(options Options) (*GetTags, error) {
-	path := "/api/v1/tags"
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url:    url,
-		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
-	}
-	return Request[GetTags](data)
 }
 
 func (c *Client) Signup(body PostAuthSignupBody, options Options) (*PostAuthSignup, error) {
@@ -249,10 +233,10 @@ func (c *Client) Signup(body PostAuthSignupBody, options Options) (*PostAuthSign
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[PostAuthSignup](data)
 }
@@ -265,10 +249,10 @@ func (c *Client) Signin(body PostAuthSigninBody, options Options) (*PostAuthSign
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[PostAuthSignin](data)
 }
@@ -281,10 +265,10 @@ func (c *Client) GetMe(options Options) (*GetAuthMe, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetAuthMe](data)
 }
@@ -297,10 +281,10 @@ func (c *Client) GetPlaylists(options Options) (*GetPlaylists, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetPlaylists](data)
 }
@@ -313,10 +297,10 @@ func (c *Client) CreatePlaylist(body PostPlaylistBody, options Options) (*PostPl
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[PostPlaylist](data)
 }
@@ -329,10 +313,10 @@ func (c *Client) CreatePlaylistFromFilter(body PostPlaylistFilterBody, options O
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[PostPlaylist](data)
 }
@@ -345,10 +329,10 @@ func (c *Client) GetPlaylistById(id string, options Options) (*GetPlaylistById, 
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetPlaylistById](data)
 }
@@ -361,10 +345,10 @@ func (c *Client) AddItemsToPlaylist(id string, body PostPlaylistItemsByIdBody, o
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[any](data)
 }
@@ -377,10 +361,10 @@ func (c *Client) DeletePlaylistItems(id string, body DeletePlaylistItemsByIdBody
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "DELETE",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[any](data)
 }
@@ -393,10 +377,10 @@ func (c *Client) MovePlaylistItem(id string, body PostPlaylistsItemMoveByIdBody,
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   body,
+		Token: c.token,
+		Body: body,
 	}
 	return Request[any](data)
 }
@@ -409,10 +393,10 @@ func (c *Client) GetSystemInfo(options Options) (*GetSystemInfo, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "GET",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[GetSystemInfo](data)
 }
@@ -425,10 +409,10 @@ func (c *Client) SystemExport(options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[any](data)
 }
@@ -441,10 +425,10 @@ func (c *Client) SystemImport(options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[any](data)
 }
@@ -457,10 +441,10 @@ func (c *Client) Process(options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url:    url,
+		Url: url,
 		Method: "POST",
-		Token:  c.token,
-		Body:   nil,
+		Token: c.token,
+		Body: nil,
 	}
 	return Request[any](data)
 }

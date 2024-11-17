@@ -56,8 +56,6 @@ type Track struct {
 	Updated int64 `json:"updated"`
 
 	Tags []string `json:"tags"`
-
-	Available bool `json:"available"`
 }
 
 type Tag struct {

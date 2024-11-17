@@ -65,7 +65,6 @@ export const Track = z.object({
   created: z.number(),
   updated: z.number(),
   tags: z.array(z.string()),
-  available: z.boolean(),
 });
 export type Track = z.infer<typeof Track>;
 
@@ -110,17 +109,6 @@ export const PatchTrackBody = z.object({
   tags: z.array(z.string()).nullable().optional(),
 });
 export type PatchTrackBody = z.infer<typeof PatchTrackBody>;
-
-export const Tag = z.object({
-  id: z.string(),
-  name: z.string(),
-});
-export type Tag = z.infer<typeof Tag>;
-
-export const GetTags = z.object({
-  tags: z.array(Tag),
-});
-export type GetTags = z.infer<typeof GetTags>;
 
 export const PostAuthSignup = z.object({
   id: z.string(),

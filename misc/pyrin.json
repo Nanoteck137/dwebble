@@ -214,11 +214,6 @@
           "name": "tags",
           "type": "[]string",
           "omit": false
-        },
-        {
-          "name": "available",
-          "type": "bool",
-          "omit": false
         }
       ]
     },
@@ -335,33 +330,6 @@
           "name": "tags",
           "type": "*[]string",
           "omit": true
-        }
-      ]
-    },
-    {
-      "name": "Tag",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetTags",
-      "extend": "",
-      "fields": [
-        {
-          "name": "tags",
-          "type": "[]Tag",
-          "omit": false
         }
       ]
     },
@@ -596,7 +564,9 @@
       "method": "GET",
       "path": "/api/v1/artists",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetArtists",
       "bodyType": "",
@@ -607,8 +577,10 @@
       "method": "GET",
       "path": "/api/v1/artists/:id",
       "errorTypes": [
+        "ARTIST_NOT_FOUND",
+        "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
-        "ARTIST_NOT_FOUND"
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetArtistById",
       "bodyType": "",
@@ -619,8 +591,10 @@
       "method": "GET",
       "path": "/api/v1/artists/:id/albums",
       "errorTypes": [
+        "ARTIST_NOT_FOUND",
+        "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
-        "ARTIST_NOT_FOUND"
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetArtistAlbumsById",
       "bodyType": "",
@@ -631,7 +605,9 @@
       "method": "GET",
       "path": "/api/v1/albums",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetAlbums",
       "bodyType": "",
@@ -642,8 +618,10 @@
       "method": "GET",
       "path": "/api/v1/albums/:id",
       "errorTypes": [
+        "ALBUM_NOT_FOUND",
+        "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
-        "ALBUM_NOT_FOUND"
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetAlbumById",
       "bodyType": "",
@@ -654,8 +632,10 @@
       "method": "GET",
       "path": "/api/v1/albums/:id/tracks",
       "errorTypes": [
+        "ALBUM_NOT_FOUND",
+        "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
-        "ALBUM_NOT_FOUND"
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetAlbumTracksById",
       "bodyType": "",
@@ -666,7 +646,9 @@
       "method": "PATCH",
       "path": "/api/v1/albums/:id",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "PatchAlbumBody",
@@ -677,7 +659,9 @@
       "method": "DELETE",
       "path": "/api/v1/albums/:id",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "",
@@ -688,7 +672,9 @@
       "method": "POST",
       "path": "/api/v1/albums/import",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "PostAlbumImport",
       "bodyType": "PostAlbumImportBody",
@@ -699,7 +685,9 @@
       "method": "POST",
       "path": "/api/v1/albums/:id/import/track",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "",
@@ -710,9 +698,11 @@
       "method": "GET",
       "path": "/api/v1/tracks",
       "errorTypes": [
+        "INVALID_FILTER",
         "INVALID_SORT",
+        "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
-        "INVALID_FILTER"
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetTracks",
       "bodyType": "",
@@ -723,8 +713,10 @@
       "method": "GET",
       "path": "/api/v1/tracks/:id",
       "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "TRACK_NOT_FOUND",
         "UNKNOWN_ERROR",
-        "TRACK_NOT_FOUND"
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetTrackById",
       "bodyType": "",
@@ -735,7 +727,9 @@
       "method": "DELETE",
       "path": "/api/v1/tracks/:id",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "",
@@ -746,21 +740,12 @@
       "method": "PATCH",
       "path": "/api/v1/tracks/:id",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "PatchTrackBody",
-      "requireFormData": false
-    },
-    {
-      "name": "GetTags",
-      "method": "GET",
-      "path": "/api/v1/tags",
-      "errorTypes": [
-        "UNKNOWN_ERROR"
-      ],
-      "responseType": "GetTags",
-      "bodyType": "",
       "requireFormData": false
     },
     {
@@ -768,7 +753,9 @@
       "method": "POST",
       "path": "/api/v1/auth/signup",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "PostAuthSignup",
       "bodyType": "PostAuthSignupBody",
@@ -779,7 +766,9 @@
       "method": "POST",
       "path": "/api/v1/auth/signin",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "PostAuthSignin",
       "bodyType": "PostAuthSigninBody",
@@ -790,7 +779,9 @@
       "method": "GET",
       "path": "/api/v1/auth/me",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetAuthMe",
       "bodyType": "",
@@ -801,7 +792,9 @@
       "method": "GET",
       "path": "/api/v1/playlists",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetPlaylists",
       "bodyType": "",
@@ -812,7 +805,9 @@
       "method": "POST",
       "path": "/api/v1/playlists",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "PostPlaylist",
       "bodyType": "PostPlaylistBody",
@@ -823,7 +818,9 @@
       "method": "POST",
       "path": "/api/v1/playlists/filter",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "PostPlaylist",
       "bodyType": "PostPlaylistFilterBody",
@@ -834,7 +831,9 @@
       "method": "GET",
       "path": "/api/v1/playlists/:id",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetPlaylistById",
       "bodyType": "",
@@ -845,7 +844,9 @@
       "method": "POST",
       "path": "/api/v1/playlists/:id/items",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "PostPlaylistItemsByIdBody",
@@ -856,7 +857,9 @@
       "method": "DELETE",
       "path": "/api/v1/playlists/:id/items",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "DeletePlaylistItemsByIdBody",
@@ -867,7 +870,9 @@
       "method": "POST",
       "path": "/api/v1/playlists/:id/items/move",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "PostPlaylistsItemMoveByIdBody",
@@ -878,7 +883,9 @@
       "method": "GET",
       "path": "/api/v1/system/info",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "GetSystemInfo",
       "bodyType": "",
@@ -889,7 +896,9 @@
       "method": "POST",
       "path": "/api/v1/system/export",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "",
@@ -900,7 +909,9 @@
       "method": "POST",
       "path": "/api/v1/system/import",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "",
@@ -911,7 +922,9 @@
       "method": "POST",
       "path": "/api/v1/system/process",
       "errorTypes": [
-        "UNKNOWN_ERROR"
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
       ],
       "responseType": "",
       "bodyType": "",
