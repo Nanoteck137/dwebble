@@ -66,10 +66,14 @@ func (d OldAlbumDir) MobileFiles() string {
 var AppName = dwebble.AppName + "-migrate"
 
 var rootCmd = &cobra.Command{
-	Use:     AppName,
+	Use:     AppName + " <IN> <OUT>",
 	Version: dwebble.Version,
+	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
-		workDir := types.WorkDir("./work")
+		in := args[0]
+		out := args[1]
+
+		workDir := types.WorkDir(out)
 
 		// TODO(patrik): Move to function (used in base_app.Bootstrap, dwebble-import)
 		dirs := []string{
@@ -101,7 +105,7 @@ var rootCmd = &cobra.Command{
 		}
 		defer tx.Rollback()
 
-		oldWorkDir := OldWorkDir("/mnt/fastboi/apps/dwebble")
+		oldWorkDir := OldWorkDir(in)
 
 		d, err := os.ReadFile(oldWorkDir.ExportFile())
 		if err != nil {
@@ -172,7 +176,6 @@ var rootCmd = &cobra.Command{
 					Int64: album.Year,
 					Valid: album.Year != 0,
 				},
-				Available: true,
 			})
 			if err != nil {
 				var e sqlite3.Error
@@ -254,7 +257,6 @@ var rootCmd = &cobra.Command{
 				OriginalFilename: track.OriginalFilename,
 				MobileFilename:   track.MobileFilename,
 				Created:          track.Created,
-				Available:        true,
 			})
 			if err != nil {
 				var e sqlite3.Error
