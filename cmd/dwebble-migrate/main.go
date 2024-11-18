@@ -66,12 +66,16 @@ func (d OldAlbumDir) MobileFiles() string {
 var AppName = dwebble.AppName + "-migrate"
 
 var rootCmd = &cobra.Command{
-	Use:     AppName + " <IN> <OUT>",
+	Use:     AppName + " <IN>",
 	Version: dwebble.Version,
 	Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		in := args[0]
-		out := args[1]
+
+		out, ok := os.LookupEnv("DWEBBLE_DATA_DIR")
+		if !ok {
+			log.Fatal("missing 'DWEBBLE_DATA_DIR' env variable")
+		}
 
 		workDir := types.WorkDir(out)
 
