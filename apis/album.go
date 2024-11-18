@@ -452,13 +452,11 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 					file.Close()
 
-					// TODO(patrik): Fix
 					mobileFile, err := utils.ProcessMobileVersion(file.Name(), trackDir, "track.mobile")
 					if err != nil {
 						return nil, err
 					}
 
-					// TODO(patrik): Fix
 					originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), trackDir, "track.original")
 					if err != nil {
 						return nil, err
