@@ -49,6 +49,22 @@ func (c *Client) GetArtistAlbums(id string, options Options) (*GetArtistAlbumsBy
 	return Request[GetArtistAlbumsById](data)
 }
 
+func (c *Client) ChangePicture(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/artists/%v/picture", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "PATCH",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) GetAlbums(options Options) (*GetAlbums, error) {
 	path := "/api/v1/albums"
 	url, err := createUrl(c.addr, path, options.QueryParams)

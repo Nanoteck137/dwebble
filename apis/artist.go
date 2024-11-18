@@ -1,8 +1,13 @@
 package apis
 
 import (
+	"context"
+	"database/sql"
 	"errors"
+	"io"
 	"net/http"
+	"os"
+	"path"
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
@@ -32,7 +37,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					res.Artists[i] = types.Artist{
 						Id:      artist.Id,
 						Name:    artist.Name,
-						Picture: utils.ConvertArtistPictureURL(c, artist.Picture),
+						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
 					}
 				}
 
@@ -60,7 +65,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					Artist: types.Artist{
 						Id:      artist.Id,
 						Name:    artist.Name,
-						Picture: utils.ConvertArtistPictureURL(c, artist.Picture),
+						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
 					},
 				}, nil
 			},
@@ -105,6 +110,95 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				return res, nil
+			},
+		},
+		pyrin.ApiHandler{
+			Name:        "ChangePicture",
+			Method:      http.MethodPatch,
+			Path:        "/artists/:id/picture",
+			RequireForm: true,
+			Errors:      []pyrin.ErrorType{ErrTypeArtistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				ctx := context.TODO()
+
+				err := c.Request().ParseMultipartForm(defaultMemory)
+				if err != nil {
+					return nil, err
+				}
+
+				form := c.Request().MultipartForm
+
+				artist, err := app.DB().GetArtistById(ctx, id)
+				if err != nil {
+					return nil, ArtistNotFound()
+				}
+
+				formFile := form.File["picture"][0]
+
+				// TODO(patrik): Check the file ext for png jpeg jpg
+
+				f, err := formFile.Open()
+				if err != nil {
+					return nil, err
+				}
+
+				artistDir := app.WorkDir().Artist(artist.Id)
+
+				// TODO(patrik): This should not be here
+				err = os.Mkdir(artistDir, 0755)
+				if err != nil && !os.IsExist(err) {
+					return nil, err
+				}
+
+				name := "picture-original" + path.Ext(formFile.Filename)
+				dstName := path.Join(artistDir, name)
+				dst, err := os.OpenFile(dstName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+				if err != nil {
+					return nil, err
+				}
+				defer dst.Close()
+
+				_, err = io.Copy(dst, f)
+				if err != nil {
+					return nil, err
+				}
+
+				dst.Close()
+
+				i := path.Join(artistDir, "picture-128.png")
+				err = utils.CreateResizedImage(dstName, i, 128)
+				if err != nil {
+					return nil, err
+				}
+
+				i = path.Join(artistDir, "picture-256.png")
+				err = utils.CreateResizedImage(dstName, i, 256)
+				if err != nil {
+					return nil, err
+				}
+
+				i = path.Join(artistDir, "picture-512.png")
+				err = utils.CreateResizedImage(dstName, i, 512)
+				if err != nil {
+					return nil, err
+				}
+
+				err = app.DB().UpdateArtist(ctx, artist.Id, database.ArtistChanges{
+					Picture: types.Change[sql.NullString]{
+						Value: sql.NullString{
+							String: name,
+							Valid:  true,
+						},
+						Changed: true,
+					},
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
 			},
 		},
 	)

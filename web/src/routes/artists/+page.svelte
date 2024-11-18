@@ -15,7 +15,7 @@
           <a class="relative" href={`/artists/${artist.id}`}>
             <img
               class="aspect-square w-40 rounded object-cover group-hover:brightness-75"
-              src={artist.picture}
+              src={artist.picture.medium}
               alt={`${artist.name} Picture`}
               loading="lazy"
             />

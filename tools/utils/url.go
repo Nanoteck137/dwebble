@@ -36,14 +36,32 @@ func ConvertImageURL(c pyrin.Context, albumId string, val sql.NullString, def st
 	return ConvertURL(c, "/files/albums/images/"+albumId+"/"+coverArt)
 }
 
-func ConvertArtistPictureURL(c pyrin.Context, val sql.NullString) string {
-	return ConvertURL(c, "/images/"+DefaultArtistPictureName)
+func ConvertArtistPicture(c pyrin.Context, artistId string, val sql.NullString) types.Images {
+	if val.Valid && val.String != "" {
+		first := "/files/artists/" + artistId + "/"
+		return types.Images{
+			Original: ConvertURL(c, first+val.String),
+			Small:    ConvertURL(c, first+"picture-128.png"),
+			Medium:   ConvertURL(c, first+"picture-256.png"),
+			Large:    ConvertURL(c, first+"picture-512.png"),
+		}
+	}
+
+	url := ConvertURL(c, "/files/images/"+DefaultArtistPictureName)
+	return types.Images{
+		Original: url,
+		Small:    url,
+		Medium:   url,
+		Large:    url,
+	}
+
+	// return ConvertURL(c, "/files/images/"+DefaultArtistPictureName)
 }
 
-func ConvertAlbumCoverURL(c pyrin.Context, albumId string, val sql.NullString) types.CoverArt {
+func ConvertAlbumCoverURL(c pyrin.Context, albumId string, val sql.NullString) types.Images {
 	if val.Valid && val.String != "" {
 		coverArt := val.String
-		return types.CoverArt{
+		return types.Images{
 			Original: ConvertURL(c, "/files/albums/images/"+albumId+"/"+coverArt),
 			Small:    ConvertURL(c, "/files/albums/images/"+albumId+"/"+"cover-128.png"),
 			Medium:   ConvertURL(c, "/files/albums/images/"+albumId+"/"+"cover-256.png"),
@@ -51,8 +69,8 @@ func ConvertAlbumCoverURL(c pyrin.Context, albumId string, val sql.NullString) t
 		}
 	}
 
-	url := ConvertURL(c, "/images/"+DefaultAlbumCoverArtName)
-	return types.CoverArt{
+	url := ConvertURL(c, "/files/images/"+DefaultAlbumCoverArtName)
+	return types.Images{
 		Original: url,
 		Small:    url,
 		Medium:   url,

@@ -22,6 +22,10 @@ func (d WorkDir) Artists() string {
 	return path.Join(d.String(), "artists")
 }
 
+func (d WorkDir) Artist(id string) string {
+	return path.Join(d.Artists(), id)
+}
+
 func (d WorkDir) Albums() string {
 	return path.Join(d.String(), "albums")
 }

@@ -5,6 +5,7 @@ import { BaseApiClient, type ExtraOptions } from "./base-client";
 export const GET_ARTISTS_URL = "/api/v1/artists"
 export const GET_ARTIST_BY_ID_URL = "/api/v1/artists/:id"
 export const GET_ARTIST_ALBUMS_URL = "/api/v1/artists/:id/albums"
+export const CHANGE_PICTURE_URL = "/api/v1/artists/:id/picture"
 export const GET_ALBUMS_URL = "/api/v1/albums"
 export const GET_ALBUM_BY_ID_URL = "/api/v1/albums/:id"
 export const GET_ALBUM_TRACKS_URL = "/api/v1/albums/:id/tracks"
@@ -46,6 +47,10 @@ export class ApiClient extends BaseApiClient {
   
   getArtistAlbums(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/artists/${id}/albums`, "GET", api.GetArtistAlbumsById, z.undefined(), undefined, options)
+  }
+  
+  changePicture(id: string, formData: FormData, options?: ExtraOptions) {
+    return this.requestWithFormData(`/api/v1/artists/${id}/picture`, "PATCH", z.undefined(), z.undefined(), formData, options)
   }
   
   getAlbums(options?: ExtraOptions) {
