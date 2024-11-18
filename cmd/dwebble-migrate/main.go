@@ -68,7 +68,7 @@ var AppName = dwebble.AppName + "-migrate"
 var rootCmd = &cobra.Command{
 	Use:     AppName + " <IN>",
 	Version: dwebble.Version,
-	Args: cobra.ExactArgs(2),
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		in := args[0]
 
