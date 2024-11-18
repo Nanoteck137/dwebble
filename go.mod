@@ -9,7 +9,6 @@ require (
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/faceair/jio v1.0.1
 	github.com/golang-cz/devslog v0.0.8
-	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gosimple/slug v1.14.0
 	github.com/jmoiron/sqlx v1.4.0
@@ -47,6 +46,7 @@ require (
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
