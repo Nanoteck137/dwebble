@@ -9,9 +9,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble"
@@ -50,24 +48,28 @@ type AlbumMetadata struct {
 var AppName = dwebble.AppName + "-import"
 
 var rootCmd = &cobra.Command{
-	Use:     AppName + " <OUT>",
+	Use:     AppName,
 	Version: dwebble.Version,
-	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		out := args[0]
 		dir, _ := cmd.Flags().GetString("dir")
+
+		out, ok := os.LookupEnv("DWEBBLE_DATA_DIR")
+		if !ok {
+			log.Fatal("missing 'DWEBBLE_DATA_DIR' env variable")
+		}
 
 		workDir := types.WorkDir(out)
 
 		dirs := []string{
 			workDir.Albums(),
 			workDir.Artists(),
+			workDir.Tracks(),
 		}
 
 		for _, dir := range dirs {
 			err := os.Mkdir(dir, 0755)
 			if err != nil && !os.IsExist(err) {
-				log.Fatal("Failed", "err", err)
+				log.Fatal("Failed to bootstrap directories", "err", err)
 			}
 		}
 
@@ -139,17 +141,24 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 
 	pretty.Println(metadata)
 
+	artistCache := make(map[string]database.Artist)
+
 	getOrCreateArtist := func(name string) (database.Artist, error) {
+		if artist, exists := artistCache[name]; exists {
+			return artist, nil
+		}
+
 		artist, err := db.GetArtistByName(ctx, name)
 		if err != nil {
 			if errors.Is(err, database.ErrItemNotFound) {
 				artist, err := db.CreateArtist(ctx, database.CreateArtistParams{
 					Name:    name,
-					Picture: sql.NullString{},
 				})
 				if err != nil {
 					return database.Artist{}, err
 				}
+
+				artistCache[name] = artist
 
 				return artist, nil
 			} else {
@@ -157,10 +166,15 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 			}
 		}
 
+		artistCache[name] = artist
+
 		return artist, nil
 	}
 
 	artist, err := getOrCreateArtist(metadata.Artist)
+	if err != nil {
+		log.Fatal("Failed", "err", err)
+	}
 	pretty.Println(artist)
 
 	album, err := db.CreateAlbum(ctx, database.CreateAlbumParams{
@@ -169,8 +183,6 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 
 		CoverArt: sql.NullString{},
 		Year:     sql.NullInt64{},
-
-		Available: true,
 	})
 	if err != nil {
 		return err
@@ -178,19 +190,10 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 
 	albumDir := workDir.Album(album.Id)
 
-	dirs := []string{
-		albumDir.String(),
-		albumDir.Images(),
+	err = os.Mkdir(albumDir, 0755)
+	if err != nil {
+		log.Fatal("Failed", "err", err)
 	}
-
-	for _, dir := range dirs {
-		err := os.Mkdir(dir, 0755)
-		if err != nil {
-			return err
-		}
-	}
-
-	pretty.Println(album)
 
 	if metadata.CoverArt != "" {
 		p := path.Join(albumPath, metadata.CoverArt)
@@ -198,9 +201,8 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 		ext := path.Ext(metadata.CoverArt)
 		filename := "cover-original" + ext
 
-		dst := path.Join(albumDir.Images(), filename)
+		dst := path.Join(albumDir, filename)
 
-		// TODO(patrik): Close file
 		file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE, 0644)
 		if err != nil {
 			return err
@@ -218,19 +220,19 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 			return err
 		}
 
-		i := path.Join(albumDir.Images(), "cover-128.png")
+		i := path.Join(albumDir, "cover-128.png")
 		err = utils.CreateResizedImage(dst, i, 128)
 		if err != nil {
 			return err
 		}
 
-		i = path.Join(albumDir.Images(), "cover-256.png")
+		i = path.Join(albumDir, "cover-256.png")
 		err = utils.CreateResizedImage(dst, i, 256)
 		if err != nil {
 			return err
 		}
 
-		i = path.Join(albumDir.Images(), "cover-512.png")
+		i = path.Join(albumDir, "cover-512.png")
 		err = utils.CreateResizedImage(dst, i, 512)
 		if err != nil {
 			return err
@@ -252,9 +254,6 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 	}
 
 	for _, track := range metadata.Tracks {
-		now := time.Now()
-		_ = now
-
 		artist, err := getOrCreateArtist(track.Artist)
 		if err != nil {
 			return err
@@ -271,23 +270,33 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 
 		p = path.Join(albumPath, p)
 
+		trackId := utils.CreateTrackId()
+
+		trackDir := workDir.Track(trackId)
+
+		err = os.Mkdir(trackDir, 0755)
+		if err != nil {
+			return err
+		}
+
 		trackFilename := path.Base(p)
 
 		// TODO(patrik): Maybe save the original filename to use when exporting
 		ext := path.Ext(trackFilename)
 		originalName := strings.TrimSuffix(trackFilename, ext)
-		filename := originalName + "-" + strconv.FormatInt(now.Unix(), 10)
 
 		file, err := os.CreateTemp("", "track.*"+ext)
 		if err != nil {
 			return err
 		}
+		defer file.Close()
 		defer os.Remove(file.Name())
 
 		ff, err := os.Open(p)
 		if err != nil {
 			return err
 		}
+		defer ff.Close()
 
 		_, err = io.Copy(file, ff)
 		if err != nil {
@@ -296,17 +305,18 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 
 		file.Close()
 
-		mobileFile, err := utils.ProcessMobileVersion(file.Name(), albumDir.MobileFiles(), filename)
+		mobileFile, err := utils.ProcessMobileVersion(file.Name(), trackDir, "track.mobile")
 		if err != nil {
 			return err
 		}
 
-		originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), albumDir.OriginalFiles(), filename)
+		originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), trackDir, "track.original")
 		if err != nil {
 			return err
 		}
 
-		trackId, err := db.CreateTrack(ctx, database.CreateTrackParams{
+		_, err = db.CreateTrack(ctx, database.CreateTrackParams{
+			Id: trackId,
 			Name:     track.Name,
 			AlbumId:  album.Id,
 			ArtistId: artist.Id,
@@ -325,7 +335,6 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 			ExportName:       originalName,
 			OriginalFilename: originalFile,
 			MobileFilename:   mobileFile,
-			Available:        true,
 		})
 		if err != nil {
 			return err
