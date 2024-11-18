@@ -30,7 +30,7 @@
           pname = "dwebble";
           version = fullVersion;
           src = ./.;
-          subPackages = ["cmd/dwebble" "cmd/dwebble-import" "cmd/dwebble-dl"];
+          subPackages = ["cmd/dwebble" "cmd/dwebble-import" "cmd/dwebble-dl" "cmd/dwebble-migrate"];
 
           ldflags = [
             "-X github.com/nanoteck137/dwebble.Version=${version}"
