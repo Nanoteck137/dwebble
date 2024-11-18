@@ -3,18 +3,31 @@ package apis
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/validate"
 )
+
+var _ pyrin.Body = (*EditArtistBody)(nil)
+
+type EditArtistBody struct {
+	Name *string `json:"name"`
+}
+
+func (b EditArtistBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
+}
 
 func InstallArtistHandlers(app core.App, group pyrin.Group) {
 	group.Register(
@@ -110,6 +123,48 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				return res, nil
+			},
+		},
+		pyrin.ApiHandler{
+			Name:     "EditArtist",
+			Method:   http.MethodPatch,
+			Path:     "/artists/:id",
+			BodyType: EditArtistBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeArtistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				// TODO(patrik): Change this to pyrin version
+				var body EditArtistBody
+				d := json.NewDecoder(c.Request().Body)
+				err := d.Decode(&body)
+				if err != nil {
+					return nil, err
+				}
+
+				var name string
+				if body.Name != nil {
+					name = strings.TrimSpace(*body.Name)
+				}
+
+				ctx := context.TODO()
+
+				artist, err := app.DB().GetArtistById(ctx, id)
+				if err != nil {
+					return nil, ArtistNotFound()
+				}
+
+				err = app.DB().UpdateArtist(ctx, artist.Id, database.ArtistChanges{
+					Name: types.Change[string]{
+						Value: name,
+						Changed: name != "" && artist.Name != name,
+					},
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
 			},
 		},
 		pyrin.ApiHandler{
