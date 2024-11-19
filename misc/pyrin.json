@@ -560,10 +560,144 @@
           "name": "version",
           "type": "string",
           "omit": false
+        }
+      ]
+    },
+    {
+      "name": "ExportArtist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
         },
         {
-          "name": "isSetup",
-          "type": "bool",
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "picture",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "ExportAlbum",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artistId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "coverArt",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "ExportTrack",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "albumId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artistId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "number",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "duration",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "exportName",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "originalFilename",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "mobileFilename",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "Export",
+      "extend": "",
+      "fields": [
+        {
+          "name": "artists",
+          "type": "[]ExportArtist",
+          "omit": false
+        },
+        {
+          "name": "albums",
+          "type": "[]ExportAlbum",
+          "omit": false
+        },
+        {
+          "name": "tracks",
+          "type": "[]ExportTrack",
           "omit": false
         }
       ]
@@ -953,20 +1087,7 @@
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],
-      "responseType": "",
-      "bodyType": "",
-      "requireFormData": false
-    },
-    {
-      "name": "SystemImport",
-      "method": "POST",
-      "path": "/api/v1/system/import",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
-      "responseType": "",
+      "responseType": "Export",
       "bodyType": "",
       "requireFormData": false
     },

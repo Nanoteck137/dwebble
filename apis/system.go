@@ -64,7 +64,6 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				return types.GetSystemInfo{
 					Version: dwebble.Version,
-					IsSetup: app.IsSetup(),
 				}, nil
 			},
 		},

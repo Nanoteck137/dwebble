@@ -197,7 +197,45 @@ export type PostPlaylistsItemMoveByIdBody = z.infer<typeof PostPlaylistsItemMove
 
 export const GetSystemInfo = z.object({
   version: z.string(),
-  isSetup: z.boolean(),
 });
 export type GetSystemInfo = z.infer<typeof GetSystemInfo>;
+
+export const ExportArtist = z.object({
+  id: z.string(),
+  name: z.string(),
+  picture: z.string(),
+});
+export type ExportArtist = z.infer<typeof ExportArtist>;
+
+export const ExportAlbum = z.object({
+  id: z.string(),
+  name: z.string(),
+  artistId: z.string(),
+  coverArt: z.string(),
+  year: z.number(),
+});
+export type ExportAlbum = z.infer<typeof ExportAlbum>;
+
+export const ExportTrack = z.object({
+  id: z.string(),
+  name: z.string(),
+  albumId: z.string(),
+  artistId: z.string(),
+  number: z.number(),
+  duration: z.number(),
+  year: z.number(),
+  exportName: z.string(),
+  originalFilename: z.string(),
+  mobileFilename: z.string(),
+  created: z.number(),
+  tags: z.array(z.string()),
+});
+export type ExportTrack = z.infer<typeof ExportTrack>;
+
+export const Export = z.object({
+  artists: z.array(ExportArtist),
+  albums: z.array(ExportAlbum),
+  tracks: z.array(ExportTrack),
+});
+export type Export = z.infer<typeof Export>;
 

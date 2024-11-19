@@ -267,7 +267,6 @@ func (b PostPlaylistsItemMoveByIdBody) Schema() jio.Schema {
 
 type GetSystemInfo struct {
 	Version string `json:"version"`
-	IsSetup bool   `json:"isSetup"`
 }
 
 type PostSystemSetupBody struct {

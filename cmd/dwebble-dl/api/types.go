@@ -166,6 +166,40 @@ type PostPlaylistsItemMoveByIdBody struct {
 
 type GetSystemInfo struct {
 	Version string `json:"version"`
-	IsSetup bool `json:"isSetup"`
+}
+
+type ExportArtist struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	Picture string `json:"picture"`
+}
+
+type ExportAlbum struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	ArtistId string `json:"artistId"`
+	CoverArt string `json:"coverArt"`
+	Year int `json:"year"`
+}
+
+type ExportTrack struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	AlbumId string `json:"albumId"`
+	ArtistId string `json:"artistId"`
+	Number int `json:"number"`
+	Duration int `json:"duration"`
+	Year int `json:"year"`
+	ExportName string `json:"exportName"`
+	OriginalFilename string `json:"originalFilename"`
+	MobileFilename string `json:"mobileFilename"`
+	Created int `json:"created"`
+	Tags []string `json:"tags"`
+}
+
+type Export struct {
+	Artists []ExportArtist `json:"artists"`
+	Albums []ExportAlbum `json:"albums"`
+	Tracks []ExportTrack `json:"tracks"`
 }
 

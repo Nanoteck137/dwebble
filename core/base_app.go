@@ -34,14 +34,6 @@ func (app *BaseApp) WorkDir() types.WorkDir {
 	return app.config.WorkDir()
 }
 
-func (app *BaseApp) IsSetup() bool {
-	return app.dbConfig != nil
-}
-
-func (app *BaseApp) UpdateDBConfig(conf *database.Config) {
-	app.dbConfig = conf
-}
-
 func (app *BaseApp) Bootstrap() error {
 	var err error
 

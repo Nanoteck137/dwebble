@@ -449,7 +449,7 @@ func (c *Client) GetSystemInfo(options Options) (*GetSystemInfo, error) {
 	return Request[GetSystemInfo](data)
 }
 
-func (c *Client) SystemExport(options Options) (*any, error) {
+func (c *Client) SystemExport(options Options) (*Export, error) {
 	path := "/api/v1/system/export"
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -462,23 +462,7 @@ func (c *Client) SystemExport(options Options) (*any, error) {
 		Token: c.token,
 		Body: nil,
 	}
-	return Request[any](data)
-}
-
-func (c *Client) SystemImport(options Options) (*any, error) {
-	path := "/api/v1/system/import"
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[any](data)
+	return Request[Export](data)
 }
 
 func (c *Client) Process(options Options) (*any, error) {
