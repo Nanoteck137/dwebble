@@ -13,7 +13,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/faceair/jio"
 	"github.com/nanoteck137/dwebble/core"
@@ -276,11 +275,11 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:        "CreateAlbum",
-			Method:      http.MethodPost,
-			Path:        "/albums",
-			DataType:    CreateAlbum{},
-			BodyType:    CreateAlbumBody{},
+			Name:     "CreateAlbum",
+			Method:   http.MethodPost,
+			Path:     "/albums",
+			DataType: CreateAlbum{},
+			BodyType: CreateAlbumBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				// TODO(patrik): Validate and trim body
 				body, err := Body[CreateAlbumBody](c)
@@ -294,7 +293,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
 						artist, err = app.DB().CreateArtist(ctx, database.CreateArtistParams{
-							Name:    body.Artist,
+							Name: body.Artist,
 						})
 						if err != nil {
 							return nil, err
@@ -484,13 +483,11 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:        "ImportTrackToAlbum",
+			Name:        "ChangeAlbumCover",
 			Method:      http.MethodPost,
-			Path:        "/albums/:id/import/track",
+			Path:        "/albums/:id/cover",
 			RequireForm: true,
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				return nil, errors.New("Fix this")
-
 				id := c.Param("id")
 
 				err := c.Request().ParseMultipartForm(defaultMemory)
@@ -514,27 +511,133 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				}
 
 				albumDir := app.WorkDir().Album(album.Id)
-				_ = albumDir
+
+				// TODO(patrik): Check content-type
+				// TODO(patrik): Return error if there is no files attached
+				coverArt := form.File["cover"]
+				if len(coverArt) > 0 {
+					f := coverArt[0]
+
+					ext := path.Ext(f.Filename)
+					filename := "cover-original" + ext
+
+					dst := path.Join(albumDir, filename)
+
+					file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+					if err != nil {
+						return nil, err
+					}
+					defer file.Close()
+
+					ff, err := f.Open()
+					if err != nil {
+						return nil, err
+					}
+					defer ff.Close()
+
+					_, err = io.Copy(file, ff)
+					if err != nil {
+						return nil, err
+					}
+
+					i := path.Join(albumDir, "cover-128.png")
+					err = utils.CreateResizedImage(dst, i, 128)
+					if err != nil {
+						return nil, err
+					}
+
+					i = path.Join(albumDir, "cover-256.png")
+					err = utils.CreateResizedImage(dst, i, 256)
+					if err != nil {
+						return nil, err
+					}
+
+					i = path.Join(albumDir, "cover-512.png")
+					err = utils.CreateResizedImage(dst, i, 512)
+					if err != nil {
+						return nil, err
+					}
+
+					err = db.UpdateAlbum(ctx, album.Id, database.AlbumChanges{
+						CoverArt: types.Change[sql.NullString]{
+							Value: sql.NullString{
+								String: filename,
+								Valid:  true,
+							},
+							Changed: true,
+						},
+					})
+
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				err = tx.Commit()
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:        "UploadTracks",
+			Method:      http.MethodPost,
+			Path:        "/albums/:id/upload",
+			RequireForm: true,
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				err := c.Request().ParseMultipartForm(defaultMemory)
+				if err != nil {
+					return nil, err
+				}
+
+				form := c.Request().MultipartForm
+
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
+				ctx := context.TODO()
+				album, err := db.GetAlbumById(ctx, id)
+				if err != nil {
+					// TODO(patrik): Handle error
+					return nil, err
+				}
 
 				files := form.File["files"]
 				for _, f := range files {
-					now := time.Now()
+					trackId := utils.CreateTrackId()
+
+					trackDir := app.WorkDir().Track(trackId)
+
+					err := os.Mkdir(trackDir, 0755)
+					if err != nil {
+						return nil, err
+					}
 
 					// TODO(patrik): Maybe save the original filename to use when exporting
 					ext := path.Ext(f.Filename)
 					originalName := strings.TrimSuffix(f.Filename, ext)
-					filename := originalName + "-" + strconv.FormatInt(now.Unix(), 10)
 
+					// TODO(patrik): Copy the file to $trackDir/raw.flac instead
 					file, err := os.CreateTemp("", "track.*"+ext)
 					if err != nil {
 						return nil, err
 					}
+					defer file.Close()
 					defer os.Remove(file.Name())
 
 					ff, err := f.Open()
 					if err != nil {
 						return nil, err
 					}
+					defer ff.Close()
 
 					_, err = io.Copy(file, ff)
 					if err != nil {
@@ -543,14 +646,12 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 					file.Close()
 
-					// TODO(patrik): Fix
-					mobileFile, err := utils.ProcessMobileVersion(file.Name(), "", filename)
+					mobileFile, err := utils.ProcessMobileVersion(file.Name(), trackDir, "track.mobile")
 					if err != nil {
 						return nil, err
 					}
 
-					// TODO(patrik): Fix
-					originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), "", filename)
+					originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), trackDir, "track.original")
 					if err != nil {
 						return nil, err
 					}
@@ -584,6 +685,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					}
 
 					_, err = db.CreateTrack(ctx, database.CreateTrackParams{
+						Id:       trackId,
 						Name:     name,
 						AlbumId:  album.Id,
 						ArtistId: album.ArtistId,

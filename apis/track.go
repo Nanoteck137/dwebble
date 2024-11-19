@@ -3,7 +3,6 @@ package apis
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -180,12 +179,12 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodPatch,
 			Path:     "/tracks/:id",
 			BodyType: PatchTrackBody{},
+			Errors: []pyrin.ErrorType{ ErrTypeTrackNotFound },
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
-				var body PatchTrackBody
-				d := json.NewDecoder(c.Request().Body)
-				err := d.Decode(&body)
+				// TODO(patrik): Validation
+				body, err := Body[PatchTrackBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -194,7 +193,10 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 
 				track, err := app.DB().GetTrackById(ctx, id)
 				if err != nil {
-					// TODO(patrik): Handle error
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TrackNotFound()
+					}
+
 					return nil, err
 				}
 
@@ -216,8 +218,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					if err != nil {
 						if errors.Is(err, database.ErrItemNotFound) {
 							artist, err = app.DB().CreateArtist(ctx, database.CreateArtistParams{
-								Name:    artistName,
-								Picture: sql.NullString{},
+								Name: artistName,
 							})
 
 							if err != nil {

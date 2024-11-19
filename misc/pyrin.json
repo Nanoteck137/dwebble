@@ -626,7 +626,7 @@
       "requireFormData": false
     },
     {
-      "name": "ChangePicture",
+      "name": "ChangeArtistPicture",
       "method": "PATCH",
       "path": "/api/v1/artists/:id/picture",
       "errorTypes": [
@@ -720,9 +720,22 @@
       "requireFormData": false
     },
     {
-      "name": "ImportTrackToAlbum",
+      "name": "ChangeAlbumCover",
       "method": "POST",
-      "path": "/api/v1/albums/:id/import/track",
+      "path": "/api/v1/albums/:id/cover",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "",
+      "requireFormData": true
+    },
+    {
+      "name": "UploadTracks",
+      "method": "POST",
+      "path": "/api/v1/albums/:id/upload",
       "errorTypes": [
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
@@ -780,6 +793,7 @@
       "path": "/api/v1/tracks/:id",
       "errorTypes": [
         "ROUTE_NOT_FOUND",
+        "TRACK_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],

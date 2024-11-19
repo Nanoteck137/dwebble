@@ -17,15 +17,12 @@ export const actions: Actions = {
       body.append("files", file);
     });
 
-    const res = await locals.apiClient.importTrackToAlbum(
-      albumId.toString(),
-      body,
-    );
+    const res = await locals.apiClient.uploadTracks(albumId.toString(), body);
 
     if (!res.success) {
       throw error(res.error.code, { message: res.error.message });
     }
 
-    throw redirect(301, `/server/edit/album/${params.id}`);
+    throw redirect(301, `/albums/${params.id}/edit`);
   },
 };

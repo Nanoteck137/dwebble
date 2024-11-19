@@ -168,7 +168,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			},
 		},
 		pyrin.ApiHandler{
-			Name:        "ChangePicture",
+			Name:        "ChangeArtistPicture",
 			Method:      http.MethodPatch,
 			Path:        "/artists/:id/picture",
 			RequireForm: true,

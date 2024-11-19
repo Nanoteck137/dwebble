@@ -48,6 +48,6 @@ export const actions: Actions = {
       }
     }
 
-    throw redirect(302, `/server/edit/album/${params.id}`);
+    throw redirect(302, `/albums/${params.id}/edit`);
   },
 };

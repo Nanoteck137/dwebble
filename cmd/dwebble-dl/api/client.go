@@ -65,7 +65,7 @@ func (c *Client) EditArtist(id string, body EditArtistBody, options Options) (*a
 	return Request[any](data)
 }
 
-func (c *Client) ChangePicture(id string, options Options) (*any, error) {
+func (c *Client) ChangeArtistPicture(id string, options Options) (*any, error) {
 	path := Sprintf("/api/v1/artists/%v/picture", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -177,8 +177,24 @@ func (c *Client) CreateAlbum(body CreateAlbumBody, options Options) (*CreateAlbu
 	return Request[CreateAlbum](data)
 }
 
-func (c *Client) ImportTrackToAlbum(id string, options Options) (*any, error) {
-	path := Sprintf("/api/v1/albums/%v/import/track", id)
+func (c *Client) ChangeAlbumCover(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/albums/%v/cover", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
+func (c *Client) UploadTracks(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/albums/%v/upload", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err
