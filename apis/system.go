@@ -14,6 +14,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
@@ -181,6 +182,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 				ctx := context.TODO()
 
 				for _, artist := range export.Artists {
+					log.Fatal("TODO")
 					_, err := db.CreateArtist(ctx, database.CreateArtistParams{
 						Id:   artist.Id,
 						Name: artist.Name,

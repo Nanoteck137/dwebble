@@ -203,11 +203,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					artist, err := app.DB().GetArtistByName(ctx, artistName)
 					if err != nil {
 						if errors.Is(err, database.ErrItemNotFound) {
-							artist, err = app.DB().CreateArtist(ctx, database.CreateArtistParams{
-								Name:    artistName,
-								Picture: sql.NullString{},
-							})
-
+							artist, err = app.CreateArtist(ctx, artistName)
 							if err != nil {
 								return nil, err
 							}
@@ -292,9 +288,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				artist, err := app.DB().GetArtistByName(ctx, body.Artist)
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
-						artist, err = app.DB().CreateArtist(ctx, database.CreateArtistParams{
-							Name: body.Artist,
-						})
+						artist, err = app.CreateArtist(ctx, body.Artist)
 						if err != nil {
 							return nil, err
 						}
@@ -303,178 +297,13 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				album, err := app.DB().CreateAlbum(ctx, database.CreateAlbumParams{
+				album, err := app.CreateAlbum(ctx, database.CreateAlbumParams{
 					Name:     body.Name,
 					ArtistId: artist.Id,
 				})
 				if err != nil {
 					return nil, err
 				}
-
-				albumDir := app.WorkDir().Album(album.Id)
-
-				err = os.Mkdir(albumDir, 0755)
-				if err != nil {
-					return nil, err
-				}
-
-				// pretty.Println(album)
-				//
-				// coverArt := form.File["coverArt"]
-				// if len(coverArt) > 0 {
-				// 	f := coverArt[0]
-				//
-				// 	ext := path.Ext(f.Filename)
-				// 	filename := "cover-original" + ext
-				//
-				// 	dst := path.Join(albumDir, filename)
-				//
-				// 	file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE, 0644)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				// 	defer file.Close()
-				//
-				// 	ff, err := f.Open()
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				// 	defer ff.Close()
-				//
-				// 	_, err = io.Copy(file, ff)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				//
-				// 	i := path.Join(albumDir, "cover-128.png")
-				// 	err = utils.CreateResizedImage(dst, i, 128)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				//
-				// 	i = path.Join(albumDir, "cover-256.png")
-				// 	err = utils.CreateResizedImage(dst, i, 256)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				//
-				// 	i = path.Join(albumDir, "cover-512.png")
-				// 	err = utils.CreateResizedImage(dst, i, 512)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				//
-				// 	err = db.UpdateAlbum(ctx, album.Id, database.AlbumChanges{
-				// 		CoverArt: types.Change[sql.NullString]{
-				// 			Value: sql.NullString{
-				// 				String: filename,
-				// 				Valid:  true,
-				// 			},
-				// 			Changed: true,
-				// 		},
-				// 	})
-				//
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				// }
-				//
-				// files := form.File["files"]
-				// for _, f := range files {
-				// 	trackId := utils.CreateTrackId()
-				//
-				// 	trackDir := app.WorkDir().Track(trackId)
-				//
-				// 	err := os.Mkdir(trackDir, 0755)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				//
-				// 	// TODO(patrik): Maybe save the original filename to use when exporting
-				// 	ext := path.Ext(f.Filename)
-				// 	originalName := strings.TrimSuffix(f.Filename, ext)
-				//
-				// 	// TODO(patrik): Copy the file to $trackDir/raw.flac instead
-				// 	file, err := os.CreateTemp("", "track.*"+ext)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				// 	defer file.Close()
-				// 	defer os.Remove(file.Name())
-				//
-				// 	ff, err := f.Open()
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				// 	defer ff.Close()
-				//
-				// 	_, err = io.Copy(file, ff)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				//
-				// 	file.Close()
-				//
-				// 	mobileFile, err := utils.ProcessMobileVersion(file.Name(), trackDir, "track.mobile")
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				//
-				// 	originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), trackDir, "track.original")
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				//
-				// 	name := originalName
-				// 	dateRegex := regexp.MustCompile(`^([12]\d\d\d)`)
-				//
-				// 	if tag, exists := trackInfo.Tags["title"]; exists {
-				// 		name = tag
-				// 	}
-				//
-				// 	var year sql.NullInt64
-				// 	if tag, exists := trackInfo.Tags["date"]; exists {
-				// 		match := dateRegex.FindStringSubmatch(tag)
-				// 		if len(match) > 0 {
-				// 			y, _ := strconv.Atoi(match[1])
-				//
-				// 			year.Int64 = int64(y)
-				// 			year.Valid = true
-				// 		}
-				// 	}
-				//
-				// 	var number int
-				// 	if tag, exists := trackInfo.Tags["track"]; exists {
-				// 		y, _ := strconv.Atoi(tag)
-				// 		number = y
-				// 	}
-				//
-				// 	if number == 0 {
-				// 		number = utils.ExtractNumber(originalName)
-				// 	}
-				//
-				// 	_, err = db.CreateTrack(ctx, database.CreateTrackParams{
-				// 		Id:       trackId,
-				// 		Name:     name,
-				// 		AlbumId:  album.Id,
-				// 		ArtistId: artist.Id,
-				// 		Number: sql.NullInt64{
-				// 			Int64: int64(number),
-				// 			Valid: number != 0,
-				// 		},
-				// 		Duration: sql.NullInt64{
-				// 			Int64: int64(trackInfo.Duration),
-				// 			Valid: true,
-				// 		},
-				// 		Year:             year,
-				// 		ExportName:       originalName,
-				// 		OriginalFilename: originalFile,
-				// 		MobileFilename:   mobileFile,
-				// 	})
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				// }
 
 				return CreateAlbum{
 					AlbumId: album.Id,

@@ -217,10 +217,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					artist, err := app.DB().GetArtistByName(ctx, artistName)
 					if err != nil {
 						if errors.Is(err, database.ErrItemNotFound) {
-							artist, err = app.DB().CreateArtist(ctx, database.CreateArtistParams{
-								Name: artistName,
-							})
-
+							artist, err = app.CreateArtist(ctx, artistName)
 							if err != nil {
 								return nil, err
 							}

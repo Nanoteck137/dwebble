@@ -18,6 +18,40 @@ type BaseApp struct {
 	dbConfig *database.Config
 }
 
+func (app *BaseApp) CreateAlbum(ctx context.Context, params database.CreateAlbumParams) (database.Album, error) {
+	album, err := app.DB().CreateAlbum(ctx, params)
+	if err != nil {
+		return database.Album{}, err
+	}
+
+	albumDir := app.WorkDir().Album(album.Id)
+
+	err = os.Mkdir(albumDir, 0755)
+	if err != nil {
+		return database.Album{}, err
+	}
+
+	return album, nil
+}
+
+func (app *BaseApp) CreateArtist(ctx context.Context, name string) (database.Artist, error) {
+	artist, err := app.DB().CreateArtist(ctx, database.CreateArtistParams{
+		Name: name,
+	})
+	if err != nil {
+		return database.Artist{}, err
+	}
+
+	artistDir := app.WorkDir().Artist(artist.Id)
+
+	err = os.Mkdir(artistDir, 0755)
+	if err != nil {
+		return database.Artist{}, err
+	}
+
+	return artist, nil
+}
+
 func (app *BaseApp) DB() *database.Database {
 	return app.db
 }

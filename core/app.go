@@ -1,6 +1,8 @@
 package core
 
 import (
+	"context"
+
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
@@ -19,4 +21,7 @@ type App interface {
 	UpdateDBConfig(conf *database.Config)
 
 	Bootstrap() error
+
+	CreateArtist(ctx context.Context, name string) (database.Artist, error)
+	CreateAlbum(ctx context.Context, params database.CreateAlbumParams) (database.Album, error)
 }
