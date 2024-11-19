@@ -25,6 +25,6 @@ export const actions: Actions = {
       throw error(res.error.code, { message: res.error.message });
     }
 
-    throw redirect(302, `/server/edit/album/${params.id}`);
+    throw redirect(302, `/albums/${params.id}/edit`);
   },
 };
