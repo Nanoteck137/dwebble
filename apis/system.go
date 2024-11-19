@@ -2,64 +2,56 @@ package apis
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
-	"errors"
 	"net/http"
-	"os"
 	"path"
 	"strings"
 
-	"github.com/kr/pretty"
-	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/core/log"
-	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 )
 
 type ExportArtist struct {
-	Id      string
-	Name    string
-	Picture string
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
 }
 
 type ExportTrack struct {
-	Id   string
-	Name string
+	Id   string `json:"id"`
+	Name string `json:"name"`
 
-	AlbumId  string
-	ArtistId string
+	AlbumId  string `json:"albumId"`
+	ArtistId string `json:"artistId"`
 
-	Number   int64
-	Duration int64
-	Year     int64
+	Number   int64 `json:"number"`
+	Duration int64 `json:"duration"`
+	Year     int64 `json:"year"`
 
-	ExportName       string
-	OriginalFilename string
-	MobileFilename   string
+	ExportName       string `json:"exportName"`
+	OriginalFilename string `json:"originalFilename"`
+	MobileFilename   string `json:"mobileFilename"`
 
-	Created int64
+	Created int64 `json:"created"`
 
-	Tags []string
+	Tags []string `json:"tags"`
 }
 
 type ExportAlbum struct {
-	Id       string
-	Name     string
-	ArtistId string
+	Id       string `json:"id"`
+	Name     string `json:"name"`
+	ArtistId string `json:"artistId"`
 
-	CoverArt string
-	Year     int64
+	CoverArt string `json:"coverArt"`
+	Year     int64  `json:"year"`
 }
 
 type Export struct {
-	Artists []ExportArtist
-	Albums  []ExportAlbum
-	Tracks  []ExportTrack
+	Artists []ExportArtist `json:"artists"`
+	Albums  []ExportAlbum  `json:"albums"`
+	Tracks  []ExportTrack  `json:"tracks"`
 }
 
 func InstallSystemHandlers(app core.App, group pyrin.Group) {
@@ -78,9 +70,10 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:   "SystemExport",
-			Path:   "/system/export",
-			Method: http.MethodPost,
+			Name:     "SystemExport",
+			Path:     "/system/export",
+			Method:   http.MethodPost,
+			DataType: Export{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				db := app.DB()
 
@@ -141,205 +134,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				pretty.Println(export)
-
-				d, err := json.MarshalIndent(export, "", "  ")
-				if err != nil {
-					return nil, err
-				}
-
-				err = os.WriteFile(app.WorkDir().ExportFile(), d, 0644)
-				if err != nil {
-					return nil, err
-				}
-
-				return nil, nil
-			},
-		},
-
-		pyrin.ApiHandler{
-			Name:   "SystemImport",
-			Path:   "/system/import",
-			Method: http.MethodPost,
-			HandlerFunc: func(c pyrin.Context) (any, error) {
-				db, tx, err := app.DB().Begin()
-				if err != nil {
-					return nil, err
-				}
-				defer tx.Rollback()
-
-				d, err := os.ReadFile(app.WorkDir().ExportFile())
-				if err != nil {
-					return nil, err
-				}
-
-				var export Export
-				err = json.Unmarshal(d, &export)
-				if err != nil {
-					return nil, err
-				}
-
-				ctx := context.TODO()
-
-				for _, artist := range export.Artists {
-					log.Fatal("TODO")
-					_, err := db.CreateArtist(ctx, database.CreateArtistParams{
-						Id:   artist.Id,
-						Name: artist.Name,
-						Picture: sql.NullString{
-							String: artist.Picture,
-							Valid:  artist.Picture != "",
-						},
-					})
-					if err != nil {
-						var e sqlite3.Error
-						if errors.As(err, &e) {
-							if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-								continue
-							}
-						}
-
-						return nil, err
-					}
-				}
-
-				for _, album := range export.Albums {
-					_, err := db.CreateAlbum(ctx, database.CreateAlbumParams{
-						Id:       album.Id,
-						Name:     album.Name,
-						ArtistId: album.ArtistId,
-						CoverArt: sql.NullString{
-							String: album.CoverArt,
-							Valid:  album.CoverArt != "",
-						},
-						Year: sql.NullInt64{
-							Int64: album.Year,
-							Valid: album.Year != 0,
-						},
-					})
-					if err != nil {
-						var e sqlite3.Error
-						if errors.As(err, &e) {
-							if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-								continue
-							}
-						}
-
-						return nil, err
-					}
-				}
-
-				for _, track := range export.Tracks {
-					_, err := db.CreateTrack(ctx, database.CreateTrackParams{
-						Id:       track.Id,
-						Name:     track.Name,
-						AlbumId:  track.AlbumId,
-						ArtistId: track.ArtistId,
-						Number: sql.NullInt64{
-							Int64: track.Number,
-							Valid: track.Number != 0,
-						},
-						Duration: sql.NullInt64{
-							Int64: track.Duration,
-							Valid: track.Duration != 0,
-						},
-						Year: sql.NullInt64{
-							Int64: track.Year,
-							Valid: track.Year != 0,
-						},
-						ExportName:       track.ExportName,
-						OriginalFilename: track.OriginalFilename,
-						MobileFilename:   track.MobileFilename,
-						Created:          track.Created,
-					})
-					if err != nil {
-						var e sqlite3.Error
-						if errors.As(err, &e) {
-							if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-								err := db.UpdateTrack(ctx, track.Id, database.TrackChanges{
-									Name: types.Change[string]{
-										Value:   track.Name,
-										Changed: true,
-									},
-									AlbumId: types.Change[string]{
-										Value:   track.AlbumId,
-										Changed: true,
-									},
-									ArtistId: types.Change[string]{
-										Value:   track.ArtistId,
-										Changed: true,
-									},
-									Number: types.Change[sql.NullInt64]{
-										Value: sql.NullInt64{
-											Int64: track.Number,
-											Valid: track.Number != 0,
-										},
-										Changed: true,
-									},
-									Duration: types.Change[sql.NullInt64]{
-										Value: sql.NullInt64{
-											Int64: track.Duration,
-											Valid: track.Duration != 0,
-										},
-										Changed: false,
-									},
-									Year: types.Change[sql.NullInt64]{
-										Value: sql.NullInt64{
-											Int64: track.Year,
-											Valid: track.Year != 0,
-										},
-										Changed: true,
-									},
-									ExportName: types.Change[string]{
-										Value:   track.ExportName,
-										Changed: true,
-									},
-									OriginalFilename: types.Change[string]{
-										Value:   track.OriginalFilename,
-										Changed: true,
-									},
-									MobileFilename: types.Change[string]{
-										Value:   track.MobileFilename,
-										Changed: true,
-									},
-									Created: types.Change[int64]{
-										Value:   track.Created,
-										Changed: true,
-									},
-								})
-								if err != nil {
-									return nil, err
-								}
-
-								continue
-							}
-						}
-
-						return nil, err
-					}
-
-					for _, tag := range track.Tags {
-						slug := utils.Slug(tag)
-
-						err := db.CreateTag(ctx, slug, tag)
-						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
-							return nil, err
-						}
-
-						err = db.AddTagToTrack(ctx, slug, track.Id)
-						if err != nil {
-							return nil, err
-						}
-					}
-
-				}
-
-				err = tx.Commit()
-				if err != nil {
-					return nil, err
-				}
-
-				return nil, nil
+				return export, nil
 			},
 		},
 
