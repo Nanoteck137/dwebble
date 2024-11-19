@@ -37,7 +37,7 @@
             "-X github.com/nanoteck137/dwebble.Commit=${self.dirtyRev or self.rev or "no-commit"}"
           ];
 
-          vendorHash = "sha256-jqGXKDv03X48T/J7PX7jU09TJVbov2DlZzHomVIrX9o=";
+          vendorHash = "sha256-lISnDyVZTIpRs9pFg9d3eQJ8KvBfJ87wiHle8VU4GLE=";
 
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
@@ -54,7 +54,7 @@
           version = fullVersion;
 
           src = gitignore.lib.gitignoreSource ./web;
-          npmDepsHash = "sha256-fTxzl5ZIp75q6MXm8GMuyR0zuMN2T+STERQWZXvP65o=";
+          npmDepsHash = "sha256-L4kce8pR0BMYMDGs0y53m+Uexa6KeoVmLpPxHXD3wns=";
 
           PUBLIC_VERSION=version;
           PUBLIC_COMMIT=self.dirtyRev or self.rev or "no-commit";
