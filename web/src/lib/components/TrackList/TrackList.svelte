@@ -5,9 +5,13 @@
   import { EllipsisVertical, Play } from "lucide-svelte";
   import TrackListHeader from "./TrackListHeader.svelte";
 
-  export let name: string;
-  export let cover: string;
-  export let tracks: Track[];
+  type Props = {
+    name: string;
+    cover: string;
+    tracks: Track[];
+  };
+
+  const { name, cover, tracks }: Props = $props();
 </script>
 
 <div class="flex flex-col gap-2 px-5">

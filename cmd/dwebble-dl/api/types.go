@@ -35,6 +35,10 @@ type GetArtistAlbumsById struct {
 	Albums []Album `json:"albums"`
 }
 
+type EditArtistBody struct {
+	Name *string `json:"name,omitempty"`
+}
+
 type GetAlbums struct {
 	Albums []Album `json:"albums"`
 }
@@ -70,11 +74,11 @@ type PatchAlbumBody struct {
 	Year *int `json:"year,omitempty"`
 }
 
-type PostAlbumImport struct {
+type CreateAlbum struct {
 	AlbumId string `json:"albumId"`
 }
 
-type PostAlbumImportBody struct {
+type CreateAlbumBody struct {
 	Name string `json:"name"`
 	Artist string `json:"artist"`
 }

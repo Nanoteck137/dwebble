@@ -41,6 +41,11 @@ export const GetArtistAlbumsById = z.object({
 });
 export type GetArtistAlbumsById = z.infer<typeof GetArtistAlbumsById>;
 
+export const EditArtistBody = z.object({
+  name: z.string().nullable(),
+});
+export type EditArtistBody = z.infer<typeof EditArtistBody>;
+
 export const GetAlbums = z.object({
   albums: z.array(Album),
 });
@@ -81,16 +86,16 @@ export const PatchAlbumBody = z.object({
 });
 export type PatchAlbumBody = z.infer<typeof PatchAlbumBody>;
 
-export const PostAlbumImport = z.object({
+export const CreateAlbum = z.object({
   albumId: z.string(),
 });
-export type PostAlbumImport = z.infer<typeof PostAlbumImport>;
+export type CreateAlbum = z.infer<typeof CreateAlbum>;
 
-export const PostAlbumImportBody = z.object({
+export const CreateAlbumBody = z.object({
   name: z.string(),
   artist: z.string(),
 });
-export type PostAlbumImportBody = z.infer<typeof PostAlbumImportBody>;
+export type CreateAlbumBody = z.infer<typeof CreateAlbumBody>;
 
 export const GetTracks = z.object({
   tracks: z.array(Track),

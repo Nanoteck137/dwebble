@@ -8,8 +8,7 @@
 <p>Commit: {PUBLIC_COMMIT}</p>
 
 <div class="flex flex-col">
-  <a href="/server/import">Import Album</a>
-  <a href="/server/edit/album">Edit Albums</a>
+  <a href="/new/album">New Album</a>
 </div>
 
 <form action="?/runExport" method="post">

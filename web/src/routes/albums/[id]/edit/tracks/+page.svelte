@@ -13,6 +13,6 @@
 
   <div class="flex gap-2 py-4">
     <button>Save</button>
-    <a href="/server/edit/album/{data.album.id}">Back</a>
+    <a href="/albums/{data.album.id}/edit">Back</a>
   </div>
 </form>

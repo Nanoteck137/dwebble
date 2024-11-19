@@ -121,6 +121,17 @@
       ]
     },
     {
+      "name": "EditArtistBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "*string",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetAlbums",
       "extend": "",
       "fields": [
@@ -255,7 +266,7 @@
       ]
     },
     {
-      "name": "PostAlbumImport",
+      "name": "CreateAlbum",
       "extend": "",
       "fields": [
         {
@@ -266,7 +277,7 @@
       ]
     },
     {
-      "name": "PostAlbumImportBody",
+      "name": "CreateAlbumBody",
       "extend": "",
       "fields": [
         {
@@ -601,6 +612,20 @@
       "requireFormData": false
     },
     {
+      "name": "EditArtist",
+      "method": "PATCH",
+      "path": "/api/v1/artists/:id",
+      "errorTypes": [
+        "ARTIST_NOT_FOUND",
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "EditArtistBody",
+      "requireFormData": false
+    },
+    {
       "name": "ChangePicture",
       "method": "PATCH",
       "path": "/api/v1/artists/:id/picture",
@@ -682,17 +707,17 @@
       "requireFormData": false
     },
     {
-      "name": "ImportAlbum",
+      "name": "CreateAlbum",
       "method": "POST",
-      "path": "/api/v1/albums/import",
+      "path": "/api/v1/albums",
       "errorTypes": [
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],
-      "responseType": "PostAlbumImport",
-      "bodyType": "PostAlbumImportBody",
-      "requireFormData": true
+      "responseType": "CreateAlbum",
+      "bodyType": "CreateAlbumBody",
+      "requireFormData": false
     },
     {
       "name": "ImportTrackToAlbum",

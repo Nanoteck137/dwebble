@@ -1,16 +1,14 @@
 package apis
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 
-	"github.com/faceair/jio"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
-	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 )
 
@@ -59,30 +57,11 @@ func User(app core.App, c pyrin.Context) (*database.User, error) {
 	return nil, errors.New("Invalid token")
 }
 
-func Body[T types.Body](c pyrin.Context) (T, error) {
+func Body[T pyrin.Body](c pyrin.Context) (T, error) {
 	var res T
 
-	schema := res.Schema()
+	d := json.NewDecoder(c.Request().Body)
+	err := d.Decode(&res)
 
-	j, err := io.ReadAll(c.Request().Body)
-	if err != nil {
-		return res, err
-	}
-
-	if len(j) == 0 {
-		// TODO(patrik): Fix error
-		return res, errors.New("Invalid body")
-	}
-
-	data, err := jio.ValidateJSON(&j, schema)
-	if err != nil {
-		return res, err
-	}
-
-	err = utils.Decode(data, &res)
-	if err != nil {
-		return res, err
-	}
-
-	return res, nil
+	return res, err
 }

@@ -49,6 +49,22 @@ func (c *Client) GetArtistAlbums(id string, options Options) (*GetArtistAlbumsBy
 	return Request[GetArtistAlbumsById](data)
 }
 
+func (c *Client) EditArtist(id string, body EditArtistBody, options Options) (*any, error) {
+	path := Sprintf("/api/v1/artists/%v", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "PATCH",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) ChangePicture(id string, options Options) (*any, error) {
 	path := Sprintf("/api/v1/artists/%v/picture", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
@@ -145,8 +161,8 @@ func (c *Client) DeleteAlbum(id string, options Options) (*any, error) {
 	return Request[any](data)
 }
 
-func (c *Client) ImportAlbum(body PostAlbumImportBody, options Options) (*PostAlbumImport, error) {
-	path := "/api/v1/albums/import"
+func (c *Client) CreateAlbum(body CreateAlbumBody, options Options) (*CreateAlbum, error) {
+	path := "/api/v1/albums"
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err
@@ -158,7 +174,7 @@ func (c *Client) ImportAlbum(body PostAlbumImportBody, options Options) (*PostAl
 		Token: c.token,
 		Body: body,
 	}
-	return Request[PostAlbumImport](data)
+	return Request[CreateAlbum](data)
 }
 
 func (c *Client) ImportTrackToAlbum(id string, options Options) (*any, error) {

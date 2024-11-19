@@ -28,5 +28,5 @@
   </div>
 
   <button>Save</button>
-  <a href="/server/edit/album/{data.album.id}">Back</a>
+  <a href="/albums/{data.album.id}/edit">Back</a>
 </form>

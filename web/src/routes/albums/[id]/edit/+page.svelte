@@ -39,15 +39,13 @@
     <div class="flex-grow"></div>
 
     <div class="flex gap-2">
-      <a class="text-sm hover:underline" href="{data.album.id}/details">
+      <a class="text-sm hover:underline" href="edit/details">
         Edit Album Details
       </a>
-      <a class="text-sm hover:underline" href="{data.album.id}/tracks">
-        Edit Tracks
-      </a>
-      <a class="text-sm hover:underline" href="{data.album.id}/import">
-        Import Tracks
-      </a>
+      {#if data.tracks.length > 0}
+        <a class="text-sm hover:underline" href="edit/tracks">Edit Tracks</a>
+      {/if}
+      <a class="text-sm hover:underline" href="edit/import">Import Tracks</a>
     </div>
   </div>
 </div>

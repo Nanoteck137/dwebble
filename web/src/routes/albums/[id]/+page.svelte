@@ -5,6 +5,8 @@
   export let data: PageData;
 </script>
 
+<a href="/albums/{data.album.id}/edit">Edit Album</a>
+
 <TrackList
   cover={data.album.coverArt.large}
   name={data.album.name}

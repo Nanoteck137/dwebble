@@ -5,13 +5,14 @@ import { BaseApiClient, type ExtraOptions } from "./base-client";
 export const GET_ARTISTS_URL = "/api/v1/artists"
 export const GET_ARTIST_BY_ID_URL = "/api/v1/artists/:id"
 export const GET_ARTIST_ALBUMS_URL = "/api/v1/artists/:id/albums"
+export const EDIT_ARTIST_URL = "/api/v1/artists/:id"
 export const CHANGE_PICTURE_URL = "/api/v1/artists/:id/picture"
 export const GET_ALBUMS_URL = "/api/v1/albums"
 export const GET_ALBUM_BY_ID_URL = "/api/v1/albums/:id"
 export const GET_ALBUM_TRACKS_URL = "/api/v1/albums/:id/tracks"
 export const EDIT_ALBUM_URL = "/api/v1/albums/:id"
 export const DELETE_ALBUM_URL = "/api/v1/albums/:id"
-export const IMPORT_ALBUM_URL = "/api/v1/albums/import"
+export const CREATE_ALBUM_URL = "/api/v1/albums"
 export const IMPORT_TRACK_TO_ALBUM_URL = "/api/v1/albums/:id/import/track"
 export const GET_TRACKS_URL = "/api/v1/tracks"
 export const GET_TRACK_BY_ID_URL = "/api/v1/tracks/:id"
@@ -49,6 +50,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/artists/${id}/albums`, "GET", api.GetArtistAlbumsById, z.undefined(), undefined, options)
   }
   
+  editArtist(id: string, body: api.EditArtistBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/artists/${id}`, "PATCH", z.undefined(), z.undefined(), body, options)
+  }
+  
   changePicture(id: string, formData: FormData, options?: ExtraOptions) {
     return this.requestWithFormData(`/api/v1/artists/${id}/picture`, "PATCH", z.undefined(), z.undefined(), formData, options)
   }
@@ -73,8 +78,8 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/albums/${id}`, "DELETE", z.undefined(), z.undefined(), undefined, options)
   }
   
-  importAlbum(formData: FormData, options?: ExtraOptions) {
-    return this.requestWithFormData("/api/v1/albums/import", "POST", api.PostAlbumImport, z.undefined(), formData, options)
+  createAlbum(body: api.CreateAlbumBody, options?: ExtraOptions) {
+    return this.request("/api/v1/albums", "POST", api.CreateAlbum, z.undefined(), body, options)
   }
   
   importTrackToAlbum(id: string, formData: FormData, options?: ExtraOptions) {
