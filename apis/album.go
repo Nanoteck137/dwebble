@@ -7,16 +7,16 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/faceair/jio"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
@@ -203,7 +203,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					artist, err := app.DB().GetArtistByName(ctx, artistName)
 					if err != nil {
 						if errors.Is(err, database.ErrItemNotFound) {
-							artist, err = app.CreateArtist(ctx, artistName)
+							artist, err = helper.CreateArtist(ctx, app.DB(), app.WorkDir(), artistName)
 							if err != nil {
 								return nil, err
 							}
@@ -288,7 +288,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				artist, err := app.DB().GetArtistByName(ctx, body.Artist)
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
-						artist, err = app.CreateArtist(ctx, body.Artist)
+						artist, err = helper.CreateArtist(ctx, app.DB(), app.WorkDir(), body.Artist)
 						if err != nil {
 							return nil, err
 						}
@@ -297,7 +297,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				album, err := app.CreateAlbum(ctx, database.CreateAlbumParams{
+				album, err := helper.CreateAlbum(ctx, app.DB(), app.WorkDir(), database.CreateAlbumParams{
 					Name:     body.Name,
 					ArtistId: artist.Id,
 				})
@@ -439,98 +439,41 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				files := form.File["files"]
-				for _, f := range files {
-					trackId := utils.CreateTrackId()
+				copyFormFileToTemp := func(file *multipart.FileHeader) (string, error) {
+					ext := path.Ext(file.Filename)
 
-					trackDir := app.WorkDir().Track(trackId)
-
-					err := os.Mkdir(trackDir, 0755)
+					src, err := file.Open()
 					if err != nil {
-						return nil, err
+						return "", err
 					}
-
-					// TODO(patrik): Maybe save the original filename to use when exporting
-					ext := path.Ext(f.Filename)
-					originalName := strings.TrimSuffix(f.Filename, ext)
 
 					// TODO(patrik): Copy the file to $trackDir/raw.flac instead
-					file, err := os.CreateTemp("", "track.*"+ext)
+					dst, err := os.CreateTemp("", "track.*"+ext)
+					if err != nil {
+						return "", err
+					}
+					defer dst.Close()
+
+					_, err = io.Copy(dst, src)
+					if err != nil {
+						return "", err
+					}
+
+					return dst.Name(), nil
+				}
+
+				files := form.File["files"]
+				for _, f := range files {
+					ext := path.Ext(f.Filename)
+					name := strings.TrimSuffix(f.Filename, ext)
+
+					filename, err := copyFormFileToTemp(f)
 					if err != nil {
 						return nil, err
 					}
-					defer file.Close()
-					defer os.Remove(file.Name())
+					defer os.Remove(filename)
 
-					ff, err := f.Open()
-					if err != nil {
-						return nil, err
-					}
-					defer ff.Close()
-
-					_, err = io.Copy(file, ff)
-					if err != nil {
-						return nil, err
-					}
-
-					file.Close()
-
-					mobileFile, err := utils.ProcessMobileVersion(file.Name(), trackDir, "track.mobile")
-					if err != nil {
-						return nil, err
-					}
-
-					originalFile, trackInfo, err := utils.ProcessOriginalVersion(file.Name(), trackDir, "track.original")
-					if err != nil {
-						return nil, err
-					}
-
-					name := originalName
-					dateRegex := regexp.MustCompile(`^([12]\d\d\d)`)
-
-					if tag, exists := trackInfo.Tags["title"]; exists {
-						name = tag
-					}
-
-					var year sql.NullInt64
-					if tag, exists := trackInfo.Tags["date"]; exists {
-						match := dateRegex.FindStringSubmatch(tag)
-						if len(match) > 0 {
-							y, _ := strconv.Atoi(match[1])
-
-							year.Int64 = int64(y)
-							year.Valid = true
-						}
-					}
-
-					var number int
-					if tag, exists := trackInfo.Tags["track"]; exists {
-						y, _ := strconv.Atoi(tag)
-						number = y
-					}
-
-					if number == 0 {
-						number = utils.ExtractNumber(originalName)
-					}
-
-					_, err = db.CreateTrack(ctx, database.CreateTrackParams{
-						Id:       trackId,
-						Name:     name,
-						AlbumId:  album.Id,
-						ArtistId: album.ArtistId,
-						Number: sql.NullInt64{
-							Int64: int64(number),
-							Valid: number != 0,
-						},
-						Duration: sql.NullInt64{
-							Int64: int64(trackInfo.Duration),
-							Valid: true,
-						},
-						Year:             year,
-						ExportName:       originalName,
-						OriginalFilename: originalFile,
-						MobileFilename:   mobileFile,
-					})
+					_, err = helper.ImportTrack(ctx, app.DB(), app.WorkDir(), album.Id, album.ArtistId, name, filename)
 					if err != nil {
 						return nil, err
 					}

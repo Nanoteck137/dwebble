@@ -10,6 +10,7 @@ import (
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
@@ -217,7 +218,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					artist, err := app.DB().GetArtistByName(ctx, artistName)
 					if err != nil {
 						if errors.Is(err, database.ErrItemNotFound) {
-							artist, err = app.CreateArtist(ctx, artistName)
+							artist, err = helper.CreateArtist(ctx, app.DB(), app.WorkDir(), artistName)
 							if err != nil {
 								return nil, err
 							}
