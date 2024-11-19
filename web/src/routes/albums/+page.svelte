@@ -8,8 +8,11 @@
   let { data }: Props = $props();
 </script>
 
-<div class="flex flex-col">
-  <p>Num Albums: {data.albums.length}</p>
+<div class="flex flex-col gap-2">
+  <div class="flex items-center justify-between">
+    <p class="text-bold text-xl">Albums</p>
+    <p class="text-sm">{data.albums.length} albums(s)</p>
+  </div>
   <div
     class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7"
   >

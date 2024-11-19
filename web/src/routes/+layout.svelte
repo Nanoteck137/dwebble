@@ -3,7 +3,6 @@
     DiscAlbum,
     FileMusic,
     Home,
-    LayoutDashboard,
     ListMusic,
     LogIn,
     LogOut,
@@ -35,21 +34,27 @@
   });
 </script>
 
-<header
-  class="fixed left-0 right-0 top-0 z-30 flex h-16 items-center gap-4 bg-[--bg-color] px-4 py-2"
->
-  <button
-    onclick={() => {
-      showSideMenu = true;
-    }}
-  >
-    <Menu size="32" />
-  </button>
+<svelte:head>
+  <title>Dwebble</title>
+</svelte:head>
 
-  <a class="text-3xl font-medium text-[--logo-color]" href="/">Dwebble</a>
+<header
+  class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+>
+  <div class="container flex h-14 max-w-screen-2xl items-center gap-4">
+    <button
+      onclick={() => {
+        showSideMenu = true;
+      }}
+    >
+      <Menu size="20" />
+    </button>
+
+    <a class="text-2xl font-medium text-[--logo-color]" href="/">Dwebble</a>
+  </div>
 </header>
 
-<main class="mt-16">
+<main class="p-4">
   {@render children()}
 </main>
 
@@ -58,8 +63,9 @@
 </footer>
 
 {#if showSideMenu}
+  <!-- svelte-ignore a11y_consider_explicit_label -->
   <button
-    class="fixed bottom-0 left-0 right-0 top-0 z-50 w-full bg-[--modal-overlay-bg]"
+    class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
     onclick={() => {
       showSideMenu = false;
     }}
@@ -67,19 +73,19 @@
   ></button>
 
   <aside
-    class={`fixed bottom-0 top-0 z-50 flex w-80 flex-col bg-[--bg-color] px-4 text-[--fg-color]`}
+    class={`fixed bottom-0 top-0 z-50 flex w-72 flex-col bg-sidebar text-sidebar-foreground`}
     transition:fly={{ x: -400 }}
   >
-    <div class="flex h-16 items-center gap-4 px-2 py-2">
+    <div class="flex h-14 items-center gap-4 border-b px-8">
       <button
         onclick={() => {
           showSideMenu = false;
         }}
       >
-        <Menu size="32" />
+        <Menu size="20" />
       </button>
       <a
-        class="text-3xl font-medium text-[--logo-color]"
+        class="text-2xl font-medium text-[--logo-color]"
         href="/"
         onclick={() => {
           showSideMenu = false;
@@ -89,7 +95,7 @@
       </a>
     </div>
 
-    <div class="flex flex-col gap-2 py-2">
+    <div class="flex flex-col gap-2 px-4 py-4">
       <Link title="Home" href="/" icon={Home} onClick={close} />
       <Link title="Artists" href="/artists" icon={Users} onClick={close} />
       <Link title="Albums" href="/albums" icon={DiscAlbum} onClick={close} />
@@ -105,7 +111,7 @@
       {/if}
     </div>
     <div class="flex-grow"></div>
-    <div class="flex flex-col gap-2 py-4">
+    <div class="flex flex-col gap-2 px-4 py-2">
       {#if data.user}
         <Link
           title={data.user.username}
@@ -125,9 +131,6 @@
         <Link title="Login" href="/login" icon={LogIn} onClick={close} />
       {/if}
     </div>
+    <div class="h-4"></div>
   </aside>
 {/if}
-
-<svelte:head>
-  <title>Dwebble</title>
-</svelte:head>

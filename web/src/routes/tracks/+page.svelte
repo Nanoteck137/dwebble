@@ -1,30 +1,33 @@
 <script lang="ts">
-  import { EllipsisVertical, Play, Plus, X } from "lucide-svelte";
-  import type { PageData } from "./$types";
+  import {
+    EllipsisVertical,
+    Filter,
+    ListPlus,
+    Pencil,
+    Play,
+    Plus,
+    Shuffle,
+  } from "lucide-svelte";
   import { musicManager } from "$lib/music-manager";
-  import { shuffle, trackToMusicTrack } from "$lib/utils";
+  import { cn, shuffle, trackToMusicTrack } from "$lib/utils";
   import { enhance } from "$app/forms";
+  import { Input } from "$lib/components/ui/input";
+  import { Button, buttonVariants } from "$lib/components/ui/button";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
 
-  interface Props {
-    data: PageData;
-  }
-
-  let { data }: Props = $props();
+  let { data } = $props();
 </script>
 
-<p>Num Tracks: {data.tracks.length}</p>
-
-<form class="px-4" method="GET">
+<form method="GET">
   <div class="flex flex-col gap-2">
-    <input
-      class="border-1 h-8 rounded-[50px] border-[--input-border-color] bg-[--input-bg-color] px-5 text-sm text-[--input-fg-color] placeholder:text-[--input-placeholder-color] focus:border-[--input-focus-border-color] focus:ring-0"
+    <Input
       type="text"
       name="filter"
       placeholder="Filter"
       value={data.filter ?? ""}
     />
-    <input
-      class="border-1 h-8 rounded-[50px] border-[--input-border-color] bg-[--input-bg-color] px-5 text-sm text-[--input-fg-color] placeholder:text-[--input-placeholder-color] focus:border-[--input-focus-border-color] focus:ring-0"
+
+    <Input
       type="text"
       name="sort"
       placeholder="Sort"
@@ -38,30 +41,41 @@
   {#if data.sortError}
     <p class="text-red-400">{data.sortError}</p>
   {/if}
-  <button>Filter</button>
+  <div class="h-2"></div>
+  <Button>
+    <Filter />
+    Filter Tracks
+  </Button>
 </form>
 
+<div class="h-2"></div>
+
 <div class="flex flex-col">
-  <div class="flex gap-2 px-4">
-    <button
-      class="rounded bg-blue-500 px-4 py-2 text-lg hover:bg-blue-600"
+  <div class="flex gap-2">
+    <Button
+      size="sm"
       onclick={() => {
         musicManager.clearQueue();
         for (const track of data.tracks) {
           musicManager.addTrackToQueue(trackToMusicTrack(track));
         }
-      }}>Play</button
+      }}
     >
+      <Play />
+      Play
+    </Button>
+
     <form action="?/newPlaylist" method="post">
       <input name="filter" value={data.filter} type="hidden" />
       <input name="sort" value={data.sort} type="hidden" />
-      <button class="rounded bg-pink-500 px-4 py-2 text-lg hover:bg-pink-600">
-        New playlist from tracks
-      </button>
+      <Button size="sm">
+        <ListPlus />
+        Create Playlist
+      </Button>
     </form>
 
-    <button
-      class="rounded bg-purple-500 px-4 py-2 text-lg hover:bg-purple-600"
+    <Button
+      size="sm"
       onclick={() => {
         let tracks = shuffle([...data.tracks]);
 
@@ -71,11 +85,17 @@
         }
       }}
     >
+      <Shuffle />
       Shuffle Play
-    </button>
+    </Button>
+  </div>
+
+  <div class="flex items-center justify-between">
+    <p class="text-bold text-xl">Tracks</p>
+    <p class="text-sm">{data.tracks.length} track(s)</p>
   </div>
   {#each data.tracks as track, i}
-    <div class="flex items-center gap-2 border-b p-2 pr-4">
+    <div class="flex items-center gap-2 border-b py-2 pr-2">
       <div class="group relative">
         <img
           class="aspect-square w-14 min-w-14 rounded object-cover"
@@ -84,7 +104,7 @@
           loading="lazy"
         />
         <button
-          class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center rounded bg-[--overlay-bg] group-hover:flex`}
+          class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center rounded bg-black/80 group-hover:flex`}
           onclick={() => {
             musicManager.clearQueue();
             for (const track of data.tracks) {
@@ -122,20 +142,46 @@
         </p>
       </div>
       <div class="flex items-center">
-        <!-- TODO(patrik): Move to dropdown menu -->
-        <form
-          class="jusitfy-center flex items-center"
-          action="?/quickAddToPlaylist"
-          method="post"
-          use:enhance
-        >
-          <input type="hidden" name="trackId" value={track.id} />
-          <button title="Quick Add"><Plus size="28" /></button>
-        </form>
-
-        <button>
-          <EllipsisVertical size="28" />
-        </button>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
+            class={cn(
+              buttonVariants({ variant: "ghost", size: "icon-lg" }),
+              "rounded-full",
+            )}
+          >
+            <EllipsisVertical />
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end">
+            <DropdownMenu.Group>
+              <DropdownMenu.Item>
+                <form
+                  class="jusitfy-center flex items-center"
+                  action="?/quickAddToPlaylist"
+                  method="post"
+                  use:enhance
+                >
+                  <input type="hidden" name="trackId" value={track.id} />
+                  <button
+                    class="flex w-full items-center gap-2 py-1"
+                    title="Quick Add"
+                  >
+                    <Plus size="16" />
+                    Quick add to Playlist
+                  </button>
+                </form>
+              </DropdownMenu.Item>
+              <DropdownMenu.Item>
+                <a
+                  class="flex h-full w-full items-center gap-2 py-1"
+                  href="/albums/{track.albumId}"
+                >
+                  <Pencil size="16" />
+                  Go to Album
+                </a>
+              </DropdownMenu.Item>
+            </DropdownMenu.Group>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       </div>
     </div>
   {/each}
