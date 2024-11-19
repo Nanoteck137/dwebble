@@ -133,13 +133,19 @@ var rootCmd = &cobra.Command{
 
 		for _, artist := range export.Artists {
 			dbArtist, err := db.CreateArtist(ctx, database.CreateArtistParams{
-				Id:   utils.CreateArtistId(),
 				Name: artist.Name,
 				Picture: sql.NullString{
 					String: artist.Picture,
 					Valid:  artist.Picture != "",
 				},
 			})
+
+			artistDir := workDir.Artist(dbArtist.Id)
+
+			err = os.Mkdir(artistDir, 0755)
+			if err != nil && !os.IsExist(err) {
+				log.Fatal("Failed", "err", err)
+			}
 
 			if err != nil {
 				var e sqlite3.Error
@@ -169,7 +175,6 @@ var rootCmd = &cobra.Command{
 			}
 
 			dbAlbum, err := db.CreateAlbum(ctx, database.CreateAlbumParams{
-				Id:       utils.CreateAlbumId(),
 				Name:     album.Name,
 				ArtistId: artistId,
 				CoverArt: sql.NullString{
@@ -241,7 +246,6 @@ var rootCmd = &cobra.Command{
 			}
 
 			dbTrackId, err := db.CreateTrack(ctx, database.CreateTrackParams{
-				Id:       utils.CreateTrackId(),
 				Name:     track.Name,
 				AlbumId:  albumId,
 				ArtistId: artistId,
