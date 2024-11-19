@@ -5,7 +5,11 @@
   import { shuffle, trackToMusicTrack } from "$lib/utils";
   import { enhance } from "$app/forms";
 
-  export let data: PageData;
+  interface Props {
+    data: PageData;
+  }
+
+  let { data }: Props = $props();
 </script>
 
 <p>Num Tracks: {data.tracks.length}</p>

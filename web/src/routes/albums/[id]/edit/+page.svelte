@@ -104,7 +104,7 @@
         <p class="">
           {formatTime(track.duration ?? 0)}
         </p>
-        <DropdownMenu.Root disableFocusFirstItem={true}>
+        <DropdownMenu.Root>
           <DropdownMenu.Trigger>
             <EllipsisVertical size="24" />
           </DropdownMenu.Trigger>

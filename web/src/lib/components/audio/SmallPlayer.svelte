@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { run } from 'svelte/legacy';
+
   import { browser } from "$app/environment";
   import Slider from "$lib/components/Slider.svelte";
   import { formatTime } from "$lib/utils";
@@ -13,35 +15,57 @@
     VolumeX,
   } from "lucide-svelte";
 
-  let open = false;
+  let open = $state(false);
 
-  export let showPlayer: boolean;
 
-  export let loading: boolean;
-  export let playing: boolean;
-  export let currentTime: number;
-  export let duration: number;
-  export let volume: number;
-  export let audioMuted: boolean;
-  export let trackName: string;
-  export let artistName: string;
-  export let coverArt: string;
 
-  export let onPlay: () => void;
-  export let onPause: () => void;
-  export let onNextTrack: () => void;
-  export let onPrevTrack: () => void;
-  export let onSeek: (e: number) => void;
-  export let onVolumeChanged: (e: number) => void;
-  export let onToggleMuted: () => void;
+  interface Props {
+    showPlayer: boolean;
+    loading: boolean;
+    playing: boolean;
+    currentTime: number;
+    duration: number;
+    volume: number;
+    audioMuted: boolean;
+    trackName: string;
+    artistName: string;
+    coverArt: string;
+    onPlay: () => void;
+    onPause: () => void;
+    onNextTrack: () => void;
+    onPrevTrack: () => void;
+    onSeek: (e: number) => void;
+    onVolumeChanged: (e: number) => void;
+    onToggleMuted: () => void;
+  }
 
-  $: {
+  let {
+    showPlayer,
+    loading,
+    playing,
+    currentTime,
+    duration,
+    volume,
+    audioMuted,
+    trackName,
+    artistName,
+    coverArt,
+    onPlay,
+    onPause,
+    onNextTrack,
+    onPrevTrack,
+    onSeek,
+    onVolumeChanged,
+    onToggleMuted
+  }: Props = $props();
+
+  run(() => {
     if (open) {
       if (browser) document.body.style.overflow = "hidden";
     } else {
       if (browser) document.body.style.overflow = "";
     }
-  }
+  });
 </script>
 
 <div

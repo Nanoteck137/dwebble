@@ -1,9 +1,9 @@
 <script lang="ts">
   import { enhance } from "$app/forms";
 
-  let showQuickPlaylistDropDown = false;
+  let showQuickPlaylistDropDown = $state(false);
 
-  export let data;
+  let { data } = $props();
 </script>
 
 <p>Account Page (W.I.P)</p>

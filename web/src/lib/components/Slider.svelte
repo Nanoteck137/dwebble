@@ -1,11 +1,15 @@
 <script lang="ts">
-  export let value: number;
-  export let onValue: (value: number) => void;
+  interface Props {
+    value: number;
+    onValue: (value: number) => void;
+  }
 
-  let dragging = false;
-  let dragValue = value;
+  let { value = $bindable(), onValue }: Props = $props();
 
-  let sliderDiv: HTMLDivElement;
+  let dragging = $state(false);
+  let dragValue = $state(value);
+
+  let sliderDiv: HTMLDivElement = $state();
 
   // $: console.log(value);
 </script>

@@ -1,8 +1,19 @@
 <script lang="ts">
-  export let title: string;
-  export let href: string | undefined = undefined;
-  export let icon;
-  export let onClick: (() => void) | undefined = undefined;
+  interface Props {
+    title: string;
+    href?: string | undefined;
+    icon: any;
+    onClick?: (() => void) | undefined;
+  }
+
+  let {
+    title,
+    href = undefined,
+    icon,
+    onClick = undefined
+  }: Props = $props();
+
+  const SvelteComponent = $derived(icon);
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -12,6 +23,6 @@
   onclick={() => onClick?.()}
   {href}
 >
-  <svelte:component this={icon} size="32" strokeWidth="1.5"></svelte:component>
+  <SvelteComponent size="32" strokeWidth="1.5"></SvelteComponent>
   <p class="text-xl">{title}</p>
 </svelte:element>
