@@ -12,6 +12,12 @@
   import { formatTime } from "$lib/utils";
   import { Slider } from "$lib/components/ui/slider";
   import SeekSlider from "$lib/components/SeekSlider.svelte";
+  import * as Sheet from "$lib/components/ui/sheet";
+  import { buttonVariants } from "$lib/components/ui/button";
+  import { musicManager, type MusicTrack } from "$lib/music-manager";
+  import { onMount } from "svelte";
+  import Button from "$lib/components/ui/button/button.svelte";
+  import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
 
   // let open = $state(false);
 
@@ -63,6 +69,20 @@
     vol = [volume * 100];
   });
 
+  let tracks: MusicTrack[] = $state([]);
+  let currentTrack = $state(0);
+
+  onMount(() => {
+    let unsub = musicManager.emitter.on("onQueueUpdated", () => {
+      tracks = musicManager.queue.items;
+      currentTrack = musicManager.queue.index;
+    });
+
+    return () => {
+      unsub();
+    };
+  });
+
   // $effect(() => {
   //   if (open) {
   //     if (browser) document.body.style.overflow = "hidden";
@@ -71,6 +91,57 @@
   //   }
   // });
 </script>
+
+{#snippet queue()}
+  <Sheet.Root>
+    <Sheet.Trigger class={buttonVariants({ variant: "outline" })}>
+      Queue
+    </Sheet.Trigger>
+    <Sheet.Content side="bottom">
+      <p class="pb-2">Queue</p>
+      <ScrollArea class="h-96">
+        <div class="flex flex-col gap-2">
+          {#each tracks as track, i}
+            <div class="flex items-center gap-2">
+              <div class="group relative">
+                <img
+                  class="aspect-square w-12 rounded object-cover"
+                  src={track.coverArt}
+                  alt={`${track.name} Cover Art`}
+                />
+                {#if i == currentTrack}
+                  <div
+                    class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-black/80"
+                  >
+                    <Play size="25" />
+                  </div>
+                {:else}
+                  <button
+                    class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center bg-black/80 group-hover:flex`}
+                    onclick={() => {
+                      musicManager.setQueueIndex(i);
+                      musicManager.requestPlay();
+                    }}
+                  >
+                    <Play size="25" />
+                  </button>
+                {/if}
+              </div>
+              <div class="flex flex-col">
+                <p class="line-clamp-1 text-sm" title={track.name}>
+                  {track.name}
+                </p>
+                <p class="line-clamp-1 text-xs" title={track.artistName}>
+                  {track.artistName}
+                </p>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </ScrollArea>
+    </Sheet.Content>
+  </Sheet.Root>
+{/snippet}
 
 <div
   class="fixed bottom-0 left-0 right-0 z-30 h-16 border-t bg-background text-foreground md:hidden"
@@ -86,10 +157,10 @@
       </button>
     {/if}
 
-    <Drawer.Root>
-      <Drawer.Trigger class="flex grow items-center">
+    <Sheet.Root>
+      <Sheet.Trigger class="flex grow items-center">
         <img
-          class="aspect-square h-16 rounded object-cover p-1"
+          class="aspect-square h-16 rounded object-cover p-2"
           src={coverArt}
           alt="Cover Art"
         />
@@ -103,24 +174,23 @@
         <div class="flex h-16 min-w-16 items-center justify-center">
           <ChevronUp size="30" />
         </div>
-      </Drawer.Trigger>
-      <Drawer.Content>
-        <!-- <Drawer.Header>
-          <Drawer.Title>Are you sure absolutely sure?</Drawer.Title>
-          <Drawer.Description>This action cannot be undone.</Drawer.Description
-          >
-        </Drawer.Header> -->
-
+      </Sheet.Trigger>
+      <Sheet.Content side="bottom">
         <div class="relative flex flex-col items-center justify-center gap-2">
+          {@render queue()}
+
           <img
-            class="aspect-square w-80 rounded object-cover"
+            class="aspect-square w-64 rounded object-cover"
             src={coverArt}
             alt="Track Cover Art"
           />
-          <p class="text-lg font-medium">{trackName}</p>
-          <p class="">{artistName}</p>
 
-          <div class="flex w-full flex-col gap-1 px-4">
+          <div class="flex flex-col items-center">
+            <p class="font-medium">{trackName}</p>
+            <p class="text-xs">{artistName}</p>
+          </div>
+
+          <div class="flex w-full flex-col gap-1 px-4 py-2">
             <SeekSlider
               value={currentTime / duration}
               onValue={(p) => {
@@ -191,11 +261,7 @@
             </div>
           </div>
         </div>
-
-        <Drawer.Footer>
-          <Drawer.Close>Close</Drawer.Close>
-        </Drawer.Footer>
-      </Drawer.Content>
-    </Drawer.Root>
+      </Sheet.Content>
+    </Sheet.Root>
   </div>
 </div>
