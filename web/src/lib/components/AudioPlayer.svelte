@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { musicManager } from "$lib/music-manager";
+  import { musicManager, type MusicTrack } from "$lib/music-manager";
   import LargePlayer from "$lib/components/audio/LargePlayer.svelte";
   import SmallPlayer from "$lib/components/audio/SmallPlayer.svelte";
 
@@ -135,9 +135,14 @@
     }
   });
 
+  let queue: MusicTrack[] = $state([]);
+  let currentQueueIndex = $state(0);
+
   onMount(() => {
     let unsub = musicManager.emitter.on("onQueueUpdated", () => {
       showPlayer = !musicManager.isQueueEmpty();
+      queue = musicManager.queue.items;
+      currentQueueIndex = musicManager.queue.index;
     });
 
     return () => {
@@ -165,141 +170,102 @@
   }}
 /> -->
 
-<LargePlayer
-  {showPlayer}
-  {playing}
-  {loading}
-  {trackName}
-  {artistName}
-  {coverArt}
-  {currentTime}
-  {duration}
-  {volume}
-  audioMuted={muted}
-  onPlay={() => {
-    audio.play();
-  }}
-  onPause={() => {
-    audio.pause();
-  }}
-  onNextTrack={() => {
-    musicManager.nextTrack();
-    audio.play();
-  }}
-  onPrevTrack={() => {
-    musicManager.prevTrack();
-    audio.play();
-  }}
-  onSeek={(e) => {
-    audio.currentTime = e;
-  }}
-  onVolumeChanged={(e) => {
-    if (!muted) {
-      audio.volume = e;
-    }
+{#if showPlayer}
+  <LargePlayer
+    {playing}
+    {loading}
+    {trackName}
+    {artistName}
+    {coverArt}
+    {currentTime}
+    {duration}
+    {volume}
+    {queue}
+    {currentQueueIndex}
+    audioMuted={muted}
+    onPlay={() => {
+      audio.play();
+    }}
+    onPause={() => {
+      audio.pause();
+    }}
+    onNextTrack={() => {
+      musicManager.nextTrack();
+      audio.play();
+    }}
+    onPrevTrack={() => {
+      musicManager.prevTrack();
+      audio.play();
+    }}
+    onSeek={(e) => {
+      audio.currentTime = e;
+    }}
+    onVolumeChanged={(e) => {
+      if (!muted) {
+        audio.volume = e;
+      }
 
-    volume = e;
-    localStorage.setItem("player-volume", e.toString());
-  }}
-  onToggleMuted={() => {
-    muted = !muted;
-    localStorage.setItem("player-muted", muted ? "true" : "false");
+      volume = e;
+      localStorage.setItem("player-volume", e.toString());
+    }}
+    onToggleMuted={() => {
+      muted = !muted;
+      localStorage.setItem("player-muted", muted ? "true" : "false");
 
-    if (muted) {
-      audio.volume = 0;
-    } else {
-      audio.volume = volume;
-    }
-  }}
-/>
+      if (muted) {
+        audio.volume = 0;
+      } else {
+        audio.volume = volume;
+      }
+    }}
+  />
 
-<SmallPlayer
-  {showPlayer}
-  {playing}
-  {loading}
-  {trackName}
-  {artistName}
-  {coverArt}
-  {currentTime}
-  {duration}
-  {volume}
-  audioMuted={false}
-  onPlay={() => {
-    audio.play();
-  }}
-  onPause={() => {
-    audio.pause();
-  }}
-  onNextTrack={() => {
-    musicManager.nextTrack();
-    audio.play();
-  }}
-  onPrevTrack={() => {
-    musicManager.prevTrack();
-    audio.play();
-  }}
-  onSeek={(e) => {
-    audio.currentTime = e;
-  }}
-  onVolumeChanged={(e) => {
-    if (!muted) {
-      audio.volume = e;
-    }
+  <SmallPlayer
+    {playing}
+    {loading}
+    {trackName}
+    {artistName}
+    {coverArt}
+    {currentTime}
+    {duration}
+    {volume}
+    {queue}
+    {currentQueueIndex}
+    audioMuted={muted}
+    onPlay={() => {
+      audio.play();
+    }}
+    onPause={() => {
+      audio.pause();
+    }}
+    onNextTrack={() => {
+      musicManager.nextTrack();
+      audio.play();
+    }}
+    onPrevTrack={() => {
+      musicManager.prevTrack();
+      audio.play();
+    }}
+    onSeek={(e) => {
+      audio.currentTime = e;
+    }}
+    onVolumeChanged={(e) => {
+      if (!muted) {
+        audio.volume = e;
+      }
 
-    volume = e;
-    localStorage.setItem("player-volume", e.toString());
-  }}
-  onToggleMuted={() => {
-    muted = !muted;
-    localStorage.setItem("player-muted", muted ? "true" : "false");
+      volume = e;
+      localStorage.setItem("player-volume", e.toString());
+    }}
+    onToggleMuted={() => {
+      muted = !muted;
+      localStorage.setItem("player-muted", muted ? "true" : "false");
 
-    if (muted) {
-      audio.volume = 0;
-    } else {
-      audio.volume = volume;
-    }
-  }}
-/>
-
-<!-- <div
-  class="fixed bottom-0 left-0 right-0 flex h-14 items-center gap-4 bg-red-300 px-2"
->
-  <div class="flex gap-2">
-    <button
-      onclick={() => {
-        musicManager.prevTrack();
-        musicManager.requestPlay();
-      }}>Prev</button
-    >
-
-    {#if loading}
-      <p>Loading...</p>
-    {:else if playing}
-      <button
-        onclick={() => {
-          musicManager.requestPause();
-        }}>Pause</button
-      >
-    {:else}
-      <button
-        onclick={() => {
-          musicManager.requestPlay();
-        }}>Play</button
-      >
-    {/if}
-
-    <button
-      onclick={() => {
-        musicManager.nextTrack();
-        musicManager.requestPlay();
-      }}>Next</button
-    >
-  </div>
-
-  <div class="flex flex-col">
-    <p class="text-sm">{trackName}</p>
-    <p class="text-xs">{artistName}</p>
-  </div>
-
-  <p>{formatTime(currentTime)} / {formatTime(duration)}</p>
-</div> -->
+      if (muted) {
+        audio.volume = 0;
+      } else {
+        audio.volume = volume;
+      }
+    }}
+  />
+{/if}

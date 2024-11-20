@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { run } from "svelte/legacy";
-
-  import { browser } from "$app/environment";
   import Slider from "$lib/components/SeekSlider.svelte";
+  import { ScrollArea } from "$lib/components/ui/scroll-area";
+  import * as Sheet from "$lib/components/ui/sheet";
   import { musicManager, type MusicTrack } from "$lib/music-manager";
   import { formatTime } from "$lib/utils";
   import {
-    ListMusic,
-    ListX,
     Logs,
     Pause,
     Play,
@@ -16,19 +13,24 @@
     Volume2,
     VolumeX,
   } from "lucide-svelte";
-  import { onMount } from "svelte";
 
   interface Props {
-    showPlayer: boolean;
     loading: boolean;
     playing: boolean;
+
     currentTime: number;
     duration: number;
+
     volume: number;
     audioMuted: boolean;
+
     trackName: string;
     artistName: string;
     coverArt: string;
+
+    queue: MusicTrack[];
+    currentQueueIndex: number;
+
     onPlay: () => void;
     onPause: () => void;
     onNextTrack: () => void;
@@ -39,7 +41,8 @@
   }
 
   let {
-    showPlayer,
+    queue,
+    currentQueueIndex,
     loading,
     playing,
     currentTime,
@@ -57,35 +60,63 @@
     onVolumeChanged,
     onToggleMuted,
   }: Props = $props();
-
-  let open = $state(false);
-  let tracks: MusicTrack[] = $state([]);
-  let currentTrack = $state(0);
-
-  onMount(() => {
-    let unsub = musicManager.emitter.on("onQueueUpdated", () => {
-      tracks = musicManager.queue.items;
-      currentTrack = musicManager.queue.index;
-    });
-
-    return () => {
-      unsub();
-    };
-  });
-
-  run(() => {
-    if (open) {
-      if (browser) document.body.style.overflow = "hidden";
-    } else {
-      if (browser) document.body.style.overflow = "";
-    }
-  });
 </script>
 
+{#snippet queueSheet()}
+  <Sheet.Root>
+    <Sheet.Trigger>
+      <Logs size="24" />
+    </Sheet.Trigger>
+    <Sheet.Content side="right">
+      <p class="pb-2">Queue</p>
+      <ScrollArea class="h-full pb-6">
+        <div class="flex flex-col gap-2">
+          {#each queue as track, i}
+            <div class="flex items-center gap-2">
+              <div class="group relative">
+                <img
+                  class="aspect-square min-w-12 max-w-12 rounded object-cover"
+                  src={track.coverArt}
+                  alt={`${track.name} Cover Art`}
+                />
+                {#if i == currentQueueIndex}
+                  <div
+                    class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-black/80"
+                  >
+                    <Play size="25" />
+                  </div>
+                {:else}
+                  <button
+                    class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center bg-black/80 group-hover:flex`}
+                    onclick={() => {
+                      musicManager.setQueueIndex(i);
+                      musicManager.requestPlay();
+                    }}
+                  >
+                    <Play size="25" />
+                  </button>
+                {/if}
+              </div>
+              <div class="flex flex-col">
+                <p class="line-clamp-1 text-sm" title={track.name}>
+                  {track.name}
+                </p>
+                <p class="line-clamp-1 text-xs" title={track.artistName}>
+                  {track.artistName}
+                </p>
+              </div>
+            </div>
+          {/each}
+        </div>
+      </ScrollArea>
+    </Sheet.Content>
+  </Sheet.Root>
+{/snippet}
+
 <div
-  class={`fixed bottom-0 left-0 right-0 z-30 hidden h-20 bg-purple-400 transition-transform duration-500 md:block ${showPlayer ? "translate-y-0" : "translate-y-[110%]"}`}
+  class="container z-30 hidden h-16 bg-background text-foreground transition-transform duration-500 md:block"
 >
-  <div class="absolute -top-2 left-0 right-0">
+  <div class="absolute -top-1.5 left-0 right-0">
     <Slider
       value={currentTime / duration}
       onValue={(p) => {
@@ -95,7 +126,7 @@
   </div>
 
   <div class="grid-cols-footer grid h-full">
-    <div class="flex items-center bg-cyan-600">
+    <div class="flex items-center">
       <div class="flex items-center">
         <button
           onclick={() => {
@@ -132,25 +163,23 @@
       </p>
     </div>
 
-    <div
-      class="flex items-center justify-center gap-2 bg-amber-600 align-middle"
-    >
+    <div class="flex items-center justify-center gap-2 align-middle">
       <img
-        class="aspect-square h-12 rounded object-cover"
+        class="aspect-square h-10 rounded object-cover"
         src={coverArt}
         alt="Cover Art"
       />
       <div class="flex flex-col">
-        <p class="line-clamp-1 text-ellipsis" title={trackName}>
+        <p class="line-clamp-1 text-ellipsis text-sm" title={trackName}>
           {trackName}
         </p>
 
-        <p class="line-clamp-1 min-w-80 text-ellipsis text-sm text-gray-800">
+        <p class="line-clamp-1 min-w-80 text-ellipsis text-xs">
           {artistName}
         </p>
       </div>
     </div>
-    <div class="flex items-center justify-evenly bg-violet-500">
+    <div class="flex items-center justify-evenly">
       <div class="flex w-full items-center gap-4 p-4">
         <Slider
           value={volume}
@@ -169,77 +198,12 @@
             <Volume2 size="25" />
           {/if}
         </button>
-        <button
-          onclick={() => {
-            open = true;
-          }}
-        >
-          <Logs size="24" />
-        </button>
+
+        {@render queueSheet()}
+        <!-- <button onclick={() => {}}>
+          
+        </button> -->
       </div>
     </div>
   </div>
 </div>
-
-{#if open}
-  <button
-    class="fixed inset-0 z-50 bg-[--modal-overlay-bg]"
-    onclick={() => {
-      open = false;
-    }}
-  ></button>
-{/if}
-
-<aside
-  class={`fixed bottom-0 right-0 top-0 z-50 flex w-96 flex-col gap-2 overflow-y-scroll bg-[--bg-color] p-4 text-[--fg-color] transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-[100%]"}`}
->
-  <div class="flex items-center gap-2">
-    <ListMusic size="32" />
-    <p class="text-3xl font-semibold">Queue</p>
-    <div class="flex-grow"></div>
-
-    <button
-      title="Clear Queue"
-      onclick={() => {
-        musicManager.clearQueue();
-        open = false;
-      }}
-    >
-      <ListX size="32" />
-    </button>
-  </div>
-  <div class="flex flex-col gap-2">
-    {#each tracks as track, i}
-      <div class="flex gap-2">
-        <div class="group relative">
-          <img
-            class="aspect-square w-12 rounded object-cover"
-            src={track.coverArt}
-            alt={`${track.name} Cover Art`}
-          />
-          {#if i == currentTrack}
-            <div
-              class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-[--overlay-bg]"
-            >
-              <Play size="25" />
-            </div>
-          {:else}
-            <button
-              class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center bg-[--overlay-bg] group-hover:flex`}
-              onclick={() => {
-                musicManager.setQueueIndex(i);
-                musicManager.requestPlay();
-              }}
-            >
-              <Play size="25" />
-            </button>
-          {/if}
-        </div>
-        <div class="flex flex-col">
-          <p>{track.name}</p>
-          <p>{track.artistName}</p>
-        </div>
-      </div>
-    {/each}
-  </div>
-</aside>

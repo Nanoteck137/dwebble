@@ -8,7 +8,6 @@
     Volume2,
     VolumeX,
   } from "lucide-svelte";
-  import * as Drawer from "$lib/components/ui/drawer";
   import { formatTime } from "$lib/utils";
   import { Slider } from "$lib/components/ui/slider";
   import SeekSlider from "$lib/components/SeekSlider.svelte";
@@ -16,22 +15,25 @@
   import { buttonVariants } from "$lib/components/ui/button";
   import { musicManager, type MusicTrack } from "$lib/music-manager";
   import { onMount } from "svelte";
-  import Button from "$lib/components/ui/button/button.svelte";
   import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
-
-  // let open = $state(false);
+  import { fly } from "svelte/transition";
 
   interface Props {
-    showPlayer: boolean;
     loading: boolean;
     playing: boolean;
+
     currentTime: number;
     duration: number;
+
     volume: number;
     audioMuted: boolean;
+
     trackName: string;
     artistName: string;
     coverArt: string;
+
+    queue: MusicTrack[];
+    currentQueueIndex: number;
 
     onPlay: () => void;
     onPause: () => void;
@@ -43,16 +45,21 @@
   }
 
   let {
-    showPlayer,
     loading,
     playing,
+
     currentTime,
     duration,
+
     volume,
     audioMuted,
+
     trackName,
     artistName,
     coverArt,
+
+    queue,
+    currentQueueIndex,
 
     onPlay,
     onPause,
@@ -68,31 +75,9 @@
   $effect(() => {
     vol = [volume * 100];
   });
-
-  let tracks: MusicTrack[] = $state([]);
-  let currentTrack = $state(0);
-
-  onMount(() => {
-    let unsub = musicManager.emitter.on("onQueueUpdated", () => {
-      tracks = musicManager.queue.items;
-      currentTrack = musicManager.queue.index;
-    });
-
-    return () => {
-      unsub();
-    };
-  });
-
-  // $effect(() => {
-  //   if (open) {
-  //     if (browser) document.body.style.overflow = "hidden";
-  //   } else {
-  //     if (browser) document.body.style.overflow = "";
-  //   }
-  // });
 </script>
 
-{#snippet queue()}
+{#snippet queueSheet()}
   <Sheet.Root>
     <Sheet.Trigger class={buttonVariants({ variant: "outline" })}>
       Queue
@@ -101,7 +86,7 @@
       <p class="pb-2">Queue</p>
       <ScrollArea class="h-96">
         <div class="flex flex-col gap-2">
-          {#each tracks as track, i}
+          {#each queue as track, i}
             <div class="flex items-center gap-2">
               <div class="group relative">
                 <img
@@ -109,7 +94,7 @@
                   src={track.coverArt}
                   alt={`${track.name} Cover Art`}
                 />
-                {#if i == currentTrack}
+                {#if i == currentQueueIndex}
                   <div
                     class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-black/80"
                   >
@@ -144,7 +129,8 @@
 {/snippet}
 
 <div
-  class="fixed bottom-0 left-0 right-0 z-30 h-16 border-t bg-background text-foreground md:hidden"
+  class="z-30 h-16 border-t bg-background text-foreground md:hidden"
+  transition:fly={{ y: 200 }}
 >
   <div class="flex items-center">
     {#if playing}
@@ -177,7 +163,7 @@
       </Sheet.Trigger>
       <Sheet.Content side="bottom">
         <div class="relative flex flex-col items-center justify-center gap-2">
-          {@render queue()}
+          {@render queueSheet()}
 
           <img
             class="aspect-square w-64 rounded object-cover"
