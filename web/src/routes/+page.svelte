@@ -24,6 +24,7 @@
   import { ScrollArea } from "$lib/components/ui/scroll-area";
   import * as Select from "$lib/components/ui/select";
   import Separator from "$lib/components/ui/separator/separator.svelte";
+  import * as Sheet from "$lib/components/ui/sheet";
   import { Skeleton } from "$lib/components/ui/skeleton";
   import Slider from "$lib/components/ui/slider/slider.svelte";
   import { Switch } from "$lib/components/ui/switch";
@@ -97,6 +98,8 @@
   const triggerContent = $derived(
     fruits.find((f) => f.value === selectValue)?.label ?? "Select a fruit",
   );
+
+  const SHEET_SIDES = ["top", "right", "bottom", "left"] as const;
 </script>
 
 <p class="p-4 text-xl">Home Page</p>
@@ -317,6 +320,42 @@
   </Tabs.Content>
   <Tabs.Content value="password">Change your password here.</Tabs.Content>
 </Tabs.Root>
+
+<div class="grid grid-cols-2 gap-2">
+  {#each SHEET_SIDES as side, _ (side)}
+    <Sheet.Root>
+      <Sheet.Trigger class={buttonVariants({ variant: "outline" })}>
+        {side}
+      </Sheet.Trigger>
+      <Sheet.Content {side}>
+        <Sheet.Header>
+          <Sheet.Title>Edit profile</Sheet.Title>
+          <Sheet.Description>
+            Make changes to your profile here. Click save when you're done.
+          </Sheet.Description>
+        </Sheet.Header>
+        <div class="grid gap-4 py-4">
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label for="name" class="text-right">Name</Label>
+            <Input id="name" value="Pedro Duarte" class="col-span-3" />
+          </div>
+          <div class="grid grid-cols-4 items-center gap-4">
+            <Label for="username" class="text-right">Username</Label>
+            <Input id="username" value="@peduarte" class="col-span-3" />
+          </div>
+        </div>
+        <Sheet.Footer>
+          <Sheet.Close
+            class={buttonVariants({ variant: "outline" })}
+            type="submit"
+          >
+            Save changes
+          </Sheet.Close>
+        </Sheet.Footer>
+      </Sheet.Content>
+    </Sheet.Root>
+  {/each}
+</div>
 
 <Drawer.Root>
   <Drawer.Trigger class={buttonVariants({ variant: "default" })}>
