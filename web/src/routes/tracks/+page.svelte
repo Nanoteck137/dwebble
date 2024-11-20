@@ -54,6 +54,7 @@
   <div class="flex gap-2">
     <Button
       size="sm"
+      variant="ghost"
       onclick={() => {
         musicManager.clearQueue();
         for (const track of data.tracks) {
@@ -68,7 +69,7 @@
     <form action="?/newPlaylist" method="post">
       <input name="filter" value={data.filter} type="hidden" />
       <input name="sort" value={data.sort} type="hidden" />
-      <Button size="sm">
+      <Button size="sm" variant="ghost">
         <ListPlus />
         Create Playlist
       </Button>
@@ -76,6 +77,7 @@
 
     <Button
       size="sm"
+      variant="ghost"
       onclick={() => {
         let tracks = shuffle([...data.tracks]);
 
