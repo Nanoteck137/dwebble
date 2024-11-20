@@ -21,19 +21,19 @@
 
 <div class="flex gap-2">
   <img
-    class="aspect-square w-64 rounded object-cover"
+    class="aspect-square w-48 rounded object-cover"
     src={data.album.coverArt.medium}
     alt="Album Cover Art"
   />
 
   <div class="flex flex-col py-2">
-    <a
-      class="text-3xl font-medium hover:underline"
-      href="/albums/{data.album.id}"
-    >
+    <p class="font-bold">
       {data.album.name}
-    </a>
-    <a class="text-lg hover:underline" href="/artists/{data.album.artistId}">
+    </p>
+    <a
+      class="w-fit text-xs hover:underline"
+      href="/artists/{data.album.artistId}"
+    >
       {data.album.artistName}
     </a>
 
@@ -55,7 +55,7 @@
   {#each data.tracks as track (track.id)}
     <div class="flex items-center gap-2 border-b py-2 pr-2">
       <div class="flex flex-grow flex-col">
-        <p class="text-sm font-semibold" title={track.name}>
+        <p class="text-sm font-medium" title={track.name}>
           {#if track.number}
             <span>{track.number}.</span>
           {/if}

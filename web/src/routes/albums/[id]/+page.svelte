@@ -82,7 +82,9 @@
     <div class="flex flex-col gap-2">
       {#each data.tracks as track, i}
         <div class="group flex items-center gap-2 py-1 pr-4">
-          <p class="w-10 text-right text-sm font-medium group-hover:hidden">
+          <p
+            class="min-w-10 text-right text-sm font-medium group-hover:hidden"
+          >
             {#if track.number}
               <span>{track.number}.</span>
             {/if}

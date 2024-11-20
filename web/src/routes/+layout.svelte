@@ -54,7 +54,7 @@
   </div>
 </header>
 
-<main class="p-4">
+<main class="container py-4">
   {@render children()}
 </main>
 
@@ -65,11 +65,11 @@
 {#if showSideMenu}
   <!-- svelte-ignore a11y_consider_explicit_label -->
   <button
-    class="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+    class="fixed inset-0 z-50 bg-black/80"
     onclick={() => {
       showSideMenu = false;
     }}
-    transition:fade
+    transition:fade={{ duration: 200 }}
   ></button>
 
   <aside
@@ -85,7 +85,7 @@
         <Menu size="20" />
       </button>
       <a
-        class="text-2xl font-medium text-[--logo-color]"
+        class="text-2xl font-medium"
         href="/"
         onclick={() => {
           showSideMenu = false;
