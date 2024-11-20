@@ -1,5 +1,7 @@
 <script lang="ts">
   import type { Track } from "$lib/api/types";
+  import Input from "$lib/components/ui/input/input.svelte";
+  import Label from "$lib/components/ui/label/label.svelte";
   import { musicManager } from "$lib/music-manager";
   import { trackToMusicTrack } from "$lib/utils";
   import { Play } from "lucide-svelte";
@@ -17,7 +19,7 @@
 
 <input name="trackId" value={track.id} type="hidden" />
 
-<div id="track-{track.id}" class="flex flex-col gap-2 border-b pb-2">
+<div id="track-{track.id}" class="flex flex-col gap-2 py-2">
   <div class="flex gap-2">
     <button
       type="button"
@@ -28,24 +30,24 @@
     >
       <Play size="18" />
     </button>
-    <p>{track.name}:</p>
+    <p>{track.name}</p>
   </div>
 
   <div class="flex flex-col gap-1">
     <div class="flex items-center gap-2">
-      <label class="w-24 text-sm" for={id("trackNumber")}>Number</label>
-      <label class="text-sm" for={id("trackName")}>Track Name</label>
+      <Label class="w-24" for={id("trackNumber")}>Number</Label>
+      <Label for={id("trackName")}>Track Name</Label>
     </div>
     <div class="flex items-center gap-2">
-      <input
-        class="w-24 rounded bg-[--bg-color] text-xs"
+      <Input
+        class="w-24"
         id={id("trackNumber")}
         name="trackNumber"
         value={track.number}
         type="number"
       />
-      <input
-        class="w-full rounded bg-[--bg-color] text-xs"
+      <Input
+        class="w-full"
         id={id("trackName")}
         name="trackName"
         value={track.name}
@@ -55,21 +57,21 @@
     </div>
   </div>
 
-  <div class="flex flex-col gap-1">
+  <div class="flex flex-col gap-2">
     <div class="flex items-center gap-2">
-      <label class="w-24 text-sm" for={id("trackYear")}>Year</label>
-      <label class="text-sm" for={id("trackTags")}>Tags</label>
+      <Label class="w-24" for={id("trackYear")}>Year</Label>
+      <Label for={id("trackTags")}>Tags</Label>
     </div>
     <div class="flex items-center gap-2">
-      <input
-        class="w-24 rounded bg-[--bg-color] text-xs"
+      <Input
+        class="w-24"
         id={id("trackYear")}
         name="trackYear"
         value={track.year}
         type="number"
       />
-      <input
-        class="w-full rounded bg-[--bg-color] text-xs"
+      <Input
+        class="w-full"
         id={id("trackTags")}
         name="trackTags"
         value={track.tags.join(",")}
@@ -78,8 +80,9 @@
     </div>
 
     <div class="flex flex-col gap-1">
-      <input
-        class="w-full rounded bg-[--bg-color] text-xs"
+      <Label for={id("trackArtist")}>Artist</Label>
+      <Input
+        class="w-full"
         id={id("trackArtist")}
         name="trackArtist"
         value={track.artistName}

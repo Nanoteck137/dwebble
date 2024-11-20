@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Separator from "$lib/components/ui/separator/separator.svelte";
   import TrackEdit from "../TrackEdit.svelte";
 
   const { data } = $props();
@@ -8,6 +9,7 @@
   <div class="flex flex-col gap-2">
     {#each data.tracks as track (track.id)}
       <TrackEdit {track} />
+      <Separator />
     {/each}
   </div>
 
