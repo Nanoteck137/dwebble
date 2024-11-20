@@ -58,7 +58,7 @@
   {@render children()}
 </main>
 
-<footer>
+<footer class="fixed bottom-0 w-screen">
   <AudioPlayer />
 </footer>
 
