@@ -15,7 +15,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="relative h-2 w-full touch-none bg-red-400"
+  class="relative h-1.5 w-full touch-none rounded-full bg-primary"
   bind:this={sliderDiv}
   onclick={(e) => {
     const target = e.target! as HTMLDivElement;
@@ -26,7 +26,7 @@
   }}
 >
   <div
-    class="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+    class="absolute top-1/2 block size-4 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
     style={`left: ${(dragging ? dragValue : value) * 100}%`}
     onclick={(e) => {
       e.preventDefault();
