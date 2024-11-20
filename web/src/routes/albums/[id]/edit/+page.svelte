@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { Track } from "$lib/api/types.js";
-  import { musicManager } from "$lib/music-manager.js";
-  import { formatTime, trackToMusicTrack } from "$lib/utils.js";
+  import { Track } from "$lib/api/types";
+  import { musicManager } from "$lib/music-manager";
+  import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
   import { Edit, EllipsisVertical, Play, Trash } from "lucide-svelte";
-  import { DropdownMenu } from "bits-ui";
+  import { buttonVariants } from "$lib/components/ui/button/index";
+  import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
 
   const { data } = $props();
 
@@ -18,9 +19,9 @@
   }
 </script>
 
-<div class="flex gap-2 p-2">
+<div class="flex gap-2">
   <img
-    class="aspect-square w-60 rounded object-cover"
+    class="aspect-square w-64 rounded object-cover"
     src={data.album.coverArt.medium}
     alt="Album Cover Art"
   />
@@ -50,106 +51,82 @@
   </div>
 </div>
 
-<!-- <div class="flex flex-col">
-  <p>Edit Album</p>
-
-  <a href="{data.album.id}/import">Import Tracks</a>
-  <a href="{data.album.id}/details">Edit Album Details</a>
-  <a href="{data.album.id}/tracks">Edit Tracks</a>
-
-  <button
-    class="rounded bg-red-500 px-4 py-2 text-white hover:bg-red-400 active:scale-95"
-    onclick={() => {
-      confirmAlbumDeletionDialog?.showModal();
-    }}
-  >
-    Delete Album
-  </button>
-
-  <div class="flex gap-2">
-    <p>{data.album.name}</p>
-  </div>
-
-  <p>Album Artist: {data.album.artistName}</p>
-
-  <p>{data.album.coverArt}</p>
-</div> -->
-
 <div class="flex flex-col">
   {#each data.tracks as track (track.id)}
-    <div class="flex items-center gap-2 border-b py-2 pl-2 pr-4">
+    <div class="flex items-center gap-2 border-b py-2 pr-2">
       <div class="flex flex-grow flex-col">
-        <p title={track.name}>
+        <p class="text-sm font-semibold" title={track.name}>
           {#if track.number}
             <span>{track.number}.</span>
           {/if}
           {track.name}
         </p>
-        <a
-          class="text-xs"
-          title={track.artistName}
-          href="/artists/{track.artistId}"
-        >
-          Artist: {track.artistName}
-        </a>
+        <p class="text-xs" title={track.artistName}>
+          Artist: <a class="hover:underline" href="/artists/{track.artistId}"
+            >{track.artistName}</a
+          >
+        </p>
         {#if track.year}
           <p class="text-xs">Year: {track.year}</p>
         {/if}
         {#if track.tags.length > 0}
           <p class="text-xs">Tags: {track.tags.join(", ")}</p>
         {/if}
-        <!--  -->
       </div>
       <div class="flex items-center gap-2">
-        <p class="">
+        <p class="text-xs">
           {formatTime(track.duration ?? 0)}
         </p>
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger>
-            <EllipsisVertical size="24" />
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content
-            class="w-full max-w-[240px] rounded border border-gray-600 bg-[--bg-color] px-2 py-2"
-          >
-            <DropdownMenu.Item
-              class="select-none rounded px-2 py-2 data-[highlighted]:bg-gray-400 data-[highlighted]:text-black"
-            >
-              <button
-                class="flex h-full w-full items-center gap-2"
-                onclick={() => {
-                  musicManager.clearQueue();
-                  musicManager.addTrackToQueue(trackToMusicTrack(track), true);
-                }}
-              >
-                <Play size="20" />
-                <p>Play</p>
-              </button>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item
-              class="select-none rounded px-2 py-2 data-[highlighted]:bg-red-400 data-[highlighted]:text-black"
-            >
-              <button
-                class="flex h-full w-full items-center gap-2"
-                onclick={() => {
-                  openDeleteConfirm(track);
-                }}
-              >
-                <Trash size="20" />
-                <p>Remove</p>
-              </button>
-            </DropdownMenu.Item>
 
-            <DropdownMenu.Item
-              class="select-none rounded px-2 py-2 data-[highlighted]:bg-red-400 data-[highlighted]:text-black"
-            >
-              <a
-                class="flex h-full w-full items-center gap-2"
-                href="{data.album.id}/tracks#track-{track.id}"
-              >
-                <Edit size="20" />
-                <p>Edit</p>
-              </a>
-            </DropdownMenu.Item>
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger
+            class={cn(
+              buttonVariants({ variant: "ghost", size: "icon" }),
+              "rounded-full",
+            )}
+          >
+            <EllipsisVertical />
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="end">
+            <DropdownMenu.Group>
+              <DropdownMenu.Item>
+                <button
+                  class="flex w-full items-center gap-2"
+                  onclick={() => {
+                    musicManager.clearQueue();
+                    musicManager.addTrackToQueue(
+                      trackToMusicTrack(track),
+                      true,
+                    );
+                  }}
+                >
+                  <Play size="16" />
+                  Play
+                </button>
+              </DropdownMenu.Item>
+
+              <DropdownMenu.Item>
+                <button
+                  class="flex w-full items-center gap-2"
+                  onclick={() => {
+                    openDeleteConfirm(track);
+                  }}
+                >
+                  <Trash size="16" />
+                  Remove
+                </button>
+              </DropdownMenu.Item>
+
+              <DropdownMenu.Item>
+                <a
+                  class="flex w-full items-center gap-2"
+                  href="edit/tracks#track-{track.id}"
+                >
+                  <Edit size="16" />
+                  Edit
+                </a>
+              </DropdownMenu.Item>
+            </DropdownMenu.Group>
           </DropdownMenu.Content>
         </DropdownMenu.Root>
       </div>
