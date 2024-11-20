@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
+  import { run } from "svelte/legacy";
 
   import { browser } from "$app/environment";
-  import Slider from "$lib/components/Slider.svelte";
+  import Slider from "$lib/components/SeekSlider.svelte";
   import { musicManager, type MusicTrack } from "$lib/music-manager";
   import { formatTime } from "$lib/utils";
   import {
@@ -17,8 +17,6 @@
     VolumeX,
   } from "lucide-svelte";
   import { onMount } from "svelte";
-
-
 
   interface Props {
     showPlayer: boolean;
@@ -57,7 +55,7 @@
     onPrevTrack,
     onSeek,
     onVolumeChanged,
-    onToggleMuted
+    onToggleMuted,
   }: Props = $props();
 
   let open = $state(false);
@@ -96,7 +94,7 @@
     />
   </div>
 
-  <div class="grid h-full grid-cols-footer">
+  <div class="grid-cols-footer grid h-full">
     <div class="flex items-center bg-cyan-600">
       <div class="flex items-center">
         <button

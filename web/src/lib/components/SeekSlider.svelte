@@ -9,9 +9,7 @@
   let dragging = $state(false);
   let dragValue = $state(value);
 
-  let sliderDiv: HTMLDivElement = $state();
-
-  // $: console.log(value);
+  let sliderDiv: HTMLDivElement | undefined = $state();
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -44,7 +42,7 @@
       const move = (e: MouseEvent) => {
         e.preventDefault();
 
-        const rect = sliderDiv.getBoundingClientRect();
+        const rect = sliderDiv!.getBoundingClientRect();
         const x = e.clientX - rect.x;
         let percent = x / rect.width;
         console.log(percent);
@@ -82,7 +80,7 @@
         e.stopPropagation();
         e.stopImmediatePropagation();
 
-        const rect = sliderDiv.getBoundingClientRect();
+        const rect = sliderDiv!.getBoundingClientRect();
         const x = e.touches[0].clientX - rect.x;
         let percent = x / rect.width;
         console.log(percent);
