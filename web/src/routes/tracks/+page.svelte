@@ -42,7 +42,7 @@
     <p class="text-red-400">{data.sortError}</p>
   {/if}
   <div class="h-2"></div>
-  <Button>
+  <Button type="submit">
     <Filter />
     Filter Tracks
   </Button>
@@ -69,7 +69,7 @@
     <form action="?/newPlaylist" method="post">
       <input name="filter" value={data.filter} type="hidden" />
       <input name="sort" value={data.sort} type="hidden" />
-      <Button size="sm" variant="ghost">
+      <Button type="submit" size="sm" variant="ghost">
         <ListPlus />
         Create Playlist
       </Button>
