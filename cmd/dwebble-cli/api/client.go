@@ -177,7 +177,7 @@ func (c *Client) CreateAlbum(body CreateAlbumBody, options Options) (*CreateAlbu
 	return Request[CreateAlbum](data)
 }
 
-func (c *Client) ChangeAlbumCover(id string, options Options) (*any, error) {
+func (c *Client) ChangeAlbumCover(id string, body Reader, options Options) (*any, error) {
 	path := Sprintf("/api/v1/albums/%v/cover", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -190,10 +190,10 @@ func (c *Client) ChangeAlbumCover(id string, options Options) (*any, error) {
 		Token: c.token,
 		Body: nil,
 	}
-	return Request[any](data)
+	return RequestForm[any](data, options.Boundary, body)
 }
 
-func (c *Client) UploadTracks(id string, options Options) (*any, error) {
+func (c *Client) UploadTracks(id string, body Reader, options Options) (*any, error) {
 	path := Sprintf("/api/v1/albums/%v/upload", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -206,7 +206,7 @@ func (c *Client) UploadTracks(id string, options Options) (*any, error) {
 		Token: c.token,
 		Body: nil,
 	}
-	return Request[any](data)
+	return RequestForm[any](data, options.Boundary, body)
 }
 
 func (c *Client) GetTracks(options Options) (*GetTracks, error) {
