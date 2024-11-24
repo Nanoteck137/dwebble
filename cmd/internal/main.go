@@ -40,7 +40,7 @@ var genCmd = &cobra.Command{
 
 		fmt.Println("Wrote 'misc/pyrin.json'")
 
-		err = gen.GenerateGolang(s, "cmd/dwebble-dl/api")
+		err = gen.GenerateGolang(s, "cmd/dwebble-cli/api")
 		if err != nil {
 			log.Fatal("Failed to generate golang code", err)
 		}

@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	"github.com/nanoteck137/dwebble/cmd/dwebble-dl/api"
+	"github.com/nanoteck137/dwebble/cmd/dwebble-cli/api"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/spf13/cobra"
 )
@@ -162,13 +162,10 @@ var downloadFilterCmd = &cobra.Command{
 }
 
 func init() {
-	downloadFilterCmd.Flags().String("server", "", "Server Address")
 	downloadFilterCmd.Flags().StringP("filter", "f", "", "Filter to use")
 	downloadFilterCmd.Flags().StringP("sort", "s", "", "Sorting to use")
 	downloadFilterCmd.Flags().StringP("album", "a", "Unknown", "Album Name")
 	downloadFilterCmd.Flags().StringP("output", "o", ".", "Output Directory")
-
-	downloadFilterCmd.MarkFlagRequired("server")
 
 	downloadCmd.AddCommand(downloadFilterCmd)
 

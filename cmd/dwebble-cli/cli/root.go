@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var AppName = dwebble.AppName + "-dl"
+var AppName = dwebble.AppName + "-cli"
 
 var rootCmd = &cobra.Command{
 	Use:     AppName,
@@ -25,5 +25,7 @@ var cfgFile string
 func init() {
 	rootCmd.SetVersionTemplate(dwebble.VersionTemplate(AppName))
 
+	rootCmd.PersistentFlags().String("server", "", "Server Address")
+	rootCmd.MarkPersistentFlagRequired("server")
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "Config File")
 }
