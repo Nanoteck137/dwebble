@@ -58,7 +58,7 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 	}
 
 	if number == 0 {
-		number = utils.ExtractNumber(name)
+		number = utils.ExtractNumber(originalName)
 	}
 
 	trackId, err = db.CreateTrack(ctx, database.CreateTrackParams{
