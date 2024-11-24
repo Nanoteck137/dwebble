@@ -9,13 +9,14 @@
     VolumeX,
   } from "lucide-svelte";
   import { formatTime } from "$lib/utils";
-  import { Slider } from "$lib/components/ui/slider";
+  import {
+    ScrollArea,
+    Slider,
+    Sheet,
+    buttonVariants,
+  } from "@nanoteck137/nano-ui";
   import SeekSlider from "$lib/components/SeekSlider.svelte";
-  import * as Sheet from "$lib/components/ui/sheet";
-  import { buttonVariants } from "$lib/components/ui/button";
   import { musicManager, type MusicTrack } from "$lib/music-manager";
-  import { onMount } from "svelte";
-  import ScrollArea from "$lib/components/ui/scroll-area/scroll-area.svelte";
   import { fly } from "svelte/transition";
 
   interface Props {

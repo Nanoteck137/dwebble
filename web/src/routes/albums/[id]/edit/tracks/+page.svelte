@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Separator from "$lib/components/ui/separator/separator.svelte";
+  import { Separator } from "@nanoteck137/nano-ui";
   import TrackEdit from "../TrackEdit.svelte";
 
   const { data } = $props();

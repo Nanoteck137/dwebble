@@ -1,37 +1,37 @@
 <script lang="ts">
-  import * as AlertDialog from "$lib/components/ui/alert-dialog";
-  import { AspectRatio } from "$lib/components/ui/aspect-ratio";
-  import * as Avatar from "$lib/components/ui/avatar";
-  import * as Breadcrumb from "$lib/components/ui/breadcrumb";
   import {
+    AlertDialog,
+    AspectRatio,
+    Avatar,
+    Breadcrumb,
     Button,
     buttonVariants,
+    Card,
+    Checkbox,
+    Dialog,
+    Drawer,
+    DropdownMenu,
+    Input,
+    Label,
+    Pagination,
+    Popover,
+    Progress,
+    RadioGroup,
+    ScrollArea,
+    Select,
+    Separator,
+    Skeleton,
+    Slider,
+    Switch,
+    Tabs,
+    Toggle,
+    ToggleGroup,
+    Tooltip,
     type ButtonSize,
     type ButtonVariant,
-  } from "$lib/components/ui/button";
-  import * as Card from "$lib/components/ui/card";
-  import { Checkbox } from "$lib/components/ui/checkbox";
-  import * as Command from "$lib/components/ui/command";
-  import * as Dialog from "$lib/components/ui/dialog";
-  import * as Drawer from "$lib/components/ui/drawer";
-  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-  import Input from "$lib/components/ui/input/input.svelte";
-  import { Label } from "$lib/components/ui/label";
-  import * as Pagination from "$lib/components/ui/pagination";
-  import * as Popover from "$lib/components/ui/popover";
-  import { Progress } from "$lib/components/ui/progress";
-  import * as RadioGroup from "$lib/components/ui/radio-group";
-  import { ScrollArea } from "$lib/components/ui/scroll-area";
-  import * as Select from "$lib/components/ui/select";
-  import Separator from "$lib/components/ui/separator/separator.svelte";
-  import * as Sheet from "$lib/components/ui/sheet";
-  import { Skeleton } from "$lib/components/ui/skeleton";
-  import Slider from "$lib/components/ui/slider/slider.svelte";
-  import { Switch } from "$lib/components/ui/switch";
-  import * as Tabs from "$lib/components/ui/tabs";
-  import { Toggle } from "$lib/components/ui/toggle";
-  import * as ToggleGroup from "$lib/components/ui/toggle-group";
-  import * as Tooltip from "$lib/components/ui/tooltip";
+    Command,
+    Sheet,
+  } from "@nanoteck137/nano-ui";
   import {
     Bold,
     Calculator,

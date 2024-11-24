@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { Track } from "$lib/api/types";
-  import Input from "$lib/components/ui/input/input.svelte";
-  import Label from "$lib/components/ui/label/label.svelte";
+  import { Input, Label } from "@nanoteck137/nano-ui";
   import { musicManager } from "$lib/music-manager";
   import { trackToMusicTrack } from "$lib/utils";
   import { Play } from "lucide-svelte";

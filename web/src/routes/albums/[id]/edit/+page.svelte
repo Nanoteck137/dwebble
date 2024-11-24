@@ -3,8 +3,7 @@
   import { musicManager } from "$lib/music-manager";
   import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
   import { Edit, EllipsisVertical, Play, Trash } from "lucide-svelte";
-  import { buttonVariants } from "$lib/components/ui/button/index";
-  import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+  import { buttonVariants, DropdownMenu } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
 

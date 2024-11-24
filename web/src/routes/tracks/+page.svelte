@@ -11,9 +11,12 @@
   import { musicManager } from "$lib/music-manager";
   import { cn, shuffle, trackToMusicTrack } from "$lib/utils";
   import { enhance } from "$app/forms";
-  import { Input } from "$lib/components/ui/input";
-  import { Button, buttonVariants } from "$lib/components/ui/button";
-  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+  import {
+    DropdownMenu,
+    Button,
+    buttonVariants,
+    Input,
+  } from "@nanoteck137/nano-ui";
 
   let { data } = $props();
 </script>

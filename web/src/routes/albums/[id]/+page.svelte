@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { Button, buttonVariants } from "$lib/components/ui/button";
-  import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
-  import Separator from "$lib/components/ui/separator/separator.svelte";
+  import {
+    Button,
+    buttonVariants,
+    DropdownMenu,
+    Separator,
+  } from "@nanoteck137/nano-ui";
   import { musicManager } from "$lib/music-manager";
   import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
   import { EllipsisVertical, ListPlus, Pencil, Play } from "lucide-svelte";

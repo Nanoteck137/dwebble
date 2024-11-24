@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button";
-  import { Input } from "$lib/components/ui/input";
-  import { Label } from "$lib/components/ui/label";
+  import { Button, Input, Label } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
 </script>

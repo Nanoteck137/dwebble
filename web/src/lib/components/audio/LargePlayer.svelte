@@ -1,7 +1,6 @@
 <script lang="ts">
   import Slider from "$lib/components/SeekSlider.svelte";
-  import { ScrollArea } from "$lib/components/ui/scroll-area";
-  import * as Sheet from "$lib/components/ui/sheet";
+  import { ScrollArea, Sheet } from "@nanoteck137/nano-ui";
   import { musicManager, type MusicTrack } from "$lib/music-manager";
   import { formatTime } from "$lib/utils";
   import {
@@ -125,7 +124,7 @@
     />
   </div>
 
-  <div class="grid-cols-footer grid h-full">
+  <div class="grid h-full grid-cols-footer">
     <div class="flex items-center">
       <div class="flex items-center">
         <button
