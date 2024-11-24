@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -59,7 +60,7 @@ func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error
 
 func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, error) {
 	query := ArtistQuery().
-		Where(goqu.I("artists.name").Eq(name))
+		Where(goqu.Func("LOWER", goqu.I("artists.name")).Eq(strings.ToLower(name)))
 
 	var item Artist
 	err := db.Get(&item, query)
