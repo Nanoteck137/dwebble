@@ -73,6 +73,16 @@ type CreateAlbum struct {
 	AlbumId string `json:"albumId"`
 }
 
+var _ pyrin.Body = (*UploadTracksBody)(nil)
+
+type UploadTracksBody struct {
+	ForceExtractNumber bool `json:"forceExtractNumber"`
+}
+
+func (b UploadTracksBody) Validate(validator validate.Validator) error {
+	panic("unimplemented")
+}
+
 func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
@@ -415,6 +425,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Name:        "UploadTracks",
 			Method:      http.MethodPost,
 			Path:        "/albums/:id/upload",
+			BodyType:    UploadTracksBody{},
 			RequireForm: true,
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
@@ -462,6 +473,15 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return dst.Name(), nil
 				}
 
+				var body UploadTracksBody
+				if len(form.Value["body"]) > 0 {
+					bodyStr := form.Value["body"][0]
+					err := json.Unmarshal(([]byte)(bodyStr), &body)
+					if err != nil {
+						return nil, err
+					}
+				}
+
 				files := form.File["files"]
 				for _, f := range files {
 					ext := path.Ext(f.Filename)
@@ -473,7 +493,14 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					}
 					defer os.Remove(filename)
 
-					_, err = helper.ImportTrack(ctx, app.DB(), app.WorkDir(), album.Id, album.ArtistId, name, filename)
+					data := helper.ImportTrackData{
+						AlbumId:            album.Id,
+						ArtistId:           album.ArtistId,
+						Name:               name,
+						Filename:           filename,
+						ForceExtractNumber: false,
+					}
+					_, err = helper.ImportTrack(ctx, app.DB(), app.WorkDir(), data)
 					if err != nil {
 						return nil, err
 					}

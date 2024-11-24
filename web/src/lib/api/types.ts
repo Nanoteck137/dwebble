@@ -97,6 +97,11 @@ export const CreateAlbumBody = z.object({
 });
 export type CreateAlbumBody = z.infer<typeof CreateAlbumBody>;
 
+export const UploadTracksBody = z.object({
+  forceExtractNumber: z.boolean(),
+});
+export type UploadTracksBody = z.infer<typeof UploadTracksBody>;
+
 export const GetTracks = z.object({
   tracks: z.array(Track),
 });

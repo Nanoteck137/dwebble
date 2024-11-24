@@ -192,6 +192,8 @@ github.com/nanoteck137/parasect v0.2.1 h1:ZOLX1Yx26ICTCWyeRvKuf3SBVr6FYkAjA+ispR
 github.com/nanoteck137/parasect v0.2.1/go.mod h1:33qO7FtrQQdMV9CJpvi8ETAWUPKbHdEp0F/2rwxemi8=
 github.com/nanoteck137/pyrin v0.8.8 h1:rqocrZleU397XkX1FVysE5OUxANZe1RO4DNxlKhlHmA=
 github.com/nanoteck137/pyrin v0.8.8/go.mod h1:d+ZLxzY3pnEkm4y44bHLL6qS/fVUm8xixk5zqHy2OvY=
+github.com/nanoteck137/pyrin v0.9.0 h1:KERU6g1bDcePCslP2JupY5v61GF5Ll0729Idyyqj7nU=
+github.com/nanoteck137/pyrin v0.9.0/go.mod h1:d+ZLxzY3pnEkm4y44bHLL6qS/fVUm8xixk5zqHy2OvY=
 github.com/nrednav/cuid2 v1.0.0 h1:27dn1oGiG+23Wa8XJ2DHeMoMa18Zs9u1+UHI9IlcGKM=
 github.com/nrednav/cuid2 v1.0.0/go.mod h1:pdRH5Zrjwnv8DZ74XvHR3jX+bzJNfQjwLQ3JgSI2EmI=
 github.com/opencontainers/go-digest v1.0.0 h1:apOUWs51W5PlhuyGyz9FCeeBIOUDA/6nW8Oi/yOhh5U=

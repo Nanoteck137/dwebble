@@ -293,6 +293,17 @@
       ]
     },
     {
+      "name": "UploadTracksBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "forceExtractNumber",
+          "type": "bool",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetTracks",
       "extend": "",
       "fields": [
@@ -876,7 +887,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "",
+      "bodyType": "UploadTracksBody",
       "requireFormData": true
     },
     {

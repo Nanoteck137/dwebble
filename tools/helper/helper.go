@@ -12,9 +12,19 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkDir, albumId, artistId, name, filename string) (string, error) {
+type ImportTrackData struct {
+	AlbumId string
+	ArtistId string
+	Name string
+	Filename string
+
+	ForceExtractNumber bool
+}
+
+func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkDir, data ImportTrackData) (string, error) {
 	trackId := utils.CreateTrackId()
 
+	name := data.Name
 	originalName := name
 
 	trackDir := workDir.Track(trackId)
@@ -24,12 +34,12 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		return "", err
 	}
 
-	mobileFile, err := utils.ProcessMobileVersion(filename, trackDir, "track.mobile")
+	mobileFile, err := utils.ProcessMobileVersion(data.Filename, trackDir, "track.mobile")
 	if err != nil {
 		return "", err
 	}
 
-	originalFile, trackInfo, err := utils.ProcessOriginalVersion(filename, trackDir, "track.original")
+	originalFile, trackInfo, err := utils.ProcessOriginalVersion(data.Filename, trackDir, "track.original")
 	if err != nil {
 		return "", err
 	}
@@ -57,15 +67,15 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		number = y
 	}
 
-	if number == 0 {
+	if number == 0 || data.ForceExtractNumber {
 		number = utils.ExtractNumber(originalName)
 	}
 
 	trackId, err = db.CreateTrack(ctx, database.CreateTrackParams{
 		Id:       trackId,
 		Name:     name,
-		AlbumId:  albumId,
-		ArtistId: artistId,
+		AlbumId:  data.AlbumId,
+		ArtistId: data.ArtistId,
 		Number: sql.NullInt64{
 			Int64: int64(number),
 			Valid: number != 0,

@@ -83,6 +83,10 @@ type CreateAlbumBody struct {
 	Artist string `json:"artist"`
 }
 
+type UploadTracksBody struct {
+	ForceExtractNumber bool `json:"forceExtractNumber"`
+}
+
 type GetTracks struct {
 	Tracks []Track `json:"tracks"`
 }

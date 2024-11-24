@@ -65,7 +65,7 @@ func (c *Client) EditArtist(id string, body EditArtistBody, options Options) (*a
 	return Request[any](data)
 }
 
-func (c *Client) ChangeArtistPicture(id string, options Options) (*any, error) {
+func (c *Client) ChangeArtistPicture(id string, body Reader, options Options) (*any, error) {
 	path := Sprintf("/api/v1/artists/%v/picture", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -78,7 +78,7 @@ func (c *Client) ChangeArtistPicture(id string, options Options) (*any, error) {
 		Token: c.token,
 		Body: nil,
 	}
-	return Request[any](data)
+	return RequestForm[any](data, options.Boundary, body)
 }
 
 func (c *Client) GetAlbums(options Options) (*GetAlbums, error) {
@@ -204,7 +204,7 @@ func (c *Client) UploadTracks(id string, body Reader, options Options) (*any, er
 		Url: url,
 		Method: "POST",
 		Token: c.token,
-		Body: nil,
+		Body: body,
 	}
 	return RequestForm[any](data, options.Boundary, body)
 }

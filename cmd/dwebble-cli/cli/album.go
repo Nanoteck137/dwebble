@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -13,6 +14,13 @@ import (
 	"github.com/nanoteck137/dwebble/cmd/dwebble-cli/api"
 	"github.com/spf13/cobra"
 )
+
+type ImportFile struct {
+	Album    string   `json:"album"`
+	Artist   string   `json:"artist"`
+	CoverArt string   `json:"coverArt"`
+	Tracks   []string `json:"tracks"`
+}
 
 var albumCmd = &cobra.Command{
 	Use: "album",
@@ -42,6 +50,25 @@ var albumCreateCmd = &cobra.Command{
 	},
 }
 
+func createAlbumCoverFormData(w *multipart.Writer, file string) error {
+	fw, err := w.CreateFormFile("cover", path.Base(file))
+	if err != nil {
+		return err
+	}
+
+	src, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(fw, src)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 var albumUploadCoverCmd = &cobra.Command{
 	Use:  "upload-cover <ALBUM_ID> <COVER_PATH>",
 	Args: cobra.ExactArgs(2),
@@ -55,17 +82,7 @@ var albumUploadCoverCmd = &cobra.Command{
 		body := &bytes.Buffer{}
 		w := multipart.NewWriter(body)
 
-		fw, err := w.CreateFormFile("cover", path.Base(coverPath))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		src, err := os.Open(coverPath)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		_, err = io.Copy(fw, src)
+		err := createAlbumCoverFormData(w, coverPath)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -96,17 +113,24 @@ var albumUploadTracksCmd = &cobra.Command{
 		albumId := args[0]
 		tracks := args[1:]
 
-		_ = client
-		_ = albumId
-
-		pretty.Println(tracks)
-
 		body := &bytes.Buffer{}
 		w := multipart.NewWriter(body)
 
+		bw, err := w.CreateFormField("body")
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		e := json.NewEncoder(bw)
+		err = e.Encode(api.UploadTracksBody{
+			ForceExtractNumber: true,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		for _, track := range tracks {
 			func() {
-				fmt.Printf("path.Base(track): %v\n", path.Base(track))
 				fw, err := w.CreateFormFile("files", path.Base(track))
 				if err != nil {
 					log.Fatal(err)
@@ -125,7 +149,7 @@ var albumUploadTracksCmd = &cobra.Command{
 			}()
 		}
 
-		err := w.Close()
+		err = w.Close()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -141,10 +165,115 @@ var albumUploadTracksCmd = &cobra.Command{
 	},
 }
 
+var albumImportCmd = &cobra.Command{
+	Use:  "import <IMPORT_FILE>",
+	Args: cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		server, _ := cmd.Flags().GetString("server")
+		client := api.New(server)
+
+		importFile := args[0]
+
+		d, err := os.ReadFile(importFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var i ImportFile
+		err = json.Unmarshal(d, &i)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		album, err := client.CreateAlbum(api.CreateAlbumBody{
+			Name:   i.Album,
+			Artist: i.Artist,
+		}, api.Options{})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		body := &bytes.Buffer{}
+		w := multipart.NewWriter(body)
+
+		coverPath := path.Join(path.Dir(importFile), i.CoverArt)
+		err = createAlbumCoverFormData(w, coverPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = w.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		// TODO(patrik): Pyrin error needs fixing
+		_, err = client.ChangeAlbumCover(album.AlbumId, body, api.Options{
+			Boundary: w.Boundary(),
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		{
+			body := &bytes.Buffer{}
+			w := multipart.NewWriter(body)
+
+			bw, err := w.CreateFormField("body")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			e := json.NewEncoder(bw)
+			err = e.Encode(api.UploadTracksBody{
+				ForceExtractNumber: true,
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			b := path.Dir(importFile)
+			for _, track := range i.Tracks {
+				p := path.Join(b, track)
+				func() {
+					fw, err := w.CreateFormFile("files", path.Base(p))
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					src, err := os.Open(p)
+					if err != nil {
+						log.Fatal(err)
+					}
+					defer src.Close()
+
+					_, err = io.Copy(fw, src)
+					if err != nil {
+						log.Fatal(err)
+					}
+				}()
+			}
+
+			err = w.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			_, err = client.UploadTracks(album.AlbumId, body, api.Options{
+				Boundary: w.Boundary(),
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+	},
+}
+
 func init() {
 	albumCmd.AddCommand(albumCreateCmd)
 	albumCmd.AddCommand(albumUploadCoverCmd)
 	albumCmd.AddCommand(albumUploadTracksCmd)
+	albumCmd.AddCommand(albumImportCmd)
 
 	rootCmd.AddCommand(albumCmd)
 }
