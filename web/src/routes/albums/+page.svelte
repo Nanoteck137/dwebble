@@ -1,14 +1,49 @@
 <script lang="ts">
+  import { Button, Select } from "@nanoteck137/nano-ui";
   import type { PageData } from "./$types";
+  import { enhance } from "$app/forms";
 
   interface Props {
     data: PageData;
   }
 
   let { data }: Props = $props();
+
+  const sorts = [
+    { value: "sort=album", label: "Name (A-Z)" },
+    { value: "sort=-album", label: "Name (Z-A)" },
+    { value: "sort=-created", label: "Newest First" },
+    { value: "sort=created", label: "Newest Last" },
+  ];
+
+  let value = $state("");
+
+  const triggerContent = $derived(
+    sorts.find((f) => f.value === value)?.label ?? "Sort",
+  );
+
+  let form: HTMLFormElement | undefined = $state();
 </script>
 
 <div class="flex flex-col gap-2">
+  <form bind:this={form} method="get">
+    <Select.Root type="single" name="sort" bind:value>
+      <Select.Trigger class="w-[180px]">
+        {triggerContent}
+      </Select.Trigger>
+      <Select.Content>
+        <Select.Group>
+          <Select.GroupHeading>Sort</Select.GroupHeading>
+          {#each sorts as sort}
+            <Select.Item value={sort.value} label={sort.label} />
+          {/each}
+        </Select.Group>
+      </Select.Content>
+    </Select.Root>
+
+    <Button type="submit">Filter</Button>
+  </form>
+
   <div class="flex items-center justify-between">
     <p class="text-bold text-xl">Albums</p>
     <p class="text-sm">{data.albums.length} albums(s)</p>

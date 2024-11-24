@@ -122,14 +122,15 @@ func AlbumQuery() *goqu.SelectDataset {
 func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr string) ([]Album, error) {
 	query := AlbumQuery()
 
+	a := AlbumResolverAdapter{}
+
 	if filterStr != "" {
-		a := AlbumResolverAdapter{}
 		re, err := fullParseFilter(&a, filterStr)
 		if err != nil {
 			return nil, err
 		}
 
-			query = query.Where(re)
+		query = query.Where(re)
 	} 
 
 	sortExpr, err := sort.Parse(sortStr)
