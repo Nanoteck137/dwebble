@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    Breadcrumb,
     Button,
     buttonVariants,
     DropdownMenu,
@@ -78,6 +79,18 @@
 {/snippet}
 
 <div class="flex flex-col gap-2">
+  <Breadcrumb.Root>
+    <Breadcrumb.List>
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href="/albums">Albums</Breadcrumb.Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Separator />
+      <Breadcrumb.Item>
+        <Breadcrumb.Page>{data.album.name}</Breadcrumb.Page>
+      </Breadcrumb.Item>
+    </Breadcrumb.List>
+  </Breadcrumb.Root>
+
   <div class="flex justify-center md:fixed md:h-full">
     {@render header()}
   </div>

@@ -3,7 +3,11 @@
   import { musicManager } from "$lib/music-manager";
   import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
   import { Edit, EllipsisVertical, Play, Trash } from "lucide-svelte";
-  import { buttonVariants, DropdownMenu } from "@nanoteck137/nano-ui";
+  import {
+    Breadcrumb,
+    buttonVariants,
+    DropdownMenu,
+  } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
 
@@ -17,6 +21,24 @@
     confirmTrackDeletionDialog?.showModal();
   }
 </script>
+
+<Breadcrumb.Root>
+  <Breadcrumb.List>
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href="/albums">Albums</Breadcrumb.Link>
+    </Breadcrumb.Item>
+    <Breadcrumb.Separator />
+    <Breadcrumb.Item>
+      <Breadcrumb.Link href="/albums/{data.album.id}">
+        {data.album.name}
+      </Breadcrumb.Link>
+    </Breadcrumb.Item>
+    <Breadcrumb.Separator />
+    <Breadcrumb.Item>
+      <Breadcrumb.Page>Edit</Breadcrumb.Page>
+    </Breadcrumb.Item>
+  </Breadcrumb.List>
+</Breadcrumb.Root>
 
 <div class="flex gap-2">
   <img
