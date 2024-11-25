@@ -1,14 +1,12 @@
 <script lang="ts">
-  import { enhance } from "$app/forms";
-
-  let showQuickPlaylistDropDown = $state(false);
+  import { Button } from "@nanoteck137/nano-ui";
 
   let { data } = $props();
 </script>
 
-<p>Account Page (W.I.P)</p>
+<p>{data.user?.username}</p>
 
-<div class="relative">
+<!-- <div class="relative">
   <button
     onclick={() => {
       showQuickPlaylistDropDown = true;
@@ -33,4 +31,6 @@
       </form>
     {/each}
   </div>
-</div>
+</div> -->
+
+<Button href="/account/password">Change Password</Button>

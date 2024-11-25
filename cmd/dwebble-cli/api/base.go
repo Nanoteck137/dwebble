@@ -27,7 +27,7 @@ func (c *Client) SetToken(token string) {
 
 type Options struct {
 	QueryParams map[string]string
-	Boundary    string
+	Boundary string
 }
 
 func createUrl(addr, path string, query map[string]string) (string, error) {
@@ -47,13 +47,10 @@ func createUrl(addr, path string, query map[string]string) (string, error) {
 	return u.String(), nil
 }
 
-type ErrorType string
-
 type ApiError[E any] struct {
-	Code    int       `json:"code"`
-	Type    ErrorType `json:"type"`
-	Message string    `json:"message"`
-	Extra   E         `json:"extra,omitempty"`
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Errors  E      `json:"errors,omitempty"`
 }
 
 func (err *ApiError[E]) Error() string {
@@ -61,9 +58,9 @@ func (err *ApiError[E]) Error() string {
 }
 
 type ApiResponse[D any, E any] struct {
-	Success bool         `json:"success"`
-	Data    D            `json:"data,omitempty"`
-	Error   *ApiError[E] `json:"error,omitempty"`
+	Status string       `json:"status"`
+	Data   D            `json:"data,omitempty"`
+	Error  *ApiError[E] `json:"error,omitempty"`
 }
 
 type RequestData struct {
@@ -120,7 +117,7 @@ func Request[D any](data RequestData) (*D, error) {
 		return nil, err
 	}
 
-	if !res.Success {
+	if res.Status == "error" {
 		return nil, res.Error
 	}
 
@@ -149,7 +146,7 @@ func RequestForm[D any](data RequestData, boundary string, body Reader) (*D, err
 		return nil, err
 	}
 
-	if !res.Success {
+	if res.Status == "error" {
 		return nil, res.Error
 	}
 

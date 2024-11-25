@@ -122,6 +122,12 @@ type PostAuthSigninBody struct {
 	Password string `json:"password"`
 }
 
+type ChangePasswordBody struct {
+	CurrentPassword string `json:"currentPassword"`
+	NewPassword string `json:"newPassword"`
+	NewPasswordConfirm string `json:"newPasswordConfirm"`
+}
+
 type GetAuthMe struct {
 	Id string `json:"id"`
 	Username string `json:"username"`

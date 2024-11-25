@@ -305,6 +305,22 @@ func (c *Client) Signin(body PostAuthSigninBody, options Options) (*PostAuthSign
 	return Request[PostAuthSignin](data)
 }
 
+func (c *Client) ChangePassword(body ChangePasswordBody, options Options) (*any, error) {
+	path := "/api/v1/auth/password"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "PUT",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) GetMe(options Options) (*GetAuthMe, error) {
 	path := "/api/v1/auth/me"
 	url, err := createUrl(c.addr, path, options.QueryParams)

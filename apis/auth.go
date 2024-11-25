@@ -1,15 +1,43 @@
 package apis
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/validate"
+	"github.com/nanoteck137/pyrin/tools/validate/rules"
 )
+
+var _ pyrin.Body = (*ChangePasswordBody)(nil)
+
+type ChangePasswordBody struct {
+	CurrentPassword    string `json:"currentPassword"`
+	NewPassword        string `json:"newPassword"`
+	NewPasswordConfirm string `json:"newPasswordConfirm"`
+}
+
+func (b ChangePasswordBody) Validate(validator validate.Validator) error {
+	return validator.Struct(
+		&b,
+		validator.Field(&b.CurrentPassword, rules.Required),
+		validator.Field(&b.NewPassword, rules.Required),
+		validator.Field(&b.NewPasswordConfirm, rules.Required, rules.By(func(value interface{}) error {
+			s, _ := value.(string)
+			if s != b.NewPassword {
+				return errors.New("Password Mismatch")
+			}
+
+			return nil
+		})),
+	)
+}
 
 func InstallAuthHandlers(app core.App, group pyrin.Group) {
 	group.Register(
@@ -74,6 +102,46 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 				return types.PostAuthSignin{
 					Token: tokenString,
 				}, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "ChangePassword",
+			Path:     "/auth/password",
+			Method:   http.MethodPut,
+			BodyType: ChangePasswordBody{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				body, err := Body[ChangePasswordBody](c)
+				if err != nil {
+					return nil, err
+				}
+
+				// TODO(patrik): Check body.CurrentPassword
+				// TODO(patrik): Check body.NewPasswordConfirm
+
+				validator := validate.NormalValidator{}
+				err = body.Validate(&validator)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+				err = app.DB().UpdateUser(ctx, user.Id, database.UserChanges{
+					Password: types.Change[string]{
+						Value: body.NewPassword,
+						Changed: true,
+					},
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
 			},
 		},
 

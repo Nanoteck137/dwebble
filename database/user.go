@@ -5,6 +5,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
+	"github.com/nanoteck137/dwebble/types"
 )
 
 type User struct {
@@ -100,4 +101,34 @@ func (db *Database) GetUserByUsername(ctx context.Context, username string) (Use
 	}
 
 	return item, nil
+}
+
+type UserChanges struct {
+	Username types.Change[string]
+	Password types.Change[string]
+}
+
+func (db *Database) UpdateUser(ctx context.Context, id string, changes UserChanges) error {
+	record := goqu.Record{}
+
+	addToRecord(record, "username", changes.Username)
+	addToRecord(record, "password", changes.Password)
+
+	if len(record) == 0 {
+		return nil
+	}
+
+	// record["updated"] = time.Now().UnixMilli()
+
+	ds := dialect.Update("users").
+		Set(record).
+		Where(goqu.I("id").Eq(id)).
+		Prepared(true)
+
+	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

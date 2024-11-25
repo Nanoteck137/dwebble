@@ -420,6 +420,27 @@
       ]
     },
     {
+      "name": "ChangePasswordBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "currentPassword",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "newPassword",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "newPasswordConfirm",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetAuthMe",
       "extend": "",
       "fields": [
@@ -970,6 +991,19 @@
       ],
       "responseType": "PostAuthSignin",
       "bodyType": "PostAuthSigninBody",
+      "requireFormData": false
+    },
+    {
+      "name": "ChangePassword",
+      "method": "PUT",
+      "path": "/api/v1/auth/password",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "ChangePasswordBody",
       "requireFormData": false
     },
     {

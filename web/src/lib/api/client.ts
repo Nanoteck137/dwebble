@@ -21,6 +21,7 @@ export const REMOVE_TRACK_URL = "/api/v1/tracks/:id"
 export const EDIT_TRACK_URL = "/api/v1/tracks/:id"
 export const SIGNUP_URL = "/api/v1/auth/signup"
 export const SIGNIN_URL = "/api/v1/auth/signin"
+export const CHANGE_PASSWORD_URL = "/api/v1/auth/password"
 export const GET_ME_URL = "/api/v1/auth/me"
 export const GET_PLAYLISTS_URL = "/api/v1/playlists"
 export const CREATE_PLAYLIST_URL = "/api/v1/playlists"
@@ -112,6 +113,10 @@ export class ApiClient extends BaseApiClient {
   
   signin(body: api.PostAuthSigninBody, options?: ExtraOptions) {
     return this.request("/api/v1/auth/signin", "POST", api.PostAuthSignin, z.undefined(), body, options)
+  }
+  
+  changePassword(body: api.ChangePasswordBody, options?: ExtraOptions) {
+    return this.request("/api/v1/auth/password", "PUT", z.undefined(), z.undefined(), body, options)
   }
   
   getMe(options?: ExtraOptions) {

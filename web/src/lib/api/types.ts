@@ -144,6 +144,13 @@ export const PostAuthSigninBody = z.object({
 });
 export type PostAuthSigninBody = z.infer<typeof PostAuthSigninBody>;
 
+export const ChangePasswordBody = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string(),
+  newPasswordConfirm: z.string(),
+});
+export type ChangePasswordBody = z.infer<typeof ChangePasswordBody>;
+
 export const GetAuthMe = z.object({
   id: z.string(),
   username: z.string(),
