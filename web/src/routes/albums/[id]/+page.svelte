@@ -78,7 +78,7 @@
   </div>
 {/snippet}
 
-<div class="flex flex-col gap-2">
+<div class="py-2">
   <Breadcrumb.Root>
     <Breadcrumb.List>
       <Breadcrumb.Item>
@@ -90,7 +90,9 @@
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
+</div>
 
+<div class="flex flex-col gap-2">
   <div class="flex justify-center md:fixed md:h-full">
     {@render header()}
   </div>
