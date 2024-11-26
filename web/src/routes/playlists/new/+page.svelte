@@ -29,17 +29,15 @@
     <Card.Title>Create playlist</Card.Title>
   </Card.Header>
   <Card.Content>
-    <form method="post">
-      <div class="flex flex-col gap-4">
-        <div class="flex flex-col gap-2">
-          <Label for="playlistName">Name</Label>
-          <Input
-            id="playlistName"
-            name="playlistName"
-            type="text"
-            autocomplete="off"
-          />
-        </div>
+    <form class="flex flex-col gap-4" method="post">
+      <div class="flex flex-col gap-2">
+        <Label for="playlistName">Name</Label>
+        <Input
+          id="playlistName"
+          name="playlistName"
+          type="text"
+          autocomplete="off"
+        />
       </div>
     </form>
   </Card.Content>

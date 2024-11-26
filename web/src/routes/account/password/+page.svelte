@@ -1,5 +1,11 @@
 <script>
-  import { Breadcrumb, Button, Input, Label } from "@nanoteck137/nano-ui";
+  import {
+    Breadcrumb,
+    Button,
+    Card,
+    Input,
+    Label,
+  } from "@nanoteck137/nano-ui";
 </script>
 
 <div class="py-2">
@@ -16,29 +22,34 @@
   </Breadcrumb.Root>
 </div>
 
-<form class="flex flex-col gap-4" method="post">
-  <p>Change Password</p>
-  <div class="flex flex-col gap-4">
-    <div class="flex flex-col gap-2">
-      <Label for="currentPassword">Current Password</Label>
-      <Input id="currentPassword" name="currentPassword" type="password" />
-    </div>
-    <div class="flex flex-col gap-2">
-      <Label for="newPassword">New Password</Label>
-      <Input id="newPassword" name="newPassword" type="password" />
-    </div>
-    <div class="flex flex-col gap-2">
-      <Label for="newPasswordConfirm">Confirm New Password</Label>
-      <Input
-        id="newPasswordConfirm"
-        name="newPasswordConfirm"
-        type="password"
-      />
-    </div>
-  </div>
+<div class="h-4"></div>
 
-  <div class="flex justify-end gap-2">
-    <Button href="/account" variant="ghost">Back</Button>
+<Card.Root class="mx-auto max-w-[450px]">
+  <Card.Header>
+    <Card.Title>Change Password</Card.Title>
+  </Card.Header>
+  <Card.Content>
+    <form class="flex flex-col gap-4" method="post">
+      <div class="flex flex-col gap-2">
+        <Label for="currentPassword">Current Password</Label>
+        <Input id="currentPassword" name="currentPassword" type="password" />
+      </div>
+      <div class="flex flex-col gap-2">
+        <Label for="newPassword">New Password</Label>
+        <Input id="newPassword" name="newPassword" type="password" />
+      </div>
+      <div class="flex flex-col gap-2">
+        <Label for="newPasswordConfirm">Confirm New Password</Label>
+        <Input
+          id="newPasswordConfirm"
+          name="newPasswordConfirm"
+          type="password"
+        />
+      </div>
+    </form>
+  </Card.Content>
+  <Card.Footer class="flex justify-end gap-4">
+    <Button href="/account" variant="outline">Back</Button>
     <Button type="submit">Save</Button>
-  </div>
-</form>
+  </Card.Footer>
+</Card.Root>
