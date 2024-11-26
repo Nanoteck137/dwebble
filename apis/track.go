@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/helper"
@@ -124,6 +125,40 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
+			Name:     "SearchTracks",
+			Method:   http.MethodGet,
+			Path:     "/tracks/query",
+			DataType: types.GetTracks{},
+			Errors:   []pyrin.ErrorType{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				q := c.Request().URL.Query()
+
+				query := strings.TrimSpace(q.Get("query"))
+
+				var err error
+				var tracks []database.Track
+
+				if query != "" {
+					tracks, err = app.DB().SearchTracks(query)
+					if err != nil {
+						pretty.Println(err)
+						return nil, err
+					}
+				}
+
+				res := types.GetTracks{
+					Tracks: make([]types.Track, len(tracks)),
+				}
+
+				for i, track := range tracks {
+					res.Tracks[i] = ConvertDBTrack(c, track)
+				}
+
+				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
 			Name:     "GetTrackById",
 			Method:   http.MethodGet,
 			Path:     "/tracks/:id",
@@ -180,7 +215,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodPatch,
 			Path:     "/tracks/:id",
 			BodyType: PatchTrackBody{},
-			Errors: []pyrin.ErrorType{ ErrTypeTrackNotFound },
+			Errors:   []pyrin.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
