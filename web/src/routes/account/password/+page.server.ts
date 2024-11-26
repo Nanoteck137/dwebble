@@ -5,8 +5,6 @@ export const actions: Actions = {
   default: async ({ locals, request }) => {
     const formData = await request.formData();
 
-    console.log(formData);
-
     const currentPassword = formData.get("currentPassword");
     if (currentPassword === null) {
       throw error(400, "'currentPassword' not set");
