@@ -1,5 +1,6 @@
--- +goose Up
+-- NOTE: Final
 
+-- +goose Up
 CREATE TABLE config (
     id INTEGER NOT NULL,
     owner_id TEXT NOT NULL,
