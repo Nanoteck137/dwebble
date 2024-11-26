@@ -6,11 +6,3 @@
 
 <p>Version: {PUBLIC_VERSION}</p>
 <p>Commit: {PUBLIC_COMMIT}</p>
-
-<div class="flex flex-col">
-  <a href="/new/album">New Album</a>
-</div>
-
-<form action="?/runExport" method="post">
-  <button>Run Export</button>
-</form>
