@@ -1,3 +1,5 @@
+-- NOTE: Final
+
 -- +goose Up
 CREATE TABLE users (
     id TEXT,
