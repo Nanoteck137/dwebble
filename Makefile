@@ -1,7 +1,14 @@
 run:
 	air
 
-gen:
-	go run cmd/gen/main.go
-	pyrin go -o cmd/dwebble-dl/api misc/pyrin.json
-	pyrin ts -o web/src/lib/api misc/pyrin.json
+clean:
+	rm -rf work
+	rm -rf tmp
+	rm -f result
+
+publish:
+	nix build --no-link .#
+	nix build --no-link .#dwebble-web
+	publish-version
+
+.PHONY: run clean publish
