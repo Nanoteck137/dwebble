@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
@@ -94,6 +95,63 @@ func (app *BaseApp) Bootstrap() error {
 		} else {
 			return err
 		}
+	}
+
+	ctx := context.TODO()
+	db := app.db
+
+	_, err = db.Conn.Exec(`
+		DROP TABLE IF EXISTS test;
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Conn.Exec(`
+		CREATE VIRTUAL TABLE test USING fts5(name, artist, album);
+	`)
+	if err != nil {
+		return err
+	}
+
+	tracks, err := db.GetAllTracks(ctx, "", "", true)
+	if err != nil {
+		return err
+	}
+
+	for _, track := range tracks {
+		_, err := db.Conn.Exec(`
+			INSERT INTO test(name, artist, album) VALUES (?, ?, ?)
+		`, track.Name, track.ArtistName, track.AlbumName)
+		if err != nil {
+			return err
+		}
+	}
+
+	rows, err := db.Conn.Query("SELECT * FROM test WHERE test MATCH 'pantera from hell' ORDER BY rank")
+	if err != nil {
+		return err
+	}
+	cols, _ := rows.Columns()
+
+	for rows.Next() {
+		columns := make([]interface{}, len(cols))
+		columnPointers := make([]interface{}, len(cols))
+		for i := range columns {
+			columnPointers[i] = &columns[i]
+		}
+
+		if err := rows.Scan(columnPointers...); err != nil {
+			return err
+		}
+
+		m := make(map[string]interface{})
+		for i, colName := range cols {
+			val := columnPointers[i].(*interface{})
+			m[colName] = *val
+		}
+
+		pretty.Println(m)
 	}
 
 	return nil

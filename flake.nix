@@ -37,6 +37,8 @@
             "-X github.com/nanoteck137/dwebble.Commit=${self.dirtyRev or self.rev or "no-commit"}"
           ];
 
+          tags = ["fts5"];
+
           vendorHash = "sha256-SGlPuPXHBwwBjQ8OqiCC33D+x8SDpXCOFTU3ggjUirQ=";
 
           nativeBuildInputs = [ pkgs.makeWrapper ];
