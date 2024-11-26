@@ -24,6 +24,8 @@
   let form: HTMLFormElement | undefined = $state();
 </script>
 
+<Button href="/albums/new">New Album</Button>
+
 <div class="flex flex-col gap-2">
   <form bind:this={form} method="get">
     <Select.Root type="single" name="sort" bind:value>
