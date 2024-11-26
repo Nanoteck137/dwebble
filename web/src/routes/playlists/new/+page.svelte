@@ -24,12 +24,12 @@
 
 <div class="h-4"></div>
 
-<Card.Root class="mx-auto max-w-[450px]">
-  <Card.Header>
-    <Card.Title>Create playlist</Card.Title>
-  </Card.Header>
-  <Card.Content>
-    <form class="flex flex-col gap-4" method="post">
+<form method="post">
+  <Card.Root class="mx-auto max-w-[450px]">
+    <Card.Header>
+      <Card.Title>Create playlist</Card.Title>
+    </Card.Header>
+    <Card.Content class="flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <Label for="playlistName">Name</Label>
         <Input
@@ -39,10 +39,10 @@
           autocomplete="off"
         />
       </div>
-    </form>
-  </Card.Content>
-  <Card.Footer class="flex justify-end gap-4">
-    <Button href="/playlists" variant="outline">Back</Button>
-    <Button type="submit">Create</Button>
-  </Card.Footer>
-</Card.Root>
+    </Card.Content>
+    <Card.Footer class="flex justify-end gap-4">
+      <Button href="/playlists" variant="outline">Back</Button>
+      <Button type="submit">Create</Button>
+    </Card.Footer>
+  </Card.Root>
+</form>
