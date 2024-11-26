@@ -186,7 +186,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					res.Items[i] = ConvertDBTrack(c, track)
 				}
 
-				return nil, nil
+				return res, nil
 			},
 		},
 
