@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Button } from "@nanoteck137/nano-ui";
   import type { PageData } from "./$types";
 
   interface Props {
@@ -8,17 +9,7 @@
   let { data }: Props = $props();
 </script>
 
-<form method="post">
-  <div class="flex flex-col">
-    <input
-      class="border-1 h-8 rounded-[50px] border-[--input-border-color] bg-[--input-bg-color] px-5 text-sm text-[--input-fg-color] placeholder:text-[--input-placeholder-color] focus:border-[--input-focus-border-color] focus:ring-0"
-      type="text"
-      name="name"
-      placeholder="Playlist Name"
-    />
-  </div>
-  <button>Create Playlist</button>
-</form>
+<Button href="/playlists/new">New Playlist</Button>
 
 <div class="flex flex-col gap-2">
   {#each data.playlists as playlist}
