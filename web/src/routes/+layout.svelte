@@ -18,7 +18,6 @@
   import { browser } from "$app/environment";
   import { fade, fly } from "svelte/transition";
   import { Button, Input } from "@nanoteck137/nano-ui";
-  import type { Search as SearchResp } from "$lib/types";
 
   let { children, data } = $props();
 
@@ -57,7 +56,7 @@
 
     <div class="flex-grow"></div>
 
-    <Button href="/search?query=" size="icon" variant="ghost">
+    <Button href="/search" size="icon" variant="ghost">
       <Search />
     </Button>
   </div>
