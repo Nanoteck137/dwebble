@@ -97,9 +97,8 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 
 				f := q.Get("filter")
 				s := q.Get("sort")
-				includeAll := ParseQueryBool(q.Get("includeAll"))
 
-				tracks, err := app.DB().GetAllTracks(c.Request().Context(), f, s, includeAll)
+				tracks, err := app.DB().GetAllTracks(c.Request().Context(), f, s)
 				if err != nil {
 					if errors.Is(err, database.ErrInvalidFilter) {
 						return nil, InvalidFilter(err)

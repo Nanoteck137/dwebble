@@ -221,7 +221,7 @@ type Scan interface {
 var ErrInvalidFilter = errors.New("Invalid filter")
 var ErrInvalidSort = errors.New("Invalid sort")
 
-func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string, includeAll bool) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
 	query := TrackQuery()
 
 	a := TrackResolverAdapter{}

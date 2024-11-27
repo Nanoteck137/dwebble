@@ -110,7 +110,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				tracks, err := db.GetAllTracks(ctx, "", "", false)
+				tracks, err := db.GetAllTracks(ctx, "", "")
 				if err != nil {
 					return nil, err
 				}
@@ -143,7 +143,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 			Path:   "/system/process",
 			Method: http.MethodPost,
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				tracks, err := app.DB().GetAllTracks(c.Request().Context(), "", "", false)
+				tracks, err := app.DB().GetAllTracks(c.Request().Context(), "", "")
 				if err != nil {
 					return nil, err
 				}
