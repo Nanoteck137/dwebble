@@ -59,6 +59,42 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
+			Name:     "SearchArtists",
+			Method:   http.MethodGet,
+			Path:     "/artists/search",
+			DataType: types.GetArtists{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				q := c.Request().URL.Query()
+
+				query := strings.TrimSpace(q.Get("query"))
+
+				var err error
+				var artists []database.Artist
+
+				if query != "" {
+					artists, err = app.DB().SearchArtists(query)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				res := types.GetArtists{
+					Artists: make([]types.Artist, len(artists)),
+				}
+
+				for i, artist := range artists {
+					res.Artists[i] = types.Artist{
+						Id:      artist.Id,
+						Name:    artist.Name,
+						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
+					}
+				}
+
+				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
 			Name:     "GetArtistById",
 			Method:   http.MethodGet,
 			Path:     "/artists/:id",

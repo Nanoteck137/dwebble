@@ -6,12 +6,43 @@ import (
 	"github.com/doug-martin/goqu/v9"
 )
 
+type ArtistSearch struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type TrackSearch struct {
 	Id     string `json:"id"`
 	Name   string `json:"name"`
 	Artist string `json:"artist"`
 	Album  string `json:"album"`
 	Tags   string `json:"tags"`
+}
+
+func (db *Database) SearchArtists(searchQuery string) ([]Artist, error) {
+	query := dialect.From("artists_search").Select(
+		"artists.id",
+		"artists.name",
+		"artists.picture",
+	).
+		Prepared(true).
+		Join(
+			ArtistQuery().As("artists"),
+			goqu.On(goqu.I("artists_search.id").Eq(goqu.I("artists.id"))),
+		).
+		Where(
+			goqu.L("? MATCH ?", goqu.T("artists_search"), searchQuery),
+		).
+		Order(goqu.I("rank").Asc()).
+		Limit(10)
+
+	var res []Artist
+	err := db.Select(&res, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
@@ -45,7 +76,6 @@ func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 			goqu.On(goqu.I("tracks_search.id").Eq(goqu.I("tracks.id"))),
 		).
 		Where(
-			goqu.I("tracks_search.type").Eq("track"),
 			goqu.L("? MATCH ?", goqu.T("tracks_search"), searchQuery),
 		).
 		Order(goqu.I("rank").Asc()).
@@ -62,9 +92,9 @@ func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 
 func (db *Database) InitializeSearch() error {
 	_, err := db.Conn.Exec(`
-		CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(id UNINDEXED, name);
-		CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(id UNINDEXED, name, artist);
-		CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(id UNINDEXED, name, artist, album, tags);
+		CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(id UNINDEXED, name, tokenize=trigram);
+		CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(id UNINDEXED, name, artist, tokenize=trigram);
+		CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(id UNINDEXED, name, artist, album, tags, tokenize=trigram);
 	`)
 	if err != nil {
 		return err
@@ -86,6 +116,23 @@ func (db *Database) RefillSearchTables(ctx context.Context) error {
 	err = db.InitializeSearch()
 	if err != nil {
 		return err
+	}
+
+	artists, err := db.GetAllArtists(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, artist := range artists {
+		query := dialect.Insert("artists_search").Rows(goqu.Record{
+			"id":   artist.Id,
+			"name": artist.Name,
+		})
+
+		_, err = db.Exec(ctx, query)
+		if err != nil {
+			return err
+		}
 	}
 
 	tracks, err := db.GetAllTracks(ctx, "", "", true)

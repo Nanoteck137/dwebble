@@ -127,7 +127,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 		pyrin.ApiHandler{
 			Name:     "SearchTracks",
 			Method:   http.MethodGet,
-			Path:     "/tracks/query",
+			Path:     "/tracks/search",
 			DataType: types.GetTracks{},
 			Errors:   []pyrin.ErrorType{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
