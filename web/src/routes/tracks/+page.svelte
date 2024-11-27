@@ -99,6 +99,7 @@
     <p class="text-bold text-xl">Tracks</p>
     <p class="text-sm">{data.tracks.length} track(s)</p>
   </div>
+
   {#each data.tracks as track, i}
     <div class="flex items-center gap-2 border-b py-2 pr-2">
       <div class="group relative">

@@ -17,6 +17,22 @@ func (c *Client) GetArtists(options Options) (*GetArtists, error) {
 	return Request[GetArtists](data)
 }
 
+func (c *Client) SearchArtists(options Options) (*GetArtists, error) {
+	path := "/api/v1/artists/search"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetArtists](data)
+}
+
 func (c *Client) GetArtistById(id string, options Options) (*GetArtistById, error) {
 	path := Sprintf("/api/v1/artists/%v", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
@@ -83,6 +99,22 @@ func (c *Client) ChangeArtistPicture(id string, body Reader, options Options) (*
 
 func (c *Client) GetAlbums(options Options) (*GetAlbums, error) {
 	path := "/api/v1/albums"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetAlbums](data)
+}
+
+func (c *Client) SearchAlbums(options Options) (*GetAlbums, error) {
+	path := "/api/v1/albums/search"
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err
@@ -211,6 +243,22 @@ func (c *Client) UploadTracks(id string, body Reader, options Options) (*any, er
 
 func (c *Client) GetTracks(options Options) (*GetTracks, error) {
 	path := "/api/v1/tracks"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetTracks](data)
+}
+
+func (c *Client) SearchTracks(options Options) (*GetTracks, error) {
+	path := "/api/v1/tracks/search"
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err

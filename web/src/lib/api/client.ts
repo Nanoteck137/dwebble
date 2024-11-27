@@ -3,11 +3,13 @@ import * as api from "./types";
 import { BaseApiClient, type ExtraOptions } from "./base-client";
 
 export const GET_ARTISTS_URL = "/api/v1/artists"
+export const SEARCH_ARTISTS_URL = "/api/v1/artists/search"
 export const GET_ARTIST_BY_ID_URL = "/api/v1/artists/:id"
 export const GET_ARTIST_ALBUMS_URL = "/api/v1/artists/:id/albums"
 export const EDIT_ARTIST_URL = "/api/v1/artists/:id"
 export const CHANGE_ARTIST_PICTURE_URL = "/api/v1/artists/:id/picture"
 export const GET_ALBUMS_URL = "/api/v1/albums"
+export const SEARCH_ALBUMS_URL = "/api/v1/albums/search"
 export const GET_ALBUM_BY_ID_URL = "/api/v1/albums/:id"
 export const GET_ALBUM_TRACKS_URL = "/api/v1/albums/:id/tracks"
 export const EDIT_ALBUM_URL = "/api/v1/albums/:id"
@@ -16,6 +18,7 @@ export const CREATE_ALBUM_URL = "/api/v1/albums"
 export const CHANGE_ALBUM_COVER_URL = "/api/v1/albums/:id/cover"
 export const UPLOAD_TRACKS_URL = "/api/v1/albums/:id/upload"
 export const GET_TRACKS_URL = "/api/v1/tracks"
+export const SEARCH_TRACKS_URL = "/api/v1/tracks/search"
 export const GET_TRACK_BY_ID_URL = "/api/v1/tracks/:id"
 export const REMOVE_TRACK_URL = "/api/v1/tracks/:id"
 export const EDIT_TRACK_URL = "/api/v1/tracks/:id"
@@ -43,6 +46,10 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/artists", "GET", api.GetArtists, z.undefined(), undefined, options)
   }
   
+  searchArtists(options?: ExtraOptions) {
+    return this.request("/api/v1/artists/search", "GET", api.GetArtists, z.undefined(), undefined, options)
+  }
+  
   getArtistById(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/artists/${id}`, "GET", api.GetArtistById, z.undefined(), undefined, options)
   }
@@ -61,6 +68,10 @@ export class ApiClient extends BaseApiClient {
   
   getAlbums(options?: ExtraOptions) {
     return this.request("/api/v1/albums", "GET", api.GetAlbums, z.undefined(), undefined, options)
+  }
+  
+  searchAlbums(options?: ExtraOptions) {
+    return this.request("/api/v1/albums/search", "GET", api.GetAlbums, z.undefined(), undefined, options)
   }
   
   getAlbumById(id: string, options?: ExtraOptions) {
@@ -93,6 +104,10 @@ export class ApiClient extends BaseApiClient {
   
   getTracks(options?: ExtraOptions) {
     return this.request("/api/v1/tracks", "GET", api.GetTracks, z.undefined(), undefined, options)
+  }
+  
+  searchTracks(options?: ExtraOptions) {
+    return this.request("/api/v1/tracks/search", "GET", api.GetTracks, z.undefined(), undefined, options)
   }
   
   getTrackById(id: string, options?: ExtraOptions) {

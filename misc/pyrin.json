@@ -750,6 +750,19 @@
       "requireFormData": false
     },
     {
+      "name": "SearchArtists",
+      "method": "GET",
+      "path": "/api/v1/artists/search",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "GetArtists",
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
       "name": "GetArtistById",
       "method": "GET",
       "path": "/api/v1/artists/:id",
@@ -809,6 +822,19 @@
       "name": "GetAlbums",
       "method": "GET",
       "path": "/api/v1/albums",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "GetAlbums",
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "SearchAlbums",
+      "method": "GET",
+      "path": "/api/v1/albums/search",
       "errorTypes": [
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
@@ -918,6 +944,19 @@
       "errorTypes": [
         "INVALID_FILTER",
         "INVALID_SORT",
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "GetTracks",
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "SearchTracks",
+      "method": "GET",
+      "path": "/api/v1/tracks/search",
+      "errorTypes": [
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"

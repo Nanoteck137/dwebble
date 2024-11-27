@@ -7,6 +7,7 @@
     LogIn,
     LogOut,
     Menu,
+    Search,
     Server,
     User,
     Users,
@@ -16,6 +17,8 @@
   import Link from "$lib/components/Link.svelte";
   import { browser } from "$app/environment";
   import { fade, fly } from "svelte/transition";
+  import { Button, Input } from "@nanoteck137/nano-ui";
+  import type { Search as SearchResp } from "$lib/types";
 
   let { children, data } = $props();
 
@@ -51,6 +54,12 @@
     </button>
 
     <a class="text-2xl font-medium text-[--logo-color]" href="/">Dwebble</a>
+
+    <div class="flex-grow"></div>
+
+    <Button href="/search?query=" size="icon" variant="ghost">
+      <Search />
+    </Button>
   </div>
 </header>
 
