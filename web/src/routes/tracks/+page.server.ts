@@ -1,7 +1,8 @@
+import type { Page, Track } from "$lib/api/types";
 import { error, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals, url }) => {
+export const load: PageServerLoad = async ({ locals, url, fetch }) => {
   const query: Record<string, string> = {};
   const filter = url.searchParams.get("filter");
   if (filter) {
@@ -13,12 +14,21 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     query["sort"] = sort;
   }
 
-  const tracks = await locals.apiClient.getTracks({ query });
+  const page = url.searchParams.get("page");
+  if (page) {
+    query["page"] = page;
+  }
+
+  const tracks = await locals.apiClient.getTracks({
+    query,
+  });
+
   if (!tracks.success) {
     // TODO(patrik): Fix this
     if (tracks.error.type === "INVALID_FILTER") {
       return {
-        tracks: [],
+        page: {} as Page,
+        tracks: [] as Track[],
         filter,
         sort,
         filterError: tracks.error.message,
@@ -27,7 +37,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
     if (tracks.error.type === "INVALID_SORT") {
       return {
-        tracks: [],
+        page: {} as Page,
+        tracks: [] as Track[],
         filter,
         sort,
         sortError: tracks.error.message,
@@ -37,6 +48,7 @@ export const load: PageServerLoad = async ({ locals, url }) => {
   }
 
   return {
+    page: tracks.data.page,
     tracks: tracks.data.tracks,
     filter,
     sort,

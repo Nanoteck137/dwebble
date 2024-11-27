@@ -304,9 +304,40 @@
       ]
     },
     {
+      "name": "Page",
+      "extend": "",
+      "fields": [
+        {
+          "name": "page",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "perPage",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "totalItems",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "totalPages",
+          "type": "int",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetTracks",
       "extend": "",
       "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omit": false
+        },
         {
           "name": "tracks",
           "type": "[]Track",

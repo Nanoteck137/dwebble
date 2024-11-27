@@ -16,7 +16,10 @@
     Button,
     buttonVariants,
     Input,
+    Pagination,
   } from "@nanoteck137/nano-ui";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/stores";
 
   let { data } = $props();
 </script>
@@ -192,3 +195,44 @@
     </div>
   {/each}
 </div>
+
+<Pagination.Root
+  page={data.page.page + 1}
+  count={data.page.totalItems}
+  perPage={data.page.perPage}
+  siblingCount={0}
+  onPageChange={(p) => {
+    const query = $page.url.searchParams;
+    query.set("page", (p - 1).toString());
+
+    goto(`?${query.toString()}`, { invalidateAll: true, keepFocus: true });
+  }}
+>
+  {#snippet children({ pages, currentPage })}
+    <Pagination.Content>
+      <Pagination.Item>
+        <Pagination.PrevButton />
+      </Pagination.Item>
+      {#each pages as page (page.key)}
+        {#if page.type === "ellipsis"}
+          <Pagination.Item>
+            <Pagination.Ellipsis />
+          </Pagination.Item>
+        {:else}
+          <Pagination.Item>
+            <Pagination.Link
+              href="?page={page.value}"
+              {page}
+              isActive={currentPage === page.value}
+            >
+              {page.value}
+            </Pagination.Link>
+          </Pagination.Item>
+        {/if}
+      {/each}
+      <Pagination.Item>
+        <Pagination.NextButton />
+      </Pagination.Item>
+    </Pagination.Content>
+  {/snippet}
+</Pagination.Root>

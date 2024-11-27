@@ -259,7 +259,7 @@ func (db *Database) GetAllTracks(ctx context.Context, opts FetchOption) ([]Track
 		query = query.Where(re)
 	}
 
-	sortExpr, err := sort.Parse(opts.Filter)
+	sortExpr, err := sort.Parse(opts.Sort)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
 	}

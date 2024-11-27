@@ -87,7 +87,15 @@ type UploadTracksBody struct {
 	ForceExtractNumber bool `json:"forceExtractNumber"`
 }
 
+type Page struct {
+	Page int `json:"page"`
+	PerPage int `json:"perPage"`
+	TotalItems int `json:"totalItems"`
+	TotalPages int `json:"totalPages"`
+}
+
 type GetTracks struct {
+	Page Page `json:"page"`
 	Tracks []Track `json:"tracks"`
 }
 

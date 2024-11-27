@@ -102,7 +102,16 @@ export const UploadTracksBody = z.object({
 });
 export type UploadTracksBody = z.infer<typeof UploadTracksBody>;
 
+export const Page = z.object({
+  page: z.number(),
+  perPage: z.number(),
+  totalItems: z.number(),
+  totalPages: z.number(),
+});
+export type Page = z.infer<typeof Page>;
+
 export const GetTracks = z.object({
+  page: Page,
   tracks: z.array(Track),
 });
 export type GetTracks = z.infer<typeof GetTracks>;
