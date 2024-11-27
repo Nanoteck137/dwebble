@@ -8,6 +8,7 @@ import (
 
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
@@ -110,7 +111,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				tracks, err := db.GetAllTracks(ctx, "", "")
+				tracks, err := db.GetAllTracks(ctx, database.FetchOption{})
 				if err != nil {
 					return nil, err
 				}
@@ -143,7 +144,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 			Path:   "/system/process",
 			Method: http.MethodPost,
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				tracks, err := app.DB().GetAllTracks(c.Request().Context(), "", "")
+				tracks, err := app.DB().GetAllTracks(c.Request().Context(), database.FetchOption{})
 				if err != nil {
 					return nil, err
 				}

@@ -187,7 +187,7 @@ func (db *Database) RefillSearchTables(ctx context.Context) error {
 		}
 	}
 
-	tracks, err := db.GetAllTracks(ctx, "", "")
+	tracks, err := db.GetAllTracks(ctx, FetchOption{})
 	if err != nil {
 		return err
 	}

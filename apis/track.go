@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/kr/pretty"
@@ -95,10 +96,45 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
-				f := q.Get("filter")
-				s := q.Get("sort")
+				ctx := context.TODO()
 
-				tracks, err := app.DB().GetAllTracks(c.Request().Context(), f, s)
+				perPage := 100
+				page := 0
+
+				if s := q.Get("perPage"); s != "" {
+					i, err := strconv.Atoi(s)
+					if err != nil {
+						return nil, err
+					}
+
+					perPage = i
+				}
+
+				if s := q.Get("page"); s != "" {
+					i, err := strconv.Atoi(s)
+					if err != nil {
+						return nil, err
+					}
+
+					page = i
+				}
+
+
+				totalItems, err := app.DB().CountTracks(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				totalPages := utils.TotalPages(perPage, totalItems)
+
+				opts := database.FetchOption{
+					Filter: q.Get("filter"),
+					Sort:   q.Get("sort"),
+					Limit:  uint(perPage),
+					Offset: uint(perPage * page),
+				}
+
+				tracks, err := app.DB().GetAllTracks(c.Request().Context(), opts)
 				if err != nil {
 					if errors.Is(err, database.ErrInvalidFilter) {
 						return nil, InvalidFilter(err)
@@ -112,6 +148,12 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 
 				res := types.GetTracks{
+					Page:   types.Page{
+						Page:       page,
+						PerPage:    perPage,
+						TotalItems: totalItems,
+						TotalPages: totalPages,
+					},
 					Tracks: make([]types.Track, len(tracks)),
 				}
 

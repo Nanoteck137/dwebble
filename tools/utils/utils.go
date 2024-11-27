@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"math"
 	"mime/multipart"
 	"os"
 	"os/exec"
@@ -20,6 +21,10 @@ import (
 	"github.com/nanoteck137/parasect"
 	"github.com/nrednav/cuid2"
 )
+
+func TotalPages(perPage, totalItems int) int {
+	return int(math.Ceil(float64(totalItems) / float64(perPage)))
+}
 
 func ExtractNumber(s string) int {
 	n := ""

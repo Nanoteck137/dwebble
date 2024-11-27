@@ -214,20 +214,44 @@ func TrackQuery() *goqu.SelectDataset {
 	return query
 }
 
+// TODO(patrik): Remove?
 type Scan interface {
 	Scan(dest ...any) error
 }
 
+// TODO(patrik): Move
 var ErrInvalidFilter = errors.New("Invalid filter")
 var ErrInvalidSort = errors.New("Invalid sort")
 
-func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr string) ([]Track, error) {
+type FetchOption struct {
+	Filter string
+	Sort   string
+	Limit  uint
+	Offset uint
+}
+
+func (db *Database) CountTracks(ctx context.Context) (int, error) {
+	query := dialect.From("tracks").
+		Select(
+			goqu.COUNT("tracks.id"),
+		)
+
+	var res int
+	err := db.Get(&res, query)
+	if err != nil {
+		return 0, err
+	}
+
+	return res, nil
+}
+
+func (db *Database) GetAllTracks(ctx context.Context, opts FetchOption) ([]Track, error) {
 	query := TrackQuery()
 
 	a := TrackResolverAdapter{}
 
-	if filterStr != "" {
-		re, err := fullParseFilter(&a, filterStr)
+	if opts.Filter != "" {
+		re, err := fullParseFilter(&a, opts.Filter)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrInvalidFilter, err)
 		}
@@ -235,7 +259,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 		query = query.Where(re)
 	}
 
-	sortExpr, err := sort.Parse(sortStr)
+	sortExpr, err := sort.Parse(opts.Filter)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
 	}
@@ -257,6 +281,12 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr string, sortStr 
 	}
 
 	query = query.Order(exprs...)
+
+	if opts.Limit > 0 {
+		query = query.
+			Limit(opts.Limit).
+			Offset(opts.Offset)
+	}
 
 	var items []Track
 	err = db.Select(&items, query)

@@ -10,6 +10,13 @@ type Body interface {
 	Schema() jio.Schema
 }
 
+type Page struct {
+	Page       int `json:"page"`
+	PerPage    int `json:"perPage"`
+	TotalItems int `json:"totalItems"`
+	TotalPages int `json:"totalPages"`
+}
+
 type Images struct {
 	Original string `json:"original"`
 	Small    string `json:"small"`
@@ -93,6 +100,7 @@ type GetAlbumTracksById struct {
 }
 
 type GetTracks struct {
+	Page   Page    `json:"page"`
 	Tracks []Track `json:"tracks"`
 }
 
