@@ -114,6 +114,38 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
+			Name:     "SearchAlbums",
+			Path:     "/albums/search",
+			Method:   http.MethodGet,
+			DataType: types.GetAlbums{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				q := c.Request().URL.Query()
+
+				query := strings.TrimSpace(q.Get("query"))
+
+				var err error
+				var albums []database.Album
+
+				if query != "" {
+					albums, err = app.DB().SearchAlbums(query)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				res := types.GetAlbums{
+					Albums: make([]types.Album, len(albums)),
+				}
+
+				for i, album := range albums {
+					res.Albums[i] = ConvertDBAlbum(c, album)
+				}
+
+				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
 			Name:     "GetAlbumById",
 			Method:   http.MethodGet,
 			Path:     "/albums/:id",

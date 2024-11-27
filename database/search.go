@@ -45,6 +45,40 @@ func (db *Database) SearchArtists(searchQuery string) ([]Artist, error) {
 	return res, nil
 }
 
+func (db *Database) SearchAlbums(searchQuery string) ([]Album, error) {
+	query := dialect.From("albums_search").Select(
+		"albums.id",
+		"albums.name",
+		"albums.artist_id",
+
+		"albums.cover_art",
+		"albums.year",
+
+		"albums.created",
+		"albums.updated",
+
+		"artist_name",
+	).
+		Prepared(true).
+		Join(
+			AlbumQuery().As("albums"),
+			goqu.On(goqu.I("albums_search.id").Eq(goqu.I("albums.id"))),
+		).
+		Where(
+			goqu.L("? MATCH ?", goqu.T("albums_search"), searchQuery),
+		).
+		Order(goqu.I("rank").Asc()).
+		Limit(10)
+
+	var res []Album
+	err := db.Select(&res, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
+}
+
 func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 	query := dialect.From("tracks_search").Select(
 		"tracks.id",
@@ -127,6 +161,24 @@ func (db *Database) RefillSearchTables(ctx context.Context) error {
 		query := dialect.Insert("artists_search").Rows(goqu.Record{
 			"id":   artist.Id,
 			"name": artist.Name,
+		})
+
+		_, err = db.Exec(ctx, query)
+		if err != nil {
+			return err
+		}
+	}
+
+	albums, err := db.GetAllAlbums(ctx, "", "")
+	if err != nil {
+		return err
+	}
+
+	for _, album := range albums {
+		query := dialect.Insert("albums_search").Rows(goqu.Record{
+			"id":     album.Id,
+			"name":   album.Name,
+			"artist": album.ArtistName,
 		})
 
 		_, err = db.Exec(ctx, query)
