@@ -10,6 +10,8 @@ export const GET: RequestHandler = async ({ locals, request }) => {
     query[k] = v;
   });
 
+  // TODO(patrik): We could do a raw fetch to get the data and then
+  // let the client parse the api response
   const res = await locals.apiClient.getTracks({
     query,
   });

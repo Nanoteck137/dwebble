@@ -9,9 +9,6 @@ type FetchOptions = {
   page?: number;
 };
 
-const Schema = createApiResponse(GetTracks, z.undefined());
-type T = z.infer<typeof Schema>;
-
 export async function getTracks(opts: FetchOptions, fetchFunc: typeof fetch) {
   const query = new URLSearchParams();
   if (opts.filter) {
@@ -31,7 +28,9 @@ export async function getTracks(opts: FetchOptions, fetchFunc: typeof fetch) {
   }
 
   const res = await fetchFunc(`/server/tracks?${query.toString()}`);
-  const tracks = (await res.json()) as T;
 
-  return tracks;
+  const Schema = createApiResponse(GetTracks, z.undefined());
+  const data = await Schema.parseAsync(await res.json());
+
+  return data;
 }

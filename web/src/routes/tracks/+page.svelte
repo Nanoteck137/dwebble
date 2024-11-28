@@ -100,7 +100,7 @@
 
   <div class="flex items-center justify-between">
     <p class="text-bold text-xl">Tracks</p>
-    <p class="text-sm">{data.tracks.length} track(s)</p>
+    <p class="text-sm">{data.page.totalItems} track(s)</p>
   </div>
 
   {#each data.tracks as track, i}
