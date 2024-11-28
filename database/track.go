@@ -159,6 +159,14 @@ type TrackChanges struct {
 	Created types.Change[int64]
 }
 
+func CountTrackQuery() *goqu.SelectDataset {
+	query := dialect.From("tracks").
+		Select(goqu.COUNT("tracks.id")).
+		Prepared(true)
+
+	return query
+}
+
 func TrackQuery() *goqu.SelectDataset {
 	// TODO(patrik): Add Back
 	tags := dialect.From("tracks_to_tags").
@@ -224,34 +232,19 @@ var ErrInvalidFilter = errors.New("Invalid filter")
 var ErrInvalidSort = errors.New("Invalid sort")
 
 type FetchOption struct {
-	Filter string
-	Sort   string
-	Limit  uint
-	Offset uint
+	Filter  string
+	Sort    string
+	PerPage int
+	Page    int
 }
 
-func (db *Database) CountTracks(ctx context.Context) (int, error) {
-	query := dialect.From("tracks").
-		Select(
-			goqu.COUNT("tracks.id"),
-		)
-
-	var res int
-	err := db.Get(&res, query)
-	if err != nil {
-		return 0, err
-	}
-
-	return res, nil
-}
-
-func (db *Database) GetAllTracks(ctx context.Context, opts FetchOption) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, filter, sortStr string) ([]Track, error) {
 	query := TrackQuery()
 
 	a := TrackResolverAdapter{}
 
-	if opts.Filter != "" {
-		re, err := fullParseFilter(&a, opts.Filter)
+	if filter != "" {
+		re, err := fullParseFilter(&a, filter)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrInvalidFilter, err)
 		}
@@ -259,7 +252,7 @@ func (db *Database) GetAllTracks(ctx context.Context, opts FetchOption) ([]Track
 		query = query.Where(re)
 	}
 
-	sortExpr, err := sort.Parse(opts.Sort)
+	sortExpr, err := sort.Parse(sortStr)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
 	}
@@ -282,12 +275,6 @@ func (db *Database) GetAllTracks(ctx context.Context, opts FetchOption) ([]Track
 
 	query = query.Order(exprs...)
 
-	if opts.Limit > 0 {
-		query = query.
-			Limit(opts.Limit).
-			Offset(opts.Offset)
-	}
-
 	var items []Track
 	err = db.Select(&items, query)
 	if err != nil {
@@ -295,6 +282,75 @@ func (db *Database) GetAllTracks(ctx context.Context, opts FetchOption) ([]Track
 	}
 
 	return items, nil
+}
+
+func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOption) ([]Track, types.Page, error) {
+	query := TrackQuery()
+	countQuery := TrackQuery().
+		Select(goqu.COUNT("tracks.id"))
+
+	a := TrackResolverAdapter{}
+
+	if opts.Filter != "" {
+		re, err := fullParseFilter(&a, opts.Filter)
+		if err != nil {
+			return nil, types.Page{}, fmt.Errorf("%w: %w", ErrInvalidFilter, err)
+		}
+
+		query = query.Where(re)
+		countQuery = countQuery.Where(re)
+	}
+
+	sortExpr, err := sort.Parse(opts.Sort)
+	if err != nil {
+		return nil, types.Page{}, fmt.Errorf("%w: %w", ErrInvalidSort, err)
+	}
+
+	resolver := sort.New(&TrackResolverAdapter{})
+
+	sortExpr, err = resolver.Resolve(sortExpr)
+	if err != nil {
+		if errors.Is(err, sort.ErrUnknownName) {
+			return nil, types.Page{}, fmt.Errorf("%w: %w", ErrInvalidSort, err)
+		}
+
+		return nil, types.Page{}, err
+	}
+
+	exprs, err := generateSort(sortExpr)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	query = query.Order(exprs...)
+
+	if opts.PerPage > 0 {
+		query = query.
+			Limit(uint(opts.PerPage)).
+			Offset(uint(opts.Page * opts.PerPage))
+	}
+
+	var totalItems int
+	err = db.Get(&totalItems, countQuery)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	totalPages := utils.TotalPages(opts.PerPage, totalItems)
+	page := types.Page{
+		Page:       opts.Page,
+		PerPage:    opts.PerPage,
+		TotalItems: totalItems,
+		TotalPages: totalPages,
+	}
+
+	var items []Track
+	err = db.Select(&items, query)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	return items, page, nil
 }
 
 func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {

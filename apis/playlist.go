@@ -108,10 +108,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				tracks, err := db.GetAllTracks(c.Request().Context(), database.FetchOption{
-					Filter: body.Filter,
-					Sort: body.Sort,
-				})
+				tracks, err := db.GetAllTracks(c.Request().Context(), body.Filter, body.Sort)
 				if err != nil {
 					if errors.Is(err, database.ErrInvalidFilter) {
 						return nil, InvalidFilter(err)
