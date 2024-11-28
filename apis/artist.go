@@ -51,6 +51,8 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 						Id:      artist.Id,
 						Name:    artist.Name,
 						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
+						Created: artist.Created,
+						Updated: artist.Updated,
 					}
 				}
 
@@ -87,6 +89,8 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 						Id:      artist.Id,
 						Name:    artist.Name,
 						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
+						Created: artist.Created,
+						Updated: artist.Updated,
 					}
 				}
 
@@ -115,6 +119,8 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 						Id:      artist.Id,
 						Name:    artist.Name,
 						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
+						Created: artist.Created,
+						Updated: artist.Updated,
 					},
 				}, nil
 			},

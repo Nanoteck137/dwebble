@@ -28,6 +28,8 @@ type Artist struct {
 	Id      string `json:"id"`
 	Name    string `json:"name"`
 	Picture Images `json:"picture"`
+	Created int64  `json:"created"`
+	Updated int64  `json:"updated"`
 }
 
 type Album struct {

@@ -34,6 +34,7 @@ var downCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		app := core.NewBaseApp(&config.LoadedConfig)
 
+		// TODO(patrik): Remove migrate up from bootstrap
 		err := app.Bootstrap()
 		if err != nil {
 			log.Fatal("Failed to bootstrap app", "err", err)

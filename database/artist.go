@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -15,6 +16,8 @@ type Artist struct {
 	Id      string         `db:"id"`
 	Name    string         `db:"name"`
 	Picture sql.NullString `db:"picture"`
+	Created int64          `db:"created"`
+	Updated int64          `db:"updated"`
 }
 
 func ArtistQuery() *goqu.SelectDataset {
@@ -23,6 +26,8 @@ func ArtistQuery() *goqu.SelectDataset {
 			"artists.id",
 			"artists.name",
 			"artists.picture",
+			"artists.updated",
+			"artists.created",
 		).
 		Prepared(true)
 
@@ -79,9 +84,21 @@ type CreateArtistParams struct {
 	Id      string
 	Name    string
 	Picture sql.NullString
+
+	Created int64
+	Updated int64
 }
 
 func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams) (Artist, error) {
+	t := time.Now().UnixMilli()
+	created := params.Created
+	updated := params.Updated
+
+	if created == 0 && updated == 0 {
+		created = t
+		updated = t
+	}
+
 	id := params.Id
 	if id == "" {
 		id = utils.CreateArtistId()
@@ -91,15 +108,27 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 		"id":      id,
 		"name":    params.Name,
 		"picture": params.Picture,
-	}).Returning("id", "name", "picture").Prepared(true)
 
+		"created": created,
+		"updated": updated,
+	}).
+		Returning(
+			"id",
+			"name",
+			"picture",
+			"updated",
+			"created",
+		).
+		Prepared(true)
+
+	// TODO(patrik): Change to sqlx
 	row, err := db.QueryRow(ctx, ds)
 	if err != nil {
 		return Artist{}, err
 	}
 
 	var item Artist
-	err = row.Scan(&item.Id, &item.Name, &item.Picture)
+	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Created, &item.Updated)
 	if err != nil {
 		return Artist{}, err
 	}
@@ -110,6 +139,8 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 type ArtistChanges struct {
 	Name    types.Change[string]
 	Picture types.Change[sql.NullString]
+
+	Created types.Change[int64]
 }
 
 func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistChanges) error {
@@ -118,9 +149,13 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 	addToRecord(record, "name", changes.Name)
 	addToRecord(record, "picture", changes.Picture)
 
-	if len(record) <= 0 {
+	addToRecord(record, "created", changes.Created)
+
+	if len(record) == 0 {
 		return nil
 	}
+
+	record["updated"] = time.Now().UnixMilli()
 
 	ds := dialect.Update("artists").
 		Set(record).
