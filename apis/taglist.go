@@ -17,9 +17,12 @@ import (
 )
 
 type Taglist struct {
-	Id     string `json:"id"`
-	Name   string `json:"name"`
-	Filter string `json:"filter"`
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Filter  string `json:"filter"`
+
+	Created int64  `json:"created"`
+	Updated int64  `json:"updated"`
 }
 
 type GetTaglists struct {
@@ -85,9 +88,11 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 
 				for i, taglist := range taglists {
 					res.Taglists[i] = Taglist{
-						Id:     taglist.Id,
-						Name:   taglist.Name,
-						Filter: taglist.Filter,
+						Id:      taglist.Id,
+						Name:    taglist.Name,
+						Filter:  taglist.Filter,
+						Created: taglist.Created,
+						Updated: taglist.Updated,
 					}
 				}
 
@@ -120,9 +125,11 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 
 				res := GetTaglistById{
 					Taglist: Taglist{
-						Id:     taglist.Id,
-						Name:   taglist.Name,
-						Filter: taglist.Filter,
+						Id:      taglist.Id,
+						Name:    taglist.Name,
+						Filter:  taglist.Filter,
+						Created: taglist.Created,
+						Updated: taglist.Updated,
 					},
 				}
 

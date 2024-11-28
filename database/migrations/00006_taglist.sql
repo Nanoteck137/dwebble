@@ -7,6 +7,9 @@ CREATE TABLE taglists (
 
     owner_id TEXT NOT NULL,
 
+    created INTEGER NOT NULL,
+    updated INTEGER NOT NULL,
+
     CONSTRAINT taglists_pk PRIMARY KEY(id),
 
     CONSTRAINT taglists_owner_id_fk FOREIGN KEY (owner_id)

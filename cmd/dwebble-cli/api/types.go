@@ -225,6 +225,8 @@ type Taglist struct {
 	Id string `json:"id"`
 	Name string `json:"name"`
 	Filter string `json:"filter"`
+	Created int `json:"created"`
+	Updated int `json:"updated"`
 }
 
 type GetTaglists struct {

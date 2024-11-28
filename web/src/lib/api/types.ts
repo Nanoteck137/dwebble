@@ -264,6 +264,8 @@ export const Taglist = z.object({
   id: z.string(),
   name: z.string(),
   filter: z.string(),
+  created: z.number(),
+  updated: z.number(),
 });
 export type Taglist = z.infer<typeof Taglist>;
 

@@ -783,6 +783,16 @@
           "name": "filter",
           "type": "string",
           "omit": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omit": false
         }
       ]
     },
