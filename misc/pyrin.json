@@ -764,6 +764,102 @@
           "omit": false
         }
       ]
+    },
+    {
+      "name": "Taglist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetTaglists",
+      "extend": "",
+      "fields": [
+        {
+          "name": "taglists",
+          "type": "[]Taglist",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetTaglistById",
+      "extend": "Taglist",
+      "fields": null
+    },
+    {
+      "name": "GetTaglistTracks",
+      "extend": "",
+      "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omit": false
+        },
+        {
+          "name": "tracks",
+          "type": "[]Track",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "CreateTaglist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "CreateTaglistBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "UpdateTaglistBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "*string",
+          "omit": true
+        },
+        {
+          "name": "filter",
+          "type": "*string",
+          "omit": true
+        }
+      ]
     }
   ],
   "endpoints": [
@@ -1217,6 +1313,71 @@
       ],
       "responseType": "",
       "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "GetTaglists",
+      "method": "GET",
+      "path": "/api/v1/taglists",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "GetTaglists",
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "GetTaglistById",
+      "method": "GET",
+      "path": "/api/v1/taglists/:id",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "GetTaglistById",
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "GetTaglistTracks",
+      "method": "GET",
+      "path": "/api/v1/taglists/:id/tracks",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "GetTaglistTracks",
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "CreateTaglist",
+      "method": "POST",
+      "path": "/api/v1/taglists",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "CreateTaglist",
+      "bodyType": "CreateTaglistBody",
+      "requireFormData": false
+    },
+    {
+      "name": "UpdateTaglist",
+      "method": "PATCH",
+      "path": "/api/v1/taglists/:id",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "UpdateTaglistBody",
       "requireFormData": false
     }
   ]

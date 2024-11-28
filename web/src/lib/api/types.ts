@@ -260,3 +260,41 @@ export const Export = z.object({
 });
 export type Export = z.infer<typeof Export>;
 
+export const Taglist = z.object({
+  id: z.string(),
+  name: z.string(),
+  filter: z.string(),
+});
+export type Taglist = z.infer<typeof Taglist>;
+
+export const GetTaglists = z.object({
+  taglists: z.array(Taglist),
+});
+export type GetTaglists = z.infer<typeof GetTaglists>;
+
+export const GetTaglistById = Taglist;
+export type GetTaglistById = z.infer<typeof GetTaglistById>;
+
+export const GetTaglistTracks = z.object({
+  page: Page,
+  tracks: z.array(Track),
+});
+export type GetTaglistTracks = z.infer<typeof GetTaglistTracks>;
+
+export const CreateTaglist = z.object({
+  id: z.string(),
+});
+export type CreateTaglist = z.infer<typeof CreateTaglist>;
+
+export const CreateTaglistBody = z.object({
+  name: z.string(),
+  filter: z.string(),
+});
+export type CreateTaglistBody = z.infer<typeof CreateTaglistBody>;
+
+export const UpdateTaglistBody = z.object({
+  name: z.string().nullable().optional(),
+  filter: z.string().nullable().optional(),
+});
+export type UpdateTaglistBody = z.infer<typeof UpdateTaglistBody>;
+

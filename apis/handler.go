@@ -14,4 +14,5 @@ func InstallHandlers(app core.App, g pyrin.Group) {
 	InstallAuthHandlers(app, g)
 	InstallPlaylistHandlers(app, g)
 	InstallSystemHandlers(app, g)
+	InstallTaglistHandlers(app, g)
 }

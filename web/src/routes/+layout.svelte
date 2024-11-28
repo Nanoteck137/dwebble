@@ -9,6 +9,7 @@
     Menu,
     Search,
     Server,
+    Tags,
     User,
     Users,
   } from "lucide-svelte";
@@ -116,6 +117,8 @@
           icon={ListMusic}
           onClick={close}
         />
+
+        <Link title="Taglists" href="/taglists" icon={Tags} onClick={close} />
       {/if}
     </div>
     <div class="flex-grow"></div>

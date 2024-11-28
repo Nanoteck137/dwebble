@@ -544,3 +544,83 @@ func (c *Client) Process(options Options) (*any, error) {
 	}
 	return Request[any](data)
 }
+
+func (c *Client) GetTaglists(options Options) (*GetTaglists, error) {
+	path := "/api/v1/taglists"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetTaglists](data)
+}
+
+func (c *Client) GetTaglistById(id string, options Options) (*GetTaglistById, error) {
+	path := Sprintf("/api/v1/taglists/%v", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetTaglistById](data)
+}
+
+func (c *Client) GetTaglistTracks(id string, options Options) (*GetTaglistTracks, error) {
+	path := Sprintf("/api/v1/taglists/%v/tracks", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetTaglistTracks](data)
+}
+
+func (c *Client) CreateTaglist(body CreateTaglistBody, options Options) (*CreateTaglist, error) {
+	path := "/api/v1/taglists"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[CreateTaglist](data)
+}
+
+func (c *Client) UpdateTaglist(id string, body UpdateTaglistBody, options Options) (*any, error) {
+	path := Sprintf("/api/v1/taglists/%v", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "PATCH",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}

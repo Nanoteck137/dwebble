@@ -221,3 +221,34 @@ type Export struct {
 	Tracks []ExportTrack `json:"tracks"`
 }
 
+type Taglist struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	Filter string `json:"filter"`
+}
+
+type GetTaglists struct {
+	Taglists []Taglist `json:"taglists"`
+}
+
+type GetTaglistById Taglist
+
+type GetTaglistTracks struct {
+	Page Page `json:"page"`
+	Tracks []Track `json:"tracks"`
+}
+
+type CreateTaglist struct {
+	Id string `json:"id"`
+}
+
+type CreateTaglistBody struct {
+	Name string `json:"name"`
+	Filter string `json:"filter"`
+}
+
+type UpdateTaglistBody struct {
+	Name *string `json:"name,omitempty"`
+	Filter *string `json:"filter,omitempty"`
+}
+
