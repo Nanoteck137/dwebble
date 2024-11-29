@@ -16,7 +16,6 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/validate"
 )
 
 func ConvertDBTrack(c pyrin.Context, track database.Track) types.Track {
@@ -69,8 +68,6 @@ func ParseQueryBool(s string) bool {
 	}
 }
 
-var _ pyrin.Body = (*PatchTrackBody)(nil)
-
 type PatchTrackBody struct {
 	Name       *string   `json:"name,omitempty"`
 	ArtistId   *string   `json:"artistId,omitempty"`
@@ -78,11 +75,6 @@ type PatchTrackBody struct {
 	Year       *int64    `json:"year,omitempty"`
 	Number     *int64    `json:"number,omitempty"`
 	Tags       *[]string `json:"tags,omitempty"`
-}
-
-// Validate implements pyrin.Body.
-func (b PatchTrackBody) Validate(validator validate.Validator) error {
-	panic("unimplemented")
 }
 
 func InstallTrackHandlers(app core.App, group pyrin.Group) {
@@ -246,7 +238,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				id := c.Param("id")
 
 				// TODO(patrik): Validation
-				body, err := Body[PatchTrackBody](c)
+				body, err := pyrin.Body[PatchTrackBody](c)
 				if err != nil {
 					return nil, err
 				}

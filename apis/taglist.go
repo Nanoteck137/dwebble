@@ -13,7 +13,6 @@ import (
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/validate"
 )
 
 type Taglist struct {
@@ -42,26 +41,14 @@ type CreateTaglist struct {
 	Id string `json:"id"`
 }
 
-var _ pyrin.Body = (*CreateTaglistBody)(nil)
-
 type CreateTaglistBody struct {
 	Name   string `json:"name"`
 	Filter string `json:"filter"`
 }
 
-func (b CreateTaglistBody) Validate(validator validate.Validator) error {
-	panic("unimplemented")
-}
-
-var _ pyrin.Body = (*UpdateTaglistBody)(nil)
-
 type UpdateTaglistBody struct {
 	Name   *string `json:"name,omitempty"`
 	Filter *string `json:"filter,omitempty"`
-}
-
-func (b UpdateTaglistBody) Validate(validator validate.Validator) error {
-	panic("unimplemented")
 }
 
 func InstallTaglistHandlers(app core.App, group pyrin.Group) {
@@ -230,7 +217,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := Body[CreateTaglistBody](c)
+				body, err := pyrin.Body[CreateTaglistBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -277,7 +264,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := Body[UpdateTaglistBody](c)
+				body, err := pyrin.Body[UpdateTaglistBody](c)
 				if err != nil {
 					return nil, err
 				}

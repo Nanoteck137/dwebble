@@ -55,7 +55,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := Body[types.PostPlaylistBody](c)
+				body, err := pyrin.Body[types.PostPlaylistBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -89,7 +89,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := Body[types.PostPlaylistFilterBody](c)
+				body, err := pyrin.Body[types.PostPlaylistFilterBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -203,7 +203,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := Body[types.PostPlaylistItemsByIdBody](c)
+				body, err := pyrin.Body[types.PostPlaylistItemsByIdBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -240,7 +240,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := Body[types.DeletePlaylistItemsByIdBody](c)
+				body, err := pyrin.Body[types.DeletePlaylistItemsByIdBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -277,7 +277,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := Body[types.PostPlaylistsItemMoveByIdBody](c)
+				body, err := pyrin.Body[types.PostPlaylistsItemMoveByIdBody](c)
 				if err != nil {
 					return nil, err
 				}

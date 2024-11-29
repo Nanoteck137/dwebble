@@ -8,7 +8,7 @@
   } from "@nanoteck137/nano-ui";
   import { musicManager } from "$lib/music-manager";
   import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
-  import { EllipsisVertical, ListPlus, Pencil, Play } from "lucide-svelte";
+  import { EllipsisVertical, Pencil, Play } from "lucide-svelte";
 
   let { data } = $props();
 </script>

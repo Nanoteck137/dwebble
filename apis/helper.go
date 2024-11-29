@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -55,13 +54,4 @@ func User(app core.App, c pyrin.Context) (*database.User, error) {
 
 	// TODO(patrik): Fix error
 	return nil, errors.New("Invalid token")
-}
-
-func Body[T pyrin.Body](c pyrin.Context) (T, error) {
-	var res T
-
-	d := json.NewDecoder(c.Request().Body)
-	err := d.Decode(&res)
-
-	return res, err
 }

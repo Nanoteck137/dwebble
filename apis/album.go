@@ -13,14 +13,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/faceair/jio"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/validate"
 )
 
 func ConvertDBAlbum(c pyrin.Context, album database.Album) types.Album {
@@ -41,8 +39,6 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) types.Album {
 	}
 }
 
-var _ pyrin.Body = (*PatchAlbumBody)(nil)
-
 type PatchAlbumBody struct {
 	Name       *string `json:"name"`
 	ArtistId   *string `json:"artistId"`
@@ -50,37 +46,17 @@ type PatchAlbumBody struct {
 	Year       *int64  `json:"year"`
 }
 
-func (b PatchAlbumBody) Validate(validator validate.Validator) error {
-	panic("unimplemented")
-}
-
-var _ pyrin.Body = (*CreateAlbumBody)(nil)
-
 type CreateAlbumBody struct {
 	Name   string `json:"name"`
 	Artist string `json:"artist"`
-}
-
-func (b CreateAlbumBody) Validate(validator validate.Validator) error {
-	panic("unimplemented")
-}
-
-func (CreateAlbumBody) Schema() jio.Schema {
-	panic("unimplemented")
 }
 
 type CreateAlbum struct {
 	AlbumId string `json:"albumId"`
 }
 
-var _ pyrin.Body = (*UploadTracksBody)(nil)
-
 type UploadTracksBody struct {
 	ForceExtractNumber bool `json:"forceExtractNumber"`
-}
-
-func (b UploadTracksBody) Validate(validator validate.Validator) error {
-	panic("unimplemented")
 }
 
 func InstallAlbumHandlers(app core.App, group pyrin.Group) {
@@ -320,7 +296,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			BodyType: CreateAlbumBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				// TODO(patrik): Validate and trim body
-				body, err := Body[CreateAlbumBody](c)
+				body, err := pyrin.Body[CreateAlbumBody](c)
 				if err != nil {
 					return nil, err
 				}

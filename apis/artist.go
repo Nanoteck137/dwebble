@@ -16,17 +16,10 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/validate"
 )
-
-var _ pyrin.Body = (*EditArtistBody)(nil)
 
 type EditArtistBody struct {
 	Name *string `json:"name"`
-}
-
-func (b EditArtistBody) Validate(validator validate.Validator) error {
-	panic("unimplemented")
 }
 
 func InstallArtistHandlers(app core.App, group pyrin.Group) {

@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -11,27 +13,35 @@ import (
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/validate"
-	"github.com/nanoteck137/pyrin/tools/validate/rules"
+	"github.com/nanoteck137/validate"
 )
 
-var _ pyrin.Body = (*ChangePasswordBody)(nil)
-
-type ChangePasswordBody struct {
-	CurrentPassword    string `json:"currentPassword"`
-	NewPassword        string `json:"newPassword"`
-	NewPasswordConfirm string `json:"newPasswordConfirm"`
+type Signup struct {
+	Id       string `json:"id"`
+	Username string `json:"username"`
 }
 
-func (b ChangePasswordBody) Validate(validator validate.Validator) error {
-	return validator.Struct(
-		&b,
-		validator.Field(&b.CurrentPassword, rules.Required),
-		validator.Field(&b.NewPassword, rules.Required),
-		validator.Field(&b.NewPasswordConfirm, rules.Required, rules.By(func(value interface{}) error {
+type SignupBody struct {
+	Username        string `json:"username"`
+	Password        string `json:"password"`
+	PasswordConfirm string `json:"passwordConfirm"`
+}
+
+var usernameRegex = regexp.MustCompile("^[a-zA-Z0-9-]+$")
+
+func (b *SignupBody) Transform() {
+	b.Username = strings.TrimSpace(b.Username)
+}
+
+func (b SignupBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Username, validate.Required, validate.Length(4, 32), validate.Match(usernameRegex).Error("not valid username")),
+		validate.Field(&b.Password, validate.Required, validate.Length(8, 32)),
+		validate.Field(&b.PasswordConfirm, validate.Required, validate.By(func(value interface{}) error {
 			s, _ := value.(string)
-			if s != b.NewPassword {
-				return errors.New("Password Mismatch")
+
+			if s != b.Password {
+				return errors.New("password mismatch")
 			}
 
 			return nil
@@ -39,17 +49,39 @@ func (b ChangePasswordBody) Validate(validator validate.Validator) error {
 	)
 }
 
+type ChangePasswordBody struct {
+	CurrentPassword    string `json:"currentPassword"`
+	NewPassword        string `json:"newPassword"`
+	NewPasswordConfirm string `json:"newPasswordConfirm"`
+}
+
+
+// func (b ChangePasswordBody) Validate(validator validate.Validator) error {
+// 	return validator.Struct(
+// 		&b,
+// 		validator.Field(&b.CurrentPassword, rules.Required),
+// 		validator.Field(&b.NewPassword, rules.Required),
+// 		validator.Field(&b.NewPasswordConfirm, rules.Required, rules.By(func(value interface{}) error {
+// 			s, _ := value.(string)
+// 			if s != b.NewPassword {
+// 				return errors.New("Password Mismatch")
+// 			}
+//
+// 			return nil
+// 		})),
+// 	)
+// }
+
 func InstallAuthHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
 			Name:     "Signup",
 			Path:     "/auth/signup",
 			Method:   http.MethodPost,
-			DataType: types.PostAuthSignup{},
-			BodyType: types.PostAuthSignupBody{},
+			DataType: Signup{},
+			BodyType: SignupBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				// TODO(patrik): Check confirmPassword
-				body, err := Body[types.PostAuthSignupBody](c)
+				body, err := pyrin.Body[SignupBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -59,7 +91,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return types.PostAuthSignup{
+				return Signup{
 					Id:       user.Id,
 					Username: user.Username,
 				}, nil
@@ -73,7 +105,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 			DataType: types.PostAuthSignin{},
 			BodyType: types.PostAuthSigninBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				body, err := Body[types.PostAuthSigninBody](c)
+				body, err := pyrin.Body[types.PostAuthSigninBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -116,7 +148,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := Body[ChangePasswordBody](c)
+				body, err := pyrin.Body[ChangePasswordBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -124,16 +156,16 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 				// TODO(patrik): Check body.CurrentPassword
 				// TODO(patrik): Check body.NewPasswordConfirm
 
-				validator := validate.NormalValidator{}
-				err = body.Validate(&validator)
-				if err != nil {
-					return nil, err
-				}
+				// validator := validate.NormalValidator{}
+				// err = body.Validate(&validator)
+				// if err != nil {
+				// 	return nil, err
+				// }
 
 				ctx := context.TODO()
 				err = app.DB().UpdateUser(ctx, user.Id, database.UserChanges{
 					Password: types.Change[string]{
-						Value: body.NewPassword,
+						Value:   body.NewPassword,
 						Changed: true,
 					},
 				})
