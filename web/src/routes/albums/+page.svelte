@@ -55,23 +55,19 @@
     {#each data.albums as album}
       <div class="flex flex-col items-center">
         <div class="group">
-          <a class="relative" href={`/albums/${album.id}`}>
+          <a href="/albums/{album.id}">
             <img
-              class="aspect-square w-40 rounded object-cover group-hover:brightness-75"
+              class="inline-flex aspect-square w-40 min-w-40 items-center justify-center rounded border object-cover text-xs group-hover:brightness-75"
               src={album.coverArt.medium}
-              alt={`${album.name} Cover Art`}
+              alt="cover"
               loading="lazy"
             />
-
-            <div
-              class="absolute bottom-0 left-0 right-0 top-0 bg-purple-400/70"
-            ></div>
           </a>
           <div class="h-2"></div>
           <a
             class="line-clamp-2 w-40 text-sm font-medium group-hover:underline"
             title={album.name}
-            href={`/albums/${album.id}`}
+            href="/albums/{album.id}"
           >
             {album.name}
           </a>
@@ -79,7 +75,7 @@
         <a
           class="line-clamp-1 w-40 text-xs hover:underline"
           title={album.artistName}
-          href={`/artist/${album.artistId}`}
+          href="/artist/{album.artistId}"
         >
           {album.artistName}
         </a>

@@ -16,23 +16,20 @@
     {#each data.artists as artist}
       <div class="flex flex-col items-center">
         <div class="group">
-          <a class="relative" href={`/artists/${artist.id}`}>
+          <a href="/artists/${artist.id}">
+            <!-- svelte-ignore a11y_img_redundant_alt -->
             <img
-              class="aspect-square w-40 rounded object-cover group-hover:brightness-75"
+              class="inline-flex aspect-square w-40 min-w-40 items-center justify-center rounded border object-cover text-xs group-hover:brightness-75"
               src={artist.picture.medium}
-              alt={`${artist.name} Picture`}
+              alt="picture"
               loading="lazy"
             />
-
-            <div
-              class="absolute bottom-0 left-0 right-0 top-0 bg-purple-400/70"
-            ></div>
           </a>
           <div class="h-2"></div>
           <a
             class="line-clamp-2 w-40 text-sm font-medium group-hover:underline"
             title={artist.name}
-            href={`/artists/${artist.id}`}
+            href="/artists/{artist.id}"
           >
             {artist.name}
           </a>
