@@ -2,6 +2,7 @@
   import { enhance } from "$app/forms";
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
+  import TrackListItem from "$lib/components/TrackListItem.svelte";
   import { musicManager } from "$lib/music-manager.js";
   import { cn, shuffle, trackToMusicTrack } from "$lib/utils.js";
   import {
@@ -123,95 +124,59 @@
   </div>
 
   {#each data.tracks as track, i}
-    <div class="flex items-center gap-2 border-b py-2 pr-2">
-      <div class="group relative">
-        <img
-          class="aspect-square w-14 min-w-14 rounded object-cover"
-          src={track.coverArt.small}
-          alt={`${track.name} Cover Art`}
-          loading="lazy"
-        />
-        <button
-          class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center rounded bg-black/80 group-hover:flex`}
-          onclick={() => {
-            musicManager.clearQueue();
-            for (const track of data.tracks) {
-              musicManager.addTrackToQueue(trackToMusicTrack(track), false);
-            }
-            musicManager.setQueueIndex(i);
+    <TrackListItem
+      {track}
+      onPlayClicked={() => {
+        musicManager.clearQueue();
+        for (const track of data.tracks) {
+          musicManager.addTrackToQueue(trackToMusicTrack(track), false);
+        }
+        musicManager.setQueueIndex(i);
 
-            musicManager.requestPlay();
-          }}
+        musicManager.requestPlay();
+      }}
+    >
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger
+          class={cn(
+            buttonVariants({ variant: "ghost", size: "icon-lg" }),
+            "rounded-full",
+          )}
         >
-          <Play size="25" />
-        </button>
-      </div>
-      <div class="flex flex-grow flex-col">
-        <div class="flex items-center gap-1">
-          <p class="line-clamp-1 w-fit font-medium" title={track.name}>
-            {track.name}
-          </p>
-        </div>
-
-        <a
-          class="line-clamp-1 w-fit text-sm font-light hover:underline"
-          title={track.artistName}
-          href={`/artists/${track.artistId}`}
-        >
-          {track.artistName}
-        </a>
-
-        <p class="line-clamp-1 text-xs font-light">
-          {#if track.tags.length > 0}
-            {track.tags.join(", ")}
-          {:else}
-            No Tags
-          {/if}
-        </p>
-      </div>
-      <div class="flex items-center">
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger
-            class={cn(
-              buttonVariants({ variant: "ghost", size: "icon-lg" }),
-              "rounded-full",
-            )}
-          >
-            <EllipsisVertical />
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content align="end">
-            <DropdownMenu.Group>
-              <DropdownMenu.Item>
-                <form
-                  class="jusitfy-center flex items-center"
-                  action="?/quickAddToPlaylist"
-                  method="post"
-                  use:enhance
+          <EllipsisVertical />
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end">
+          <DropdownMenu.Group>
+            <DropdownMenu.Item>
+              <form
+                class="jusitfy-center flex items-center"
+                action="?/quickAddToPlaylist"
+                method="post"
+                use:enhance
+              >
+                <input type="hidden" name="trackId" value={track.id} />
+                <button
+                  class="flex w-full items-center gap-2 py-1"
+                  title="Quick Add"
                 >
-                  <input type="hidden" name="trackId" value={track.id} />
-                  <button
-                    class="flex w-full items-center gap-2 py-1"
-                    title="Quick Add"
-                  >
-                    <Plus size="16" />
-                    Quick add to Playlist
-                  </button>
-                </form>
-              </DropdownMenu.Item>
-              <DropdownMenu.Item>
-                <a
-                  class="flex h-full w-full items-center gap-2 py-1"
-                  href="/albums/{track.albumId}"
-                >
-                  <Pencil size="16" />
-                  Go to Album
-                </a>
-              </DropdownMenu.Item>
-            </DropdownMenu.Group>
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
-      </div>
-    </div>
+                  <Plus size="16" />
+                  Quick add to Playlist
+                </button>
+              </form>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item>
+              <a
+                class="flex h-full w-full items-center gap-2 py-1"
+                href="/albums/{track.albumId}"
+              >
+                <Pencil size="16" />
+                Go to Album
+              </a>
+            </DropdownMenu.Item>
+          </DropdownMenu.Group>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+    </TrackListItem>
   {/each}
 </div>
 
