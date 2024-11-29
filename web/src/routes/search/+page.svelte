@@ -100,7 +100,7 @@
     <p class="text-xs">{data.tracks.length} track(s)</p>
   </div>
 
-  {#each data.tracks as track, i}
+  {#each data.tracks as track}
     <TrackListItem
       {track}
       onPlayClicked={() => {
