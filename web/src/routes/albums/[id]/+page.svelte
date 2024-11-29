@@ -30,7 +30,7 @@
 <div class="flex gap-2">
   <img
     class="inline-flex aspect-square w-48 min-w-48 items-center justify-center rounded border object-cover text-xs"
-    src=""
+    src={data.album.coverArt.medium}
     alt="cover"
   />
 
