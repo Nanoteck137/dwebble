@@ -10,6 +10,11 @@ export const actions: Actions = {
       throw error(400, { message: "name is not set" });
     }
 
+    const year = formData.get("year");
+    if (!year) {
+      throw error(400, { message: "year is not set" });
+    }
+
     const artist = formData.get("artist");
     if (!artist) {
       throw error(400, { message: "artist is not set" });
@@ -19,7 +24,7 @@ export const actions: Actions = {
       name: name.toString(),
       artistId: null,
       artistName: artist.toString(),
-      year: null,
+      year: year ? parseInt(year.toString()) : null,
     });
     if (!res.success) {
       throw error(res.error.code, { message: res.error.message });
