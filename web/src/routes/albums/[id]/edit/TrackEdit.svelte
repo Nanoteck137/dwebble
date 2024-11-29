@@ -44,6 +44,7 @@
         name="trackNumber"
         value={track.number}
         type="number"
+        tabindex={1}
       />
       <Input
         class="w-full"
@@ -52,6 +53,7 @@
         value={track.name}
         type="text"
         autocomplete="off"
+        tabindex={2}
       />
     </div>
   </div>
@@ -68,6 +70,7 @@
         name="trackYear"
         value={track.year}
         type="number"
+        tabindex={3}
       />
       <Input
         class="w-full"
@@ -75,6 +78,7 @@
         name="trackTags"
         value={track.tags.join(",")}
         type="text"
+        tabindex={4}
       />
     </div>
 
@@ -86,6 +90,7 @@
         name="trackArtist"
         value={track.artistName}
         type="text"
+        tabindex={5}
       />
     </div>
   </div>
