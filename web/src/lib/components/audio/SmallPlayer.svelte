@@ -91,19 +91,19 @@
             <div class="flex items-center gap-2">
               <div class="group relative">
                 <img
-                  class="aspect-square w-12 rounded object-cover"
+                  class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
                   src={track.coverArt}
-                  alt={`${track.name} Cover Art`}
+                  alt="cover"
                 />
                 {#if i == currentQueueIndex}
                   <div
-                    class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center bg-black/80"
+                    class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center border bg-black/80"
                   >
                     <Play size="25" />
                   </div>
                 {:else}
                   <button
-                    class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center bg-black/80 group-hover:flex`}
+                    class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center border bg-black/80 group-hover:flex`}
                     onclick={() => {
                       musicManager.setQueueIndex(i);
                       musicManager.requestPlay();
@@ -147,9 +147,9 @@
     <Sheet.Root>
       <Sheet.Trigger class="flex grow items-center">
         <img
-          class="aspect-square h-16 rounded object-cover p-2"
+          class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
           src={coverArt}
-          alt="Cover Art"
+          alt="cover"
         />
 
         <div class="flex flex-col items-start justify-center px-2">
