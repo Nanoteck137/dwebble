@@ -44,9 +44,9 @@
 
 <div class="flex gap-2">
   <img
-    class="aspect-square w-48 rounded object-cover"
+    class="inline-flex aspect-square w-48 min-w-48 items-center justify-center rounded border object-cover text-xs"
     src={data.album.coverArt.medium}
-    alt="Album Cover Art"
+    alt="cover"
   />
 
   <div class="flex flex-col py-2">
