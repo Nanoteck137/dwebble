@@ -1,4 +1,5 @@
 <script>
+  import Errors from "$lib/components/Errors.svelte";
   import { Button, Card, Input, Label } from "@nanoteck137/nano-ui";
   import SuperDebug, { superForm } from "sveltekit-superforms";
 
@@ -21,13 +22,7 @@
           type="text"
           bind:value={$form.username}
         />
-        {#if $errors.username}
-          {#each $errors.username as error}
-            {#if error.length > 0}
-              <p>{error}</p>
-            {/if}
-          {/each}
-        {/if}
+        <Errors errors={$errors.username} />
       </div>
       <div class="flex flex-col gap-2">
         <Label for="password">Password</Label>
@@ -37,11 +32,7 @@
           type="password"
           bind:value={$form.password}
         />
-        {#if $errors.password}
-          {#each $errors.password as error}
-            <p>{error}</p>
-          {/each}
-        {/if}
+        <Errors errors={$errors.password} />
       </div>
       <div class="flex flex-col gap-2">
         <Label for="passwordConfirm">Confirm Password</Label>
@@ -51,11 +42,7 @@
           type="password"
           bind:value={$form.passwordConfirm}
         />
-        {#if $errors.passwordConfirm}
-          {#each $errors.passwordConfirm as error}
-            <p>{error}</p>
-          {/each}
-        {/if}
+        <Errors errors={$errors.passwordConfirm} />
       </div>
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">

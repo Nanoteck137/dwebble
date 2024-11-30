@@ -106,6 +106,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodPost,
 			DataType: Signup{},
 			BodyType: SignupBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeUserAlreadyExists},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				body, err := pyrin.Body[SignupBody](c)
 				if err != nil {
@@ -116,8 +117,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 
 				_, err = app.DB().GetUserByUsername(ctx, body.Username)
 				if err == nil {
-					// TODO(patrik): Better error
-					return nil, errors.New("user already exists")
+					return nil, UserAlreadyExists()
 				}
 
 				if !errors.Is(err, database.ErrItemNotFound) {

@@ -27,14 +27,12 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
   default: async ({ locals, request }) => {
     const form = await superValidate(request, zod(schema));
-    console.log(form);
 
     if (!form.valid) {
       return fail(400, { form });
     }
 
     const res = await locals.apiClient.signup(form.data);
-    console.log(res);
     if (!res.success) {
       if (res.error.type === "VALIDATION_ERROR") {
         const extra = res.error.extra as Record<
@@ -47,6 +45,8 @@ export const actions: Actions = {
         setError(form, "passwordConfirm", extra.passwordConfirm ?? "");
 
         return fail(400, { form });
+      } else if (res.error.type === "USER_ALREADY_EXISTS") {
+        return setError(form, "username", "user already exists");
       } else {
         throw error(res.error.code, { message: res.error.message });
       }

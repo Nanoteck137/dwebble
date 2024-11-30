@@ -7,11 +7,12 @@ import (
 )
 
 const (
-	ErrTypeArtistNotFound pyrin.ErrorType = "ARTIST_NOT_FOUND"
-	ErrTypeAlbumNotFound  pyrin.ErrorType = "ALBUM_NOT_FOUND"
-	ErrTypeTrackNotFound  pyrin.ErrorType = "TRACK_NOT_FOUND"
-	ErrTypeInvalidFilter  pyrin.ErrorType = "INVALID_FILTER"
-	ErrTypeInvalidSort    pyrin.ErrorType = "INVALID_SORT"
+	ErrTypeArtistNotFound    pyrin.ErrorType = "ARTIST_NOT_FOUND"
+	ErrTypeAlbumNotFound     pyrin.ErrorType = "ALBUM_NOT_FOUND"
+	ErrTypeTrackNotFound     pyrin.ErrorType = "TRACK_NOT_FOUND"
+	ErrTypeInvalidFilter     pyrin.ErrorType = "INVALID_FILTER"
+	ErrTypeInvalidSort       pyrin.ErrorType = "INVALID_SORT"
+	ErrTypeUserAlreadyExists pyrin.ErrorType = "USER_ALREADY_EXISTS"
 )
 
 func ArtistNotFound() *pyrin.Error {
@@ -51,5 +52,13 @@ func InvalidSort(err error) *pyrin.Error {
 		Code:    http.StatusBadRequest,
 		Type:    ErrTypeInvalidSort,
 		Message: err.Error(),
+	}
+}
+
+func UserAlreadyExists() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusBadRequest,
+		Type:    ErrTypeUserAlreadyExists,
+		Message: "User already exists",
 	}
 }
