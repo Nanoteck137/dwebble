@@ -86,7 +86,19 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				user, err := app.DB().CreateUser(c.Request().Context(), body.Username, body.Password)
+				ctx := context.TODO()
+
+				_, err = app.DB().GetUserByUsername(ctx, body.Username)
+				if err == nil {
+					// TODO(patrik): Better error
+					return nil, errors.New("user already exists")
+				}
+
+				if !errors.Is(err, database.ErrItemNotFound) {
+					return nil, err
+				}
+
+				user, err := app.DB().CreateUser(ctx, body.Username, body.Password)
 				if err != nil {
 					return nil, err
 				}
