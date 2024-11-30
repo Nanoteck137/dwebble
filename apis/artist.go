@@ -15,6 +15,7 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/transform"
 	"github.com/nanoteck137/validate"
 )
 
@@ -43,7 +44,7 @@ type EditArtistBody struct {
 }
 
 func (b *EditArtistBody) Transform() {
-	b.Name = TransformStringPtr(b.Name)
+	b.Name = transform.StringPtr(b.Name)
 }
 
 func (b EditArtistBody) Validate() error {

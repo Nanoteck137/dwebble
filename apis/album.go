@@ -19,6 +19,7 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/transform"
 	"github.com/nanoteck137/validate"
 )
 
@@ -71,8 +72,8 @@ type EditAlbumBody struct {
 }
 
 func (b *EditAlbumBody) Transform() {
-	b.Name = TransformStringPtr(b.Name)
-	b.ArtistName = TransformStringPtr(b.ArtistName)
+	b.Name = transform.StringPtr(b.Name)
+	b.ArtistName = transform.StringPtr(b.ArtistName)
 }
 
 func (b EditAlbumBody) Validate() error {
@@ -103,8 +104,8 @@ type CreateAlbumBody struct {
 }
 
 func (b *CreateAlbumBody) Transform() {
-	b.Name = TransformString(b.Name)
-	b.Artist = TransformString(b.Artist)
+	b.Name = transform.String(b.Name)
+	b.Artist = transform.String(b.Artist)
 }
 
 func (b CreateAlbumBody) Validate() error{
@@ -357,7 +358,6 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			DataType: CreateAlbum{},
 			BodyType: CreateAlbumBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				// TODO(patrik): Validate and trim body
 				body, err := pyrin.Body[CreateAlbumBody](c)
 				if err != nil {
 					return nil, err

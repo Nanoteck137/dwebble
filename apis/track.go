@@ -16,6 +16,7 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/transform"
 	"github.com/nanoteck137/validate"
 )
 
@@ -87,54 +88,6 @@ type GetTrackById struct {
 	Track
 }
 
-// TODO(patrik): Move transform functions to pyrin
-func TransformString(s string) string {
-	return strings.TrimSpace(s)
-}
-
-func TransformStringPtr(s *string) *string {
-	if s == nil {
-		return nil
-	}
-
-	*s = TransformString(*s)
-	return s
-}
-
-func TransformStringArrayPtr(arr *[]string) *[]string {
-	if arr == nil {
-		return nil
-	}
-
-	v := *arr
-	for i, s := range v {
-		v[i] = TransformString(s)
-	}
-
-	return arr
-}
-
-func TransformDiscardEmptyStringEntries(arr *[]string) *[]string {
-	if arr == nil {
-		return nil
-	}
-
-	var res []string
-
-	v := *arr
-	for _, s := range v {
-		if s != "" {
-			res = append(res, s)
-		}
-	}
-
-	if len(res) == 0 {
-		return nil
-	}
-
-	return &res
-}
-
 type EditTrackBody struct {
 	Name       *string   `json:"name,omitempty"`
 	ArtistId   *string   `json:"artistId,omitempty"`
@@ -145,9 +98,9 @@ type EditTrackBody struct {
 }
 
 func (b *EditTrackBody) Transform() {
-	b.Name = TransformStringPtr(b.Name)
-	b.Tags = TransformStringArrayPtr(b.Tags)
-	b.Tags = TransformDiscardEmptyStringEntries(b.Tags)
+	b.Name = transform.StringPtr(b.Name)
+	b.Tags = transform.StringArrayPtr(b.Tags)
+	b.Tags = transform.DiscardEmptyStringEntries(b.Tags)
 }
 
 func (b EditTrackBody) Validate() error {
