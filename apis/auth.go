@@ -21,6 +21,7 @@ type Signup struct {
 	Username string `json:"username"`
 }
 
+// TODO(patrik): Test if this works with validation
 type SignupBody struct {
 	Username        string `json:"username"`
 	Password        string `json:"password"`
@@ -28,24 +29,26 @@ type SignupBody struct {
 }
 
 var usernameRegex = regexp.MustCompile("^[a-zA-Z0-9-]+$")
+var passwordLengthRule = validate.Length(8, 32)
 
+// TODO(patrik): Remove? and let the usernameRegex handle error
 func (b *SignupBody) Transform() {
 	b.Username = strings.TrimSpace(b.Username)
 }
 
 func (b SignupBody) Validate() error {
+	checkPasswordMatch := validate.By(func(value interface{}) error {
+		if b.PasswordConfirm != b.Password {
+			return errors.New("password mismatch")
+		}
+
+		return nil
+	})
+
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Username, validate.Required, validate.Length(4, 32), validate.Match(usernameRegex).Error("not valid username")),
-		validate.Field(&b.Password, validate.Required, validate.Length(8, 32)),
-		validate.Field(&b.PasswordConfirm, validate.Required, validate.By(func(value interface{}) error {
-			s, _ := value.(string)
-
-			if s != b.Password {
-				return errors.New("password mismatch")
-			}
-
-			return nil
-		})),
+		validate.Field(&b.Password, validate.Required, passwordLengthRule, checkPasswordMatch),
+		validate.Field(&b.PasswordConfirm, validate.Required, checkPasswordMatch),
 	)
 }
 
@@ -58,6 +61,14 @@ type SigninBody struct {
 	Password string `json:"password"`
 }
 
+func (b SigninBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Username, validate.Required),
+		validate.Field(&b.Password, validate.Required),
+	)
+}
+
+// TODO(patrik): Test if this works with validation
 type ChangePasswordBody struct {
 	CurrentPassword    string `json:"currentPassword"`
 	NewPassword        string `json:"newPassword"`
@@ -65,18 +76,19 @@ type ChangePasswordBody struct {
 }
 
 func (b ChangePasswordBody) Validate() error {
+	checkPasswordMatch := validate.By(func(value interface{}) error {
+		if b.NewPasswordConfirm != b.NewPassword {
+			return errors.New("password mismatch")
+		}
+
+		return nil
+	})
+
 	return validate.ValidateStruct(
 		&b,
 		validate.Field(&b.CurrentPassword, validate.Required),
-		validate.Field(&b.NewPassword, validate.Required),
-		validate.Field(&b.NewPasswordConfirm, validate.Required, validate.By(func(value interface{}) error {
-			s, _ := value.(string)
-			if s != b.NewPassword {
-				return errors.New("password mismatch")
-			}
-
-			return nil
-		})),
+		validate.Field(&b.NewPassword, validate.Required, passwordLengthRule, checkPasswordMatch),
+		validate.Field(&b.NewPasswordConfirm, validate.Required, checkPasswordMatch),
 	)
 }
 
