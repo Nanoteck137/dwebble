@@ -21,13 +21,24 @@ import (
 	"github.com/nanoteck137/pyrin"
 )
 
-func ConvertDBAlbum(c pyrin.Context, album database.Album) types.Album {
+type Album struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	CoverArt   types.Images `json:"coverArt"`
+	ArtistId   string `json:"artistId"`
+	ArtistName string `json:"artistName"`
+	Year       *int64 `json:"year"`
+	Created    int64  `json:"created"`
+	Updated    int64  `json:"updated"`
+}
+
+func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 	var year *int64
 	if album.Year.Valid {
 		year = &album.Year.Int64
 	}
 
-	return types.Album{
+	return Album{
 		Id:         album.Id,
 		Name:       album.Name,
 		CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
@@ -39,7 +50,19 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) types.Album {
 	}
 }
 
-type PatchAlbumBody struct {
+type GetAlbums struct {
+	Albums []Album `json:"albums"`
+}
+
+type GetAlbumById struct {
+	Album
+}
+
+type GetAlbumTracks struct {
+	Tracks []Track `json:"tracks"`
+}
+
+type EditAlbumBody struct {
 	Name       *string `json:"name"`
 	ArtistId   *string `json:"artistId"`
 	ArtistName *string `json:"artistName"`
@@ -65,7 +88,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetAlbums",
 			Path:     "/albums",
 			Method:   http.MethodGet,
-			DataType: types.GetAlbums{},
+			DataType: GetAlbums{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -77,8 +100,8 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := types.GetAlbums{
-					Albums: make([]types.Album, len(albums)),
+				res := GetAlbums{
+					Albums: make([]Album, len(albums)),
 				}
 
 				for i, album := range albums {
@@ -93,7 +116,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Name:     "SearchAlbums",
 			Path:     "/albums/search",
 			Method:   http.MethodGet,
-			DataType: types.GetAlbums{},
+			DataType: GetAlbums{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -109,8 +132,8 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				res := types.GetAlbums{
-					Albums: make([]types.Album, len(albums)),
+				res := GetAlbums{
+					Albums: make([]Album, len(albums)),
 				}
 
 				for i, album := range albums {
@@ -125,10 +148,11 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetAlbumById",
 			Method:   http.MethodGet,
 			Path:     "/albums/:id",
-			DataType: types.GetAlbumById{},
+			DataType: GetAlbumById{},
 			Errors:   []pyrin.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
+
 				album, err := app.DB().GetAlbumById(c.Request().Context(), id)
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
@@ -138,7 +162,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return types.GetAlbumById{
+				return GetAlbumById{
 					Album: ConvertDBAlbum(c, album),
 				}, nil
 			},
@@ -148,7 +172,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetAlbumTracks",
 			Method:   http.MethodGet,
 			Path:     "/albums/:id/tracks",
-			DataType: types.GetAlbumTracksById{},
+			DataType: GetAlbumTracks{},
 			Errors:   []pyrin.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
@@ -167,8 +191,8 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := types.GetAlbumTracksById{
-					Tracks: make([]types.Track, len(tracks)),
+				res := GetAlbumTracks{
+					Tracks: make([]Track, len(tracks)),
 				}
 
 				for i, track := range tracks {
@@ -185,13 +209,11 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Name:     "EditAlbum",
 			Method:   http.MethodPatch,
 			Path:     "/albums/:id",
-			BodyType: PatchAlbumBody{},
+			BodyType: EditAlbumBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
-				var body PatchAlbumBody
-				d := json.NewDecoder(c.Request().Body)
-				err := d.Decode(&body)
+				body, err := pyrin.Body[EditAlbumBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -204,6 +226,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				var name types.Change[string]
 				if body.Name != nil {
+					// TODO(patrik): Move to transform
 					n := strings.TrimSpace(*body.Name)
 					name.Value = n
 					name.Changed = n != album.Name

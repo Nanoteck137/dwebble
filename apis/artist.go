@@ -3,7 +3,6 @@ package apis
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -18,6 +17,26 @@ import (
 	"github.com/nanoteck137/pyrin"
 )
 
+type Artist struct {
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Picture types.Images `json:"picture"`
+	Created int64  `json:"created"`
+	Updated int64  `json:"updated"`
+}
+
+type GetArtists struct {
+	Artists []Artist `json:"artists"`
+}
+
+type GetArtistById struct {
+	Artist
+}
+
+type GetArtistAlbumsById struct {
+	Albums []Album `json:"albums"`
+}
+
 type EditArtistBody struct {
 	Name *string `json:"name"`
 }
@@ -28,19 +47,19 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetArtists",
 			Method:   http.MethodGet,
 			Path:     "/artists",
-			DataType: types.GetArtists{},
+			DataType: GetArtists{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				artists, err := app.DB().GetAllArtists(c.Request().Context())
 				if err != nil {
 					return nil, err
 				}
 
-				res := types.GetArtists{
-					Artists: make([]types.Artist, len(artists)),
+				res := GetArtists{
+					Artists: make([]Artist, len(artists)),
 				}
 
 				for i, artist := range artists {
-					res.Artists[i] = types.Artist{
+					res.Artists[i] = Artist{
 						Id:      artist.Id,
 						Name:    artist.Name,
 						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
@@ -57,7 +76,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Name:     "SearchArtists",
 			Method:   http.MethodGet,
 			Path:     "/artists/search",
-			DataType: types.GetArtists{},
+			DataType: GetArtists{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -73,12 +92,12 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				res := types.GetArtists{
-					Artists: make([]types.Artist, len(artists)),
+				res := GetArtists{
+					Artists: make([]Artist, len(artists)),
 				}
 
 				for i, artist := range artists {
-					res.Artists[i] = types.Artist{
+					res.Artists[i] = Artist{
 						Id:      artist.Id,
 						Name:    artist.Name,
 						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
@@ -95,10 +114,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetArtistById",
 			Method:   http.MethodGet,
 			Path:     "/artists/:id",
-			DataType: types.GetArtistById{},
+			DataType: GetArtistById{},
 			Errors:   []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
+
 				artist, err := app.DB().GetArtistById(c.Request().Context(), id)
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
@@ -107,8 +127,8 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return types.GetArtistById{
-					Artist: types.Artist{
+				return GetArtistById{
+					Artist: Artist{
 						Id:      artist.Id,
 						Name:    artist.Name,
 						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
@@ -123,7 +143,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetArtistAlbums",
 			Method:   http.MethodGet,
 			Path:     "/artists/:id/albums",
-			DataType: types.GetArtistAlbumsById{},
+			DataType: GetArtistAlbumsById{},
 			Errors:   []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
@@ -142,13 +162,13 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := types.GetArtistAlbumsById{
-					Albums: make([]types.Album, len(albums)),
+				res := GetArtistAlbumsById{
+					Albums: make([]Album, len(albums)),
 				}
 
 				for i, album := range albums {
 					// TODO(patrik): Fix not all fields filled in
-					res.Albums[i] = types.Album{
+					res.Albums[i] = Album{
 						Id:         album.Id,
 						Name:       album.Name,
 						CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
@@ -160,6 +180,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				return res, nil
 			},
 		},
+
 		pyrin.ApiHandler{
 			Name:     "EditArtist",
 			Method:   http.MethodPatch,
@@ -169,10 +190,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
-				// TODO(patrik): Change this to pyrin version
-				var body EditArtistBody
-				d := json.NewDecoder(c.Request().Body)
-				err := d.Decode(&body)
+				body, err := pyrin.Body[EditArtistBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -202,6 +220,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				return nil, nil
 			},
 		},
+
 		pyrin.ApiHandler{
 			Name:        "ChangeArtistPicture",
 			Method:      http.MethodPatch,

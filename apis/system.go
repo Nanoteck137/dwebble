@@ -9,9 +9,12 @@ import (
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/tools/utils"
-	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 )
+
+type GetSystemInfo struct {
+	Version string `json:"version"`
+}
 
 type ExportArtist struct {
 	Id      string `json:"id"`
@@ -60,9 +63,9 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetSystemInfo",
 			Path:     "/system/info",
 			Method:   http.MethodGet,
-			DataType: types.GetSystemInfo{},
+			DataType: GetSystemInfo{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				return types.GetSystemInfo{
+				return GetSystemInfo{
 					Version: dwebble.Version,
 				}, nil
 			},

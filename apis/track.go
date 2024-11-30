@@ -18,7 +18,31 @@ import (
 	"github.com/nanoteck137/pyrin"
 )
 
-func ConvertDBTrack(c pyrin.Context, track database.Track) types.Track {
+type Track struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+
+	AlbumId  string `json:"albumId"`
+	ArtistId string `json:"artistId"`
+
+	Number   *int64 `json:"number"`
+	Duration *int64 `json:"duration"`
+	Year     *int64 `json:"year"`
+
+	OriginalMediaUrl string `json:"originalMediaUrl"`
+	MobileMediaUrl   string `json:"mobileMediaUrl"`
+	CoverArt         types.Images `json:"coverArt"`
+
+	AlbumName  string `json:"albumName"`
+	ArtistName string `json:"artistName"`
+
+	Created int64 `json:"created"`
+	Updated int64 `json:"updated"`
+
+	Tags []string `json:"tags"`
+}
+
+func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 	var number *int64
 	if track.Number.Valid {
 		number = &track.Number.Int64
@@ -34,7 +58,7 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) types.Track {
 		year = &track.Year.Int64
 	}
 
-	return types.Track{
+	return Track{
 		Id:               track.Id,
 		Name:             track.Name,
 		AlbumId:          track.AlbumId,
@@ -53,22 +77,17 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) types.Track {
 	}
 }
 
-func ParseQueryBool(s string) bool {
-	s = strings.TrimSpace(s)
-	s = strings.ToLower(s)
-
-	switch s {
-	case "true", "1":
-		return true
-	// TODO(patrik): Add "0"
-	case "false", "":
-		return false
-	default:
-		return false
-	}
+type GetTracks struct {
+	Page   types.Page    `json:"page"`
+	Tracks []Track `json:"tracks"`
 }
 
-type PatchTrackBody struct {
+type GetTrackById struct {
+	Track
+}
+
+// TODO(patrik): Validation and Transform
+type EditTrackBody struct {
 	Name       *string   `json:"name,omitempty"`
 	ArtistId   *string   `json:"artistId,omitempty"`
 	ArtistName *string   `json:"artistName,omitempty"`
@@ -83,7 +102,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetTracks",
 			Method:   http.MethodGet,
 			Path:     "/tracks",
-			DataType: types.GetTracks{},
+			DataType: GetTracks{},
 			Errors:   []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
@@ -91,6 +110,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				perPage := 100
 				page := 0
 
+				// TODO(patrik): Move to util
 				if s := q.Get("perPage"); s != "" {
 					i, err := strconv.Atoi(s)
 					if err != nil {
@@ -129,9 +149,9 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := types.GetTracks{
+				res := GetTracks{
 					Page:   p,
-					Tracks: make([]types.Track, len(tracks)),
+					Tracks: make([]Track, len(tracks)),
 				}
 
 				for i, track := range tracks {
@@ -146,7 +166,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Name:     "SearchTracks",
 			Method:   http.MethodGet,
 			Path:     "/tracks/search",
-			DataType: types.GetTracks{},
+			DataType: GetTracks{},
 			Errors:   []pyrin.ErrorType{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
@@ -164,8 +184,8 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				res := types.GetTracks{
-					Tracks: make([]types.Track, len(tracks)),
+				res := GetTracks{
+					Tracks: make([]Track, len(tracks)),
 				}
 
 				for i, track := range tracks {
@@ -180,7 +200,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetTrackById",
 			Method:   http.MethodGet,
 			Path:     "/tracks/:id",
-			DataType: types.GetTrackById{},
+			DataType: GetTrackById{},
 			Errors:   []pyrin.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
@@ -194,7 +214,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return types.GetTrackById{
+				return GetTrackById{
 					Track: ConvertDBTrack(c, track),
 				}, nil
 			},
@@ -232,13 +252,13 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Name:     "EditTrack",
 			Method:   http.MethodPatch,
 			Path:     "/tracks/:id",
-			BodyType: PatchTrackBody{},
+			BodyType: EditTrackBody{},
 			Errors:   []pyrin.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
 				// TODO(patrik): Validation
-				body, err := pyrin.Body[PatchTrackBody](c)
+				body, err := pyrin.Body[EditTrackBody](c)
 				if err != nil {
 					return nil, err
 				}

@@ -34,7 +34,7 @@ type GetTaglistById struct {
 
 type GetTaglistTracks struct {
 	Page   types.Page    `json:"page"`
-	Tracks []types.Track `json:"tracks"`
+	Tracks []Track `json:"tracks"`
 }
 
 type CreateTaglist struct {
@@ -46,6 +46,7 @@ type CreateTaglistBody struct {
 	Filter string `json:"filter"`
 }
 
+// TODO(patrik): Validation and transform
 type UpdateTaglistBody struct {
 	Name   *string `json:"name,omitempty"`
 	Filter *string `json:"filter,omitempty"`
@@ -194,7 +195,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 
 				res := GetTaglistTracks{
 					Page:   p,
-					Tracks: make([]types.Track, len(tracks)),
+					Tracks: make([]Track, len(tracks)),
 				}
 
 				for i, track := range tracks {

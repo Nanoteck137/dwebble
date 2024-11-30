@@ -49,28 +49,42 @@ func (b SignupBody) Validate() error {
 	)
 }
 
+type Signin struct {
+	Token string `json:"token"`
+}
+
+type SigninBody struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 type ChangePasswordBody struct {
 	CurrentPassword    string `json:"currentPassword"`
 	NewPassword        string `json:"newPassword"`
 	NewPasswordConfirm string `json:"newPasswordConfirm"`
 }
 
+func (b ChangePasswordBody) Validate() error {
+	return validate.ValidateStruct(
+		&b,
+		validate.Field(&b.CurrentPassword, validate.Required),
+		validate.Field(&b.NewPassword, validate.Required),
+		validate.Field(&b.NewPasswordConfirm, validate.Required, validate.By(func(value interface{}) error {
+			s, _ := value.(string)
+			if s != b.NewPassword {
+				return errors.New("password mismatch")
+			}
 
-// func (b ChangePasswordBody) Validate(validator validate.Validator) error {
-// 	return validator.Struct(
-// 		&b,
-// 		validator.Field(&b.CurrentPassword, rules.Required),
-// 		validator.Field(&b.NewPassword, rules.Required),
-// 		validator.Field(&b.NewPasswordConfirm, rules.Required, rules.By(func(value interface{}) error {
-// 			s, _ := value.(string)
-// 			if s != b.NewPassword {
-// 				return errors.New("Password Mismatch")
-// 			}
-//
-// 			return nil
-// 		})),
-// 	)
-// }
+			return nil
+		})),
+	)
+}
+
+type GetMe struct {
+	Id       string `json:"id"`
+	Username string `json:"username"`
+	IsOwner  bool   `json:"isOwner"`
+}
 
 func InstallAuthHandlers(app core.App, group pyrin.Group) {
 	group.Register(
@@ -114,16 +128,17 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 			Name:     "Signin",
 			Path:     "/auth/signin",
 			Method:   http.MethodPost,
-			DataType: types.PostAuthSignin{},
-			BodyType: types.PostAuthSigninBody{},
+			DataType: Signin{},
+			BodyType: SigninBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				body, err := pyrin.Body[types.PostAuthSigninBody](c)
+				body, err := pyrin.Body[SigninBody](c)
 				if err != nil {
 					return nil, err
 				}
 
 				user, err := app.DB().GetUserByUsername(c.Request().Context(), body.Username)
 				if err != nil {
+					// TODO(patrik): Check for ErrItemNotFound
 					return nil, err
 				}
 
@@ -143,7 +158,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return types.PostAuthSignin{
+				return Signin{
 					Token: tokenString,
 				}, nil
 			},
@@ -152,7 +167,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 		pyrin.ApiHandler{
 			Name:     "ChangePassword",
 			Path:     "/auth/password",
-			Method:   http.MethodPut,
+			Method:   http.MethodPatch,
 			BodyType: ChangePasswordBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
@@ -160,21 +175,20 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				ctx := context.TODO()
+
 				body, err := pyrin.Body[ChangePasswordBody](c)
 				if err != nil {
 					return nil, err
 				}
 
 				// TODO(patrik): Check body.CurrentPassword
-				// TODO(patrik): Check body.NewPasswordConfirm
 
-				// validator := validate.NormalValidator{}
-				// err = body.Validate(&validator)
-				// if err != nil {
-				// 	return nil, err
-				// }
+				if(user.Password != body.CurrentPassword) {
+					// TODO(patrik): Better error
+					return nil, errors.New("Password not matching")
+				}
 
-				ctx := context.TODO()
 				err = app.DB().UpdateUser(ctx, user.Id, database.UserChanges{
 					Password: types.Change[string]{
 						Value:   body.NewPassword,
@@ -193,7 +207,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetMe",
 			Path:     "/auth/me",
 			Method:   http.MethodGet,
-			DataType: types.GetAuthMe{},
+			DataType: GetMe{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -202,7 +216,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 
 				isOwner := app.DBConfig().OwnerId == user.Id
 
-				return types.GetAuthMe{
+				return GetMe{
 					Id:       user.Id,
 					Username: user.Username,
 					IsOwner:  isOwner,

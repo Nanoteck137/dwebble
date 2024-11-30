@@ -6,9 +6,55 @@ import (
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 )
+
+type Playlist struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type GetPlaylists struct {
+	Playlists []Playlist `json:"playlists"`
+}
+
+type CreatePlaylist struct {
+	Playlist
+}
+
+// TODO(patrik): Validation and transform
+type CreatePlaylistBody struct {
+	Name string `json:"name"`
+}
+
+// TODO(patrik): Validation and transform
+type PostPlaylistFilterBody struct {
+	Name   string `json:"name"`
+	Filter string `json:"filter"`
+	Sort   string `json:"sort"`
+}
+
+type GetPlaylistById struct {
+	Playlist
+
+	Items []Track `json:"items"`
+}
+
+// TODO(patrik): Validation and transform
+type AddItemsToPlaylistBody struct {
+	Tracks []string `json:"tracks"`
+}
+
+// TODO(patrik): Validation and transform
+type DeletePlaylistItemsBody struct {
+	TrackIds []string `json:"trackIds"`
+}
+
+// TODO(patrik): Validation and transform
+type MovePlaylistItemBody struct {
+	TrackId string `json:"trackId"`
+	ToIndex int    `json:"toIndex"`
+}
 
 func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 	group.Register(
@@ -16,7 +62,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetPlaylists",
 			Path:     "/playlists",
 			Method:   http.MethodGet,
-			DataType: types.GetPlaylists{},
+			DataType: GetPlaylists{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -28,12 +74,12 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := types.GetPlaylists{
-					Playlists: make([]types.Playlist, len(playlists)),
+				res := GetPlaylists{
+					Playlists: make([]Playlist, len(playlists)),
 				}
 
 				for i, playlist := range playlists {
-					res.Playlists[i] = types.Playlist{
+					res.Playlists[i] = Playlist{
 						Id:   playlist.Id,
 						Name: playlist.Name,
 					}
@@ -47,15 +93,15 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:     "CreatePlaylist",
 			Path:     "/playlists",
 			Method:   http.MethodPost,
-			DataType: types.PostPlaylist{},
-			BodyType: types.PostPlaylistBody{},
+			DataType: CreatePlaylist{},
+			BodyType: CreatePlaylistBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
 					return nil, err
 				}
 
-				body, err := pyrin.Body[types.PostPlaylistBody](c)
+				body, err := pyrin.Body[CreatePlaylistBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -68,8 +114,8 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return types.PostPlaylist{
-					Playlist: types.Playlist{
+				return CreatePlaylist{
+					Playlist: Playlist{
 						Id:   playlist.Id,
 						Name: playlist.Name,
 					},
@@ -81,15 +127,15 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:     "CreatePlaylistFromFilter",
 			Path:     "/playlists/filter",
 			Method:   http.MethodPost,
-			DataType: types.PostPlaylist{},
-			BodyType: types.PostPlaylistFilterBody{},
+			DataType: CreatePlaylist{},
+			BodyType: PostPlaylistFilterBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
 					return nil, err
 				}
 
-				body, err := pyrin.Body[types.PostPlaylistFilterBody](c)
+				body, err := pyrin.Body[PostPlaylistFilterBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -137,8 +183,8 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return types.PostPlaylist{
-					Playlist: types.Playlist{
+				return CreatePlaylist{
+					Playlist: Playlist{
 						Id:   playlist.Id,
 						Name: playlist.Name,
 					},
@@ -150,7 +196,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:     "GetPlaylistById",
 			Path:     "/playlists/:id",
 			Method:   http.MethodGet,
-			DataType: types.GetPlaylistById{},
+			DataType: GetPlaylistById{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playlistId := c.Param("id")
 
@@ -174,12 +220,12 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := types.GetPlaylistById{
-					Playlist: types.Playlist{
+				res := GetPlaylistById{
+					Playlist: Playlist{
 						Id:   playlist.Id,
 						Name: playlist.Name,
 					},
-					Items: make([]types.Track, len(tracks)),
+					Items: make([]Track, len(tracks)),
 				}
 
 				for i, track := range tracks {
@@ -194,7 +240,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:     "AddItemsToPlaylist",
 			Path:     "/playlists/:id/items",
 			Method:   http.MethodPost,
-			BodyType: types.PostPlaylistItemsByIdBody{},
+			BodyType: AddItemsToPlaylistBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playlistId := c.Param("id")
 
@@ -203,7 +249,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := pyrin.Body[types.PostPlaylistItemsByIdBody](c)
+				body, err := pyrin.Body[AddItemsToPlaylistBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -231,7 +277,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:     "DeletePlaylistItems",
 			Path:     "/playlists/:id/items",
 			Method:   http.MethodDelete,
-			BodyType: types.DeletePlaylistItemsByIdBody{},
+			BodyType: DeletePlaylistItemsBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playlistId := c.Param("id")
 
@@ -240,7 +286,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := pyrin.Body[types.DeletePlaylistItemsByIdBody](c)
+				body, err := pyrin.Body[DeletePlaylistItemsBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -268,7 +314,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:     "MovePlaylistItem",
 			Path:     "/playlists/:id/items/move",
 			Method:   http.MethodPost,
-			BodyType: types.PostPlaylistsItemMoveByIdBody{},
+			BodyType: MovePlaylistItemBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playlistId := c.Param("id")
 
@@ -277,7 +323,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				body, err := pyrin.Body[types.PostPlaylistsItemMoveByIdBody](c)
+				body, err := pyrin.Body[MovePlaylistItemBody](c)
 				if err != nil {
 					return nil, err
 				}
