@@ -1,20 +1,51 @@
+import { SigninBody } from "$lib/api/types";
 import { error, redirect } from "@sveltejs/kit";
-import type { Actions } from "./$types";
+import { fail, setError, superValidate } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
+import { assert, type Equals } from "tsafe";
+import type { z } from "zod";
+import type { Actions, PageServerLoad } from "./$types";
 
-export const actions = {
-  default: async ({ locals, cookies, request }) => {
-    const formData = await request.formData();
+const Body = SigninBody;
+const schema = Body.extend({
+  username: Body.shape.username,
+  password: Body.shape.password,
+});
 
-    const username = formData.get("username")!;
-    const password = formData.get("password")!;
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+assert<Equals<keyof z.infer<typeof Body>, keyof z.infer<typeof schema>>>;
 
-    const res = await locals.apiClient.signin({
-      username: username.toString(),
-      password: password.toString(),
-    });
+export const load: PageServerLoad = async () => {
+  const form = await superValidate(zod(schema));
 
+  return {
+    form,
+  };
+};
+
+export const actions: Actions = {
+  default: async ({ locals, request, cookies }) => {
+    const form = await superValidate(request, zod(schema));
+
+    if (!form.valid) {
+      return fail(400, { form });
+    }
+
+    const res = await locals.apiClient.signin(form.data);
     if (!res.success) {
-      throw error(res.error.code, { message: res.error.message });
+      if (res.error.type === "VALIDATION_ERROR") {
+        const extra = res.error.extra as Record<
+          keyof z.infer<typeof schema>,
+          string | undefined
+        >;
+
+        setError(form, "username", extra.username ?? "");
+        setError(form, "password", extra.password ?? "");
+
+        return fail(400, { form });
+      } else {
+        throw error(res.error.code, { message: res.error.message });
+      }
     }
 
     locals.apiClient.setToken(res.data.token);
@@ -38,4 +69,4 @@ export const actions = {
 
     throw redirect(302, "/");
   },
-} satisfies Actions;
+};

@@ -283,7 +283,7 @@ export class ApiClient extends BaseApiClient {
       "/api/v1/auth/signin",
       "POST",
       api.Signin,
-      z.undefined(),
+      z.any(),
       body,
       options,
     );
