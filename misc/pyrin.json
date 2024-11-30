@@ -256,22 +256,22 @@
         {
           "name": "name",
           "type": "*string",
-          "omit": false
+          "omit": true
         },
         {
           "name": "artistId",
           "type": "*string",
-          "omit": false
+          "omit": true
         },
         {
           "name": "artistName",
           "type": "*string",
-          "omit": false
+          "omit": true
         },
         {
           "name": "year",
           "type": "*int",
-          "omit": false
+          "omit": true
         }
       ]
     },
@@ -1024,6 +1024,7 @@
       "method": "PATCH",
       "path": "/api/v1/albums/:id",
       "errorTypes": [
+        "ALBUM_NOT_FOUND",
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
@@ -1160,6 +1161,7 @@
       "errorTypes": [
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
+        "USER_ALREADY_EXISTS",
         "VALIDATION_ERROR"
       ],
       "responseType": "Signup",
