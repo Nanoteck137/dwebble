@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -9,52 +11,52 @@ import (
 )
 
 type User struct {
-	Id       string
-	Username string
-	Password string
+	Id       string `db:"id"`
+	Username string `db:"username"`
+	Password string `db:"password"`
+}
+
+func UserQuery() *goqu.SelectDataset {
+	query := dialect.From("users").
+		Select(
+			"users.id", 
+			"users.username",
+			"users.password",
+		).
+		Prepared(true)
+
+	return query
 }
 
 func (db *Database) GetAllUsers(ctx context.Context) ([]User, error) {
-	ds := dialect.From("users").
-		Select("id", "username")
-
-	rows, err := db.Query(ctx, ds)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+	query := UserQuery()
 
 	var items []User
-	for rows.Next() {
-		var item User
-		err := rows.Scan(&item.Id, &item.Username)
-		if err != nil {
-			return nil, err
-		}
-
-		items = append(items, item)
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
 	}
 
 	return items, nil
 }
 
 func (db *Database) CreateUser(ctx context.Context, username, password string) (User, error) {
-	ds := dialect.
+	query := dialect.
 		Insert("users").
 		Rows(goqu.Record{
 			"id":       utils.CreateId(),
 			"username": username,
 			"password": password,
 		}).
-		Returning("id", "username", "password")
+		Returning(
+			"users.id", 
+			"users.username", 
+			"users.password",
+		)
 
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return User{}, err
-	}
 
 	var item User
-	err = row.Scan(&item.Id, &item.Username, &item.Password)
+	err := db.Get(&item, query)
 	if err != nil {
 		return User{}, err
 	}
@@ -63,19 +65,16 @@ func (db *Database) CreateUser(ctx context.Context, username, password string) (
 }
 
 func (db *Database) GetUserById(ctx context.Context, id string) (User, error) {
-	ds := dialect.
-		From("users").
-		Select("id", "username", "password").
-		Where(goqu.C("id").Eq(id))
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return User{}, err
-	}
+	query := UserQuery().
+		Where(goqu.I("users.id").Eq(id))
 
 	var item User
-	err = row.Scan(&item.Id, &item.Username, &item.Password)
+	err := db.Get(&item, query)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return User{}, ErrItemNotFound
+		}
+
 		return User{}, err
 	}
 
@@ -83,20 +82,16 @@ func (db *Database) GetUserById(ctx context.Context, id string) (User, error) {
 }
 
 func (db *Database) GetUserByUsername(ctx context.Context, username string) (User, error) {
-	ds := dialect.
-		From("users").
-		Select("id", "username", "password").
-		Where(goqu.C("username").Eq(username))
-		// TODO(patrik): Prepared
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return User{}, err
-	}
+	query := UserQuery().
+		Where(goqu.I("users.username").Eq(username))
 
 	var item User
-	err = row.Scan(&item.Id, &item.Username, &item.Password)
+	err := db.Get(&item, query)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return User{}, ErrItemNotFound
+		}
+
 		return User{}, err
 	}
 
@@ -122,8 +117,8 @@ func (db *Database) UpdateUser(ctx context.Context, id string, changes UserChang
 
 	ds := dialect.Update("users").
 		Set(record).
-		Where(goqu.I("id").Eq(id)).
-		Prepared(true)
+		Prepared(true).
+		Where(goqu.I("users.id").Eq(id))
 
 	_, err := db.Exec(ctx, ds)
 	if err != nil {
