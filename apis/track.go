@@ -16,6 +16,7 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/validate"
 )
 
 type Track struct {
@@ -86,7 +87,54 @@ type GetTrackById struct {
 	Track
 }
 
-// TODO(patrik): Validation and Transform
+// TODO(patrik): Move transform functions to pyrin
+func TransformString(s string) string {
+	return strings.TrimSpace(s)
+}
+
+func TransformStringPtr(s *string) *string {
+	if s == nil {
+		return nil
+	}
+
+	*s = TransformString(*s)
+	return s
+}
+
+func TransformStringArrayPtr(arr *[]string) *[]string {
+	if arr == nil {
+		return nil
+	}
+
+	v := *arr
+	for i, s := range v {
+		v[i] = TransformString(s)
+	}
+
+	return arr
+}
+
+func TransformDiscardEmptyStringEntries(arr *[]string) *[]string {
+	if arr == nil {
+		return nil
+	}
+
+	var res []string
+
+	v := *arr
+	for _, s := range v {
+		if s != "" {
+			res = append(res, s)
+		}
+	}
+
+	if len(res) == 0 {
+		return nil
+	}
+
+	return &res
+}
+
 type EditTrackBody struct {
 	Name       *string   `json:"name,omitempty"`
 	ArtistId   *string   `json:"artistId,omitempty"`
@@ -94,6 +142,38 @@ type EditTrackBody struct {
 	Year       *int64    `json:"year,omitempty"`
 	Number     *int64    `json:"number,omitempty"`
 	Tags       *[]string `json:"tags,omitempty"`
+}
+
+func (b *EditTrackBody) Transform() {
+	b.Name = TransformStringPtr(b.Name)
+	b.Tags = TransformStringArrayPtr(b.Tags)
+	b.Tags = TransformDiscardEmptyStringEntries(b.Tags)
+}
+
+func (b EditTrackBody) Validate() error {
+	checkBothArtist := validate.By(func(value interface{}) error {
+			if b.ArtistId != nil && b.ArtistName != nil {
+				return errors.New("both 'artistId' and 'artistName' can't be specified remove one of them")
+			}
+
+			return nil
+		})
+
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, 
+			validate.Required.When(b.Name != nil),
+		),
+		validate.Field(&b.ArtistId, 
+			validate.Required.When(b.ArtistId != nil), 
+			checkBothArtist,
+		),
+		validate.Field(&b.ArtistName, 
+			validate.Required.When(b.ArtistName != nil), 
+			checkBothArtist,
+		),
+		validate.Field(&b.Year, validate.Min(0)),
+		validate.Field(&b.Number, validate.Min(0)),
+	)
 }
 
 func InstallTrackHandlers(app core.App, group pyrin.Group) {
@@ -257,7 +337,6 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
-				// TODO(patrik): Validation
 				body, err := pyrin.Body[EditTrackBody](c)
 				if err != nil {
 					return nil, err
