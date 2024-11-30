@@ -152,7 +152,7 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 		if err != nil {
 			if errors.Is(err, database.ErrItemNotFound) {
 				artist, err := db.CreateArtist(ctx, database.CreateArtistParams{
-					Name:    name,
+					Name: name,
 				})
 				if err != nil {
 					return database.Artist{}, err
@@ -316,7 +316,7 @@ func importAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 		}
 
 		_, err = db.CreateTrack(ctx, database.CreateTrackParams{
-			Id: trackId,
+			Id:       trackId,
 			Name:     track.Name,
 			AlbumId:  album.Id,
 			ArtistId: artist.Id,

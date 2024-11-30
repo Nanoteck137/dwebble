@@ -184,7 +184,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 
 				// TODO(patrik): Check body.CurrentPassword
 
-				if(user.Password != body.CurrentPassword) {
+				if user.Password != body.CurrentPassword {
 					// TODO(patrik): Better error
 					return nil, errors.New("Password not matching")
 				}

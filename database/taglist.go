@@ -50,9 +50,9 @@ func (db *Database) CreateTaglist(ctx context.Context, params CreateTaglistParam
 			"updated": updated,
 		}).
 		Returning(
-			"taglists.id", 
-			"taglists.name", 
-			"taglists.filter", 
+			"taglists.id",
+			"taglists.name",
+			"taglists.filter",
 			"taglists.owner_id",
 			"taglists.created",
 			"taglists.updated",

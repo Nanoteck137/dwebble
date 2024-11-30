@@ -22,14 +22,14 @@ import (
 )
 
 type Album struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
+	Id         string       `json:"id"`
+	Name       string       `json:"name"`
 	CoverArt   types.Images `json:"coverArt"`
-	ArtistId   string `json:"artistId"`
-	ArtistName string `json:"artistName"`
-	Year       *int64 `json:"year"`
-	Created    int64  `json:"created"`
-	Updated    int64  `json:"updated"`
+	ArtistId   string       `json:"artistId"`
+	ArtistName string       `json:"artistName"`
+	Year       *int64       `json:"year"`
+	Created    int64        `json:"created"`
+	Updated    int64        `json:"updated"`
 }
 
 func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {

@@ -59,7 +59,7 @@ var testCmd = &cobra.Command{
 	Use: "test",
 	Run: func(cmd *cobra.Command, args []string) {
 		conf := config.Config{
-			DataDir:         "./work",
+			DataDir: "./work",
 			// TODO(patrik): Used for testing
 			Username:        "admin",
 			InitialPassword: "admin",

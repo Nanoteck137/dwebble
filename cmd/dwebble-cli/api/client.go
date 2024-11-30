@@ -9,10 +9,10 @@ func (c *Client) GetArtists(options Options) (*GetArtists, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetArtists](data)
 }
@@ -25,10 +25,10 @@ func (c *Client) SearchArtists(options Options) (*GetArtists, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetArtists](data)
 }
@@ -41,10 +41,10 @@ func (c *Client) GetArtistById(id string, options Options) (*GetArtistById, erro
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetArtistById](data)
 }
@@ -57,10 +57,10 @@ func (c *Client) GetArtistAlbums(id string, options Options) (*GetArtistAlbumsBy
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetArtistAlbumsById](data)
 }
@@ -73,10 +73,10 @@ func (c *Client) EditArtist(id string, body EditArtistBody, options Options) (*a
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "PATCH",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[any](data)
 }
@@ -89,10 +89,10 @@ func (c *Client) ChangeArtistPicture(id string, body Reader, options Options) (*
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "PATCH",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return RequestForm[any](data, options.Boundary, body)
 }
@@ -105,10 +105,10 @@ func (c *Client) GetAlbums(options Options) (*GetAlbums, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetAlbums](data)
 }
@@ -121,10 +121,10 @@ func (c *Client) SearchAlbums(options Options) (*GetAlbums, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetAlbums](data)
 }
@@ -137,10 +137,10 @@ func (c *Client) GetAlbumById(id string, options Options) (*GetAlbumById, error)
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetAlbumById](data)
 }
@@ -153,10 +153,10 @@ func (c *Client) GetAlbumTracks(id string, options Options) (*GetAlbumTracksById
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetAlbumTracksById](data)
 }
@@ -169,10 +169,10 @@ func (c *Client) EditAlbum(id string, body PatchAlbumBody, options Options) (*an
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "PATCH",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[any](data)
 }
@@ -185,10 +185,10 @@ func (c *Client) DeleteAlbum(id string, options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "DELETE",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[any](data)
 }
@@ -201,10 +201,10 @@ func (c *Client) CreateAlbum(body CreateAlbumBody, options Options) (*CreateAlbu
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[CreateAlbum](data)
 }
@@ -217,10 +217,10 @@ func (c *Client) ChangeAlbumCover(id string, body Reader, options Options) (*any
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return RequestForm[any](data, options.Boundary, body)
 }
@@ -233,10 +233,10 @@ func (c *Client) UploadTracks(id string, body Reader, options Options) (*any, er
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return RequestForm[any](data, options.Boundary, body)
 }
@@ -249,10 +249,10 @@ func (c *Client) GetTracks(options Options) (*GetTracks, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetTracks](data)
 }
@@ -265,10 +265,10 @@ func (c *Client) SearchTracks(options Options) (*GetTracks, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetTracks](data)
 }
@@ -281,10 +281,10 @@ func (c *Client) GetTrackById(id string, options Options) (*GetTrackById, error)
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetTrackById](data)
 }
@@ -297,10 +297,10 @@ func (c *Client) RemoveTrack(id string, options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "DELETE",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[any](data)
 }
@@ -313,10 +313,10 @@ func (c *Client) EditTrack(id string, body PatchTrackBody, options Options) (*an
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "PATCH",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[any](data)
 }
@@ -329,10 +329,10 @@ func (c *Client) Signup(body PostAuthSignupBody, options Options) (*PostAuthSign
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[PostAuthSignup](data)
 }
@@ -345,10 +345,10 @@ func (c *Client) Signin(body PostAuthSigninBody, options Options) (*PostAuthSign
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[PostAuthSignin](data)
 }
@@ -361,10 +361,10 @@ func (c *Client) ChangePassword(body ChangePasswordBody, options Options) (*any,
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "PUT",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[any](data)
 }
@@ -377,10 +377,10 @@ func (c *Client) GetMe(options Options) (*GetAuthMe, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetAuthMe](data)
 }
@@ -393,10 +393,10 @@ func (c *Client) GetPlaylists(options Options) (*GetPlaylists, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetPlaylists](data)
 }
@@ -409,10 +409,10 @@ func (c *Client) CreatePlaylist(body PostPlaylistBody, options Options) (*PostPl
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[PostPlaylist](data)
 }
@@ -425,10 +425,10 @@ func (c *Client) CreatePlaylistFromFilter(body PostPlaylistFilterBody, options O
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[PostPlaylist](data)
 }
@@ -441,10 +441,10 @@ func (c *Client) GetPlaylistById(id string, options Options) (*GetPlaylistById, 
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetPlaylistById](data)
 }
@@ -457,10 +457,10 @@ func (c *Client) AddItemsToPlaylist(id string, body PostPlaylistItemsByIdBody, o
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[any](data)
 }
@@ -473,10 +473,10 @@ func (c *Client) DeletePlaylistItems(id string, body DeletePlaylistItemsByIdBody
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "DELETE",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[any](data)
 }
@@ -489,10 +489,10 @@ func (c *Client) MovePlaylistItem(id string, body PostPlaylistsItemMoveByIdBody,
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[any](data)
 }
@@ -505,10 +505,10 @@ func (c *Client) GetSystemInfo(options Options) (*GetSystemInfo, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetSystemInfo](data)
 }
@@ -521,10 +521,10 @@ func (c *Client) SystemExport(options Options) (*Export, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[Export](data)
 }
@@ -537,10 +537,10 @@ func (c *Client) Process(options Options) (*any, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[any](data)
 }
@@ -553,10 +553,10 @@ func (c *Client) GetTaglists(options Options) (*GetTaglists, error) {
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetTaglists](data)
 }
@@ -569,10 +569,10 @@ func (c *Client) GetTaglistById(id string, options Options) (*GetTaglistById, er
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetTaglistById](data)
 }
@@ -585,10 +585,10 @@ func (c *Client) GetTaglistTracks(id string, options Options) (*GetTaglistTracks
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "GET",
-		Token: c.token,
-		Body: nil,
+		Token:  c.token,
+		Body:   nil,
 	}
 	return Request[GetTaglistTracks](data)
 }
@@ -601,10 +601,10 @@ func (c *Client) CreateTaglist(body CreateTaglistBody, options Options) (*Create
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "POST",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[CreateTaglist](data)
 }
@@ -617,10 +617,10 @@ func (c *Client) UpdateTaglist(id string, body UpdateTaglistBody, options Option
 	}
 
 	data := RequestData{
-		Url: url,
+		Url:    url,
 		Method: "PATCH",
-		Token: c.token,
-		Body: body,
+		Token:  c.token,
+		Body:   body,
 	}
 	return Request[any](data)
 }

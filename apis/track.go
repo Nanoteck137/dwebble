@@ -29,8 +29,8 @@ type Track struct {
 	Duration *int64 `json:"duration"`
 	Year     *int64 `json:"year"`
 
-	OriginalMediaUrl string `json:"originalMediaUrl"`
-	MobileMediaUrl   string `json:"mobileMediaUrl"`
+	OriginalMediaUrl string       `json:"originalMediaUrl"`
+	MobileMediaUrl   string       `json:"mobileMediaUrl"`
 	CoverArt         types.Images `json:"coverArt"`
 
 	AlbumName  string `json:"albumName"`
@@ -78,8 +78,8 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 }
 
 type GetTracks struct {
-	Page   types.Page    `json:"page"`
-	Tracks []Track `json:"tracks"`
+	Page   types.Page `json:"page"`
+	Tracks []Track    `json:"tracks"`
 }
 
 type GetTrackById struct {

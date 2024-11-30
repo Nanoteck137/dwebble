@@ -13,9 +13,9 @@ import (
 )
 
 type ImportTrackData struct {
-	AlbumId string
+	AlbumId  string
 	ArtistId string
-	Name string
+	Name     string
 	Filename string
 
 	ForceExtractNumber bool
@@ -96,7 +96,7 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 	return trackId, nil
 }
 
-func CreateAlbum(ctx context.Context, db *database.Database, workDir types.WorkDir,  params database.CreateAlbumParams) (database.Album, error) {
+func CreateAlbum(ctx context.Context, db *database.Database, workDir types.WorkDir, params database.CreateAlbumParams) (database.Album, error) {
 	album, err := db.CreateAlbum(ctx, params)
 	if err != nil {
 		return database.Album{}, err

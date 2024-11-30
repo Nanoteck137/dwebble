@@ -131,7 +131,7 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr 
 		}
 
 		query = query.Where(re)
-	} 
+	}
 
 	sortExpr, err := sort.Parse(sortStr)
 	if err != nil {

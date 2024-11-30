@@ -19,7 +19,7 @@ type User struct {
 func UserQuery() *goqu.SelectDataset {
 	query := dialect.From("users").
 		Select(
-			"users.id", 
+			"users.id",
 			"users.username",
 			"users.password",
 		).
@@ -49,11 +49,10 @@ func (db *Database) CreateUser(ctx context.Context, username, password string) (
 			"password": password,
 		}).
 		Returning(
-			"users.id", 
-			"users.username", 
+			"users.id",
+			"users.username",
 			"users.password",
 		)
-
 
 	var item User
 	err := db.Get(&item, query)

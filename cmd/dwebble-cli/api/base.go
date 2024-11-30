@@ -27,7 +27,7 @@ func (c *Client) SetToken(token string) {
 
 type Options struct {
 	QueryParams map[string]string
-	Boundary string
+	Boundary    string
 }
 
 func createUrl(addr, path string, query map[string]string) (string, error) {

@@ -16,12 +16,12 @@ import (
 )
 
 type Taglist struct {
-	Id      string `json:"id"`
-	Name    string `json:"name"`
-	Filter  string `json:"filter"`
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Filter string `json:"filter"`
 
-	Created int64  `json:"created"`
-	Updated int64  `json:"updated"`
+	Created int64 `json:"created"`
+	Updated int64 `json:"updated"`
 }
 
 type GetTaglists struct {
@@ -33,8 +33,8 @@ type GetTaglistById struct {
 }
 
 type GetTaglistTracks struct {
-	Page   types.Page    `json:"page"`
-	Tracks []Track `json:"tracks"`
+	Page   types.Page `json:"page"`
+	Tracks []Track    `json:"tracks"`
 }
 
 type CreateTaglist struct {

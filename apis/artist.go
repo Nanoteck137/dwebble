@@ -18,11 +18,11 @@ import (
 )
 
 type Artist struct {
-	Id      string `json:"id"`
-	Name    string `json:"name"`
+	Id      string       `json:"id"`
+	Name    string       `json:"name"`
 	Picture types.Images `json:"picture"`
-	Created int64  `json:"created"`
-	Updated int64  `json:"updated"`
+	Created int64        `json:"created"`
+	Updated int64        `json:"updated"`
 }
 
 type GetArtists struct {
@@ -209,7 +209,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 
 				err = app.DB().UpdateArtist(ctx, artist.Id, database.ArtistChanges{
 					Name: types.Change[string]{
-						Value: name,
+						Value:   name,
 						Changed: name != "" && artist.Name != name,
 					},
 				})
