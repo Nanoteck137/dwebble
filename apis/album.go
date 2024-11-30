@@ -19,6 +19,7 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/validate"
 )
 
 type Album struct {
@@ -63,19 +64,54 @@ type GetAlbumTracks struct {
 }
 
 type EditAlbumBody struct {
-	Name       *string `json:"name"`
-	ArtistId   *string `json:"artistId"`
-	ArtistName *string `json:"artistName"`
-	Year       *int64  `json:"year"`
+	Name       *string `json:"name,omitempty"`
+	ArtistId   *string `json:"artistId,omitempty"`
+	ArtistName *string `json:"artistName,omitempty"`
+	Year       *int64  `json:"year,omitempty"`
 }
 
+func (b *EditAlbumBody) Transform() {
+	b.Name = TransformStringPtr(b.Name)
+	b.ArtistName = TransformStringPtr(b.ArtistName)
+}
+
+func (b EditAlbumBody) Validate() error {
+	checkBoth := validate.By(func(value interface{}) error {
+		if b.ArtistName != nil && b.ArtistId != nil {
+			return errors.New("both 'artistId' and 'artistName' cannot be set")
+		}
+
+		return nil
+	})
+
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required.When(b.Name != nil)),
+		validate.Field(&b.ArtistId, checkBoth, validate.Required.When(b.ArtistId != nil)),
+		validate.Field(&b.ArtistName, checkBoth, validate.Required.When(b.ArtistName != nil)),
+		validate.Field(&b.Year, validate.Min(0)),
+	)
+}
+
+type CreateAlbum struct {
+	AlbumId string `json:"albumId"`
+}
+
+// TODO(patrik): Add ArtistId
 type CreateAlbumBody struct {
 	Name   string `json:"name"`
 	Artist string `json:"artist"`
 }
 
-type CreateAlbum struct {
-	AlbumId string `json:"albumId"`
+func (b *CreateAlbumBody) Transform() {
+	b.Name = TransformString(b.Name)
+	b.Artist = TransformString(b.Artist)
+}
+
+func (b CreateAlbumBody) Validate() error{
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required),
+		validate.Field(&b.Artist, validate.Required),
+	)
 }
 
 type UploadTracksBody struct {
@@ -210,6 +246,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodPatch,
 			Path:     "/albums/:id",
 			BodyType: EditAlbumBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
@@ -218,29 +255,31 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				album, err := app.DB().GetAlbumById(c.Request().Context(), id)
+				ctx := context.TODO()
+
+				album, err := app.DB().GetAlbumById(ctx, id)
 				if err != nil {
-					// TODO(patrik): Handle error
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, AlbumNotFound()
+					}
+
 					return nil, err
 				}
 
 				var name types.Change[string]
 				if body.Name != nil {
-					// TODO(patrik): Move to transform
-					n := strings.TrimSpace(*body.Name)
-					name.Value = n
-					name.Changed = n != album.Name
+					name.Value = *body.Name
+					name.Changed = *body.Name != album.Name
 				}
-
-				ctx := context.TODO()
 
 				var artistId types.Change[string]
 				if body.ArtistId != nil {
 					artistId.Value = *body.ArtistId
 					artistId.Changed = *body.ArtistId != album.ArtistId
 				} else if body.ArtistName != nil {
-					artistName := strings.TrimSpace(*body.ArtistName)
+					artistName := *body.ArtistName
 
+					// TODO(patrik): Move to helper?
 					artist, err := app.DB().GetArtistByName(ctx, artistName)
 					if err != nil {
 						if errors.Is(err, database.ErrItemNotFound) {

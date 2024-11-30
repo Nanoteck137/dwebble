@@ -355,9 +355,8 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 
 				var name types.Change[string]
 				if body.Name != nil {
-					n := strings.TrimSpace(*body.Name)
-					name.Value = n
-					name.Changed = n != track.Name
+					name.Value = *body.Name
+					name.Changed = *body.Name != track.Name
 				}
 
 				var artistId types.Change[string]
@@ -365,7 +364,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					artistId.Value = *body.ArtistId
 					artistId.Changed = *body.ArtistId != track.ArtistId
 				} else if body.ArtistName != nil {
-					artistName := strings.TrimSpace(*body.ArtistName)
+					artistName := *body.ArtistName
 
 					artist, err := app.DB().GetArtistByName(ctx, artistName)
 					if err != nil {

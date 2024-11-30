@@ -15,6 +15,7 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/validate"
 )
 
 type Artist struct {
@@ -39,6 +40,16 @@ type GetArtistAlbumsById struct {
 
 type EditArtistBody struct {
 	Name *string `json:"name"`
+}
+
+func (b *EditArtistBody) Transform() {
+	b.Name = TransformStringPtr(b.Name)
+}
+
+func (b EditArtistBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required.When(b.Name != nil)),
+	)
 }
 
 func InstallArtistHandlers(app core.App, group pyrin.Group) {
@@ -195,23 +206,28 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				var name string
-				if body.Name != nil {
-					name = strings.TrimSpace(*body.Name)
-				}
-
 				ctx := context.TODO()
 
 				artist, err := app.DB().GetArtistById(ctx, id)
 				if err != nil {
-					return nil, ArtistNotFound()
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, ArtistNotFound()
+					}
+
+					return nil, err
+				}
+
+				// TODO(patrik): Create helper function for this
+				var name types.Change[string]
+				if body.Name != nil {
+					name = types.Change[string]{
+						Value:   *body.Name,
+						Changed: artist.Name != *body.Name,
+					}
 				}
 
 				err = app.DB().UpdateArtist(ctx, artist.Id, database.ArtistChanges{
-					Name: types.Change[string]{
-						Value:   name,
-						Changed: name != "" && artist.Name != name,
-					},
+					Name: name,
 				})
 				if err != nil {
 					return nil, err
