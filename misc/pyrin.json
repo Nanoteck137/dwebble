@@ -44,6 +44,16 @@
           "name": "picture",
           "type": "Images",
           "omit": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omit": false
         }
       ]
     },
@@ -229,7 +239,7 @@
       ]
     },
     {
-      "name": "GetAlbumTracksById",
+      "name": "GetAlbumTracks",
       "extend": "",
       "fields": [
         {
@@ -240,7 +250,7 @@
       ]
     },
     {
-      "name": "PatchAlbumBody",
+      "name": "EditAlbumBody",
       "extend": "",
       "fields": [
         {
@@ -351,7 +361,7 @@
       "fields": null
     },
     {
-      "name": "PatchTrackBody",
+      "name": "EditTrackBody",
       "extend": "",
       "fields": [
         {
@@ -387,7 +397,7 @@
       ]
     },
     {
-      "name": "PostAuthSignup",
+      "name": "Signup",
       "extend": "",
       "fields": [
         {
@@ -403,7 +413,7 @@
       ]
     },
     {
-      "name": "PostAuthSignupBody",
+      "name": "SignupBody",
       "extend": "",
       "fields": [
         {
@@ -424,7 +434,7 @@
       ]
     },
     {
-      "name": "PostAuthSignin",
+      "name": "Signin",
       "extend": "",
       "fields": [
         {
@@ -435,7 +445,7 @@
       ]
     },
     {
-      "name": "PostAuthSigninBody",
+      "name": "SigninBody",
       "extend": "",
       "fields": [
         {
@@ -472,7 +482,7 @@
       ]
     },
     {
-      "name": "GetAuthMe",
+      "name": "GetMe",
       "extend": "",
       "fields": [
         {
@@ -520,12 +530,12 @@
       ]
     },
     {
-      "name": "PostPlaylist",
+      "name": "CreatePlaylist",
       "extend": "Playlist",
       "fields": null
     },
     {
-      "name": "PostPlaylistBody",
+      "name": "CreatePlaylistBody",
       "extend": "",
       "fields": [
         {
@@ -578,7 +588,7 @@
       ]
     },
     {
-      "name": "PostPlaylistItemsByIdBody",
+      "name": "AddItemsToPlaylistBody",
       "extend": "",
       "fields": [
         {
@@ -589,7 +599,7 @@
       ]
     },
     {
-      "name": "DeletePlaylistItemsByIdBody",
+      "name": "DeletePlaylistItemsBody",
       "extend": "",
       "fields": [
         {
@@ -600,7 +610,7 @@
       ]
     },
     {
-      "name": "PostPlaylistsItemMoveByIdBody",
+      "name": "MovePlaylistItemBody",
       "extend": "",
       "fields": [
         {
@@ -1005,7 +1015,7 @@
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],
-      "responseType": "GetAlbumTracksById",
+      "responseType": "GetAlbumTracks",
       "bodyType": "",
       "requireFormData": false
     },
@@ -1019,7 +1029,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "PatchAlbumBody",
+      "bodyType": "EditAlbumBody",
       "requireFormData": false
     },
     {
@@ -1140,7 +1150,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "PatchTrackBody",
+      "bodyType": "EditTrackBody",
       "requireFormData": false
     },
     {
@@ -1152,8 +1162,8 @@
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],
-      "responseType": "PostAuthSignup",
-      "bodyType": "PostAuthSignupBody",
+      "responseType": "Signup",
+      "bodyType": "SignupBody",
       "requireFormData": false
     },
     {
@@ -1165,13 +1175,13 @@
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],
-      "responseType": "PostAuthSignin",
-      "bodyType": "PostAuthSigninBody",
+      "responseType": "Signin",
+      "bodyType": "SigninBody",
       "requireFormData": false
     },
     {
       "name": "ChangePassword",
-      "method": "PUT",
+      "method": "PATCH",
       "path": "/api/v1/auth/password",
       "errorTypes": [
         "ROUTE_NOT_FOUND",
@@ -1191,7 +1201,7 @@
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],
-      "responseType": "GetAuthMe",
+      "responseType": "GetMe",
       "bodyType": "",
       "requireFormData": false
     },
@@ -1217,8 +1227,8 @@
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],
-      "responseType": "PostPlaylist",
-      "bodyType": "PostPlaylistBody",
+      "responseType": "CreatePlaylist",
+      "bodyType": "CreatePlaylistBody",
       "requireFormData": false
     },
     {
@@ -1230,7 +1240,7 @@
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
       ],
-      "responseType": "PostPlaylist",
+      "responseType": "CreatePlaylist",
       "bodyType": "PostPlaylistFilterBody",
       "requireFormData": false
     },
@@ -1257,7 +1267,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "PostPlaylistItemsByIdBody",
+      "bodyType": "AddItemsToPlaylistBody",
       "requireFormData": false
     },
     {
@@ -1270,7 +1280,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "DeletePlaylistItemsByIdBody",
+      "bodyType": "DeletePlaylistItemsBody",
       "requireFormData": false
     },
     {
@@ -1283,7 +1293,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "PostPlaylistsItemMoveByIdBody",
+      "bodyType": "MovePlaylistItemBody",
       "requireFormData": false
     },
     {

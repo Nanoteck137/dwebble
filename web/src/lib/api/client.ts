@@ -84,10 +84,10 @@ export class ApiClient extends BaseApiClient {
   }
   
   getAlbumTracks(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracksById, z.undefined(), undefined, options)
+    return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracks, z.undefined(), undefined, options)
   }
   
-  editAlbum(id: string, body: api.PatchAlbumBody, options?: ExtraOptions) {
+  editAlbum(id: string, body: api.EditAlbumBody, options?: ExtraOptions) {
     return this.request(`/api/v1/albums/${id}`, "PATCH", z.undefined(), z.undefined(), body, options)
   }
   
@@ -123,51 +123,51 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/tracks/${id}`, "DELETE", z.undefined(), z.undefined(), undefined, options)
   }
   
-  editTrack(id: string, body: api.PatchTrackBody, options?: ExtraOptions) {
+  editTrack(id: string, body: api.EditTrackBody, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}`, "PATCH", z.undefined(), z.undefined(), body, options)
   }
   
-  signup(body: api.PostAuthSignupBody, options?: ExtraOptions) {
-    return this.request("/api/v1/auth/signup", "POST", api.PostAuthSignup, z.undefined(), body, options)
+  signup(body: api.SignupBody, options?: ExtraOptions) {
+    return this.request("/api/v1/auth/signup", "POST", api.Signup, z.undefined(), body, options)
   }
   
-  signin(body: api.PostAuthSigninBody, options?: ExtraOptions) {
-    return this.request("/api/v1/auth/signin", "POST", api.PostAuthSignin, z.undefined(), body, options)
+  signin(body: api.SigninBody, options?: ExtraOptions) {
+    return this.request("/api/v1/auth/signin", "POST", api.Signin, z.undefined(), body, options)
   }
   
   changePassword(body: api.ChangePasswordBody, options?: ExtraOptions) {
-    return this.request("/api/v1/auth/password", "PUT", z.undefined(), z.undefined(), body, options)
+    return this.request("/api/v1/auth/password", "PATCH", z.undefined(), z.undefined(), body, options)
   }
   
   getMe(options?: ExtraOptions) {
-    return this.request("/api/v1/auth/me", "GET", api.GetAuthMe, z.undefined(), undefined, options)
+    return this.request("/api/v1/auth/me", "GET", api.GetMe, z.undefined(), undefined, options)
   }
   
   getPlaylists(options?: ExtraOptions) {
     return this.request("/api/v1/playlists", "GET", api.GetPlaylists, z.undefined(), undefined, options)
   }
   
-  createPlaylist(body: api.PostPlaylistBody, options?: ExtraOptions) {
-    return this.request("/api/v1/playlists", "POST", api.PostPlaylist, z.undefined(), body, options)
+  createPlaylist(body: api.CreatePlaylistBody, options?: ExtraOptions) {
+    return this.request("/api/v1/playlists", "POST", api.CreatePlaylist, z.undefined(), body, options)
   }
   
   createPlaylistFromFilter(body: api.PostPlaylistFilterBody, options?: ExtraOptions) {
-    return this.request("/api/v1/playlists/filter", "POST", api.PostPlaylist, z.undefined(), body, options)
+    return this.request("/api/v1/playlists/filter", "POST", api.CreatePlaylist, z.undefined(), body, options)
   }
   
   getPlaylistById(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/playlists/${id}`, "GET", api.GetPlaylistById, z.undefined(), undefined, options)
   }
   
-  addItemsToPlaylist(id: string, body: api.PostPlaylistItemsByIdBody, options?: ExtraOptions) {
+  addItemsToPlaylist(id: string, body: api.AddItemsToPlaylistBody, options?: ExtraOptions) {
     return this.request(`/api/v1/playlists/${id}/items`, "POST", z.undefined(), z.undefined(), body, options)
   }
   
-  deletePlaylistItems(id: string, body: api.DeletePlaylistItemsByIdBody, options?: ExtraOptions) {
+  deletePlaylistItems(id: string, body: api.DeletePlaylistItemsBody, options?: ExtraOptions) {
     return this.request(`/api/v1/playlists/${id}/items`, "DELETE", z.undefined(), z.undefined(), body, options)
   }
   
-  movePlaylistItem(id: string, body: api.PostPlaylistsItemMoveByIdBody, options?: ExtraOptions) {
+  movePlaylistItem(id: string, body: api.MovePlaylistItemBody, options?: ExtraOptions) {
     return this.request(`/api/v1/playlists/${id}/items/move`, "POST", z.undefined(), z.undefined(), body, options)
   }
   

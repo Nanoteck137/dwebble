@@ -13,6 +13,8 @@ export const Artist = z.object({
   id: z.string(),
   name: z.string(),
   picture: Images,
+  created: z.number(),
+  updated: z.number(),
 });
 export type Artist = z.infer<typeof Artist>;
 
@@ -73,18 +75,18 @@ export const Track = z.object({
 });
 export type Track = z.infer<typeof Track>;
 
-export const GetAlbumTracksById = z.object({
+export const GetAlbumTracks = z.object({
   tracks: z.array(Track),
 });
-export type GetAlbumTracksById = z.infer<typeof GetAlbumTracksById>;
+export type GetAlbumTracks = z.infer<typeof GetAlbumTracks>;
 
-export const PatchAlbumBody = z.object({
+export const EditAlbumBody = z.object({
   name: z.string().nullable(),
   artistId: z.string().nullable(),
   artistName: z.string().nullable(),
   year: z.number().nullable(),
 });
-export type PatchAlbumBody = z.infer<typeof PatchAlbumBody>;
+export type EditAlbumBody = z.infer<typeof EditAlbumBody>;
 
 export const CreateAlbum = z.object({
   albumId: z.string(),
@@ -119,7 +121,7 @@ export type GetTracks = z.infer<typeof GetTracks>;
 export const GetTrackById = Track;
 export type GetTrackById = z.infer<typeof GetTrackById>;
 
-export const PatchTrackBody = z.object({
+export const EditTrackBody = z.object({
   name: z.string().nullable().optional(),
   artistId: z.string().nullable().optional(),
   artistName: z.string().nullable().optional(),
@@ -127,31 +129,31 @@ export const PatchTrackBody = z.object({
   number: z.number().nullable().optional(),
   tags: z.array(z.string()).nullable().optional(),
 });
-export type PatchTrackBody = z.infer<typeof PatchTrackBody>;
+export type EditTrackBody = z.infer<typeof EditTrackBody>;
 
-export const PostAuthSignup = z.object({
+export const Signup = z.object({
   id: z.string(),
   username: z.string(),
 });
-export type PostAuthSignup = z.infer<typeof PostAuthSignup>;
+export type Signup = z.infer<typeof Signup>;
 
-export const PostAuthSignupBody = z.object({
+export const SignupBody = z.object({
   username: z.string(),
   password: z.string(),
   passwordConfirm: z.string(),
 });
-export type PostAuthSignupBody = z.infer<typeof PostAuthSignupBody>;
+export type SignupBody = z.infer<typeof SignupBody>;
 
-export const PostAuthSignin = z.object({
+export const Signin = z.object({
   token: z.string(),
 });
-export type PostAuthSignin = z.infer<typeof PostAuthSignin>;
+export type Signin = z.infer<typeof Signin>;
 
-export const PostAuthSigninBody = z.object({
+export const SigninBody = z.object({
   username: z.string(),
   password: z.string(),
 });
-export type PostAuthSigninBody = z.infer<typeof PostAuthSigninBody>;
+export type SigninBody = z.infer<typeof SigninBody>;
 
 export const ChangePasswordBody = z.object({
   currentPassword: z.string(),
@@ -160,12 +162,12 @@ export const ChangePasswordBody = z.object({
 });
 export type ChangePasswordBody = z.infer<typeof ChangePasswordBody>;
 
-export const GetAuthMe = z.object({
+export const GetMe = z.object({
   id: z.string(),
   username: z.string(),
   isOwner: z.boolean(),
 });
-export type GetAuthMe = z.infer<typeof GetAuthMe>;
+export type GetMe = z.infer<typeof GetMe>;
 
 export const Playlist = z.object({
   id: z.string(),
@@ -178,13 +180,13 @@ export const GetPlaylists = z.object({
 });
 export type GetPlaylists = z.infer<typeof GetPlaylists>;
 
-export const PostPlaylist = Playlist;
-export type PostPlaylist = z.infer<typeof PostPlaylist>;
+export const CreatePlaylist = Playlist;
+export type CreatePlaylist = z.infer<typeof CreatePlaylist>;
 
-export const PostPlaylistBody = z.object({
+export const CreatePlaylistBody = z.object({
   name: z.string(),
 });
-export type PostPlaylistBody = z.infer<typeof PostPlaylistBody>;
+export type CreatePlaylistBody = z.infer<typeof CreatePlaylistBody>;
 
 export const PostPlaylistFilterBody = z.object({
   name: z.string(),
@@ -200,21 +202,21 @@ export const GetPlaylistById = z.object({
 });
 export type GetPlaylistById = z.infer<typeof GetPlaylistById>;
 
-export const PostPlaylistItemsByIdBody = z.object({
+export const AddItemsToPlaylistBody = z.object({
   tracks: z.array(z.string()),
 });
-export type PostPlaylistItemsByIdBody = z.infer<typeof PostPlaylistItemsByIdBody>;
+export type AddItemsToPlaylistBody = z.infer<typeof AddItemsToPlaylistBody>;
 
-export const DeletePlaylistItemsByIdBody = z.object({
+export const DeletePlaylistItemsBody = z.object({
   trackIds: z.array(z.string()),
 });
-export type DeletePlaylistItemsByIdBody = z.infer<typeof DeletePlaylistItemsByIdBody>;
+export type DeletePlaylistItemsBody = z.infer<typeof DeletePlaylistItemsBody>;
 
-export const PostPlaylistsItemMoveByIdBody = z.object({
+export const MovePlaylistItemBody = z.object({
   trackId: z.string(),
   toIndex: z.number(),
 });
-export type PostPlaylistsItemMoveByIdBody = z.infer<typeof PostPlaylistsItemMoveByIdBody>;
+export type MovePlaylistItemBody = z.infer<typeof MovePlaylistItemBody>;
 
 export const GetSystemInfo = z.object({
   version: z.string(),
