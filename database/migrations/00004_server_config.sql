@@ -1,5 +1,3 @@
--- NOTE: Final
-
 -- +goose Up
 CREATE TABLE config (
     id INTEGER NOT NULL,

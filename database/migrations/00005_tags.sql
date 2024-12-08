@@ -1,5 +1,3 @@
--- NOTE: Final
-
 -- +goose Up
 CREATE TABLE tags (
     slug TEXT,
