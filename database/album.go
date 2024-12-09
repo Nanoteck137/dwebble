@@ -80,8 +80,10 @@ func (a *AlbumResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, na
 }
 
 type Album struct {
-	Id       string `db:"id"`
-	Name     string `db:"name"`
+	Id        string         `db:"id"`
+	Name      string         `db:"name"`
+	OtherName sql.NullString `db:"other_name"`
+
 	ArtistId string `db:"artist_id"`
 
 	CoverArt sql.NullString `db:"cover_art"`
@@ -98,6 +100,8 @@ func AlbumQuery() *goqu.SelectDataset {
 		Select(
 			"albums.id",
 			"albums.name",
+			"albums.other_name",
+
 			"albums.artist_id",
 
 			"albums.cover_art",
@@ -195,23 +199,6 @@ func (db *Database) GetAlbumById(ctx context.Context, id string) (Album, error) 
 	return item, nil
 }
 
-func (db *Database) GetAlbumByPath(ctx context.Context, path string) (Album, error) {
-	query := AlbumQuery().
-		Where(goqu.I("albums.path").Eq(path))
-
-	var item Album
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Album{}, ErrItemNotFound
-		}
-
-		return Album{}, err
-	}
-
-	return item, nil
-}
-
 func (db *Database) GetAlbumByName(ctx context.Context, name string) (Album, error) {
 	query := AlbumQuery().
 		Where(goqu.I("albums.name").Eq(name))
@@ -230,8 +217,10 @@ func (db *Database) GetAlbumByName(ctx context.Context, name string) (Album, err
 }
 
 type CreateAlbumParams struct {
-	Id       string
-	Name     string
+	Id        string
+	Name      string
+	OtherName sql.NullString
+
 	ArtistId string
 
 	CoverArt sql.NullString
@@ -256,10 +245,12 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 		id = utils.CreateAlbumId()
 	}
 
-	ds := dialect.Insert("albums").
+	query := dialect.Insert("albums").
 		Rows(goqu.Record{
-			"id":        id,
-			"name":      params.Name,
+			"id":         id,
+			"name":       params.Name,
+			"other_name": params.OtherName,
+
 			"artist_id": params.ArtistId,
 
 			"cover_art": params.CoverArt,
@@ -268,16 +259,20 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 			"created": created,
 			"updated": updated,
 		}).
-		Returning("id", "name", "artist_id", "cover_art", "year").
+		Returning(
+			"albums.id",
+			"albums.name",
+			"albums.other_name",
+
+			"albums.artist_id",
+
+			"albums.cover_art",
+			"albums.year",
+		).
 		Prepared(true)
 
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Album{}, err
-	}
-
 	var item Album
-	err = row.Scan(&item.Id, &item.Name, &item.ArtistId, &item.CoverArt, &item.Year)
+	err := db.Get(&item, query)
 	if err != nil {
 		return Album{}, err
 	}
@@ -300,7 +295,9 @@ func (db *Database) RemoveAlbum(ctx context.Context, id string) error {
 }
 
 type AlbumChanges struct {
-	Name     types.Change[string]
+	Name      types.Change[string]
+	OtherName types.Change[sql.NullString]
+
 	ArtistId types.Change[string]
 
 	CoverArt types.Change[sql.NullString]
@@ -313,7 +310,10 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 	record := goqu.Record{}
 
 	addToRecord(record, "name", changes.Name)
+	addToRecord(record, "other_name", changes.OtherName)
+
 	addToRecord(record, "artist_id", changes.ArtistId)
+
 	addToRecord(record, "cover_art", changes.CoverArt)
 	addToRecord(record, "year", changes.Year)
 
@@ -327,7 +327,7 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 
 	ds := dialect.Update("albums").
 		Set(record).
-		Where(goqu.I("id").Eq(id)).
+		Where(goqu.I("albums.id").Eq(id)).
 		Prepared(true)
 
 	_, err := db.Exec(ctx, ds)

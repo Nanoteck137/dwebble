@@ -13,11 +13,14 @@ import (
 )
 
 type Artist struct {
-	Id      string         `db:"id"`
-	Name    string         `db:"name"`
+	Id        string         `db:"id"`
+	Name      string         `db:"name"`
+	OtherName sql.NullString `db:"other_name"`
+
 	Picture sql.NullString `db:"picture"`
-	Created int64          `db:"created"`
-	Updated int64          `db:"updated"`
+
+	Created int64 `db:"created"`
+	Updated int64 `db:"updated"`
 }
 
 func ArtistQuery() *goqu.SelectDataset {
@@ -25,7 +28,10 @@ func ArtistQuery() *goqu.SelectDataset {
 		Select(
 			"artists.id",
 			"artists.name",
+			"artists.other_name",
+
 			"artists.picture",
+
 			"artists.updated",
 			"artists.created",
 		).
@@ -81,8 +87,10 @@ func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, e
 }
 
 type CreateArtistParams struct {
-	Id      string
-	Name    string
+	Id        string
+	Name      string
+	OtherName sql.NullString
+
 	Picture sql.NullString
 
 	Created int64
@@ -104,31 +112,30 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 		id = utils.CreateArtistId()
 	}
 
-	ds := dialect.Insert("artists").Rows(goqu.Record{
-		"id":      id,
-		"name":    params.Name,
+	query := dialect.Insert("artists").Rows(goqu.Record{
+		"id":         id,
+		"name":       params.Name,
+		"other_name": params.OtherName,
+
 		"picture": params.Picture,
 
 		"created": created,
 		"updated": updated,
 	}).
 		Returning(
-			"id",
-			"name",
-			"picture",
-			"updated",
-			"created",
+			"artists.id",
+			"artists.name",
+			"artists.other_name",
+
+			"artists.picture",
+
+			"artists.updated",
+			"artists.created",
 		).
 		Prepared(true)
 
-	// TODO(patrik): Change to sqlx
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Artist{}, err
-	}
-
 	var item Artist
-	err = row.Scan(&item.Id, &item.Name, &item.Picture, &item.Created, &item.Updated)
+	err := db.Get(&item, query)
 	if err != nil {
 		return Artist{}, err
 	}
@@ -137,8 +144,9 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 }
 
 type ArtistChanges struct {
-	Name    types.Change[string]
-	Picture types.Change[sql.NullString]
+	Name      types.Change[string]
+	OtherName types.Change[sql.NullString]
+	Picture   types.Change[sql.NullString]
 
 	Created types.Change[int64]
 }
@@ -147,6 +155,8 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 	record := goqu.Record{}
 
 	addToRecord(record, "name", changes.Name)
+	addToRecord(record, "other_name", changes.OtherName)
+
 	addToRecord(record, "picture", changes.Picture)
 
 	addToRecord(record, "created", changes.Created)
@@ -161,19 +171,6 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 		Set(record).
 		Where(goqu.I("artists.id").Eq(id)).
 		Prepared(true)
-
-	_, err := db.Exec(ctx, ds)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (db *Database) MarkAllArtistsUnavailable(ctx context.Context) error {
-	ds := dialect.Update("artists").Set(goqu.Record{
-		"available": false,
-	})
 
 	_, err := db.Exec(ctx, ds)
 	if err != nil {

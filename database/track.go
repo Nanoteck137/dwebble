@@ -119,8 +119,9 @@ func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, na
 }
 
 type Track struct {
-	Id   string `db:"id"`
-	Name string `db:"name"`
+	Id        string         `db:"id"`
+	Name      string         `db:"name"`
+	OtherName sql.NullString `db:"other_name"`
 
 	AlbumId  string `db:"album_id"`
 	ArtistId string `db:"artist_id"`
@@ -144,7 +145,9 @@ type Track struct {
 }
 
 type TrackChanges struct {
-	Name     types.Change[string]
+	Name      types.Change[string]
+	OtherName types.Change[sql.NullString]
+
 	AlbumId  types.Change[string]
 	ArtistId types.Change[string]
 
@@ -157,14 +160,6 @@ type TrackChanges struct {
 	MobileFilename   types.Change[string]
 
 	Created types.Change[int64]
-}
-
-func CountTrackQuery() *goqu.SelectDataset {
-	query := dialect.From("tracks").
-		Select(goqu.COUNT("tracks.id")).
-		Prepared(true)
-
-	return query
 }
 
 func TrackQuery() *goqu.SelectDataset {
@@ -184,6 +179,7 @@ func TrackQuery() *goqu.SelectDataset {
 		Select(
 			"tracks.id",
 			"tracks.name",
+			"tracks.other_name",
 
 			"tracks.album_id",
 			"tracks.artist_id",
@@ -384,73 +380,6 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 	return item, nil
 }
 
-// func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, error) {
-// 	ds := dialect.From("tracks").
-// 		Select(
-// 			"id",
-// 			"track_number",
-// 			"name",
-// 			"cover_art",
-// 			"duration",
-// 			"path",
-// 			"best_quality_file",
-// 			"mobile_quality_file",
-// 			"album_id",
-// 			"artist_id",
-// 		).
-// 		Where(goqu.C("path").Eq(path)).
-// 		Prepared(true)
-//
-// 	row, err := db.QueryRow(ctx, ds)
-// 	if err != nil {
-// 		return Track{}, err
-// 	}
-//
-// 	var item Track
-// 	err = row.Scan(
-// 		&item.Id,
-// 		&item.Number,
-// 		&item.Name,
-// 		&item.CoverArt,
-// 		&item.Duration,
-// 		&item.Path,
-// 		&item.BestQualityFile,
-// 		&item.MobileQualityFile,
-// 		&item.AlbumId,
-// 		&item.ArtistId,
-// 	)
-// 	if err != nil {
-// 		if err == sql.ErrNoRows {
-// 			return Track{}, ErrItemNotFound
-// 		}
-//
-// 		return Track{}, err
-// 	}
-//
-// 	return item, nil
-// }
-
-// func (db *Database) GetTrackByName(ctx context.Context, name string) (Track, error) {
-// 	query := TrackQuery().
-// 		Where(goqu.I("tracks.name").Eq(name))
-//
-// 	row, err := db.QueryRow(ctx, query)
-// 	if err != nil {
-// 		return Track{}, err
-// 	}
-//
-// 	item, err := ScanTrack(row)
-// 	if err != nil {
-// 		if errors.Is(err, sql.ErrNoRows) {
-// 			return Track{}, ErrItemNotFound
-// 		}
-//
-// 		return Track{}, err
-// 	}
-//
-// 	return item, nil
-// }
-
 func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, albumId string) (Track, error) {
 	query := TrackQuery().
 		Where(
@@ -474,8 +403,9 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 }
 
 type CreateTrackParams struct {
-	Id   string
-	Name string
+	Id        string
+	Name      string
+	OtherName sql.NullString
 
 	AlbumId  string
 	ArtistId string
@@ -508,8 +438,9 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	}
 
 	ds := dialect.Insert("tracks").Rows(goqu.Record{
-		"id":   id,
-		"name": params.Name,
+		"id":         id,
+		"name":       params.Name,
+		"other_name": params.OtherName,
 
 		"album_id":  params.AlbumId,
 		"artist_id": params.ArtistId,
@@ -543,6 +474,7 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	return item, nil
 }
 
+// TODO(patrik): Move
 func addToRecord[T any](record goqu.Record, name string, change types.Change[T]) {
 	if change.Changed {
 		record[name] = change.Value
@@ -553,6 +485,8 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	record := goqu.Record{}
 
 	addToRecord(record, "name", changes.Name)
+	addToRecord(record, "other_name", changes.OtherName)
+
 	addToRecord(record, "album_id", changes.AlbumId)
 	addToRecord(record, "artist_id", changes.ArtistId)
 
@@ -574,7 +508,7 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 
 	ds := dialect.Update("tracks").
 		Set(record).
-		Where(goqu.I("id").Eq(id)).
+		Where(goqu.I("tracks.id").Eq(id)).
 		Prepared(true)
 
 	_, err := db.Exec(ctx, ds)
@@ -613,6 +547,7 @@ func (db *Database) RemoveTrack(ctx context.Context, id string) error {
 	return nil
 }
 
+// TODO(patrik): This need cleanup
 var tags []Tag
 
 func (db *Database) Invalidate() {

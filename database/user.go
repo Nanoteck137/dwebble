@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -14,6 +15,9 @@ type User struct {
 	Id       string `db:"id"`
 	Username string `db:"username"`
 	Password string `db:"password"`
+
+	Created int64 `json:"created"`
+	Updated int64 `json:"updated"`
 }
 
 func UserQuery() *goqu.SelectDataset {
@@ -22,6 +26,9 @@ func UserQuery() *goqu.SelectDataset {
 			"users.id",
 			"users.username",
 			"users.password",
+
+			"users.created",
+			"users.updated",
 		).
 		Prepared(true)
 
@@ -40,18 +47,47 @@ func (db *Database) GetAllUsers(ctx context.Context) ([]User, error) {
 	return items, nil
 }
 
-func (db *Database) CreateUser(ctx context.Context, username, password string) (User, error) {
+type CreateUserParams struct {
+	Id       string
+	Username string
+	Password string
+
+	Created int64
+	Updated int64
+}
+
+func (db *Database) CreateUser(ctx context.Context, params CreateUserParams) (User, error) {
+	t := time.Now().UnixMilli()
+	created := params.Created
+	updated := params.Updated
+
+	if created == 0 && updated == 0 {
+		created = t
+		updated = t
+	}
+
+	id := params.Id
+	if id == "" {
+		id = utils.CreateId()
+	}
+
 	query := dialect.
 		Insert("users").
 		Rows(goqu.Record{
 			"id":       utils.CreateId(),
-			"username": username,
-			"password": password,
+			"username": params.Username,
+			"password": params.Password,
+
+			"created": created,
+			"updated": updated,
 		}).
 		Returning(
 			"users.id",
 			"users.username",
 			"users.password",
+
+			"users.created",
+			"users.updated",
 		)
 
 	var item User
@@ -100,6 +136,8 @@ func (db *Database) GetUserByUsername(ctx context.Context, username string) (Use
 type UserChanges struct {
 	Username types.Change[string]
 	Password types.Change[string]
+
+	Created types.Change[int64]
 }
 
 func (db *Database) UpdateUser(ctx context.Context, id string, changes UserChanges) error {
@@ -108,11 +146,13 @@ func (db *Database) UpdateUser(ctx context.Context, id string, changes UserChang
 	addToRecord(record, "username", changes.Username)
 	addToRecord(record, "password", changes.Password)
 
+	addToRecord(record, "created", changes.Created)
+
 	if len(record) == 0 {
 		return nil
 	}
 
-	// record["updated"] = time.Now().UnixMilli()
+	record["updated"] = time.Now().UnixMilli()
 
 	ds := dialect.Update("users").
 		Set(record).
