@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/sort"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -332,6 +333,28 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 
 	_, err := db.Exec(ctx, ds)
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) AddExtraArtistToAlbum(ctx context.Context, albumId, artistId string) error {
+	query := dialect.Insert("albums_extra_artists").
+		Rows(goqu.Record{
+			"album_id":  albumId,
+			"artist_id": artistId,
+		})
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		var sqlErr sqlite3.Error
+		if errors.As(err, &sqlErr) {
+			if sqlErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+				return ErrItemAlreadyExists 
+			}
+		}
+
 		return err
 	}
 

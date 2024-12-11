@@ -26,6 +26,13 @@ CREATE TABLE albums (
     updated INTEGER NOT NULL
 );
 
+CREATE TABLE albums_extra_artists (
+    album_id TEXT NOT NULL REFERENCES albums(id),
+    artist_id TEXT NOT NULL REFERENCES artists(id),
+
+    PRIMARY KEY(album_id, artist_id)
+);
+
 CREATE TABLE tracks (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL CHECK(name<>''),
@@ -44,6 +51,13 @@ CREATE TABLE tracks (
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
+);
+
+CREATE TABLE tracks_extra_artists (
+    track_id TEXT NOT NULL REFERENCES tracks(id),
+    artist_id TEXT NOT NULL REFERENCES artists(id),
+
+    PRIMARY KEY(track_id, artist_id)
 );
 
 CREATE TABLE tags (

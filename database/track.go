@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/sort"
@@ -569,4 +570,26 @@ func TrackMapNameToId(typ string, name string) string {
 	}
 
 	return ""
+}
+
+func (db *Database) AddExtraArtistToTrack(ctx context.Context, trackId, artistId string) error {
+	query := dialect.Insert("tracks_extra_artists").
+		Rows(goqu.Record{
+			"track_id":  trackId,
+			"artist_id": artistId,
+		})
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		var sqlErr sqlite3.Error
+		if errors.As(err, &sqlErr) {
+			if sqlErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+				return ErrItemAlreadyExists 
+			}
+		}
+
+		return err
+	}
+
+	return nil
 }
