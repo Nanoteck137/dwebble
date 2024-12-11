@@ -95,7 +95,7 @@ func (b ChangePasswordBody) Validate() error {
 type GetMe struct {
 	Id       string `json:"id"`
 	Username string `json:"username"`
-	IsOwner  bool   `json:"isOwner"`
+	Role     string `json:"role"`
 }
 
 func InstallAuthHandlers(app core.App, group pyrin.Group) {
@@ -229,12 +229,10 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				isOwner := app.DBConfig().OwnerId == user.Id
-
 				return GetMe{
 					Id:       user.Id,
 					Username: user.Username,
-					IsOwner:  isOwner,
+					Role:     user.Role,
 				}, nil
 			},
 		},

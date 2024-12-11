@@ -15,6 +15,7 @@ type User struct {
 	Id       string `db:"id"`
 	Username string `db:"username"`
 	Password string `db:"password"`
+	Role     string `db:"role"`
 
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
@@ -26,6 +27,7 @@ func UserQuery() *goqu.SelectDataset {
 			"users.id",
 			"users.username",
 			"users.password",
+			"users.role",
 
 			"users.created",
 			"users.updated",
@@ -51,6 +53,7 @@ type CreateUserParams struct {
 	Id       string
 	Username string
 	Password string
+	Role     string
 
 	Created int64
 	Updated int64
@@ -77,6 +80,7 @@ func (db *Database) CreateUser(ctx context.Context, params CreateUserParams) (Us
 			"id":       utils.CreateId(),
 			"username": params.Username,
 			"password": params.Password,
+			"role":     params.Role,
 
 			"created": created,
 			"updated": updated,
@@ -85,6 +89,7 @@ func (db *Database) CreateUser(ctx context.Context, params CreateUserParams) (Us
 			"users.id",
 			"users.username",
 			"users.password",
+			"users.role",
 
 			"users.created",
 			"users.updated",

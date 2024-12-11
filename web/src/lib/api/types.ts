@@ -165,7 +165,7 @@ export type ChangePasswordBody = z.infer<typeof ChangePasswordBody>;
 export const GetMe = z.object({
   id: z.string(),
   username: z.string(),
-  isOwner: z.boolean(),
+  role: z.string(),
 });
 export type GetMe = z.infer<typeof GetMe>;
 

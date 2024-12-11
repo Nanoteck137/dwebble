@@ -496,8 +496,8 @@
           "omit": false
         },
         {
-          "name": "isOwner",
-          "type": "bool",
+          "name": "role",
+          "type": "string",
           "omit": false
         }
       ]

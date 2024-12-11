@@ -141,7 +141,7 @@ type ChangePasswordBody struct {
 type GetMe struct {
 	Id string `json:"id"`
 	Username string `json:"username"`
-	IsOwner bool `json:"isOwner"`
+	Role string `json:"role"`
 }
 
 type Playlist struct {

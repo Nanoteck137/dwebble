@@ -54,6 +54,7 @@
     </button>
 
     <a class="text-2xl font-medium text-[--logo-color]" href="/">Dwebble</a>
+    <p>{data.user?.role}</p>
 
     <div class="flex-grow"></div>
 
@@ -131,7 +132,7 @@
           onClick={close}
         />
 
-        {#if data.user.isOwner}
+        {#if data.user.role === "super_user"}
           <Link title="Server" href="/server" icon={Server} onClick={close} />
         {/if}
 

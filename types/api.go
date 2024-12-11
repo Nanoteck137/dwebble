@@ -1,5 +1,10 @@
 package types
 
+const (
+	RoleSuperUser = "super_user"
+	RoleAdmin = "admin"
+)
+
 type Page struct {
 	Page       int `json:"page"`
 	PerPage    int `json:"perPage"`

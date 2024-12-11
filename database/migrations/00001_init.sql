@@ -62,7 +62,7 @@ CREATE TABLE users (
     id TEXT PRIMARY KEY,
     username TEXT NOT NULL COLLATE NOCASE CHECK(username<>'') UNIQUE,
     password TEXT NOT NULL CHECK(password<>''),
-    roles TEXT,
+    role TEXT NOT NULL,
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
