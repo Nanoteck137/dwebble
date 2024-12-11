@@ -11,14 +11,32 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
+type UserSettings struct {
+	Id            string         `db:"id"`
+	DisplayName   sql.NullString `db:"display_name"`
+	QuickPlaylist sql.NullString `db:"quick_playlist"`
+}
+
 type User struct {
 	Id       string `db:"id"`
 	Username string `db:"username"`
 	Password string `db:"password"`
 	Role     string `db:"role"`
 
-	Created int64 `json:"created"`
-	Updated int64 `json:"updated"`
+	Created int64 `db:"created"`
+	Updated int64 `db:"updated"`
+
+	// NOTE(patrik): This needs to match UserSettings
+	DisplayName   sql.NullString `db:"display_name"`
+	QuickPlaylist sql.NullString `db:"quick_playlist"`
+}
+
+func (u User) ToUserSettings() UserSettings {
+	return UserSettings{
+		Id:            u.Id,
+		DisplayName:   u.DisplayName,
+		QuickPlaylist: u.QuickPlaylist,
+	}
 }
 
 func UserQuery() *goqu.SelectDataset {
@@ -31,6 +49,29 @@ func UserQuery() *goqu.SelectDataset {
 
 			"users.created",
 			"users.updated",
+
+			"users_settings.display_name",
+			"users_settings.quick_playlist",
+		).
+		Prepared(true).
+		LeftJoin(
+			goqu.I("users_settings"),
+			goqu.On(goqu.I("users.id").Eq(goqu.I("users_settings.id"))),
+		)
+
+	return query
+}
+
+func UserSettingsQuery() *goqu.SelectDataset {
+	query := dialect.From("users_settings").
+		Select(
+			"users_settings.id",
+			"users_settings.display_name",
+
+			"users_settings.quick_playlist",
+
+			"users_settings.created",
+			"users_settings.updated",
 		).
 		Prepared(true)
 
@@ -121,6 +162,23 @@ func (db *Database) GetUserById(ctx context.Context, id string) (User, error) {
 	return item, nil
 }
 
+func (db *Database) GetUserSettingsById(ctx context.Context, id string) (UserSettings, error) {
+	query := UserSettingsQuery().
+		Where(goqu.I("users_settings.id").Eq(id))
+
+	var item UserSettings
+	err := db.Get(&item, query)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return UserSettings{}, ErrItemNotFound
+		}
+
+		return UserSettings{}, err
+	}
+
+	return item, nil
+}
+
 func (db *Database) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	query := UserQuery().
 		Where(goqu.I("users.username").Eq(username))
@@ -165,6 +223,27 @@ func (db *Database) UpdateUser(ctx context.Context, id string, changes UserChang
 		Where(goqu.I("users.id").Eq(id))
 
 	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) UpdateUserSettings(ctx context.Context, settings UserSettings) error {
+	query := dialect.Insert("users_settings").
+		Rows(goqu.Record{
+			"id":             settings.Id,
+			"display_name":   settings.DisplayName,
+			"quick_playlist": settings.QuickPlaylist,
+		}).
+		Prepared(true).
+		OnConflict(goqu.DoUpdate("id", goqu.Record{
+			"display_name":   settings.DisplayName,
+			"quick_playlist": settings.QuickPlaylist,
+		}))
+
+	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}

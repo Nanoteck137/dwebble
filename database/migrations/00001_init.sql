@@ -86,8 +86,7 @@ CREATE TABLE users_settings (
     id TEXT PRIMARY KEY REFERENCES users(id),
     display_name TEXT,
 
-    created INTEGER NOT NULL,
-    updated INTEGER NOT NULL
+    quick_playlist TEXT REFERENCES playlists(id)
 );
 
 CREATE TABLE playlists (
