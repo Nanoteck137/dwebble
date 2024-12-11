@@ -15,9 +15,8 @@ import (
 var _ App = (*BaseApp)(nil)
 
 type BaseApp struct {
-	db       *database.Database
-	config   *config.Config
-	dbConfig *database.Config
+	db     *database.Database
+	config *config.Config
 }
 
 func (app *BaseApp) DB() *database.Database {
@@ -26,10 +25,6 @@ func (app *BaseApp) DB() *database.Database {
 
 func (app *BaseApp) Config() *config.Config {
 	return app.config
-}
-
-func (app *BaseApp) DBConfig() *database.Config {
-	return app.dbConfig
 }
 
 func (app *BaseApp) WorkDir() types.WorkDir {
@@ -85,6 +80,7 @@ func (app *BaseApp) Bootstrap() error {
 		_, err := app.db.CreateUser(ctx, database.CreateUserParams{
 			Username: app.config.Username,
 			Password: app.config.InitialPassword,
+			Role:     types.RoleSuperUser,
 		})
 		if err != nil {
 			return err
