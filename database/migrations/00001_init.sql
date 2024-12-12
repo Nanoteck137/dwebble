@@ -92,6 +92,7 @@ CREATE TABLE users_settings (
 CREATE TABLE playlists (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL CHECK(name<>''),
+    picture TEXT,
 
     owner_id TEXT NOT NULL REFERENCES users(id),
 
@@ -102,7 +103,6 @@ CREATE TABLE playlists (
 CREATE TABLE playlist_items (
     playlist_id TEXT NOT NULL REFERENCES playlists(id) ON DELETE CASCADE,
     track_id TEXT NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
-    item_index INTEGER NOT NULL, 
 
     PRIMARY KEY(playlist_id, track_id)
 );
@@ -119,7 +119,6 @@ CREATE TABLE taglists (
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
 );
-
 
 -- +goose Down
 DROP TABLE taglists;

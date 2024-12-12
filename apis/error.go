@@ -10,6 +10,7 @@ const (
 	ErrTypeArtistNotFound    pyrin.ErrorType = "ARTIST_NOT_FOUND"
 	ErrTypeAlbumNotFound     pyrin.ErrorType = "ALBUM_NOT_FOUND"
 	ErrTypeTrackNotFound     pyrin.ErrorType = "TRACK_NOT_FOUND"
+	ErrTypePlaylistNotFound  pyrin.ErrorType = "PLAYLIST_NOT_FOUND"
 	ErrTypeInvalidFilter     pyrin.ErrorType = "INVALID_FILTER"
 	ErrTypeInvalidSort       pyrin.ErrorType = "INVALID_SORT"
 	ErrTypeUserAlreadyExists pyrin.ErrorType = "USER_ALREADY_EXISTS"
@@ -36,6 +37,14 @@ func TrackNotFound() *pyrin.Error {
 		Code:    http.StatusNotFound,
 		Type:    ErrTypeTrackNotFound,
 		Message: "Track not found",
+	}
+}
+
+func PlaylistNotFound() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusNotFound,
+		Type:    ErrTypePlaylistNotFound,
+		Message: "Playlist not found",
 	}
 }
 

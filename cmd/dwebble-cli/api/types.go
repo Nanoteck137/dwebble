@@ -164,7 +164,6 @@ type CreatePlaylistBody struct {
 type PostPlaylistFilterBody struct {
 	Name string `json:"name"`
 	Filter string `json:"filter"`
-	Sort string `json:"sort"`
 }
 
 type GetPlaylistById struct {
@@ -173,17 +172,12 @@ type GetPlaylistById struct {
 	Items []Track `json:"items"`
 }
 
-type AddItemsToPlaylistBody struct {
-	Tracks []string `json:"tracks"`
-}
-
-type DeletePlaylistItemsBody struct {
-	TrackIds []string `json:"trackIds"`
-}
-
-type MovePlaylistItemBody struct {
+type AddItemToPlaylistBody struct {
 	TrackId string `json:"trackId"`
-	ToIndex int `json:"toIndex"`
+}
+
+type RemovePlaylistItemBody struct {
+	TrackId string `json:"trackId"`
 }
 
 type GetSystemInfo struct {
@@ -263,8 +257,8 @@ type UpdateUserSettingsBody struct {
 	QuickPlaylist *string `json:"quickPlaylist,omitempty"`
 }
 
-type TrackIds struct {
-	Tracks []string `json:"tracks"`
+type TrackId struct {
+	TrackId string `json:"trackId"`
 }
 
 type GetUserQuickPlaylistItemIds struct {

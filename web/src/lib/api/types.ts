@@ -193,7 +193,6 @@ export type CreatePlaylistBody = z.infer<typeof CreatePlaylistBody>;
 export const PostPlaylistFilterBody = z.object({
   name: z.string(),
   filter: z.string(),
-  sort: z.string(),
 });
 export type PostPlaylistFilterBody = z.infer<typeof PostPlaylistFilterBody>;
 
@@ -204,21 +203,15 @@ export const GetPlaylistById = z.object({
 });
 export type GetPlaylistById = z.infer<typeof GetPlaylistById>;
 
-export const AddItemsToPlaylistBody = z.object({
-  tracks: z.array(z.string()),
-});
-export type AddItemsToPlaylistBody = z.infer<typeof AddItemsToPlaylistBody>;
-
-export const DeletePlaylistItemsBody = z.object({
-  trackIds: z.array(z.string()),
-});
-export type DeletePlaylistItemsBody = z.infer<typeof DeletePlaylistItemsBody>;
-
-export const MovePlaylistItemBody = z.object({
+export const AddItemToPlaylistBody = z.object({
   trackId: z.string(),
-  toIndex: z.number(),
 });
-export type MovePlaylistItemBody = z.infer<typeof MovePlaylistItemBody>;
+export type AddItemToPlaylistBody = z.infer<typeof AddItemToPlaylistBody>;
+
+export const RemovePlaylistItemBody = z.object({
+  trackId: z.string(),
+});
+export type RemovePlaylistItemBody = z.infer<typeof RemovePlaylistItemBody>;
 
 export const GetSystemInfo = z.object({
   version: z.string(),
@@ -310,10 +303,10 @@ export const UpdateUserSettingsBody = z.object({
 });
 export type UpdateUserSettingsBody = z.infer<typeof UpdateUserSettingsBody>;
 
-export const TrackIds = z.object({
-  tracks: z.array(z.string()),
+export const TrackId = z.object({
+  trackId: z.string(),
 });
-export type TrackIds = z.infer<typeof TrackIds>;
+export type TrackId = z.infer<typeof TrackId>;
 
 export const GetUserQuickPlaylistItemIds = z.object({
   trackIds: z.array(z.string()),

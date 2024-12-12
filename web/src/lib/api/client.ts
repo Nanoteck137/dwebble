@@ -30,9 +30,8 @@ export const GET_PLAYLISTS_URL = "/api/v1/playlists"
 export const CREATE_PLAYLIST_URL = "/api/v1/playlists"
 export const CREATE_PLAYLIST_FROM_FILTER_URL = "/api/v1/playlists/filter"
 export const GET_PLAYLIST_BY_ID_URL = "/api/v1/playlists/:id"
-export const ADD_ITEMS_TO_PLAYLIST_URL = "/api/v1/playlists/:id/items"
-export const DELETE_PLAYLIST_ITEMS_URL = "/api/v1/playlists/:id/items"
-export const MOVE_PLAYLIST_ITEM_URL = "/api/v1/playlists/:id/items/move"
+export const ADD_ITEM_TO_PLAYLIST_URL = "/api/v1/playlists/:id/items"
+export const REMOVE_PLAYLIST_ITEM_URL = "/api/v1/playlists/:id/items"
 export const GET_SYSTEM_INFO_URL = "/api/v1/system/info"
 export const SYSTEM_EXPORT_URL = "/api/v1/system/export"
 export const PROCESS_URL = "/api/v1/system/process"
@@ -163,16 +162,12 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/playlists/${id}`, "GET", api.GetPlaylistById, z.any(), undefined, options)
   }
   
-  addItemsToPlaylist(id: string, body: api.AddItemsToPlaylistBody, options?: ExtraOptions) {
+  addItemToPlaylist(id: string, body: api.AddItemToPlaylistBody, options?: ExtraOptions) {
     return this.request(`/api/v1/playlists/${id}/items`, "POST", z.undefined(), z.any(), body, options)
   }
   
-  deletePlaylistItems(id: string, body: api.DeletePlaylistItemsBody, options?: ExtraOptions) {
+  removePlaylistItem(id: string, body: api.RemovePlaylistItemBody, options?: ExtraOptions) {
     return this.request(`/api/v1/playlists/${id}/items`, "DELETE", z.undefined(), z.any(), body, options)
-  }
-  
-  movePlaylistItem(id: string, body: api.MovePlaylistItemBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/playlists/${id}/items/move`, "POST", z.undefined(), z.any(), body, options)
   }
   
   getSystemInfo(options?: ExtraOptions) {
@@ -211,11 +206,11 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/user/settings", "PATCH", z.undefined(), z.any(), body, options)
   }
   
-  addToUserQuickPlaylist(body: api.TrackIds, options?: ExtraOptions) {
+  addToUserQuickPlaylist(body: api.TrackId, options?: ExtraOptions) {
     return this.request("/api/v1/user/quickplaylist", "POST", z.undefined(), z.any(), body, options)
   }
   
-  removeItemFromUserQuickPlaylist(body: api.TrackIds, options?: ExtraOptions) {
+  removeItemFromUserQuickPlaylist(body: api.TrackId, options?: ExtraOptions) {
     return this.request("/api/v1/user/quickplaylist", "DELETE", z.undefined(), z.any(), body, options)
   }
   

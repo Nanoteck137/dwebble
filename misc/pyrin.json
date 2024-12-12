@@ -568,11 +568,6 @@
           "name": "filter",
           "type": "string",
           "omit": false
-        },
-        {
-          "name": "sort",
-          "type": "string",
-          "omit": false
         }
       ]
     },
@@ -598,39 +593,23 @@
       ]
     },
     {
-      "name": "AddItemsToPlaylistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "tracks",
-          "type": "[]string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "DeletePlaylistItemsBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "trackIds",
-          "type": "[]string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "MovePlaylistItemBody",
+      "name": "AddItemToPlaylistBody",
       "extend": "",
       "fields": [
         {
           "name": "trackId",
           "type": "string",
           "omit": false
-        },
+        }
+      ]
+    },
+    {
+      "name": "RemovePlaylistItemBody",
+      "extend": "",
+      "fields": [
         {
-          "name": "toIndex",
-          "type": "int",
+          "name": "trackId",
+          "type": "string",
           "omit": false
         }
       ]
@@ -908,12 +887,12 @@
       ]
     },
     {
-      "name": "TrackIds",
+      "name": "TrackId",
       "extend": "",
       "fields": [
         {
-          "name": "tracks",
-          "type": "[]string",
+          "name": "trackId",
+          "type": "string",
           "omit": false
         }
       ]
@@ -1308,7 +1287,7 @@
       "requireFormData": false
     },
     {
-      "name": "AddItemsToPlaylist",
+      "name": "AddItemToPlaylist",
       "method": "POST",
       "path": "/api/v1/playlists/:id/items",
       "errorTypes": [
@@ -1317,11 +1296,11 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "AddItemsToPlaylistBody",
+      "bodyType": "AddItemToPlaylistBody",
       "requireFormData": false
     },
     {
-      "name": "DeletePlaylistItems",
+      "name": "RemovePlaylistItem",
       "method": "DELETE",
       "path": "/api/v1/playlists/:id/items",
       "errorTypes": [
@@ -1330,20 +1309,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "DeletePlaylistItemsBody",
-      "requireFormData": false
-    },
-    {
-      "name": "MovePlaylistItem",
-      "method": "POST",
-      "path": "/api/v1/playlists/:id/items/move",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
-      "responseType": "",
-      "bodyType": "MovePlaylistItemBody",
+      "bodyType": "RemovePlaylistItemBody",
       "requireFormData": false
     },
     {
@@ -1473,7 +1439,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "TrackIds",
+      "bodyType": "TrackId",
       "requireFormData": false
     },
     {
@@ -1486,7 +1452,7 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "",
-      "bodyType": "TrackIds",
+      "bodyType": "TrackId",
       "requireFormData": false
     },
     {

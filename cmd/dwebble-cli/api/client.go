@@ -449,7 +449,7 @@ func (c *Client) GetPlaylistById(id string, options Options) (*GetPlaylistById, 
 	return Request[GetPlaylistById](data)
 }
 
-func (c *Client) AddItemsToPlaylist(id string, body AddItemsToPlaylistBody, options Options) (*any, error) {
+func (c *Client) AddItemToPlaylist(id string, body AddItemToPlaylistBody, options Options) (*any, error) {
 	path := Sprintf("/api/v1/playlists/%v/items", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -465,7 +465,7 @@ func (c *Client) AddItemsToPlaylist(id string, body AddItemsToPlaylistBody, opti
 	return Request[any](data)
 }
 
-func (c *Client) DeletePlaylistItems(id string, body DeletePlaylistItemsBody, options Options) (*any, error) {
+func (c *Client) RemovePlaylistItem(id string, body RemovePlaylistItemBody, options Options) (*any, error) {
 	path := Sprintf("/api/v1/playlists/%v/items", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -475,22 +475,6 @@ func (c *Client) DeletePlaylistItems(id string, body DeletePlaylistItemsBody, op
 	data := RequestData{
 		Url: url,
 		Method: "DELETE",
-		Token: c.token,
-		Body: body,
-	}
-	return Request[any](data)
-}
-
-func (c *Client) MovePlaylistItem(id string, body MovePlaylistItemBody, options Options) (*any, error) {
-	path := Sprintf("/api/v1/playlists/%v/items/move", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
 		Token: c.token,
 		Body: body,
 	}
@@ -641,7 +625,7 @@ func (c *Client) UpdateUserSettings(body UpdateUserSettingsBody, options Options
 	return Request[any](data)
 }
 
-func (c *Client) AddToUserQuickPlaylist(body TrackIds, options Options) (*any, error) {
+func (c *Client) AddToUserQuickPlaylist(body TrackId, options Options) (*any, error) {
 	path := "/api/v1/user/quickplaylist"
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -657,7 +641,7 @@ func (c *Client) AddToUserQuickPlaylist(body TrackIds, options Options) (*any, e
 	return Request[any](data)
 }
 
-func (c *Client) RemoveItemFromUserQuickPlaylist(body TrackIds, options Options) (*any, error) {
+func (c *Client) RemoveItemFromUserQuickPlaylist(body TrackId, options Options) (*any, error) {
 	path := "/api/v1/user/quickplaylist"
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {

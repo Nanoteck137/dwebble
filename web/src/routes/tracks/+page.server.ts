@@ -65,7 +65,7 @@ export const actions: Actions = {
     }
 
     const res = await locals.apiClient.addToUserQuickPlaylist({
-      tracks: [trackId.toString()],
+      trackId: trackId.toString(),
     });
     if (!res.success) {
       throw error(res.error.code, res.error.message);
@@ -80,7 +80,7 @@ export const actions: Actions = {
     }
 
     const res = await locals.apiClient.removeItemFromUserQuickPlaylist({
-      tracks: [trackId.toString()],
+      trackId: trackId.toString(),
     });
     if (!res.success) {
       throw error(res.error.code, res.error.message);
@@ -105,7 +105,6 @@ export const actions: Actions = {
     const res = await locals.apiClient.createPlaylistFromFilter({
       name: "Generated Playlist",
       filter: filter.toString(),
-      sort: sort.toString(),
     });
     if (!res.success) {
       throw error(res.error.code, { message: res.error.message });

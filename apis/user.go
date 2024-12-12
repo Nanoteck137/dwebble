@@ -34,11 +34,11 @@ func (b UpdateUserSettingsBody) Validate() error {
 	)
 }
 
-type TrackIds struct {
-	Tracks []string `json:"tracks"`
+type TrackId struct {
+	TrackId string `json:"trackId"`
 }
 
-func (b *TrackIds) Transform() {
+func (b *TrackId) Transform() {
 	// b.Tracks = *transform.DiscardEmptyStringEntries()
 }
 
@@ -108,23 +108,24 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodPost,
 			Path:     "/user/quickplaylist",
 			DataType: nil,
-			BodyType: TrackIds{},
+			BodyType: TrackId{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				body, err := pyrin.Body[TrackIds](c)
+				body, err := pyrin.Body[TrackId](c)
 				if err != nil {
 					return nil, err
 				}
-
-				pretty.Println(body)
 
 				user, err := User(app, c)
 				if err != nil {
 					return nil, err
 				}
 
+				ctx := context.TODO()
+
 				if user.QuickPlaylist.Valid {
-					err := app.DB().AddItemsToPlaylist(context.TODO(), user.QuickPlaylist.String, body.Tracks)
+					err := app.DB().AddItemToPlaylist(ctx, user.QuickPlaylist.String, body.TrackId)
 					if err != nil {
+						// TODO(patrik): Handle error
 						return nil, err
 					}
 				}
@@ -138,9 +139,9 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodDelete,
 			Path:     "/user/quickplaylist",
 			DataType: nil,
-			BodyType: TrackIds{},
+			BodyType: TrackId{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				body, err := pyrin.Body[TrackIds](c)
+				body, err := pyrin.Body[TrackId](c)
 				if err != nil {
 					return nil, err
 				}
@@ -150,8 +151,10 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				ctx := context.TODO()
+
 				if user.QuickPlaylist.Valid {
-					err := app.DB().DeleteItemsFromPlaylist(context.TODO(), user.QuickPlaylist.String, body.Tracks)
+					err := app.DB().RemovePlaylistItem(ctx, user.QuickPlaylist.String, body.TrackId)
 					if err != nil {
 						return nil, err
 					}
@@ -191,6 +194,7 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 					return res, nil
 				}
 
+				// TODO(patrik): Better error
 				return nil, errors.New("No Quick Playlist set")
 			},
 		},
