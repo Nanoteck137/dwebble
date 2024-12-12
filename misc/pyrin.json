@@ -907,6 +907,55 @@
           "omit": false
         }
       ]
+    },
+    {
+      "name": "CreateApiToken",
+      "extend": "",
+      "fields": [
+        {
+          "name": "token",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "CreateApiTokenBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "ApiToken",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetAllApiTokens",
+      "extend": "",
+      "fields": [
+        {
+          "name": "tokens",
+          "type": "[]ApiToken",
+          "omit": false
+        }
+      ]
     }
   ],
   "endpoints": [
@@ -1278,6 +1327,7 @@
       "method": "GET",
       "path": "/api/v1/playlists/:id",
       "errorTypes": [
+        "PLAYLIST_NOT_FOUND",
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
@@ -1291,6 +1341,7 @@
       "method": "POST",
       "path": "/api/v1/playlists/:id/items",
       "errorTypes": [
+        "PLAYLIST_NOT_FOUND",
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
@@ -1304,6 +1355,7 @@
       "method": "DELETE",
       "path": "/api/v1/playlists/:id/items",
       "errorTypes": [
+        "PLAYLIST_NOT_FOUND",
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
@@ -1465,6 +1517,46 @@
         "VALIDATION_ERROR"
       ],
       "responseType": "GetUserQuickPlaylistItemIds",
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "CreateApiToken",
+      "method": "POST",
+      "path": "/api/v1/user/apitoken",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "CreateApiToken",
+      "bodyType": "CreateApiTokenBody",
+      "requireFormData": false
+    },
+    {
+      "name": "GetAllApiTokens",
+      "method": "GET",
+      "path": "/api/v1/user/apitoken",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "GetAllApiTokens",
+      "bodyType": "",
+      "requireFormData": false
+    },
+    {
+      "name": "RemoveApiToken",
+      "method": "DELETE",
+      "path": "/api/v1/user/apitoken/:id",
+      "errorTypes": [
+        "API_TOKEN_NOT_FOUND",
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
       "bodyType": "",
       "requireFormData": false
     }

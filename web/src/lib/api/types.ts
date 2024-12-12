@@ -313,3 +313,24 @@ export const GetUserQuickPlaylistItemIds = z.object({
 });
 export type GetUserQuickPlaylistItemIds = z.infer<typeof GetUserQuickPlaylistItemIds>;
 
+export const CreateApiToken = z.object({
+  token: z.string(),
+});
+export type CreateApiToken = z.infer<typeof CreateApiToken>;
+
+export const CreateApiTokenBody = z.object({
+  name: z.string(),
+});
+export type CreateApiTokenBody = z.infer<typeof CreateApiTokenBody>;
+
+export const ApiToken = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+export type ApiToken = z.infer<typeof ApiToken>;
+
+export const GetAllApiTokens = z.object({
+  tokens: z.array(ApiToken),
+});
+export type GetAllApiTokens = z.infer<typeof GetAllApiTokens>;
+

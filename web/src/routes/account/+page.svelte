@@ -9,3 +9,4 @@
 
 <Button href="/account/password">Change Password</Button>
 <Button href="/account/quickplaylist">Change Quick Playlist</Button>
+<Button href="/account/tokens">Api Tokens</Button>

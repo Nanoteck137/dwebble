@@ -265,3 +265,20 @@ type GetUserQuickPlaylistItemIds struct {
 	TrackIds []string `json:"trackIds"`
 }
 
+type CreateApiToken struct {
+	Token string `json:"token"`
+}
+
+type CreateApiTokenBody struct {
+	Name string `json:"name"`
+}
+
+type ApiToken struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+}
+
+type GetAllApiTokens struct {
+	Tokens []ApiToken `json:"tokens"`
+}
+

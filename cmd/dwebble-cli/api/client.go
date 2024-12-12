@@ -672,3 +672,51 @@ func (c *Client) GetUserQuickPlaylistItemIds(options Options) (*GetUserQuickPlay
 	}
 	return Request[GetUserQuickPlaylistItemIds](data)
 }
+
+func (c *Client) CreateApiToken(body CreateApiTokenBody, options Options) (*CreateApiToken, error) {
+	path := "/api/v1/user/apitoken"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[CreateApiToken](data)
+}
+
+func (c *Client) GetAllApiTokens(options Options) (*GetAllApiTokens, error) {
+	path := "/api/v1/user/apitoken"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetAllApiTokens](data)
+}
+
+func (c *Client) RemoveApiToken(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/user/apitoken/%v", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "DELETE",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[any](data)
+}

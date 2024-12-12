@@ -7,10 +7,12 @@ import (
 )
 
 const (
-	ErrTypeArtistNotFound    pyrin.ErrorType = "ARTIST_NOT_FOUND"
-	ErrTypeAlbumNotFound     pyrin.ErrorType = "ALBUM_NOT_FOUND"
-	ErrTypeTrackNotFound     pyrin.ErrorType = "TRACK_NOT_FOUND"
-	ErrTypePlaylistNotFound  pyrin.ErrorType = "PLAYLIST_NOT_FOUND"
+	ErrTypeArtistNotFound   pyrin.ErrorType = "ARTIST_NOT_FOUND"
+	ErrTypeAlbumNotFound    pyrin.ErrorType = "ALBUM_NOT_FOUND"
+	ErrTypeTrackNotFound    pyrin.ErrorType = "TRACK_NOT_FOUND"
+	ErrTypePlaylistNotFound pyrin.ErrorType = "PLAYLIST_NOT_FOUND"
+	ErrTypeApiTokenNotFound pyrin.ErrorType = "API_TOKEN_NOT_FOUND"
+
 	ErrTypeInvalidFilter     pyrin.ErrorType = "INVALID_FILTER"
 	ErrTypeInvalidSort       pyrin.ErrorType = "INVALID_SORT"
 	ErrTypeUserAlreadyExists pyrin.ErrorType = "USER_ALREADY_EXISTS"
@@ -45,6 +47,14 @@ func PlaylistNotFound() *pyrin.Error {
 		Code:    http.StatusNotFound,
 		Type:    ErrTypePlaylistNotFound,
 		Message: "Playlist not found",
+	}
+}
+
+func ApiTokenNotFound() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusNotFound,
+		Type:    ErrTypeApiTokenNotFound,
+		Message: "Api Token not found",
 	}
 }
 

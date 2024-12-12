@@ -8,6 +8,7 @@ import (
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/pyrin"
 	"github.com/nanoteck137/pyrin/tools/transform"
 	"github.com/nanoteck137/validate"
@@ -28,9 +29,8 @@ func (b UpdateUserSettingsBody) Validate() error {
 		validate.Field(&b.DisplayName,
 			validate.Required.When(b.DisplayName != nil),
 		),
-		validate.Field(&b.QuickPlaylist,
-			// validate.Required.When(b.QuickPlaylist != nil),
-		),
+		validate.Field(&b.QuickPlaylist), // validate.Required.When(b.QuickPlaylist != nil),
+
 	)
 }
 
@@ -44,6 +44,33 @@ func (b *TrackId) Transform() {
 
 type GetUserQuickPlaylistItemIds struct {
 	TrackIds []string `json:"trackIds"`
+}
+
+type CreateApiToken struct {
+	Token string `json:"token"`
+}
+
+type CreateApiTokenBody struct {
+	Name string `json:"name"`
+}
+
+func (b *CreateApiTokenBody) Transform() {
+	b.Name = transform.String(b.Name)
+}
+
+func (b CreateApiTokenBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required),
+	)
+}
+
+type ApiToken struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type GetAllApiTokens struct {
+	Tokens []ApiToken `json:"tokens"` 
 }
 
 func InstallUserHandlers(app core.App, group pyrin.Group) {
@@ -196,6 +223,109 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 
 				// TODO(patrik): Better error
 				return nil, errors.New("No Quick Playlist set")
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "CreateApiToken",
+			Method:   http.MethodPost,
+			Path:     "/user/apitoken",
+			DataType: CreateApiToken{},
+			BodyType: CreateApiTokenBody{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				body, err := pyrin.Body[CreateApiTokenBody](c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				token, err := app.DB().CreateApiToken(ctx, database.CreateApiTokenParams{
+					UserId: user.Id,
+					Name:   body.Name,
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return CreateApiToken{
+					Token: token.Id,
+				}, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "GetAllApiTokens",
+			Method:   http.MethodGet,
+			Path:     "/user/apitoken",
+			DataType: GetAllApiTokens{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				tokens, err := app.DB().GetAllApiTokensForUser(ctx, user.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				res := GetAllApiTokens{
+					Tokens: make([]ApiToken, len(tokens)),
+				}
+
+				for i, token := range tokens {
+					res.Tokens[i] = ApiToken{
+						Id:   token.Id,
+						Name: token.Name,
+					}
+				}
+
+				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:   "RemoveApiToken",
+			Method: http.MethodDelete,
+			Path:   "/user/apitoken/:id",
+			Errors: []pyrin.ErrorType{ErrTypeApiTokenNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				tokenId := c.Param("id")
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				token, err := app.DB().GetApiTokenById(ctx, tokenId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, ApiTokenNotFound()
+					}
+
+					return nil, err
+				}
+
+				if token.UserId != user.Id {
+					return nil, ApiTokenNotFound()
+				}
+
+				err = app.DB().RemoveApiToken(ctx, tokenId)
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
 			},
 		},
 	)

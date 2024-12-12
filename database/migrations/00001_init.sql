@@ -120,7 +120,19 @@ CREATE TABLE taglists (
     updated INTEGER NOT NULL
 );
 
+CREATE TABLE api_tokens (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+
+    name TEXT NOT NULL CHECK(name<>''),
+
+    created INTEGER NOT NULL,
+    updated INTEGER NOT NULL
+);
+
 -- +goose Down
+DROP TABLE api_tokens;
+
 DROP TABLE taglists;
 
 DROP TABLE playlist_items;
