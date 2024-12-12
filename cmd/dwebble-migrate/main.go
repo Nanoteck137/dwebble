@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble"
@@ -47,13 +48,14 @@ func rowsToArrayMap(rows *sql.Rows) ([]map[string]any, error) {
 var rootCmd = &cobra.Command{
 	Use:     AppName + " <IN>",
 	Version: dwebble.Version,
+	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		oldDb, err := sql.Open("sqlite3", "file:../olddata.db")
+		oldDb, err := sql.Open("sqlite3", fmt.Sprintf("file:%s", args[0]))
 		if err != nil {
 			log.Fatal("Failed", "err", err)
 		}
 
-		workDir := types.WorkDir("./work")
+		workDir := types.WorkDir(".")
 
 		db, err := database.Open(workDir)
 		if err != nil {
