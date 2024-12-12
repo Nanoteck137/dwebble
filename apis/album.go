@@ -26,6 +26,7 @@ import (
 type Album struct {
 	Id         string       `json:"id"`
 	Name       string       `json:"name"`
+	OtherName  *string      `json:"otherName"`
 	CoverArt   types.Images `json:"coverArt"`
 	ArtistId   string       `json:"artistId"`
 	ArtistName string       `json:"artistName"`
@@ -40,9 +41,15 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 		year = &album.Year.Int64
 	}
 
+	var otherName *string
+	if album.OtherName.Valid {
+		otherName = &album.OtherName.String
+	}
+
 	return Album{
 		Id:         album.Id,
 		Name:       album.Name,
+		OtherName:  otherName,
 		CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 		ArtistId:   album.ArtistId,
 		ArtistName: album.ArtistName,
@@ -66,6 +73,7 @@ type GetAlbumTracks struct {
 
 type EditAlbumBody struct {
 	Name       *string `json:"name,omitempty"`
+	OtherName  *string `json:"otherName,omitempty"`
 	ArtistId   *string `json:"artistId,omitempty"`
 	ArtistName *string `json:"artistName,omitempty"`
 	Year       *int64  `json:"year,omitempty"`
@@ -73,6 +81,7 @@ type EditAlbumBody struct {
 
 func (b *EditAlbumBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
+	b.OtherName = transform.StringPtr(b.OtherName)
 	b.ArtistName = transform.StringPtr(b.ArtistName)
 }
 
@@ -87,6 +96,7 @@ func (b EditAlbumBody) Validate() error {
 
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Name, validate.Required.When(b.Name != nil)),
+		// validate.Field(&b.OtherName, validate.Required.When(b.OtherName != nil)),
 		validate.Field(&b.ArtistId, checkBoth, validate.Required.When(b.ArtistId != nil)),
 		validate.Field(&b.ArtistName, checkBoth, validate.Required.When(b.ArtistName != nil)),
 		validate.Field(&b.Year, validate.Min(0)),
@@ -108,7 +118,7 @@ func (b *CreateAlbumBody) Transform() {
 	b.Artist = transform.String(b.Artist)
 }
 
-func (b CreateAlbumBody) Validate() error{
+func (b CreateAlbumBody) Validate() error {
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Name, validate.Required),
 		validate.Field(&b.Artist, validate.Required),
@@ -159,14 +169,9 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				query := strings.TrimSpace(q.Get("query"))
 
-				var err error
-				var albums []database.Album
-
-				if query != "" {
-					albums, err = app.DB().SearchAlbums(query)
-					if err != nil {
-						return nil, err
-					}
+				albums, err := app.DB().SearchAlbums(query)
+				if err != nil {
+					return nil, err
 				}
 
 				res := GetAlbums{
@@ -267,16 +272,30 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				var name types.Change[string]
+				changes := database.AlbumChanges{}
+
 				if body.Name != nil {
-					name.Value = *body.Name
-					name.Changed = *body.Name != album.Name
+					changes.Name = types.Change[string]{
+						Value:   *body.Name,
+						Changed: *body.Name != album.Name,
+					}
 				}
 
-				var artistId types.Change[string]
+				if body.OtherName != nil {
+					changes.OtherName = types.Change[sql.NullString]{
+						Value:   sql.NullString{
+							String: *body.OtherName,
+							Valid:  *body.OtherName != "",
+						},
+						Changed: *body.OtherName != album.OtherName.String,
+					}
+				}
+
 				if body.ArtistId != nil {
-					artistId.Value = *body.ArtistId
-					artistId.Changed = *body.ArtistId != album.ArtistId
+					changes.ArtistId = types.Change[string]{
+						Value:   *body.ArtistId,
+						Changed: *body.ArtistId != album.ArtistId,
+					}
 				} else if body.ArtistName != nil {
 					artistName := *body.ArtistName
 
@@ -293,24 +312,23 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 						}
 					}
 
-					artistId.Value = artist.Id
-					artistId.Changed = artist.Id != album.ArtistId
-				}
-
-				var year types.Change[sql.NullInt64]
-				if body.Year != nil {
-					year.Value = sql.NullInt64{
-						Int64: *body.Year,
-						Valid: *body.Year != 0,
+					changes.ArtistId = types.Change[string]{
+						Value:   artist.Id,
+						Changed: artist.Id != album.ArtistId,
 					}
-					year.Changed = *body.Year != album.Year.Int64
 				}
 
-				err = app.DB().UpdateAlbum(ctx, album.Id, database.AlbumChanges{
-					Name:     name,
-					ArtistId: artistId,
-					Year:     year,
-				})
+				if body.Year != nil {
+					changes.Year = types.Change[sql.NullInt64]{
+						Value:   sql.NullInt64{
+							Int64: *body.Year,
+							Valid: *body.Year != 0,
+						},
+						Changed: *body.Year != album.Year.Int64,
+					}
+				}
+
+				err = app.DB().UpdateAlbum(ctx, album.Id, changes)
 				if err != nil {
 					return nil, err
 				}

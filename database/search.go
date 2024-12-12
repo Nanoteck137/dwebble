@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 )
@@ -19,7 +21,19 @@ type TrackSearch struct {
 	Tags   string `json:"tags"`
 }
 
+var replacer = strings.NewReplacer(
+	`"`, "",
+)
+
 func (db *Database) SearchArtists(searchQuery string) ([]Artist, error) {
+	searchQuery = replacer.Replace(searchQuery)
+
+	if searchQuery == "" {
+		return nil, nil
+	}
+
+	searchQuery = "\"" + searchQuery + "\""
+
 	query := dialect.From("artists_search").Select(
 		"artists.id",
 		"artists.name",
@@ -31,10 +45,14 @@ func (db *Database) SearchArtists(searchQuery string) ([]Artist, error) {
 			goqu.On(goqu.I("artists_search.id").Eq(goqu.I("artists.id"))),
 		).
 		Where(
-			goqu.L("? MATCH ?", goqu.T("artists_search"), searchQuery),
+			goqu.L("? = ?", goqu.T("artists_search"), searchQuery),
 		).
 		Order(goqu.I("rank").Asc()).
 		Limit(10)
+
+	s, params, _ := query.ToSQL()
+	fmt.Printf("s: %v\n", s)
+	fmt.Printf("params: %v\n", params)
 
 	var res []Artist
 	err := db.Select(&res, query)
@@ -46,6 +64,14 @@ func (db *Database) SearchArtists(searchQuery string) ([]Artist, error) {
 }
 
 func (db *Database) SearchAlbums(searchQuery string) ([]Album, error) {
+	searchQuery = replacer.Replace(searchQuery)
+
+	if searchQuery == "" {
+		return nil, nil
+	}
+
+	searchQuery = "\"" + searchQuery + "\""
+
 	query := dialect.From("albums_search").Select(
 		"albums.id",
 		"albums.name",
@@ -79,7 +105,16 @@ func (db *Database) SearchAlbums(searchQuery string) ([]Album, error) {
 	return res, nil
 }
 
+
 func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
+	searchQuery = replacer.Replace(searchQuery)
+
+	if searchQuery == "" {
+		return nil, nil
+	}
+
+	searchQuery = "\"" + searchQuery + "\""
+
 	query := dialect.From("tracks_search").Select(
 		"tracks.id",
 		"tracks.name",
@@ -126,9 +161,9 @@ func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 
 func (db *Database) InitializeSearch() error {
 	_, err := db.Conn.Exec(`
-		CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(id UNINDEXED, name, tokenize=trigram);
-		CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(id UNINDEXED, name, artist, tokenize=trigram);
-		CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(id UNINDEXED, name, artist, album, tags, tokenize=trigram);
+		CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(id UNINDEXED, name, tokenize="trigram");
+		CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(id UNINDEXED, name, artist, tokenize=porter);
+		CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(id UNINDEXED, name, artist, album, tags, tokenize=porter);
 	`)
 	if err != nil {
 		return err

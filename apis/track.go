@@ -105,23 +105,23 @@ func (b *EditTrackBody) Transform() {
 
 func (b EditTrackBody) Validate() error {
 	checkBothArtist := validate.By(func(value interface{}) error {
-			if b.ArtistId != nil && b.ArtistName != nil {
-				return errors.New("both 'artistId' and 'artistName' can't be specified remove one of them")
-			}
+		if b.ArtistId != nil && b.ArtistName != nil {
+			return errors.New("both 'artistId' and 'artistName' can't be specified remove one of them")
+		}
 
-			return nil
-		})
+		return nil
+	})
 
 	return validate.ValidateStruct(&b,
-		validate.Field(&b.Name, 
+		validate.Field(&b.Name,
 			validate.Required.When(b.Name != nil),
 		),
-		validate.Field(&b.ArtistId, 
-			validate.Required.When(b.ArtistId != nil), 
+		validate.Field(&b.ArtistId,
+			validate.Required.When(b.ArtistId != nil),
 			checkBothArtist,
 		),
-		validate.Field(&b.ArtistName, 
-			validate.Required.When(b.ArtistName != nil), 
+		validate.Field(&b.ArtistName,
+			validate.Required.When(b.ArtistName != nil),
 			checkBothArtist,
 		),
 		validate.Field(&b.Year, validate.Min(0)),
@@ -206,15 +206,9 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 
 				query := strings.TrimSpace(q.Get("query"))
 
-				var err error
-				var tracks []database.Track
-
-				if query != "" {
-					tracks, err = app.DB().SearchTracks(query)
-					if err != nil {
-						pretty.Println(err)
-						return nil, err
-					}
+				tracks, err := app.DB().SearchTracks(query)
+				if err != nil {
+					return nil, err
 				}
 
 				res := GetTracks{
