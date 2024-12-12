@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -14,6 +15,22 @@ import (
 const defaultMemory = 32 << 20 // 32 MB
 
 func User(app core.App, c pyrin.Context) (*database.User, error) {
+	apiTokenHeader := c.Request().Header.Get("X-Api-Token")
+	if apiTokenHeader != "" {
+		ctx := context.TODO()
+		token, err := app.DB().GetApiTokenById(ctx, apiTokenHeader)
+		if err != nil {
+			return nil, err
+		}
+
+		user, err := app.DB().GetUserById(c.Request().Context(), token.UserId)
+		if err != nil {
+			return nil, err
+		}
+
+		return &user, nil
+	}
+
 	authHeader := c.Request().Header.Get("Authorization")
 	tokenString := utils.ParseAuthHeader(authHeader)
 	if tokenString == "" {
