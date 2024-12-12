@@ -12,6 +12,7 @@ import (
 type Playlist struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
+	// TODO(patrik): Add all fields
 }
 
 type GetPlaylists struct {

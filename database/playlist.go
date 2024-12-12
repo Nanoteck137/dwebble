@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/mattn/go-sqlite3"
@@ -12,9 +13,12 @@ import (
 )
 
 type Playlist struct {
-	Id      string
-	Name    string
-	OwnerId string
+	Id      string `db:"id"`
+	Name    string `db:"name"`
+	OwnerId string `db:"owner_id"`
+
+	Created string `db:"created"`
+	Updated string `db:"updated"`
 }
 
 func (db *Database) GetPlaylistsByUser(ctx context.Context, userId string) ([]Playlist, error) {
@@ -120,29 +124,52 @@ func (db *Database) GetPlaylistTracks(ctx context.Context, playlistId string) ([
 }
 
 type CreatePlaylistParams struct {
+	Id      string
 	Name    string
 	OwnerId string
+
+	Created int64
+	Updated int64
 }
 
 func (db *Database) CreatePlaylist(ctx context.Context, params CreatePlaylistParams) (Playlist, error) {
-	ds := dialect.Insert("playlists").
-		Rows(goqu.Record{
-			"id":       utils.CreateId(),
-			"name":     params.Name,
-			"owner_id": params.OwnerId,
-		}).
-		Returning("id", "name", "owner_id").
-		Prepared(true)
+	t := time.Now().UnixMilli()
+	created := params.Created
+	updated := params.Updated
 
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return Playlist{}, nil
+	if created == 0 && updated == 0 {
+		created = t
+		updated = t
 	}
 
+	id := params.Id
+	if id == "" {
+		id = utils.CreateId()
+	}
+
+	query := dialect.Insert("playlists").
+		Rows(goqu.Record{
+			"id":       id,
+			"name":     params.Name,
+			"owner_id": params.OwnerId,
+
+			"created": created,
+			"updated": updated,
+		}).
+		Returning(
+			"playlists.id",
+			"playlists.name",
+			"playlists.owner_id",
+
+			"playlists.created",
+			"playlists.updated",
+		).
+		Prepared(true)
+
 	var item Playlist
-	err = row.Scan(&item.Id, &item.Name, &item.OwnerId)
+	err := db.Get(&item, query)
 	if err != nil {
-		return Playlist{}, nil
+		return Playlist{}, err
 	}
 
 	return item, nil
