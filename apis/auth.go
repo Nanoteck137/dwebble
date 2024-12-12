@@ -96,6 +96,9 @@ type GetMe struct {
 	Id       string `json:"id"`
 	Username string `json:"username"`
 	Role     string `json:"role"`
+
+	DisplayName   string `json:"displayName"`
+	QuickPlaylist *string `json:"quickPlaylist"`
 }
 
 func InstallAuthHandlers(app core.App, group pyrin.Group) {
@@ -229,10 +232,22 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				displayName := user.Username
+				if user.DisplayName.Valid {
+					displayName = user.DisplayName.String
+				}
+
+				var quickPlaylist *string
+				if user.QuickPlaylist.Valid {
+					quickPlaylist = &user.QuickPlaylist.String
+				}
+
 				return GetMe{
-					Id:       user.Id,
-					Username: user.Username,
-					Role:     user.Role,
+					Id:            user.Id,
+					Username:      user.Username,
+					Role:          user.Role,
+					DisplayName:   displayName,
+					QuickPlaylist: quickPlaylist,
 				}, nil
 			},
 		},

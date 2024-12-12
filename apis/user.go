@@ -3,6 +3,7 @@ package apis
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/kr/pretty"
@@ -28,17 +29,21 @@ func (b UpdateUserSettingsBody) Validate() error {
 			validate.Required.When(b.DisplayName != nil),
 		),
 		validate.Field(&b.QuickPlaylist,
-			validate.Required.When(b.QuickPlaylist != nil),
+			// validate.Required.When(b.QuickPlaylist != nil),
 		),
 	)
 }
 
-type AddToUserQuickPlaylistBody struct {
-	Tracks []string
+type TrackIds struct {
+	Tracks []string `json:"tracks"`
 }
 
-func (b *AddToUserQuickPlaylistBody) Transform() {
+func (b *TrackIds) Transform() {
 	// b.Tracks = *transform.DiscardEmptyStringEntries()
+}
+
+type GetUserQuickPlaylistItemIds struct {
+	TrackIds []string `json:"trackIds"`
 }
 
 func InstallUserHandlers(app core.App, group pyrin.Group) {
@@ -47,8 +52,7 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 			Name:     "UpdateUserSettings",
 			Method:   http.MethodPatch,
 			Path:     "/user/settings",
-			DataType: nil,
-			BodyType: nil,
+			BodyType: UpdateUserSettingsBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				body, err := pyrin.Body[UpdateUserSettingsBody](c)
 				if err != nil {
@@ -75,15 +79,17 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 				if body.QuickPlaylist != nil {
 					id := *body.QuickPlaylist
 
-					_, err := app.DB().GetPlaylistById(context.TODO(), id)
-					if err != nil {
-						// TODO(patrik): Handle error
-						return nil, err
+					if id != "" {
+						_, err := app.DB().GetPlaylistById(context.TODO(), id)
+						if err != nil {
+							// TODO(patrik): Handle error
+							return nil, err
+						}
 					}
 
 					settings.QuickPlaylist = sql.NullString{
 						String: id,
-						Valid:  true,
+						Valid:  id != "",
 					}
 				}
 
@@ -102,9 +108,9 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodPost,
 			Path:     "/user/quickplaylist",
 			DataType: nil,
-			BodyType: nil,
+			BodyType: TrackIds{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				body, err := pyrin.Body[AddToUserQuickPlaylistBody](c)
+				body, err := pyrin.Body[TrackIds](c)
 				if err != nil {
 					return nil, err
 				}
@@ -124,6 +130,68 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 				}
 
 				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "RemoveItemFromUserQuickPlaylist",
+			Method:   http.MethodDelete,
+			Path:     "/user/quickplaylist",
+			DataType: nil,
+			BodyType: TrackIds{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				body, err := pyrin.Body[TrackIds](c)
+				if err != nil {
+					return nil, err
+				}
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				if user.QuickPlaylist.Valid {
+					err := app.DB().DeleteItemsFromPlaylist(context.TODO(), user.QuickPlaylist.String, body.Tracks)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "GetUserQuickPlaylistItemIds",
+			Method:   http.MethodGet,
+			Path:     "/user/quickplaylist",
+			DataType: GetUserQuickPlaylistItemIds{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				if user.QuickPlaylist.Valid {
+					items, err := app.DB().GetPlaylistItems(ctx, user.QuickPlaylist.String)
+					if err != nil {
+						return nil, err
+					}
+
+					res := GetUserQuickPlaylistItemIds{
+						TrackIds: make([]string, len(items)),
+					}
+
+					for i, item := range items {
+						res.TrackIds[i] = item.TrackId
+					}
+
+					return res, nil
+				}
+
+				return nil, errors.New("No Quick Playlist set")
 			},
 		},
 	)

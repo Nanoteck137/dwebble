@@ -41,6 +41,10 @@ export const GET_TAGLIST_BY_ID_URL = "/api/v1/taglists/:id"
 export const GET_TAGLIST_TRACKS_URL = "/api/v1/taglists/:id/tracks"
 export const CREATE_TAGLIST_URL = "/api/v1/taglists"
 export const UPDATE_TAGLIST_URL = "/api/v1/taglists/:id"
+export const UPDATE_USER_SETTINGS_URL = "/api/v1/user/settings"
+export const ADD_TO_USER_QUICK_PLAYLIST_URL = "/api/v1/user/quickplaylist"
+export const REMOVE_ITEM_FROM_USER_QUICK_PLAYLIST_URL = "/api/v1/user/quickplaylist"
+export const GET_USER_QUICK_PLAYLIST_ITEM_IDS_URL = "/api/v1/user/quickplaylist"
 
 export class ApiClient extends BaseApiClient {
   constructor(baseUrl: string) {
@@ -201,5 +205,21 @@ export class ApiClient extends BaseApiClient {
   
   updateTaglist(id: string, body: api.UpdateTaglistBody, options?: ExtraOptions) {
     return this.request(`/api/v1/taglists/${id}`, "PATCH", z.undefined(), z.any(), body, options)
+  }
+  
+  updateUserSettings(body: api.UpdateUserSettingsBody, options?: ExtraOptions) {
+    return this.request("/api/v1/user/settings", "PATCH", z.undefined(), z.any(), body, options)
+  }
+  
+  addToUserQuickPlaylist(body: api.TrackIds, options?: ExtraOptions) {
+    return this.request("/api/v1/user/quickplaylist", "POST", z.undefined(), z.any(), body, options)
+  }
+  
+  removeItemFromUserQuickPlaylist(body: api.TrackIds, options?: ExtraOptions) {
+    return this.request("/api/v1/user/quickplaylist", "DELETE", z.undefined(), z.any(), body, options)
+  }
+  
+  getUserQuickPlaylistItemIds(options?: ExtraOptions) {
+    return this.request("/api/v1/user/quickplaylist", "GET", api.GetUserQuickPlaylistItemIds, z.any(), undefined, options)
   }
 }

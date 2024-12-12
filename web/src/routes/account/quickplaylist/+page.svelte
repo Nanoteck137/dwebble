@@ -6,9 +6,18 @@
 
 <p>Change Quick Playlist</p>
 
-{#each data.playlists as playlist}
-  <form method="post">
-    <input name="playlistId" value={playlist.id} type="hidden" />
-    <Button type="submit" variant="ghost">{playlist.name}</Button>
-  </form>
-{/each}
+<form method="post">
+  <input name="playlistId" value="" type="hidden" />
+  <Button type="submit" variant="outline">Unset Quick Playlist</Button>
+</form>
+
+<div class="h-4"></div>
+
+<div class="flex flex-col gap-2">
+  {#each data.playlists as playlist}
+    <form method="post">
+      <input name="playlistId" value={playlist.id} type="hidden" />
+      <Button type="submit" variant="ghost">{playlist.name}</Button>
+    </form>
+  {/each}
+</div>

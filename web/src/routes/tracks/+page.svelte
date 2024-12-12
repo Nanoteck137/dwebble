@@ -4,15 +4,13 @@
     EllipsisVertical,
     Filter,
     ListPlus,
-    Pencil,
     Play,
-    Plus,
     Shuffle,
+    Star,
     Users,
   } from "lucide-svelte";
   import { musicManager } from "$lib/music-manager";
   import { cn, shuffle, trackToMusicTrack } from "$lib/utils";
-  import { enhance } from "$app/forms";
   import {
     DropdownMenu,
     Button,
@@ -23,8 +21,15 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import TrackListItem from "$lib/components/TrackListItem.svelte";
+  import { enhance } from "$app/forms";
 
   let { data } = $props();
+
+  function isInQuickPlaylist(trackId: string) {
+    if (!data.quickPlaylistIds) return false;
+
+    return !!data.quickPlaylistIds.find((v) => v === trackId);
+  }
 </script>
 
 <form method="GET">
@@ -118,6 +123,34 @@
         musicManager.requestPlay();
       }}
     >
+      {#if data.user && data.user.quickPlaylist}
+        {#if isInQuickPlaylist(track.id)}
+          <form action="?/removeQuickPlaylistItem" method="post" use:enhance>
+            <input name="trackId" type="hidden" value={track.id} />
+            <Button
+              type="submit"
+              class="rounded-full"
+              variant="ghost"
+              size="icon-lg"
+            >
+              <Star fill="#ffffff" />
+            </Button>
+          </form>
+        {:else}
+          <form action="?/addToQuickPlaylist" method="post" use:enhance>
+            <input name="trackId" type="hidden" value={track.id} />
+
+            <Button
+              type="submit"
+              class="rounded-full"
+              variant="ghost"
+              size="icon-lg"
+            >
+              <Star />
+            </Button>
+          </form>
+        {/if}
+      {/if}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           class={cn(

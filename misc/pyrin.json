@@ -499,6 +499,16 @@
           "name": "role",
           "type": "string",
           "omit": false
+        },
+        {
+          "name": "displayName",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "quickPlaylist",
+          "type": "*string",
+          "omit": false
         }
       ]
     },
@@ -878,6 +888,44 @@
           "name": "filter",
           "type": "*string",
           "omit": true
+        }
+      ]
+    },
+    {
+      "name": "UpdateUserSettingsBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "displayName",
+          "type": "*string",
+          "omit": true
+        },
+        {
+          "name": "quickPlaylist",
+          "type": "*string",
+          "omit": true
+        }
+      ]
+    },
+    {
+      "name": "TrackIds",
+      "extend": "",
+      "fields": [
+        {
+          "name": "tracks",
+          "type": "[]string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetUserQuickPlaylistItemIds",
+      "extend": "",
+      "fields": [
+        {
+          "name": "trackIds",
+          "type": "[]string",
+          "omit": false
         }
       ]
     }
@@ -1400,6 +1448,58 @@
       ],
       "responseType": "",
       "bodyType": "UpdateTaglistBody",
+      "requireFormData": false
+    },
+    {
+      "name": "UpdateUserSettings",
+      "method": "PATCH",
+      "path": "/api/v1/user/settings",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "UpdateUserSettingsBody",
+      "requireFormData": false
+    },
+    {
+      "name": "AddToUserQuickPlaylist",
+      "method": "POST",
+      "path": "/api/v1/user/quickplaylist",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "TrackIds",
+      "requireFormData": false
+    },
+    {
+      "name": "RemoveItemFromUserQuickPlaylist",
+      "method": "DELETE",
+      "path": "/api/v1/user/quickplaylist",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "TrackIds",
+      "requireFormData": false
+    },
+    {
+      "name": "GetUserQuickPlaylistItemIds",
+      "method": "GET",
+      "path": "/api/v1/user/quickplaylist",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "GetUserQuickPlaylistItemIds",
+      "bodyType": "",
       "requireFormData": false
     }
   ]

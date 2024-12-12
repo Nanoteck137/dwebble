@@ -142,6 +142,8 @@ type GetMe struct {
 	Id string `json:"id"`
 	Username string `json:"username"`
 	Role string `json:"role"`
+	DisplayName string `json:"displayName"`
+	QuickPlaylist *string `json:"quickPlaylist,omitempty"`
 }
 
 type Playlist struct {
@@ -254,5 +256,18 @@ type CreateTaglistBody struct {
 type UpdateTaglistBody struct {
 	Name *string `json:"name,omitempty"`
 	Filter *string `json:"filter,omitempty"`
+}
+
+type UpdateUserSettingsBody struct {
+	DisplayName *string `json:"displayName,omitempty"`
+	QuickPlaylist *string `json:"quickPlaylist,omitempty"`
+}
+
+type TrackIds struct {
+	Tracks []string `json:"tracks"`
+}
+
+type GetUserQuickPlaylistItemIds struct {
+	TrackIds []string `json:"trackIds"`
 }
 

@@ -624,3 +624,67 @@ func (c *Client) UpdateTaglist(id string, body UpdateTaglistBody, options Option
 	}
 	return Request[any](data)
 }
+
+func (c *Client) UpdateUserSettings(body UpdateUserSettingsBody, options Options) (*any, error) {
+	path := "/api/v1/user/settings"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "PATCH",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
+func (c *Client) AddToUserQuickPlaylist(body TrackIds, options Options) (*any, error) {
+	path := "/api/v1/user/quickplaylist"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
+func (c *Client) RemoveItemFromUserQuickPlaylist(body TrackIds, options Options) (*any, error) {
+	path := "/api/v1/user/quickplaylist"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "DELETE",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
+func (c *Client) GetUserQuickPlaylistItemIds(options Options) (*GetUserQuickPlaylistItemIds, error) {
+	path := "/api/v1/user/quickplaylist"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetUserQuickPlaylistItemIds](data)
+}

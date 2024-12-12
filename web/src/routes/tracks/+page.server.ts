@@ -2,7 +2,7 @@ import type { Page, Track } from "$lib/api/types";
 import { error, redirect } from "@sveltejs/kit";
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals, url, fetch }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   const query: Record<string, string> = {};
   const filter = url.searchParams.get("filter");
   if (filter) {
@@ -56,7 +56,7 @@ export const load: PageServerLoad = async ({ locals, url, fetch }) => {
 };
 
 export const actions: Actions = {
-  quickAddToPlaylist: async ({ request, locals, cookies }) => {
+  addToQuickPlaylist: async ({ request, locals }) => {
     const formData = await request.formData();
 
     const trackId = formData.get("trackId");
@@ -64,12 +64,22 @@ export const actions: Actions = {
       throw error(400, "No track id set");
     }
 
-    const playlistId = cookies.get("quick-playlist");
-    if (!playlistId) {
-      throw error(400, "No quick playlist set");
+    const res = await locals.apiClient.addToUserQuickPlaylist({
+      tracks: [trackId.toString()],
+    });
+    if (!res.success) {
+      throw error(res.error.code, res.error.message);
+    }
+  },
+  removeQuickPlaylistItem: async ({ request, locals }) => {
+    const formData = await request.formData();
+
+    const trackId = formData.get("trackId");
+    if (!trackId) {
+      throw error(400, "No track id set");
     }
 
-    const res = await locals.apiClient.addItemsToPlaylist(playlistId, {
+    const res = await locals.apiClient.removeItemFromUserQuickPlaylist({
       tracks: [trackId.toString()],
     });
     if (!res.success) {

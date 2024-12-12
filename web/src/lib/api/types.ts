@@ -166,6 +166,8 @@ export const GetMe = z.object({
   id: z.string(),
   username: z.string(),
   role: z.string(),
+  displayName: z.string(),
+  quickPlaylist: z.string().nullable(),
 });
 export type GetMe = z.infer<typeof GetMe>;
 
@@ -301,4 +303,20 @@ export const UpdateTaglistBody = z.object({
   filter: z.string().nullable().optional(),
 });
 export type UpdateTaglistBody = z.infer<typeof UpdateTaglistBody>;
+
+export const UpdateUserSettingsBody = z.object({
+  displayName: z.string().nullable().optional(),
+  quickPlaylist: z.string().nullable().optional(),
+});
+export type UpdateUserSettingsBody = z.infer<typeof UpdateUserSettingsBody>;
+
+export const TrackIds = z.object({
+  tracks: z.array(z.string()),
+});
+export type TrackIds = z.infer<typeof TrackIds>;
+
+export const GetUserQuickPlaylistItemIds = z.object({
+  trackIds: z.array(z.string()),
+});
+export type GetUserQuickPlaylistItemIds = z.infer<typeof GetUserQuickPlaylistItemIds>;
 
