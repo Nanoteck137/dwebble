@@ -39,7 +39,7 @@
 
           tags = ["fts5"];
 
-          vendorHash = "sha256-SGlPuPXHBwwBjQ8OqiCC33D+x8SDpXCOFTU3ggjUirQ=";
+          vendorHash = "sha256-Yz+v7/D7odh4QdTGwNeMb2SjsUbffB5rNc3cPseDRq4=";
 
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
@@ -56,7 +56,7 @@
           version = fullVersion;
 
           src = gitignore.lib.gitignoreSource ./web;
-          npmDepsHash = "sha256-+ApJjenCv203FmfwHNlxm0BkdqRPUNDDGZBEXa3vIkc=";
+          npmDepsHash = "sha256-QpWbJXA/W5HUgg0mW3HcTfzbAZibg1aOiVA0PyEynP8=";
 
           PUBLIC_VERSION=version;
           PUBLIC_COMMIT=self.dirtyRev or self.rev or "no-commit";
