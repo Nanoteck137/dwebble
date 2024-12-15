@@ -15,6 +15,7 @@
 
   let trackNumber = $state(data.track.number?.toString() ?? "");
   let trackName = $state(data.track.name);
+  let trackOtherName = $state(data.track.otherName ?? "");
   let trackYear = $state(data.track.year?.toString() ?? "");
   let trackTags = $state(data.track.tags.join(","));
 
@@ -52,6 +53,7 @@
     const res = await apiClient.editTrack(data.track.id, {
       number: num,
       name: trackName,
+      otherName: trackOtherName,
       year,
       tags,
       artistId,
@@ -85,7 +87,7 @@
       <p>{data.track.name}</p>
     </div>
 
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-2">
       <div class="flex items-center gap-2">
         <Label class="w-24" for="trackNumber">Number</Label>
         <Label for="trackName">Track Name</Label>
@@ -105,6 +107,17 @@
           autocomplete="off"
         />
       </div>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <Label for="trackOtherName">Other Name</Label>
+      <Input
+        class="w-full"
+        id="trackOtherName"
+        bind:value={trackOtherName}
+        type="text"
+        autocomplete="off"
+      />
     </div>
 
     <div class="flex flex-col gap-2">

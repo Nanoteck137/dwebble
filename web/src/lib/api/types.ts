@@ -60,6 +60,7 @@ export type GetAlbumById = z.infer<typeof GetAlbumById>;
 export const Track = z.object({
   id: z.string(),
   name: z.string(),
+  otherName: z.string().nullable(),
   albumId: z.string(),
   artistId: z.string(),
   number: z.number().nullable(),
@@ -70,9 +71,9 @@ export const Track = z.object({
   coverArt: Images,
   albumName: z.string(),
   artistName: z.string(),
+  tags: z.array(z.string()),
   created: z.number(),
   updated: z.number(),
-  tags: z.array(z.string()),
 });
 export type Track = z.infer<typeof Track>;
 
@@ -125,6 +126,7 @@ export type GetTrackById = z.infer<typeof GetTrackById>;
 
 export const EditTrackBody = z.object({
   name: z.string().nullable().optional(),
+  otherName: z.string().nullable().optional(),
   artistId: z.string().nullable().optional(),
   artistName: z.string().nullable().optional(),
   year: z.number().nullable().optional(),

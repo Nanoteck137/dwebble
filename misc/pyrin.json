@@ -177,6 +177,11 @@
           "omit": false
         },
         {
+          "name": "otherName",
+          "type": "*string",
+          "omit": false
+        },
+        {
           "name": "albumId",
           "type": "string",
           "omit": false
@@ -227,6 +232,11 @@
           "omit": false
         },
         {
+          "name": "tags",
+          "type": "[]string",
+          "omit": false
+        },
+        {
           "name": "created",
           "type": "int",
           "omit": false
@@ -234,11 +244,6 @@
         {
           "name": "updated",
           "type": "int",
-          "omit": false
-        },
-        {
-          "name": "tags",
-          "type": "[]string",
           "omit": false
         }
       ]
@@ -376,6 +381,11 @@
       "fields": [
         {
           "name": "name",
+          "type": "*string",
+          "omit": true
+        },
+        {
+          "name": "otherName",
           "type": "*string",
           "omit": true
         },

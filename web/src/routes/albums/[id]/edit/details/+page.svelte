@@ -2,7 +2,13 @@
   import { artistQuery, type Artist } from "$lib";
   import { ApiClient } from "$lib/api/client.js";
   import ArtistQuery from "$lib/components/ArtistQuery.svelte";
-  import { Button, Card, Input, Label } from "@nanoteck137/nano-ui";
+  import {
+    Breadcrumb,
+    Button,
+    Card,
+    Input,
+    Label,
+  } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
 
@@ -28,6 +34,32 @@
     }
   });
 </script>
+
+<div class="py-2">
+  <Breadcrumb.Root>
+    <Breadcrumb.List>
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href="/albums">Albums</Breadcrumb.Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Separator />
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href="/albums/{data.album.id}">
+          {data.album.name}
+        </Breadcrumb.Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Separator />
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href="/albums/{data.album.id}/edit">
+          Edit
+        </Breadcrumb.Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Separator />
+      <Breadcrumb.Item>
+        <Breadcrumb.Page>Edit Details</Breadcrumb.Page>
+      </Breadcrumb.Item>
+    </Breadcrumb.List>
+  </Breadcrumb.Root>
+</div>
 
 <form action="?/submitEdit" class="flex flex-col gap-2" method="post">
   <Card.Root class="mx-auto w-full max-w-[560px]">

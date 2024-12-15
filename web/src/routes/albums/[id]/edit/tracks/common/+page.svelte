@@ -3,7 +3,14 @@
   import { artistQuery } from "$lib";
   import { ApiClient } from "$lib/api/client.js";
   import ArtistQuery from "$lib/components/ArtistQuery.svelte";
-  import { Button, Card, Checkbox, Input, Label } from "@nanoteck137/nano-ui";
+  import {
+    Breadcrumb,
+    Button,
+    Card,
+    Checkbox,
+    Input,
+    Label,
+  } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
 
@@ -42,6 +49,32 @@
     goto(`/albums/${data.album.id}/edit`, { invalidateAll: true });
   }
 </script>
+
+<div class="py-2">
+  <Breadcrumb.Root>
+    <Breadcrumb.List>
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href="/albums">Albums</Breadcrumb.Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Separator />
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href="/albums/{data.album.id}">
+          {data.album.name}
+        </Breadcrumb.Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Separator />
+      <Breadcrumb.Item>
+        <Breadcrumb.Link href="/albums/{data.album.id}/edit">
+          Edit
+        </Breadcrumb.Link>
+      </Breadcrumb.Item>
+      <Breadcrumb.Separator />
+      <Breadcrumb.Item>
+        <Breadcrumb.Page>Set Common Values</Breadcrumb.Page>
+      </Breadcrumb.Item>
+    </Breadcrumb.List>
+  </Breadcrumb.Root>
+</div>
 
 <form
   onsubmit={async (e) => {

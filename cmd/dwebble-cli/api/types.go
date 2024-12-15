@@ -51,6 +51,7 @@ type GetAlbumById Album
 type Track struct {
 	Id string `json:"id"`
 	Name string `json:"name"`
+	OtherName *string `json:"otherName,omitempty"`
 	AlbumId string `json:"albumId"`
 	ArtistId string `json:"artistId"`
 	Number *int `json:"number,omitempty"`
@@ -61,9 +62,9 @@ type Track struct {
 	CoverArt Images `json:"coverArt"`
 	AlbumName string `json:"albumName"`
 	ArtistName string `json:"artistName"`
+	Tags []string `json:"tags"`
 	Created int `json:"created"`
 	Updated int `json:"updated"`
-	Tags []string `json:"tags"`
 }
 
 type GetAlbumTracks struct {
@@ -107,6 +108,7 @@ type GetTrackById Track
 
 type EditTrackBody struct {
 	Name *string `json:"name,omitempty"`
+	OtherName *string `json:"otherName,omitempty"`
 	ArtistId *string `json:"artistId,omitempty"`
 	ArtistName *string `json:"artistName,omitempty"`
 	Year *int `json:"year,omitempty"`
