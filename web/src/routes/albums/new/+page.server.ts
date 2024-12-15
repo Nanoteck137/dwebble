@@ -1,38 +1,53 @@
-import { error, fail, redirect } from "@sveltejs/kit";
-import { z } from "zod";
-import type { Actions } from "./$types";
+import { CreateAlbumBody } from "$lib/api/types";
+import { error, redirect } from "@sveltejs/kit";
+import { fail, setError, superValidate } from "sveltekit-superforms";
+import { zod } from "sveltekit-superforms/adapters";
+import { assert, type Equals } from "tsafe";
+import type { z } from "zod";
+import type { Actions, PageServerLoad } from "./$types";
 
-// TODO(patrik): Set error messages
-const ImportSchema = z.object({
-  albumName: z.string().trim().min(1),
-  artistName: z.string().trim().min(1),
+const Body = CreateAlbumBody;
+const schema = Body.extend({
+  name: Body.shape.name,
+  artistId: Body.shape.artistId,
 });
+
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+assert<Equals<keyof z.infer<typeof Body>, keyof z.infer<typeof schema>>>;
+
+export const load: PageServerLoad = async () => {
+  const form = await superValidate(zod(schema));
+
+  return {
+    form,
+  };
+};
 
 export const actions: Actions = {
   default: async ({ locals, request }) => {
-    const formData = await request.formData();
+    const form = await superValidate(request, zod(schema));
 
-    const parsed = await ImportSchema.safeParseAsync(
-      Object.fromEntries(formData),
-    );
-
-    if (!parsed.success) {
-      const flatten = parsed.error.flatten();
-      return fail(400, {
-        errors: flatten.fieldErrors,
-      });
+    if (!form.valid) {
+      return fail(400, { form });
     }
 
-    const data = parsed.data;
-
-    const res = await locals.apiClient.createAlbum({
-      name: data.albumName,
-      artist: data.artistName,
-    });
+    const res = await locals.apiClient.createAlbum(form.data);
     if (!res.success) {
-      error(res.error.code, { message: res.error.message });
+      if (res.error.type === "VALIDATION_ERROR") {
+        const extra = res.error.extra as Record<
+          keyof z.infer<typeof schema>,
+          string | undefined
+        >;
+
+        setError(form, "name", extra.artistId ?? "");
+        setError(form, "artistId", extra.artistId ?? "");
+
+        return fail(400, { form });
+      } else {
+        throw error(res.error.code, { message: res.error.message });
+      }
     }
 
-    redirect(302, `/albums/${res.data.albumId}/edit`);
+    throw redirect(302, `/albums/${res.data.albumId}/edit`);
   },
 };

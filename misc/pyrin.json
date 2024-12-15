@@ -311,7 +311,7 @@
           "omit": false
         },
         {
-          "name": "artist",
+          "name": "artistId",
           "type": "string",
           "omit": false
         }
@@ -1147,6 +1147,7 @@
       "method": "POST",
       "path": "/api/v1/albums",
       "errorTypes": [
+        "ARTIST_NOT_FOUND",
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"

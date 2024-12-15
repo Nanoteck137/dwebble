@@ -98,7 +98,7 @@ export type CreateAlbum = z.infer<typeof CreateAlbum>;
 
 export const CreateAlbumBody = z.object({
   name: z.string(),
-  artist: z.string(),
+  artistId: z.string(),
 });
 export type CreateAlbumBody = z.infer<typeof CreateAlbumBody>;
 

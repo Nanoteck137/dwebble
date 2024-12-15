@@ -1,4 +1,8 @@
 <script lang="ts">
+  import { artistQuery } from "$lib";
+  import { ApiClient } from "$lib/api/client.js";
+  import ArtistQuery from "$lib/components/ArtistQuery.svelte";
+  import Errors from "$lib/components/Errors.svelte";
   import {
     Breadcrumb,
     Button,
@@ -6,9 +10,17 @@
     Input,
     Label,
   } from "@nanoteck137/nano-ui";
-  import type { ActionData, PageData } from "./$types";
+  import SuperDebug, { superForm } from "sveltekit-superforms";
 
-  const { form }: { data: PageData; form: ActionData } = $props();
+  const { data } = $props();
+
+  const { form, errors, enhance } = superForm(data.form, { onError: "apply" });
+
+  let { open, artist, currentQuery, queryResults, onInput } = artistQuery(
+    () => {
+      return new ApiClient(data.apiAddress);
+    },
+  );
 </script>
 
 <div class="py-2">
@@ -25,47 +37,50 @@
   </Breadcrumb.Root>
 </div>
 
-<div class="h-4"></div>
-
-<form method="post">
+<form method="post" use:enhance>
   <Card.Root class="mx-auto max-w-[450px]">
     <Card.Header>
-      <Card.Title>Create album</Card.Title>
+      <Card.Title>Create Album</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <div class="flex flex-col gap-2">
-        <Label for="albumName">Album Name</Label>
+        <Label for="name">Name</Label>
+        <Input id="name" name="name" type="text" bind:value={$form.name} />
+        <Errors errors={$errors.name} />
+      </div>
+      <!-- <div class="flex flex-col gap-2">
+        <Label for="password">Password</Label>
         <Input
-          id="albumName"
-          name="albumName"
-          type="text"
-          autocomplete="off"
+          id="password"
+          name="password"
+          type="password"
+          bind:value={$form.password}
         />
+        <Errors errors={$errors.password} />
+      </div> -->
 
-        {#if form?.errors?.albumName}
-          {#each form?.errors?.albumName as error}
-            <p class="text-xs text-red-400">{error}</p>
-          {/each}
-        {/if}
-      </div>
-      <div class="flex flex-col gap-2">
-        <Label for="artistName">Artist Name</Label>
-        <Input
-          id="artistName"
-          name="artistName"
-          type="text"
-          autocomplete="off"
-        />
-        {#if form?.errors?.artistName}
-          {#each form?.errors?.artistName as error}
-            <p class="text-xs text-red-400">{error}</p>
-          {/each}
-        {/if}
-      </div>
+      <Errors errors={$errors.artistId} />
+
+      {#if $artist}
+        <input name="artistId" value={$artist.id} type="hidden" />
+        <p>Artist: {$artist.name}</p>
+        <p>Artist Id: {$artist.id}</p>
+      {/if}
+
+      <ArtistQuery
+        bind:open={$open}
+        currentQuery={$currentQuery}
+        queryResults={$queryResults}
+        onArtistSelected={(a) => {
+          $artist = a;
+        }}
+        {onInput}
+      />
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">
-      <Button href="/albums" variant="outline">Back</Button>
-      <Button type="submit">Create</Button>
+      <Button type="submit">Login</Button>
     </Card.Footer>
   </Card.Root>
 </form>
+
+<SuperDebug data={$form} />

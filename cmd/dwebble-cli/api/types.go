@@ -85,7 +85,7 @@ type CreateAlbum struct {
 
 type CreateAlbumBody struct {
 	Name string `json:"name"`
-	Artist string `json:"artist"`
+	ArtistId string `json:"artistId"`
 }
 
 type UploadTracksBody struct {

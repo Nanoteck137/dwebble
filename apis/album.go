@@ -109,19 +109,19 @@ type CreateAlbum struct {
 
 // TODO(patrik): Add ArtistId
 type CreateAlbumBody struct {
-	Name   string `json:"name"`
-	Artist string `json:"artist"`
+	Name     string `json:"name"`
+	ArtistId string `json:"artistId"`
 }
 
 func (b *CreateAlbumBody) Transform() {
 	b.Name = transform.String(b.Name)
-	b.Artist = transform.String(b.Artist)
+	b.ArtistId = transform.String(b.ArtistId)
 }
 
 func (b CreateAlbumBody) Validate() error {
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Name, validate.Required),
-		validate.Field(&b.Artist, validate.Required),
+		validate.Field(&b.ArtistId, validate.Required),
 	)
 }
 
@@ -283,7 +283,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				if body.OtherName != nil {
 					changes.OtherName = types.Change[sql.NullString]{
-						Value:   sql.NullString{
+						Value: sql.NullString{
 							String: *body.OtherName,
 							Valid:  *body.OtherName != "",
 						},
@@ -320,7 +320,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				if body.Year != nil {
 					changes.Year = types.Change[sql.NullInt64]{
-						Value:   sql.NullInt64{
+						Value: sql.NullInt64{
 							Int64: *body.Year,
 							Valid: *body.Year != 0,
 						},
@@ -375,6 +375,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Path:     "/albums",
 			DataType: CreateAlbum{},
 			BodyType: CreateAlbumBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				body, err := pyrin.Body[CreateAlbumBody](c)
 				if err != nil {
@@ -383,16 +384,13 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				ctx := context.TODO()
 
-				artist, err := app.DB().GetArtistByName(ctx, body.Artist)
+				artist, err := app.DB().GetArtistById(ctx, body.ArtistId)
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
-						artist, err = helper.CreateArtist(ctx, app.DB(), app.WorkDir(), body.Artist)
-						if err != nil {
-							return nil, err
-						}
-					} else {
-						return nil, err
+						return nil, ArtistNotFound()
 					}
+
+					return nil, err
 				}
 
 				album, err := helper.CreateAlbum(ctx, app.DB(), app.WorkDir(), database.CreateAlbumParams{
@@ -442,6 +440,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				// TODO(patrik): Check content-type
 				// TODO(patrik): Return error if there is no files attached
 				coverArt := form.File["cover"]
+				fmt.Printf("coverArt: %v\n", coverArt)
 				if len(coverArt) > 0 {
 					f := coverArt[0]
 
