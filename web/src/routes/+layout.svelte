@@ -20,12 +20,11 @@
   import { fade, fly } from "svelte/transition";
   import { Button } from "@nanoteck137/nano-ui";
   import { setModalState } from "$lib/modal.svelte";
-  import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
-  import QueryArtistModal from "$lib/components/modals/QueryArtistModal.svelte";
+  import Modals from "$lib/components/modals/Modals.svelte";
 
   let { children, data } = $props();
 
-  const modalState = setModalState();
+  setModalState();
 
   let showSideMenu = $state(false);
 
@@ -46,14 +45,7 @@
   <title>Dwebble</title>
 </svelte:head>
 
-<!-- svelte-ignore a11y_consider_explicit_label -->
-{#each modalState.modals as modal}
-  {#if modal.data.type === "modal-confirm"}
-    <ConfirmModal {modalState} data={modal.data} />
-  {:else if modal.data.type === "modal-query-artist"}
-    <QueryArtistModal {modalState} data={modal.data} />
-  {/if}
-{/each}
+<Modals />
 
 <header
   class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"

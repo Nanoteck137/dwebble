@@ -10,8 +10,6 @@
 
   const { data, modalState }: Props = $props();
 
-  let artist: QueryArtist | undefined = $state();
-
   let currentQuery = $state("");
   let queryResults = $state<QueryArtist[]>([]);
 
@@ -36,41 +34,35 @@
           id: artist.id,
           name: artist.name,
         }));
+      } else {
+        console.error(res.error.message);
       }
     }, 500);
   }
 </script>
 
-<!-- svelte-ignore a11y_consider_explicit_label -->
-<button
-  class="fixed inset-0 z-[1000] bg-black/70"
-  onclick={() => {
-    modalState.popModal();
-  }}
-></button>
-<div
-  class="fixed left-[50%] top-[50%] z-[1000] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg"
->
-  <p class="text-lg font-semibold">{data.title ?? "Search Artist"}</p>
-  <Input oninput={onInput} placeholder="Search..." />
-  {#if currentQuery.length > 0}
-    <Button
-      type="submit"
-      variant="secondary"
-      onclick={() => {
-        modalState.popModal();
-        // TODO(patrik): Create new artist here
-      }}
-    >
-      New Artist: {currentQuery}
-    </Button>
-  {/if}
+<p class="text-lg font-semibold">{data.title ?? "Search Artist"}</p>
+<Input oninput={onInput} placeholder="Search..." />
+{#if currentQuery.length > 0}
+  <Button
+    type="submit"
+    variant="secondary"
+    onclick={() => {
+      modalState.popModal();
+      // TODO(patrik): Create new artist here
+    }}
+  >
+    New Artist: {currentQuery}
+  </Button>
+{/if}
 
-  <ScrollArea class="max-h-36 overflow-y-clip">
+<ScrollArea class="max-h-36 overflow-y-clip">
+  <div class="flex flex-col">
     {#each queryResults as result}
       <Button
         type="submit"
         variant="ghost"
+        title={result.id}
         onclick={() => {
           modalState.popModal();
           data.onArtistSelected(result);
@@ -79,5 +71,15 @@
         {result.name}
       </Button>
     {/each}
-  </ScrollArea>
+  </div>
+</ScrollArea>
+<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+  <Button
+    variant="outline"
+    onclick={() => {
+      modalState.popModal();
+    }}
+  >
+    Close
+  </Button>
 </div>
