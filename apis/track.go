@@ -11,7 +11,6 @@ import (
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
@@ -20,8 +19,9 @@ import (
 )
 
 type Track struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
+	Id        string  `json:"id"`
+	Name      string  `json:"name"`
+	OtherName *string `json:"otherName"`
 
 	AlbumId  string `json:"albumId"`
 	ArtistId string `json:"artistId"`
@@ -37,13 +37,18 @@ type Track struct {
 	AlbumName  string `json:"albumName"`
 	ArtistName string `json:"artistName"`
 
+	Tags []string `json:"tags"`
+
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
-
-	Tags []string `json:"tags"`
 }
 
 func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
+	var otherName *string
+	if track.OtherName.Valid {
+		otherName = &track.OtherName.String
+	}
+
 	var number *int64
 	if track.Number.Valid {
 		number = &track.Number.Int64
@@ -62,6 +67,7 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 	return Track{
 		Id:               track.Id,
 		Name:             track.Name,
+		OtherName:        otherName,
 		AlbumId:          track.AlbumId,
 		ArtistId:         track.ArtistId,
 		Number:           number,
@@ -72,9 +78,9 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 		CoverArt:         utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		AlbumName:        track.AlbumName,
 		ArtistName:       track.ArtistName,
+		Tags:             utils.SplitString(track.Tags.String),
 		Created:          track.Created,
 		Updated:          track.Updated,
-		Tags:             utils.SplitString(track.Tags.String),
 	}
 }
 
@@ -88,8 +94,10 @@ type GetTrackById struct {
 }
 
 type EditTrackBody struct {
-	Name       *string   `json:"name,omitempty"`
-	ArtistId   *string   `json:"artistId,omitempty"`
+	Name      *string `json:"name,omitempty"`
+	OtherName *string `json:"otherName,omitempty"`
+	ArtistId  *string `json:"artistId,omitempty"`
+	// TODO(patrik): Remove artistName
 	ArtistName *string   `json:"artistName,omitempty"`
 	Year       *int64    `json:"year,omitempty"`
 	Number     *int64    `json:"number,omitempty"`
@@ -116,6 +124,7 @@ func DiscardEmptyStringEntries(arr *[]string) *[]string {
 
 func (b *EditTrackBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
+	b.OtherName = transform.StringPtr(b.OtherName)
 	b.Tags = transform.StringArrayPtr(b.Tags)
 	b.Tags = DiscardEmptyStringEntries(b.Tags)
 }
@@ -317,60 +326,54 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				var name types.Change[string]
+				changes := database.TrackChanges{}
+
 				if body.Name != nil {
-					name.Value = *body.Name
-					name.Changed = *body.Name != track.Name
+					changes.Name = types.Change[string]{
+						Value:   *body.Name,
+						Changed: *body.Name != track.Name,
+					}
 				}
 
-				var artistId types.Change[string]
+				if body.OtherName != nil {
+					changes.OtherName = types.Change[sql.NullString]{
+						Value:   sql.NullString{
+							String: *body.OtherName,
+							Valid:  *body.OtherName != "",
+						},
+						Changed: *body.OtherName != track.OtherName.String,
+					} 
+				}
+
 				if body.ArtistId != nil {
-					artistId.Value = *body.ArtistId
-					artistId.Changed = *body.ArtistId != track.ArtistId
-				} else if body.ArtistName != nil {
-					artistName := *body.ArtistName
-
-					artist, err := app.DB().GetArtistByName(ctx, artistName)
-					if err != nil {
-						if errors.Is(err, database.ErrItemNotFound) {
-							artist, err = helper.CreateArtist(ctx, app.DB(), app.WorkDir(), artistName)
-							if err != nil {
-								return nil, err
-							}
-						} else {
-							return nil, err
-						}
+					changes.ArtistId = types.Change[string]{
+						Value:   *body.ArtistId,
+						Changed: *body.ArtistId != track.ArtistId,
 					}
+				} 
 
-					artistId.Value = artist.Id
-					artistId.Changed = artist.Id != track.ArtistId
-				}
-
-				var year types.Change[sql.NullInt64]
 				if body.Year != nil {
-					year.Value = sql.NullInt64{
-						Int64: *body.Year,
-						Valid: *body.Year != 0,
+					changes.Year = types.Change[sql.NullInt64]{
+						Value:   sql.NullInt64{
+							Int64: *body.Year,
+							Valid: *body.Year != 0,
+						},
+						Changed: *body.Year != track.Year.Int64,
 					}
-					year.Changed = *body.Year != track.Year.Int64
 				}
 
-				var number types.Change[sql.NullInt64]
 				if body.Number != nil {
-					number.Value = sql.NullInt64{
-						Int64: *body.Number,
-						Valid: *body.Number != 0,
+					changes.Number = types.Change[sql.NullInt64]{
+						Value:   sql.NullInt64{
+							Int64: *body.Number,
+							Valid: *body.Number != 0,
+						},
+						Changed: *body.Number != track.Number.Int64,
 					}
-					number.Changed = *body.Number != track.Number.Int64
 				}
 
 				// TODO(patrik): Use transaction
-				err = app.DB().UpdateTrack(ctx, track.Id, database.TrackChanges{
-					Name:     name,
-					ArtistId: artistId,
-					Year:     year,
-					Number:   number,
-				})
+				err = app.DB().UpdateTrack(ctx, track.Id, changes)
 				if err != nil {
 					return nil, err
 				}
