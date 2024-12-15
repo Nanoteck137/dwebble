@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/helper"
@@ -97,10 +96,28 @@ type EditTrackBody struct {
 	Tags       *[]string `json:"tags,omitempty"`
 }
 
+// TODO(patrik): Should this be pyrins default
+func DiscardEmptyStringEntries(arr *[]string) *[]string {
+	if arr == nil {
+		return nil
+	}
+
+	var res []string
+
+	v := *arr
+	for _, s := range v {
+		if s != "" {
+			res = append(res, s)
+		}
+	}
+
+	return &res
+}
+
 func (b *EditTrackBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
 	b.Tags = transform.StringArrayPtr(b.Tags)
-	b.Tags = transform.DiscardEmptyStringEntries(b.Tags)
+	b.Tags = DiscardEmptyStringEntries(b.Tags)
 }
 
 func (b EditTrackBody) Validate() error {
