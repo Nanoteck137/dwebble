@@ -29,6 +29,7 @@ export type GetArtistById = z.infer<typeof GetArtistById>;
 export const Album = z.object({
   id: z.string(),
   name: z.string(),
+  otherName: z.string().nullable(),
   coverArt: Images,
   artistId: z.string(),
   artistName: z.string(),
@@ -82,6 +83,7 @@ export type GetAlbumTracks = z.infer<typeof GetAlbumTracks>;
 
 export const EditAlbumBody = z.object({
   name: z.string().nullable().optional(),
+  otherName: z.string().nullable().optional(),
   artistId: z.string().nullable().optional(),
   artistName: z.string().nullable().optional(),
   year: z.number().nullable().optional(),

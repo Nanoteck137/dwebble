@@ -1,10 +1,35 @@
 <script lang="ts">
+  import { artistQuery, type Artist } from "$lib";
+  import { ApiClient } from "$lib/api/client.js";
+  import ArtistQuery from "$lib/components/ArtistQuery.svelte";
   import { Button, Card, Input, Label } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
+
+  let currentArtist: Artist = $state({
+    id: data.album.artistId,
+    name: data.album.artistName,
+  });
+
+  let { open, artist, currentQuery, queryResults, onInput } = artistQuery(
+    () => {
+      return new ApiClient(data.apiAddress);
+    },
+  );
+
+  $effect(() => {
+    if ($artist) {
+      currentArtist = $artist;
+    } else {
+      currentArtist = {
+        id: data.album.artistId,
+        name: data.album.artistName,
+      };
+    }
+  });
 </script>
 
-<form class="flex flex-col gap-2" method="post">
+<form action="?/submitEdit" class="flex flex-col gap-2" method="post">
   <Card.Root class="mx-auto w-full max-w-[560px]">
     <Card.Header>
       <Card.Title>Edit Album Details</Card.Title>
@@ -12,7 +37,7 @@
     <Card.Content class="flex flex-col gap-4">
       <div class="flex flex-col gap-1">
         <div class="flex items-center gap-2">
-          <Label class="w-24" for="year">Number</Label>
+          <Label class="w-24" for="year">Year</Label>
           <Label for="name">Name</Label>
         </div>
         <div class="flex items-center gap-2">
@@ -36,12 +61,27 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <Label for="artist">Artist</Label>
+        <Label for="other-name">Other Name</Label>
         <Input
-          id="artist"
-          name="artist"
-          value={data.album.artistName}
+          id="other-name"
+          name="otherName"
+          value={data.album.otherName ?? ""}
           type="text"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <p>Artist: {currentArtist?.name}</p>
+        <p>Artist Id: {currentArtist?.id}</p>
+        <input name="artistId" value={currentArtist?.id} type="hidden" />
+        <ArtistQuery
+          bind:open={$open}
+          currentQuery={$currentQuery}
+          queryResults={$queryResults}
+          onArtistSelected={(a) => {
+            $artist = a;
+          }}
+          {onInput}
         />
       </div>
     </Card.Content>

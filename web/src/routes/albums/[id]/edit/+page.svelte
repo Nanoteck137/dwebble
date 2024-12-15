@@ -5,6 +5,7 @@
   import { Edit, EllipsisVertical, Play, Trash } from "lucide-svelte";
   import {
     Breadcrumb,
+    Button,
     buttonVariants,
     DropdownMenu,
   } from "@nanoteck137/nano-ui";
@@ -51,7 +52,13 @@
 
   <div class="flex flex-col py-2">
     <p class="font-bold">
+      {#if data.album.year}
+        {data.album.year} -
+      {/if}
       {data.album.name}
+      {#if data.album.otherName}
+        - {data.album.otherName}
+      {/if}
     </p>
     <a
       class="w-fit text-xs hover:underline"
@@ -75,6 +82,10 @@
 </div>
 
 <div class="flex flex-col">
+  <Button href="edit/tracks/common" class="w-full" variant="outline">
+    Set Common Values
+  </Button>
+
   {#each data.tracks as track (track.id)}
     <div class="flex items-center gap-2 border-b py-2 pr-2">
       <div class="flex flex-grow flex-col">
@@ -143,7 +154,7 @@
               <DropdownMenu.Item>
                 <a
                   class="flex w-full items-center gap-2"
-                  href="edit/tracks#track-{track.id}"
+                  href="edit/tracks/{track.id}"
                 >
                   <Edit size="16" />
                   Edit

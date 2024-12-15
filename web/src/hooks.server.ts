@@ -12,11 +12,13 @@ export const handle: Handle = async ({ event, resolve }) => {
     addr = url.origin;
   }
   const client = new ApiClient(addr);
+  event.locals.apiAddress = addr;
 
   const auth = event.cookies.get("auth");
   if (auth) {
     const obj = JSON.parse(auth);
     client.setToken(obj.token);
+    event.locals.token = obj.token;
 
     const me = await client.getMe();
     if (!me.success) {

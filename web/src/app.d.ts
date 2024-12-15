@@ -10,7 +10,9 @@ declare global {
       type?: string;
     }
     interface Locals {
+      apiAddress: string;
       apiClient: ApiClient;
+      token?: string;
       user?: GetMe;
     }
     // interface PageData {}

@@ -88,6 +88,11 @@
           "omit": false
         },
         {
+          "name": "otherName",
+          "type": "*string",
+          "omit": false
+        },
+        {
           "name": "coverArt",
           "type": "Images",
           "omit": false
@@ -255,6 +260,11 @@
       "fields": [
         {
           "name": "name",
+          "type": "*string",
+          "omit": true
+        },
+        {
+          "name": "otherName",
           "type": "*string",
           "omit": true
         },
