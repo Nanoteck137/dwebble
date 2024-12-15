@@ -5,7 +5,7 @@
   import ArtistQuery from "$lib/components/ArtistQuery.svelte";
   import { musicManager } from "$lib/music-manager";
   import { trackToMusicTrack } from "$lib/utils";
-  import { Button, Input, Label } from "@nanoteck137/nano-ui";
+  import { Button, Card, Input, Label } from "@nanoteck137/nano-ui";
   import { Play } from "lucide-svelte";
 
   const { data } = $props();
@@ -73,92 +73,101 @@
     submit();
   }}
 >
-  <div class="flex flex-col gap-2 py-2">
-    <div class="flex gap-2">
-      <button
-        type="button"
-        onclick={() => {
-          musicManager.clearQueue();
-          musicManager.addTrackToQueue(trackToMusicTrack(data.track));
-        }}
+  <Card.Root class="mx-auto w-full max-w-[560px]">
+    <Card.Header>
+      <Card.Title>Edit Track</Card.Title>
+      <Card.Description>{data.track.name}</Card.Description>
+    </Card.Header>
+    <Card.Content class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2 py-2">
+        <div class="flex gap-2">
+          <button
+            type="button"
+            onclick={() => {
+              musicManager.clearQueue();
+              musicManager.addTrackToQueue(trackToMusicTrack(data.track));
+            }}
+          >
+            <Play size="18" />
+          </button>
+          <p>{data.track.name}</p>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <Label class="w-24" for="trackNumber">Number</Label>
+            <Label for="trackName">Track Name</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Input
+              class="w-24"
+              id="trackNumber"
+              bind:value={trackNumber}
+              type="number"
+            />
+            <Input
+              class="w-full"
+              id="trackName"
+              bind:value={trackName}
+              type="text"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <Label for="trackOtherName">Other Name</Label>
+          <Input
+            class="w-full"
+            id="trackOtherName"
+            bind:value={trackOtherName}
+            type="text"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center gap-2">
+            <Label class="w-24" for="trackYear">Year</Label>
+            <Label for="trackTags">Tags</Label>
+          </div>
+          <div class="flex items-center gap-2">
+            <Input
+              class="w-24"
+              id="trackYear"
+              bind:value={trackYear}
+              type="number"
+            />
+            <Input
+              class="w-full"
+              id="trackTags"
+              bind:value={trackTags}
+              type="text"
+            />
+          </div>
+
+          {#if currentArtist}
+            <p>Artist: {currentArtist.name}</p>
+            <p>Artist Id: {currentArtist.id}</p>
+          {/if}
+
+          <ArtistQuery
+            bind:open={$open}
+            currentQuery={$currentQuery}
+            queryResults={$queryResults}
+            onArtistSelected={(a) => {
+              $artist = a;
+            }}
+            {onInput}
+          />
+        </div>
+      </div>
+    </Card.Content>
+    <Card.Footer class="flex justify-end gap-4">
+      <Button href="/albums/{data.album.id}/edit" variant="outline"
+        >Back</Button
       >
-        <Play size="18" />
-      </button>
-      <p>{data.track.name}</p>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-2">
-        <Label class="w-24" for="trackNumber">Number</Label>
-        <Label for="trackName">Track Name</Label>
-      </div>
-      <div class="flex items-center gap-2">
-        <Input
-          class="w-24"
-          id="trackNumber"
-          bind:value={trackNumber}
-          type="number"
-        />
-        <Input
-          class="w-full"
-          id="trackName"
-          bind:value={trackName}
-          type="text"
-          autocomplete="off"
-        />
-      </div>
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <Label for="trackOtherName">Other Name</Label>
-      <Input
-        class="w-full"
-        id="trackOtherName"
-        bind:value={trackOtherName}
-        type="text"
-        autocomplete="off"
-      />
-    </div>
-
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-2">
-        <Label class="w-24" for="trackYear">Year</Label>
-        <Label for="trackTags">Tags</Label>
-      </div>
-      <div class="flex items-center gap-2">
-        <Input
-          class="w-24"
-          id="trackYear"
-          bind:value={trackYear}
-          type="number"
-        />
-        <Input
-          class="w-full"
-          id="trackTags"
-          bind:value={trackTags}
-          type="text"
-        />
-      </div>
-
-      {#if currentArtist}
-        <p>Artist: {currentArtist.name}</p>
-        <p>Artist Id: {currentArtist.id}</p>
-      {/if}
-
-      <ArtistQuery
-        bind:open={$open}
-        currentQuery={$currentQuery}
-        queryResults={$queryResults}
-        onArtistSelected={(a) => {
-          $artist = a;
-        }}
-        {onInput}
-      />
-    </div>
-  </div>
-
-  <div class="flex justify-end gap-4">
-    <Button href="/albums/{data.album.id}/edit" variant="outline">Back</Button>
-    <Button type="submit">Save</Button>
-  </div>
+      <Button type="submit">Save</Button>
+    </Card.Footer>
+  </Card.Root>
 </form>
