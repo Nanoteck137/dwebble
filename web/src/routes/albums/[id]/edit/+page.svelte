@@ -233,16 +233,6 @@
               </DropdownMenu.Item>
 
               <DropdownMenu.Item>
-                <button
-                  class="flex w-full items-center gap-2"
-                  onclick={() => {}}
-                >
-                  <Trash size="16" />
-                  Remove
-                </button>
-              </DropdownMenu.Item>
-
-              <DropdownMenu.Item>
                 <a
                   class="flex w-full items-center gap-2"
                   href="edit/tracks/{track.id}"
@@ -250,6 +240,17 @@
                   <Edit size="16" />
                   Edit
                 </a>
+              </DropdownMenu.Item>
+
+              <DropdownMenu.Separator />
+
+              <DropdownMenu.Item
+                onSelect={() => {
+                  goto(`/albums/${data.album.id}/edit/delete/${track.id}`);
+                }}
+              >
+                <Trash />
+                Remove
               </DropdownMenu.Item>
             </DropdownMenu.Group>
           </DropdownMenu.Content>
