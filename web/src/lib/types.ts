@@ -1,6 +1,11 @@
 import type { Album, Artist, Track } from "$lib/api/types";
 import { z } from "zod";
 
+export type QueryArtist = {
+  id: string;
+  name: string;
+};
+
 export const SetupSchema = z.object({
   user: z
     .object({
