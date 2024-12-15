@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
+  import { ApiClient } from "$lib/api/client.js";
   import { Breadcrumb, Button, Card } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
@@ -39,6 +41,22 @@
   </Card.Content>
   <Card.Footer class="flex justify-end gap-2">
     <Button href="/albums/{data.album.id}/edit" variant="outline">Back</Button>
-    <Button variant="destructive">Delete</Button>
+    <Button
+      variant="destructive"
+      onclick={async () => {
+        const apiClient = new ApiClient(data.apiAddress);
+        apiClient.setToken(data.userToken);
+
+        const res = await apiClient.deleteAlbum(data.album.id);
+        if (!res.success) {
+          // TODO(patrik): Toast
+          throw res.error;
+        }
+
+        goto("/albums", { invalidateAll: true });
+      }}
+    >
+      Delete
+    </Button>
   </Card.Footer>
 </Card.Root>
