@@ -9,6 +9,7 @@
     Pencil,
     Play,
     Trash,
+    Wallpaper,
   } from "lucide-svelte";
   import {
     Breadcrumb,
@@ -80,6 +81,15 @@
 
             <DropdownMenu.Item
               onSelect={() => {
+                goto(`/albums/${data.album.id}/edit/details`);
+              }}
+            >
+              <Edit />
+              Edit Album
+            </DropdownMenu.Item>
+
+            <DropdownMenu.Item
+              onSelect={() => {
                 goto(`/albums/${data.album.id}/edit/import`);
               }}
             >
@@ -89,11 +99,11 @@
 
             <DropdownMenu.Item
               onSelect={() => {
-                goto(`/albums/${data.album.id}/edit/details`);
+                goto(`/albums/${data.album.id}/edit/cover`);
               }}
             >
-              <Edit />
-              Edit Album
+              <Wallpaper />
+              Change Cover Art
             </DropdownMenu.Item>
 
             <DropdownMenu.Separator />
@@ -142,7 +152,7 @@
       <FolderPen />
       Set Common Values
     </Button>
-    <Button href="edit/tracks/common" class="w-full" variant="outline">
+    <Button href="edit/import" class="w-full" variant="outline">
       <Import />
       Import Tracks
     </Button>
