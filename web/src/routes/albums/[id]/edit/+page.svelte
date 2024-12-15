@@ -1,7 +1,15 @@
 <script lang="ts">
   import { musicManager } from "$lib/music-manager";
   import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
-  import { Edit, EllipsisVertical, Pencil, Play, Trash } from "lucide-svelte";
+  import {
+    Edit,
+    EllipsisVertical,
+    FolderPen,
+    Import,
+    Pencil,
+    Play,
+    Trash,
+  } from "lucide-svelte";
   import {
     Breadcrumb,
     Button,
@@ -53,10 +61,42 @@
         </DropdownMenu.Trigger>
         <DropdownMenu.Content align="center">
           <DropdownMenu.Group>
-            <DropdownMenu.Item onSelect={() => {}}>
-              <Play size="16" />
+            <DropdownMenu.Item
+              onSelect={() => {
+                musicManager.clearQueue();
+                for (const track of data.tracks) {
+                  musicManager.addTrackToQueue(
+                    trackToMusicTrack(track),
+                    false,
+                  );
+                }
+                musicManager.setQueueIndex(0);
+                musicManager.requestPlay();
+              }}
+            >
+              <Play />
               Play
             </DropdownMenu.Item>
+
+            <DropdownMenu.Item
+              onSelect={() => {
+                goto(`/albums/${data.album.id}/edit/import`);
+              }}
+            >
+              <Import />
+              Import Tracks
+            </DropdownMenu.Item>
+
+            <DropdownMenu.Item
+              onSelect={() => {
+                goto(`/albums/${data.album.id}/edit/details`);
+              }}
+            >
+              <Edit />
+              Edit Album
+            </DropdownMenu.Item>
+
+            <DropdownMenu.Separator />
 
             <DropdownMenu.Item
               onSelect={() => {
@@ -89,22 +129,24 @@
     {#if data.album.year}
       <p class="text-xs">Year: {data.album.year}</p>
     {/if}
-
-    <div class="flex-grow"></div>
-
-    <div class="flex gap-2">
-      <a class="text-sm hover:underline" href="edit/details">
-        Edit Album Details
-      </a>
-      <a class="text-sm hover:underline" href="edit/import">Import Tracks</a>
-    </div>
   </div>
 </div>
 
+<div class="py-4">
+  <Separator />
+</div>
+
 <div class="flex flex-col">
-  <Button href="edit/tracks/common" class="w-full" variant="outline">
-    Set Common Values
-  </Button>
+  <div class="flex gap-2">
+    <Button href="edit/tracks/common" class="w-full" variant="outline">
+      <FolderPen />
+      Set Common Values
+    </Button>
+    <Button href="edit/tracks/common" class="w-full" variant="outline">
+      <Import />
+      Import Tracks
+    </Button>
+  </div>
 
   {#each data.tracks as track (track.id)}
     <div class="flex items-center gap-2 py-2">
