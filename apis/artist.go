@@ -20,11 +20,30 @@ import (
 )
 
 type Artist struct {
-	Id      string       `json:"id"`
-	Name    string       `json:"name"`
+	Id        string  `json:"id"`
+	Name      string  `json:"name"`
+	OtherName *string `json:"otherName"`
+
 	Picture types.Images `json:"picture"`
-	Created int64        `json:"created"`
-	Updated int64        `json:"updated"`
+
+	Created int64 `json:"created"`
+	Updated int64 `json:"updated"`
+}
+
+func ConvertDBArtist(c pyrin.Context, artist database.Artist) Artist {
+	var otherName *string
+	if artist.OtherName.Valid {
+		otherName = &artist.OtherName.String
+	}
+
+	return Artist{
+		Id:        artist.Id,
+		Name:      artist.Name,
+		OtherName: otherName,
+		Picture:   utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
+		Created:   artist.Created,
+		Updated:   artist.Updated,
+	}
 }
 
 type GetArtists struct {
@@ -71,13 +90,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				for i, artist := range artists {
-					res.Artists[i] = Artist{
-						Id:      artist.Id,
-						Name:    artist.Name,
-						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
-						Created: artist.Created,
-						Updated: artist.Updated,
-					}
+					res.Artists[i] = ConvertDBArtist(c, artist)
 				}
 
 				return res, nil
@@ -103,13 +116,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				for i, artist := range artists {
-					res.Artists[i] = Artist{
-						Id:      artist.Id,
-						Name:    artist.Name,
-						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
-						Created: artist.Created,
-						Updated: artist.Updated,
-					}
+					res.Artists[i] = ConvertDBArtist(c, artist)
 				}
 
 				return res, nil
@@ -134,13 +141,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				return GetArtistById{
-					Artist: Artist{
-						Id:      artist.Id,
-						Name:    artist.Name,
-						Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
-						Created: artist.Created,
-						Updated: artist.Updated,
-					},
+					Artist: ConvertDBArtist(c, artist),
 				}, nil
 			},
 		},
@@ -173,14 +174,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				for i, album := range albums {
-					// TODO(patrik): Fix not all fields filled in
-					res.Albums[i] = Album{
-						Id:         album.Id,
-						Name:       album.Name,
-						CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
-						ArtistId:   album.ArtistId,
-						ArtistName: album.ArtistName,
-					}
+					res.Albums[i] = ConvertDBAlbum(c, album)
 				}
 
 				return res, nil
@@ -211,19 +205,16 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 
 					return nil, err
 				}
+				changes := database.ArtistChanges{}
 
-				// TODO(patrik): Create helper function for this
-				var name types.Change[string]
 				if body.Name != nil {
-					name = types.Change[string]{
+					changes.Name = types.Change[string]{
 						Value:   *body.Name,
 						Changed: artist.Name != *body.Name,
 					}
 				}
 
-				err = app.DB().UpdateArtist(ctx, artist.Id, database.ArtistChanges{
-					Name: name,
-				})
+				err = app.DB().UpdateArtist(ctx, artist.Id, changes)
 				if err != nil {
 					return nil, err
 				}
@@ -265,12 +256,6 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				artistDir := app.WorkDir().Artist(artist.Id)
-
-				// TODO(patrik): This should not be here
-				err = os.Mkdir(artistDir, 0755)
-				if err != nil && !os.IsExist(err) {
-					return nil, err
-				}
 
 				name := "picture-original" + path.Ext(formFile.Filename)
 				dstName := path.Join(artistDir, name)
