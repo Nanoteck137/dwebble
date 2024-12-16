@@ -1,24 +1,42 @@
 package filter
 
 import (
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/token"
 	"strconv"
-
-	"github.com/nanoteck137/dwebble/types"
 )
+
+type NameKind int
+
+const (
+	NameKindString NameKind = iota
+	NameKindNumber
+)
+
+type Name struct {
+	Kind NameKind
+	Name string
+}
+
+var ErrUnknownName = errors.New("Unknown name")
+
+func UnknownName(name string) error {
+	return fmt.Errorf("%w: %s", ErrUnknownName, name)
+}
 
 type IdMappingFunc func(typ string, name string) string
 
 type ResolverAdapter interface {
-	MapNameToId(typ, name string) (string, error)
-	// TODO(patrik): Rename to ResolveVariableName
-	MapName(name string) (types.Name, error)
-
-	ResolveTable(typ string) (Table, error)
+	ResolveNameToId(typ, name string) (string, bool)
+	ResolveVariableName(name string) (Name, bool)
+	ResolveTable(typ string) (Table, bool)
 
 	ResolveFunctionCall(resolver *Resolver, name string, args []ast.Expr) (FilterExpr, error)
+
+	// TODO(patrik): Add sort direction ASC, DESC
+	DefaultSort() (string, SortType)
 }
 
 type Resolver struct {
@@ -77,25 +95,28 @@ func (r *Resolver) ResolveToNumber(e ast.Expr) (int64, error) {
 }
 
 func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, error) {
-	n, err := r.adapter.MapName(name)
-	if err != nil {
-		return "", nil, err
+	n, ok := r.adapter.ResolveVariableName(name)
+	if !ok {
+		return "", nil, UnknownName(name)
 	}
 
+	var err error
 	var val any
 
 	switch n.Kind {
-	case types.NameKindString:
+	case NameKindString:
 		val, err = r.ResolveToStr(value)
 		if err != nil {
 			return "", nil, err
 		}
-	case types.NameKindNumber:
+	case NameKindNumber:
 		val, err = r.ResolveToNumber(value)
 		if err != nil {
 			return "", nil, err
 		}
 	default:
+		// TODO(patrik): We should panic here because this is an 
+		// internal error or create internal error type should work also
 		return "", nil, fmt.Errorf("Unknown NameKind: %d", n.Kind)
 	}
 
@@ -114,9 +135,10 @@ func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, err
 			return nil, err
 		}
 
-		id, err := r.adapter.MapNameToId(typ, s)
-		if err != nil {
-			return nil, err
+		// TODO(patrik): Look at the error here
+		id, ok := r.adapter.ResolveNameToId(typ, s)
+		if !ok {
+			return nil, UnknownName(s)
 		}
 
 		if id != "" {
@@ -124,9 +146,11 @@ func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, err
 		}
 	}
 
-	tbl, err := r.adapter.ResolveTable(typ)
-	if err != nil {
-		return nil, err
+	tbl, ok := r.adapter.ResolveTable(typ)
+	if !ok {
+		// TODO(patrik): Create custom error here, this might also 
+		// be an internal error
+		return nil, UnknownName(typ)
 	}
 
 	return &InTableExpr{

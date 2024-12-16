@@ -4,81 +4,77 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
-	"go/ast"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/mattn/go-sqlite3"
-	"github.com/nanoteck137/dwebble/tools/filter"
-	"github.com/nanoteck137/dwebble/tools/sort"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
 
-type AlbumResolverAdapter struct {
-}
-
-func (*AlbumResolverAdapter) DefaultSort() string {
-	return "albums.name"
-}
-
-func (*AlbumResolverAdapter) MapSortName(name string) (types.Name, error) {
-	// TODO(patrik): Include all available fields to sort on
-	switch name {
-	case "album":
-		return types.Name{
-			Kind: types.NameKindString,
-			Name: "albums.name",
-		}, nil
-	case "created":
-		return types.Name{
-			Kind: types.NameKindNumber,
-			Name: "albums.created",
-		}, nil
-	case "updated":
-		return types.Name{
-			Kind: types.NameKindNumber,
-			Name: "albums.updated",
-		}, nil
-	}
-
-	return types.Name{}, sort.UnknownName(name)
-
-}
-
-func (a *AlbumResolverAdapter) GetDefaultSort() string {
-	return "albums.name"
-}
-
-func (a *AlbumResolverAdapter) MapNameToId(typ, name string) (string, error) {
-	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
-}
-
-func (a *AlbumResolverAdapter) MapName(name string) (types.Name, error) {
-	switch name {
-	case "artist":
-		return types.Name{
-			Kind: types.NameKindString,
-			Name: "artists.name",
-		}, nil
-	case "album":
-		return types.Name{
-			Kind: types.NameKindString,
-			Name: "albums.name",
-		}, nil
-	}
-
-	return types.Name{}, fmt.Errorf("Unknown name: %s", name)
-}
-
-func (a *AlbumResolverAdapter) ResolveTable(typ string) (filter.Table, error) {
-	return filter.Table{}, fmt.Errorf("Unknown table type: %s", typ)
-}
-
-func (a *AlbumResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
-	return nil, fmt.Errorf("Unknown function name: %s", name)
-}
+// type AlbumResolverAdapter struct {
+// }
+//
+// func (*AlbumResolverAdapter) DefaultSort() string {
+// 	return "albums.name"
+// }
+//
+// func (*AlbumResolverAdapter) MapSortName(name string) (filter.Name, error) {
+// 	// TODO(patrik): Include all available fields to sort on
+// 	switch name {
+// 	case "album":
+// 		return filter.Name{
+// 			Kind: filter.NameKindString,
+// 			Name: "albums.name",
+// 		}, nil
+// 	case "created":
+// 		return filter.Name{
+// 			Kind: filter.NameKindNumber,
+// 			Name: "albums.created",
+// 		}, nil
+// 	case "updated":
+// 		return filter.Name{
+// 			Kind: filter.NameKindNumber,
+// 			Name: "albums.updated",
+// 		}, nil
+// 	}
+//
+// 	return filter.Name{}, filter.UnknownName(name)
+//
+// }
+//
+// func (a *AlbumResolverAdapter) GetDefaultSort() string {
+// 	return "albums.name"
+// }
+//
+// func (a *AlbumResolverAdapter) MapNameToId(typ, name string) (string, error) {
+// 	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
+// }
+//
+// func (a *AlbumResolverAdapter) MapName(name string) (filter.Name, error) {
+// 	switch name {
+// 	case "artist":
+// 		return filter.Name{
+// 			Kind: filter.NameKindString,
+// 			Name: "artists.name",
+// 		}, nil
+// 	case "album":
+// 		return filter.Name{
+// 			Kind: filter.NameKindString,
+// 			Name: "albums.name",
+// 		}, nil
+// 	}
+//
+// 	return filter.Name{}, fmt.Errorf("Unknown name: %s", name)
+// }
+//
+// func (a *AlbumResolverAdapter) ResolveTable(typ string) (filter.Table, error) {
+// 	return filter.Table{}, fmt.Errorf("Unknown table type: %s", typ)
+// }
+//
+// func (a *AlbumResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
+// 	return nil, fmt.Errorf("Unknown function name: %s", name)
+// }
 
 type Album struct {
 	Id        string         `db:"id"`
@@ -127,39 +123,20 @@ func AlbumQuery() *goqu.SelectDataset {
 func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr string) ([]Album, error) {
 	query := AlbumQuery()
 
-	a := AlbumResolverAdapter{}
+	var err error
 
-	if filterStr != "" {
-		re, err := fullParseFilter(&a, filterStr)
-		if err != nil {
-			return nil, err
-		}
-
-		query = query.Where(re)
-	}
-
-	sortExpr, err := sort.Parse(sortStr)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
-	}
-
-	resolver := sort.New(&AlbumResolverAdapter{})
-
-	sortExpr, err = resolver.Resolve(sortExpr)
-	if err != nil {
-		if errors.Is(err, sort.ErrUnknownName) {
-			return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
-		}
-
-		return nil, err
-	}
-
-	exprs, err := generateSort(sortExpr)
-	if err != nil {
-		return nil, err
-	}
-
-	query = query.Order(exprs...)
+	// a := AlbumResolverAdapter{}
+	// resolver := filter.New(&a)
+	//
+	// query, err = applyFilter(query, resolver, filterStr)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// query, err = applySort(query, resolver, filterStr)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	var items []Album
 	err = db.Select(&items, query)

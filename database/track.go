@@ -13,101 +13,75 @@ import (
 	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/tools/filter"
-	"github.com/nanoteck137/dwebble/tools/sort"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
 
+var _ filter.ResolverAdapter = (*TrackResolverAdapter)(nil)
+
 type TrackResolverAdapter struct{}
 
-func (a *TrackResolverAdapter) DefaultSort() string {
-	return "tracks.name"
+func (a *TrackResolverAdapter) DefaultSort() (string, filter.SortType) {
+	return "tracks.name", filter.SortTypeAsc
 }
 
-func (a *TrackResolverAdapter) MapSortName(name string) (types.Name, error) {
-	// TODO(patrik): Include all available fields to sort on
-	// TODO(patrik): Change names to match the types.Track names
-	switch name {
-	case "artist":
-		return types.Name{
-			Kind: types.NameKindString,
-			Name: "artists.name",
-		}, nil
-	case "album":
-		return types.Name{
-			Kind: types.NameKindString,
-			Name: "albums.name",
-		}, nil
-	case "track":
-		return types.Name{
-			Kind: types.NameKindString,
-			Name: "tracks.name",
-		}, nil
-	case "trackNumber":
-		return types.Name{
-			Kind: types.NameKindNumber,
-			Name: "tracks.track_number",
-		}, nil
-	}
-
-	return types.Name{}, sort.UnknownName(name)
-
-}
-
-func (a *TrackResolverAdapter) MapNameToId(typ, name string) (string, error) {
+func (a *TrackResolverAdapter) ResolveNameToId(typ, name string) (string, bool) {
 	switch typ {
 	case "tags":
-		return utils.Slug(name), nil
+		return utils.Slug(name), true
 	}
 
-	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
+	// fmt.Errorf("Unknown name type: %s (%s)", typ, name)
+	return "", false
 }
 
-func (a *TrackResolverAdapter) MapName(name string) (types.Name, error) {
+func (a *TrackResolverAdapter) ResolveVariableName(name string) (filter.Name, bool) {
 	// TODO(patrik): Include all available fields to filter on
 	// TODO(patrik): Change names to match the types.Track names
 	switch name {
 	case "artist":
-		return types.Name{
-			Kind: types.NameKindString,
+		return filter.Name{
+			Kind: filter.NameKindString,
 			Name: "artists.name",
-		}, nil
+		}, true
 	case "album":
-		return types.Name{
-			Kind: types.NameKindString,
+		return filter.Name{
+			Kind: filter.NameKindString,
 			Name: "albums.name",
-		}, nil
+		}, true
 	case "albumId":
-		return types.Name{
-			Kind: types.NameKindString,
+		return filter.Name{
+			Kind: filter.NameKindString,
 			Name: "albums.id",
-		}, nil
+		}, true
 	case "track":
-		return types.Name{
-			Kind: types.NameKindString,
+		return filter.Name{
+			Kind: filter.NameKindString,
 			Name: "tracks.name",
-		}, nil
+		}, true
 	case "trackNumber":
-		return types.Name{
-			Kind: types.NameKindNumber,
+		return filter.Name{
+			Kind: filter.NameKindNumber,
 			Name: "tracks.track_number",
-		}, nil
+		}, true
 	}
 
-	return types.Name{}, fmt.Errorf("Unknown name: %s", name)
+	// fmt.Errorf("Unknown name: %s", name)
+	return filter.Name{}, false 
 }
 
-func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, error) {
+func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, bool) {
 	switch typ {
 	case "tags":
 		return filter.Table{
 			Name:       "tracks_to_tags",
 			SelectName: "track_id",
 			WhereName:  "tag_slug",
-		}, nil
+		}, true
 	}
 
-	return filter.Table{}, fmt.Errorf("Unknown table type: %s", typ)
+	// fmt.Errorf("Unknown table type: %s", typ)
+	return filter.Table{}, false
 }
 
 func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
@@ -116,6 +90,7 @@ func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, na
 		return resolver.InTable(name, "tags", args)
 	}
 
+	// TODO(patrik): Create error type
 	return nil, fmt.Errorf("Unknown function name: %s", name)
 }
 
@@ -145,6 +120,7 @@ type Track struct {
 	Tags sql.NullString `db:"tags"`
 }
 
+// TODO(patrik): Move down to the UpdateTrack
 type TrackChanges struct {
 	Name      types.Change[string]
 	OtherName types.Change[sql.NullString]
@@ -235,42 +211,23 @@ type FetchOption struct {
 	Page    int
 }
 
-func (db *Database) GetAllTracks(ctx context.Context, filter, sortStr string) ([]Track, error) {
+func (db *Database) GetAllTracks(ctx context.Context, filterStr, sortStr string) ([]Track, error) {
 	query := TrackQuery()
 
+	var err error
+
 	a := TrackResolverAdapter{}
+	resolver := filter.New(&a)
 
-	if filter != "" {
-		re, err := fullParseFilter(&a, filter)
-		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrInvalidFilter, err)
-		}
-
-		query = query.Where(re)
-	}
-
-	sortExpr, err := sort.Parse(sortStr)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
-	}
-
-	resolver := sort.New(&TrackResolverAdapter{})
-
-	sortExpr, err = resolver.Resolve(sortExpr)
-	if err != nil {
-		if errors.Is(err, sort.ErrUnknownName) {
-			return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
-		}
-
-		return nil, err
-	}
-
-	exprs, err := generateSort(sortExpr)
+	query, err = applyFilter(query, resolver, filterStr)
 	if err != nil {
 		return nil, err
 	}
 
-	query = query.Order(exprs...)
+	query, err = applySort(query, resolver, filterStr)
+	if err != nil {
+		return nil, err
+	}
 
 	var items []Track
 	err = db.Select(&items, query)
@@ -283,43 +240,24 @@ func (db *Database) GetAllTracks(ctx context.Context, filter, sortStr string) ([
 
 func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOption) ([]Track, types.Page, error) {
 	query := TrackQuery()
-	countQuery := TrackQuery().
-		Select(goqu.COUNT("tracks.id"))
+
+	var err error
 
 	a := TrackResolverAdapter{}
+	resolver := filter.New(&a)
 
-	if opts.Filter != "" {
-		re, err := fullParseFilter(&a, opts.Filter)
-		if err != nil {
-			return nil, types.Page{}, fmt.Errorf("%w: %w", ErrInvalidFilter, err)
-		}
-
-		query = query.Where(re)
-		countQuery = countQuery.Where(re)
-	}
-
-	sortExpr, err := sort.Parse(opts.Sort)
-	if err != nil {
-		return nil, types.Page{}, fmt.Errorf("%w: %w", ErrInvalidSort, err)
-	}
-
-	resolver := sort.New(&TrackResolverAdapter{})
-
-	sortExpr, err = resolver.Resolve(sortExpr)
-	if err != nil {
-		if errors.Is(err, sort.ErrUnknownName) {
-			return nil, types.Page{}, fmt.Errorf("%w: %w", ErrInvalidSort, err)
-		}
-
-		return nil, types.Page{}, err
-	}
-
-	exprs, err := generateSort(sortExpr)
+	query, err = applyFilter(query, resolver, opts.Filter)
 	if err != nil {
 		return nil, types.Page{}, err
 	}
 
-	query = query.Order(exprs...)
+	query, err = applySort(query, resolver, opts.Sort)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	countQuery := query.
+		Select(goqu.COUNT("tracks.id"))
 
 	if opts.PerPage > 0 {
 		query = query.
@@ -584,7 +522,7 @@ func (db *Database) AddExtraArtistToTrack(ctx context.Context, trackId, artistId
 		var sqlErr sqlite3.Error
 		if errors.As(err, &sqlErr) {
 			if sqlErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-				return ErrItemAlreadyExists 
+				return ErrItemAlreadyExists
 			}
 		}
 
