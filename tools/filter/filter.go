@@ -21,6 +21,7 @@ type Name struct {
 	Nullable bool
 }
 
+var ErrInternalError = errors.New("internal error")
 var ErrUnknownName = errors.New("unknown name")
 var ErrUnknownFunction = errors.New("unknown function")
 
@@ -30,6 +31,10 @@ func UnknownName(name string) error {
 
 func UnknownFunction(name string) error {
 	return fmt.Errorf("%w: %s", ErrUnknownFunction, name)
+}
+
+func InternalError(err error) error {
+	return fmt.Errorf("%w: %w", ErrInternalError, err)
 }
 
 type IdMappingFunc func(typ string, name string) string
@@ -61,7 +66,7 @@ func (r *Resolver) ResolveToIdent(e ast.Expr) (string, error) {
 		case *ast.BasicLit:
 			return "", fmt.Errorf("expected identifier got %v", e.Value)
 		default:
-			return "", fmt.Errorf("expected identifier got %T", e)
+			return "", InternalError(fmt.Errorf("expected identifier got %T", e))
 		}
 
 	}
@@ -76,7 +81,7 @@ func (r *Resolver) ResolveToStr(e ast.Expr) (string, error) {
 		case *ast.Ident:
 			return "", fmt.Errorf("expected string got %v", e.Name)
 		default:
-			return "", fmt.Errorf("expected string got %T", e)
+			return "", InternalError(fmt.Errorf("expected string got %T", e))
 		}
 	}
 
@@ -99,7 +104,7 @@ func (r *Resolver) ResolveToNumber(e ast.Expr) (int64, error) {
 		case *ast.Ident:
 			return 0, fmt.Errorf("expected number got %v", e.Name)
 		default:
-			return 0, fmt.Errorf("expected number got %T", e)
+			return 0, InternalError(fmt.Errorf("expected number got %T", e))
 		}
 	}
 
@@ -136,9 +141,7 @@ func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, e
 			return "", nil, err
 		}
 	default:
-		// TODO(patrik): We should panic here because this is an
-		// internal error or create internal error type should work also
-		return "", nil, fmt.Errorf("unknown name kind %d", n.Kind)
+		return "", nil, InternalError(fmt.Errorf("unknown name kind %d", n.Kind))
 	}
 
 	return n.Name, val, nil
@@ -262,7 +265,7 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 				}, nil
 			}
 
-			return nil, fmt.Errorf("unsupported binary operator %s", e.Op.String())
+			return nil, InternalError(fmt.Errorf("unsupported binary operator %s", e.Op.String()))
 		}
 	case *ast.CallExpr:
 		name, err := r.ResolveToIdent(e.Fun)
@@ -291,6 +294,6 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 	case *ast.BasicLit:
 		return nil, fmt.Errorf("unexpected literal %s", e.Value)
 	default:
-		return nil, fmt.Errorf("unexpected expr %T", e)
+		return nil, InternalError(fmt.Errorf("unexpected expr %T", e))
 	}
 }
