@@ -37,8 +37,6 @@ func InternalError(err error) error {
 	return fmt.Errorf("%w: %w", ErrInternalError, err)
 }
 
-type IdMappingFunc func(typ string, name string) string
-
 type ResolverAdapter interface {
 	ResolveNameToId(typ, name string) (string, bool)
 	ResolveVariableName(name string) (Name, bool)
