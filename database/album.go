@@ -14,6 +14,7 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
+// TODO(patrik): Remove
 // type AlbumResolverAdapter struct {
 // }
 //
@@ -88,10 +89,13 @@ type Album struct {
 	CoverArt sql.NullString `db:"cover_art"`
 	Year     sql.NullInt64  `db:"year"`
 
-	ArtistName string `db:"artist_name"`
+	ArtistName      string `db:"artist_name"`
+	ArtistOtherName sql.NullString `db:"artist_other_name"`
 
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
+
+	ExtraArtists ExtraArtists `db:"extra_artists"`
 }
 
 func AlbumQuery() *goqu.SelectDataset {
@@ -110,14 +114,21 @@ func AlbumQuery() *goqu.SelectDataset {
 			"albums.updated",
 
 			goqu.I("artists.name").As("artist_name"),
+			goqu.I("artists.other_name").As("artist_other_name"),
+
+			goqu.I("extra_artists.artists").As("extra_artists"),
 		).
+		Prepared(true).
 		Join(
 			goqu.I("artists"),
 			goqu.On(
 				goqu.I("albums.artist_id").Eq(goqu.I("artists.id")),
 			),
 		).
-		Prepared(true)
+		LeftJoin(
+			ExtraArtistsQuery("albums_extra_artists", "album_id").As("extra_artists"),
+			goqu.On(goqu.I("albums.id").Eq(goqu.I("extra_artists.id"))),
+		)
 
 	return query
 }
@@ -318,6 +329,20 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 	return nil
 }
 
+// TODO(patrik): Generalize
+func (db *Database) RemoveAllExtraArtistsFromAlbum(ctx context.Context, trackId string) error {
+	query := dialect.Delete("albums_extra_artists").
+		Where(goqu.I("albums_extra_artists.album_id").Eq(trackId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO(patrik): Generalize
 func (db *Database) AddExtraArtistToAlbum(ctx context.Context, albumId, artistId string) error {
 	query := dialect.Insert("albums_extra_artists").
 		Rows(goqu.Record{
@@ -330,7 +355,7 @@ func (db *Database) AddExtraArtistToAlbum(ctx context.Context, albumId, artistId
 		var sqlErr sqlite3.Error
 		if errors.As(err, &sqlErr) {
 			if sqlErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-				return ErrItemAlreadyExists 
+				return ErrItemAlreadyExists
 			}
 		}
 

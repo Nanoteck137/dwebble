@@ -19,16 +19,14 @@ import (
 	"github.com/nanoteck137/validate"
 )
 
-type ExtraArtist struct {
-	Id        string  `json:"id"`
+type Name struct {
 	Name      string  `json:"name"`
 	OtherName *string `json:"otherName"`
 }
 
 type Track struct {
-	Id        string  `json:"id"`
-	Name      string  `json:"name"`
-	OtherName *string `json:"otherName"`
+	Id   string `json:"id"`
+	Name Name   `json:"name"`
 
 	Number   *int64 `json:"number"`
 	Duration *int64 `json:"duration"`
@@ -41,8 +39,8 @@ type Track struct {
 	AlbumId  string `json:"albumId"`
 	ArtistId string `json:"artistId"`
 
-	AlbumName  string `json:"albumName"`
-	ArtistName string `json:"artistName"`
+	AlbumName  Name `json:"albumName"`
+	ArtistName Name `json:"artistName"`
 
 	Tags         []string      `json:"tags"`
 	ExtraArtists []ExtraArtist `json:"extraArtists"`
@@ -52,53 +50,32 @@ type Track struct {
 }
 
 func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
-	var otherName *string
-	if track.OtherName.Valid {
-		otherName = &track.OtherName.String
-	}
-
-	var number *int64
-	if track.Number.Valid {
-		number = &track.Number.Int64
-	}
-
-	var duration *int64
-	if track.Duration.Valid {
-		duration = &track.Duration.Int64
-	}
-
-	var year *int64
-	if track.Year.Valid {
-		year = &track.Year.Int64
-	}
-
-	var extraArtists []ExtraArtist
-	for _, extraArtist := range track.ExtraArtists {
-		extraArtists = append(extraArtists, ExtraArtist{
-			Id:        extraArtist.Id,
-			Name:      extraArtist.Name,
-			OtherName: extraArtist.OtherName,
-		})
-	}
-
 	return Track{
-		Id:               track.Id,
-		Name:             track.Name,
-		OtherName:        otherName,
-		Number:           number,
-		Duration:         duration,
-		Year:             year,
+		Id: track.Id,
+		Name: Name{
+			Name:      track.Name,
+			OtherName: ConvertSqlNullString(track.OtherName),
+		},
+		Number:           ConvertSqlNullInt64(track.Number),
+		Duration:         ConvertSqlNullInt64(track.Duration),
+		Year:             ConvertSqlNullInt64(track.Year),
 		OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.OriginalFilename)),
 		MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.MobileFilename)),
 		CoverArt:         utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		AlbumId:          track.AlbumId,
 		ArtistId:         track.ArtistId,
-		AlbumName:        track.AlbumName,
-		ArtistName:       track.ArtistName,
-		Tags:             utils.SplitString(track.Tags.String),
-		ExtraArtists:     extraArtists,
-		Created:          track.Created,
-		Updated:          track.Updated,
+		AlbumName: Name{
+			Name:      track.AlbumName,
+			OtherName: ConvertSqlNullString(track.AlbumOtherName),
+		},
+		ArtistName: Name{
+			Name:      track.ArtistName,
+			OtherName: ConvertSqlNullString(track.ArtistOtherName),
+		},
+		Tags:         utils.SplitString(track.Tags.String),
+		ExtraArtists: ConvertDBExtraArtists(track.ExtraArtists),
+		Created:      track.Created,
+		Updated:      track.Updated,
 	}
 }
 
@@ -368,7 +345,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 
 				if body.ArtistId != nil {
-					// TODO(patrik): Should we silently continue if 
+					// TODO(patrik): Should we silently continue if
 					// we don't find the artist
 					_, err := app.DB().GetArtistById(ctx, *body.ArtistId)
 					if err != nil {
@@ -411,8 +388,6 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 				defer tx.Rollback()
 
-
-				// TODO(patrik): Use transaction
 				err = db.UpdateTrack(ctx, track.Id, changes)
 				if err != nil {
 					return nil, err
@@ -449,14 +424,13 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 
-					// TODO(patrik): Use transaction
 					for _, artistId := range extraArtists {
 						artist, err := db.GetArtistById(ctx, artistId)
 						if err != nil {
 							if errors.Is(err, database.ErrItemNotFound) {
-								// TODO(patrik): Should we just be 
+								// TODO(patrik): Should we just be
 								// silently continuing
-								// NOTE(patrik): If we don't find the artist 
+								// NOTE(patrik): If we don't find the artist
 								// we just silently continue
 								continue
 							}
@@ -472,6 +446,34 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 
 				err = tx.Commit()
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:   "DeleteTrack",
+			Method: http.MethodDelete,
+			Path:   "/tracks/:id",
+			Errors: []pyrin.ErrorType{ErrTypeTrackNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				ctx := context.TODO()
+
+				track, err := app.DB().GetTrackById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TrackNotFound()
+					}
+
+					return nil, err
+				}
+
+				err = app.DB().RemoveTrack(ctx, track.Id)
 				if err != nil {
 					return nil, err
 				}

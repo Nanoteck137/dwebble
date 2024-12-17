@@ -19,10 +19,29 @@ import (
 	"github.com/nanoteck137/validate"
 )
 
+type ExtraArtist struct {
+	Id   string `json:"id"`
+	Name Name   `json:"name"`
+}
+
+func ConvertDBExtraArtists(extras database.ExtraArtists) []ExtraArtist {
+	var res []ExtraArtist
+	for _, extraArtist := range extras {
+		res = append(res, ExtraArtist{
+			Id: extraArtist.Id,
+			Name: Name{
+				Name:      extraArtist.Name,
+				OtherName: extraArtist.OtherName,
+			},
+		})
+	}
+
+	return res
+}
+
 type Artist struct {
-	Id        string  `json:"id"`
-	Name      string  `json:"name"`
-	OtherName *string `json:"otherName"`
+	Id   string `json:"id"`
+	Name Name   `json:"name"`
 
 	Picture types.Images `json:"picture"`
 
@@ -31,18 +50,15 @@ type Artist struct {
 }
 
 func ConvertDBArtist(c pyrin.Context, artist database.Artist) Artist {
-	var otherName *string
-	if artist.OtherName.Valid {
-		otherName = &artist.OtherName.String
-	}
-
 	return Artist{
-		Id:        artist.Id,
-		Name:      artist.Name,
-		OtherName: otherName,
-		Picture:   utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
-		Created:   artist.Created,
-		Updated:   artist.Updated,
+		Id: artist.Id,
+		Name: Name{
+			Name:      artist.Name,
+			OtherName: ConvertSqlNullString(artist.OtherName),
+		},
+		Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
+		Created: artist.Created,
+		Updated: artist.Updated,
 	}
 }
 

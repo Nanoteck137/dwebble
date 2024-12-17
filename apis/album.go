@@ -24,42 +24,39 @@ import (
 )
 
 type Album struct {
-	Id         string       `json:"id"`
-	Name       string       `json:"name"`
-	OtherName  *string      `json:"otherName"`
+	Id   string `json:"id"`
+	Name Name   `json:"name"`
 
-	Year       *int64       `json:"year"`
+	Year *int64 `json:"year"`
 
-	CoverArt   types.Images `json:"coverArt"`
+	CoverArt types.Images `json:"coverArt"`
 
-	ArtistId   string       `json:"artistId"`
-	ArtistName string       `json:"artistName"`
+	ArtistId   string `json:"artistId"`
+	ArtistName Name   `json:"artistName"`
 
-	Created    int64        `json:"created"`
-	Updated    int64        `json:"updated"`
+	ExtraArtists []ExtraArtist `json:"extraArtists"`
+
+	Created int64 `json:"created"`
+	Updated int64 `json:"updated"`
 }
 
 func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
-	var year *int64
-	if album.Year.Valid {
-		year = &album.Year.Int64
-	}
-
-	var otherName *string
-	if album.OtherName.Valid {
-		otherName = &album.OtherName.String
-	}
-
 	return Album{
-		Id:         album.Id,
-		Name:       album.Name,
-		OtherName:  otherName,
-		CoverArt:   utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
-		ArtistId:   album.ArtistId,
-		ArtistName: album.ArtistName,
-		Year:       year,
-		Created:    album.Created,
-		Updated:    album.Updated,
+		Id: album.Id,
+		Name: Name{
+			Name:      album.Name,
+			OtherName: ConvertSqlNullString(album.OtherName),
+		},
+		Year:         ConvertSqlNullInt64(album.Year),
+		CoverArt:     utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
+		ArtistId:     album.ArtistId,
+		ArtistName:   Name{
+			Name:      album.ArtistName,
+			OtherName: ConvertSqlNullString(album.ArtistOtherName),
+		},
+		ExtraArtists: ConvertDBExtraArtists(album.ExtraArtists),
+		Created:      album.Created,
+		Updated:      album.Updated,
 	}
 }
 
@@ -76,17 +73,19 @@ type GetAlbumTracks struct {
 }
 
 type EditAlbumBody struct {
-	Name       *string `json:"name,omitempty"`
-	OtherName  *string `json:"otherName,omitempty"`
-	ArtistId   *string `json:"artistId,omitempty"`
-	ArtistName *string `json:"artistName,omitempty"`
-	Year       *int64  `json:"year,omitempty"`
+	Name           *string   `json:"name,omitempty"`
+	OtherName      *string   `json:"otherName,omitempty"`
+	ArtistId       *string   `json:"artistId,omitempty"`
+	ArtistName     *string   `json:"artistName,omitempty"`
+	Year           *int64    `json:"year,omitempty"`
+	ExtraArtistIds *[]string `json:"extraArtistIds,omitempty"`
 }
 
 func (b *EditAlbumBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
 	b.OtherName = transform.StringPtr(b.OtherName)
 	b.ArtistName = transform.StringPtr(b.ArtistName)
+	b.ExtraArtistIds = DiscardEmptyStringEntries(b.ExtraArtistIds)
 }
 
 func (b EditAlbumBody) Validate() error {
@@ -341,7 +340,47 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				err = app.DB().UpdateAlbum(ctx, album.Id, changes)
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
+				err = db.UpdateAlbum(ctx, album.Id, changes)
+				if err != nil {
+					return nil, err
+				}
+
+				if body.ExtraArtistIds != nil {
+					extraArtistIds := *body.ExtraArtistIds
+
+					err := db.RemoveAllExtraArtistsFromAlbum(ctx, album.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					for _, artistId := range extraArtistIds {
+						artist, err := db.GetArtistById(ctx, artistId)
+						if err != nil {
+							if errors.Is(err, database.ErrItemNotFound) {
+								// TODO(patrik): Should we just be
+								// silently continuing
+								// NOTE(patrik): If we don't find the artist
+								// we just silently continue
+								continue
+							}
+
+							return nil, err
+						}
+
+						err = db.AddExtraArtistToAlbum(ctx, album.Id, artist.Id)
+						if err != nil {
+							return nil, err
+						}
+					}
+				}
+
+				err = tx.Commit()
 				if err != nil {
 					return nil, err
 				}

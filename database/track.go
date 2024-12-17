@@ -3,8 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"database/sql/driver"
-	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -17,33 +15,6 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
-
-type ExtraArtist struct {
-	Id        string  `json:"id"`
-	Name      string  `json:"name"`
-	OtherName *string `json:"other_name"`
-}
-
-type ExtraArtists []ExtraArtist
-
-func (s ExtraArtists) Value() (driver.Value, error) {
-	return json.Marshal(s)
-}
-
-func (v *ExtraArtists) Scan(value any) error {
-	if value == nil {
-		return nil
-	}
-
-	switch value := value.(type) {
-	case string:
-		return json.Unmarshal([]byte(value), &v)
-	case []byte:
-		return json.Unmarshal(value, &v)
-	default:
-		return errors.New("type assertion to ([]byte / string) failed")
-	}
-}
 
 type Track struct {
 	Id        string         `db:"id"`
@@ -61,16 +32,19 @@ type Track struct {
 	OriginalFilename string `db:"original_filename"`
 	MobileFilename   string `db:"mobile_filename"`
 
-	AlbumName     string         `db:"album_name"`
-	AlbumCoverArt sql.NullString `db:"album_cover_art"`
-	ArtistName    string         `db:"artist_name"`
+	AlbumName      string         `db:"album_name"`
+	AlbumOtherName sql.NullString `db:"album_other_name"`
+	AlbumCoverArt  sql.NullString `db:"album_cover_art"`
+
+	ArtistName      string         `db:"artist_name"`
+	ArtistOtherName sql.NullString `db:"artist_other_name"`
 
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
 
 	Tags sql.NullString `db:"tags"`
 
-	ExtraArtists   ExtraArtists   `db:"extra_artists"`
+	ExtraArtists ExtraArtists `db:"extra_artists"`
 }
 
 // TODO(patrik): Move down to the UpdateTrack
@@ -92,22 +66,13 @@ type TrackChanges struct {
 	Created types.Change[int64]
 }
 
-func TrackQuery() *goqu.SelectDataset {
-	// TODO(patrik): Add Back
-	tags := dialect.From("tracks_to_tags").
-		Select(
-			goqu.I("tracks_to_tags.track_id").As("track_id"),
-			goqu.Func("group_concat", goqu.I("tags.name"), ",").As("tags"),
-		).
-		Join(
-			goqu.I("tags"),
-			goqu.On(goqu.I("tracks_to_tags.tag_slug").Eq(goqu.I("tags.slug"))),
-		).
-		GroupBy(goqu.I("tracks_to_tags.track_id"))
+// TODO(patrik): Move
+func ExtraArtistsQuery(table, idColName string) *goqu.SelectDataset {
+	tbl := goqu.T(table)
 
-	extraArtists := dialect.From("tracks_extra_artists").
+	return dialect.From(tbl).
 		Select(
-			goqu.I("tracks_extra_artists.track_id").As("track_id"),
+			tbl.Col(idColName).As("id"),
 			goqu.Func(
 				"json_group_array",
 				goqu.Func(
@@ -123,9 +88,46 @@ func TrackQuery() *goqu.SelectDataset {
 		).
 		Join(
 			goqu.I("artists"),
-			goqu.On(goqu.I("tracks_extra_artists.artist_id").Eq(goqu.I("artists.id"))),
+			goqu.On(tbl.Col("artist_id").Eq(goqu.I("artists.id"))),
 		).
-		GroupBy(goqu.I("tracks_extra_artists.track_id"))
+		GroupBy(tbl.Col(idColName))
+}
+
+// TODO(patrik): Use goqu.T more
+func TrackQuery() *goqu.SelectDataset {
+	tags := dialect.From("tracks_to_tags").
+		Select(
+			goqu.I("tracks_to_tags.track_id").As("track_id"),
+			goqu.Func("group_concat", goqu.I("tags.name"), ",").As("tags"),
+		).
+		Join(
+			goqu.I("tags"),
+			goqu.On(goqu.I("tracks_to_tags.tag_slug").Eq(goqu.I("tags.slug"))),
+		).
+		GroupBy(goqu.I("tracks_to_tags.track_id"))
+
+	// TODO(patrik): Remove
+	// extraArtists := dialect.From("tracks_extra_artists").
+	// 	Select(
+	// 		goqu.I("tracks_extra_artists.track_id").As("track_id"),
+	// 		goqu.Func(
+	// 			"json_group_array",
+	// 			goqu.Func(
+	// 				"json_object",
+	// 				"id",
+	// 				goqu.I("artists.id"),
+	// 				"name",
+	// 				goqu.I("artists.name"),
+	// 				"other_name",
+	// 				goqu.I("artists.other_name"),
+	// 			),
+	// 		).As("artists"),
+	// 	).
+	// 	Join(
+	// 		goqu.I("artists"),
+	// 		goqu.On(goqu.I("tracks_extra_artists.artist_id").Eq(goqu.I("artists.id"))),
+	// 	).
+	// 	GroupBy(goqu.I("tracks_extra_artists.track_id"))
 
 	query := dialect.From("tracks").
 		Select(
@@ -148,8 +150,11 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.updated",
 
 			goqu.I("albums.name").As("album_name"),
+			goqu.I("albums.other_name").As("album_other_name"),
 			goqu.I("albums.cover_art").As("album_cover_art"),
+
 			goqu.I("artists.name").As("artist_name"),
+			goqu.I("artists.other_name").As("artist_other_name"),
 
 			goqu.I("tags.tags").As("tags"),
 
@@ -169,8 +174,8 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
 		).
 		LeftJoin(
-			extraArtists.As("extra_artists"),
-			goqu.On(goqu.I("tracks.id").Eq(goqu.I("extra_artists.track_id"))),
+			ExtraArtistsQuery("tracks_extra_artists", "track_id").As("extra_artists"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("extra_artists.id"))),
 		)
 
 	return query
@@ -488,6 +493,7 @@ func TrackMapNameToId(typ string, name string) string {
 	return ""
 }
 
+// TODO(patrik): Generalize
 func (db *Database) RemoveAllExtraArtistsFromTrack(ctx context.Context, trackId string) error {
 	query := dialect.Delete("tracks_extra_artists").
 		Where(goqu.I("tracks_extra_artists.track_id").Eq(trackId))
@@ -500,6 +506,7 @@ func (db *Database) RemoveAllExtraArtistsFromTrack(ctx context.Context, trackId 
 	return nil
 }
 
+// TODO(patrik): Generalize
 func (db *Database) AddExtraArtistToTrack(ctx context.Context, trackId, artistId string) error {
 	query := dialect.Insert("tracks_extra_artists").
 		Rows(goqu.Record{

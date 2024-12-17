@@ -2,6 +2,7 @@ package apis
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -71,4 +72,20 @@ func User(app core.App, c pyrin.Context) (*database.User, error) {
 
 	// TODO(patrik): Fix error
 	return nil, errors.New("Invalid token")
+}
+
+func ConvertSqlNullString(value sql.NullString) *string {
+	if value.Valid {
+		return &value.String
+	}
+
+	return nil
+}
+
+func ConvertSqlNullInt64(value sql.NullInt64) *int64 {
+	if value.Valid {
+		return &value.Int64
+	}
+
+	return nil
 }
