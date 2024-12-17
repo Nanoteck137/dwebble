@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -17,6 +18,12 @@ import (
 	"github.com/nanoteck137/pyrin/tools/transform"
 	"github.com/nanoteck137/validate"
 )
+
+type ExtraArtist struct {
+	Id        string  `json:"id"`
+	Name      string  `json:"name"`
+	OtherName *string `json:"otherName"`
+}
 
 type Track struct {
 	Id        string  `json:"id"`
@@ -37,7 +44,8 @@ type Track struct {
 	AlbumName  string `json:"albumName"`
 	ArtistName string `json:"artistName"`
 
-	Tags []string `json:"tags"`
+	Tags         []string      `json:"tags"`
+	ExtraArtists []ExtraArtist `json:"extraArtists"`
 
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
@@ -64,21 +72,31 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 		year = &track.Year.Int64
 	}
 
+	var extraArtists []ExtraArtist
+	for _, extraArtist := range track.ExtraArtists {
+		extraArtists = append(extraArtists, ExtraArtist{
+			Id:        extraArtist.Id,
+			Name:      extraArtist.Name,
+			OtherName: extraArtist.OtherName,
+		})
+	}
+
 	return Track{
 		Id:               track.Id,
 		Name:             track.Name,
 		OtherName:        otherName,
-		AlbumId:          track.AlbumId,
-		ArtistId:         track.ArtistId,
 		Number:           number,
 		Duration:         duration,
 		Year:             year,
 		OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.OriginalFilename)),
 		MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.MobileFilename)),
 		CoverArt:         utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+		AlbumId:          track.AlbumId,
+		ArtistId:         track.ArtistId,
 		AlbumName:        track.AlbumName,
 		ArtistName:       track.ArtistName,
 		Tags:             utils.SplitString(track.Tags.String),
+		ExtraArtists:     extraArtists,
 		Created:          track.Created,
 		Updated:          track.Updated,
 	}
@@ -98,10 +116,11 @@ type EditTrackBody struct {
 	OtherName *string `json:"otherName,omitempty"`
 	ArtistId  *string `json:"artistId,omitempty"`
 	// TODO(patrik): Remove artistName
-	ArtistName *string   `json:"artistName,omitempty"`
-	Year       *int64    `json:"year,omitempty"`
-	Number     *int64    `json:"number,omitempty"`
-	Tags       *[]string `json:"tags,omitempty"`
+	ArtistName   *string   `json:"artistName,omitempty"`
+	Year         *int64    `json:"year,omitempty"`
+	Number       *int64    `json:"number,omitempty"`
+	Tags         *[]string `json:"tags,omitempty"`
+	ExtraArtists *[]string `json:"extraArtists,omitempty"`
 }
 
 // TODO(patrik): Should this be pyrins default
@@ -127,6 +146,7 @@ func (b *EditTrackBody) Transform() {
 	b.OtherName = transform.StringPtr(b.OtherName)
 	b.Tags = transform.StringArrayPtr(b.Tags)
 	b.Tags = DiscardEmptyStringEntries(b.Tags)
+	b.ExtraArtists = DiscardEmptyStringEntries(b.ExtraArtists)
 }
 
 func (b EditTrackBody) Validate() error {
@@ -267,6 +287,8 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				pretty.Println(track)
+
 				return GetTrackById{
 					Track: ConvertDBTrack(c, track),
 				}, nil
@@ -306,7 +328,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodPatch,
 			Path:     "/tracks/:id",
 			BodyType: EditTrackBody{},
-			Errors:   []pyrin.ErrorType{ErrTypeTrackNotFound},
+			Errors:   []pyrin.ErrorType{ErrTypeTrackNotFound, ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
@@ -337,24 +359,35 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 
 				if body.OtherName != nil {
 					changes.OtherName = types.Change[sql.NullString]{
-						Value:   sql.NullString{
+						Value: sql.NullString{
 							String: *body.OtherName,
 							Valid:  *body.OtherName != "",
 						},
 						Changed: *body.OtherName != track.OtherName.String,
-					} 
+					}
 				}
 
 				if body.ArtistId != nil {
+					// TODO(patrik): Should we silently continue if 
+					// we don't find the artist
+					_, err := app.DB().GetArtistById(ctx, *body.ArtistId)
+					if err != nil {
+						if errors.Is(err, database.ErrItemNotFound) {
+							return nil, ArtistNotFound()
+						}
+
+						return nil, err
+					}
+
 					changes.ArtistId = types.Change[string]{
 						Value:   *body.ArtistId,
 						Changed: *body.ArtistId != track.ArtistId,
 					}
-				} 
+				}
 
 				if body.Year != nil {
 					changes.Year = types.Change[sql.NullInt64]{
-						Value:   sql.NullInt64{
+						Value: sql.NullInt64{
 							Int64: *body.Year,
 							Valid: *body.Year != 0,
 						},
@@ -364,7 +397,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 
 				if body.Number != nil {
 					changes.Number = types.Change[sql.NullInt64]{
-						Value:   sql.NullInt64{
+						Value: sql.NullInt64{
 							Int64: *body.Number,
 							Valid: *body.Number != 0,
 						},
@@ -372,8 +405,15 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
+
 				// TODO(patrik): Use transaction
-				err = app.DB().UpdateTrack(ctx, track.Id, changes)
+				err = db.UpdateTrack(ctx, track.Id, changes)
 				if err != nil {
 					return nil, err
 				}
@@ -381,7 +421,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				if body.Tags != nil {
 					tags := *body.Tags
 
-					err = app.DB().RemoveAllTagsFromTrack(ctx, track.Id)
+					err = db.RemoveAllTagsFromTrack(ctx, track.Id)
 					if err != nil {
 						return nil, err
 					}
@@ -389,16 +429,51 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					for _, tag := range tags {
 						slug := utils.Slug(tag)
 
-						err := app.DB().CreateTag(ctx, slug, tag)
+						err := db.CreateTag(ctx, slug, tag)
 						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 							return nil, err
 						}
 
-						err = app.DB().AddTagToTrack(ctx, slug, track.Id)
+						err = db.AddTagToTrack(ctx, slug, track.Id)
+						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+							return nil, err
+						}
+					}
+				}
+
+				if body.ExtraArtists != nil {
+					extraArtists := *body.ExtraArtists
+
+					err := db.RemoveAllExtraArtistsFromTrack(ctx, track.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					// TODO(patrik): Use transaction
+					for _, artistId := range extraArtists {
+						artist, err := db.GetArtistById(ctx, artistId)
+						if err != nil {
+							if errors.Is(err, database.ErrItemNotFound) {
+								// TODO(patrik): Should we just be 
+								// silently continuing
+								// NOTE(patrik): If we don't find the artist 
+								// we just silently continue
+								continue
+							}
+
+							return nil, err
+						}
+
+						err = db.AddExtraArtistToTrack(ctx, track.Id, artist.Id)
 						if err != nil {
 							return nil, err
 						}
 					}
+				}
+
+				err = tx.Commit()
+				if err != nil {
+					return nil, err
 				}
 
 				return nil, nil

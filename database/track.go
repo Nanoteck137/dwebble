@@ -3,6 +3,8 @@ package database
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"strings"
 	"time"
@@ -15,6 +17,33 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
+
+type ExtraArtist struct {
+	Id        string  `json:"id"`
+	Name      string  `json:"name"`
+	OtherName *string `json:"other_name"`
+}
+
+type ExtraArtists []ExtraArtist
+
+func (s ExtraArtists) Value() (driver.Value, error) {
+	return json.Marshal(s)
+}
+
+func (v *ExtraArtists) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	switch value := value.(type) {
+	case string:
+		return json.Unmarshal([]byte(value), &v)
+	case []byte:
+		return json.Unmarshal(value, &v)
+	default:
+		return errors.New("type assertion to ([]byte / string) failed")
+	}
+}
 
 type Track struct {
 	Id        string         `db:"id"`
@@ -40,6 +69,8 @@ type Track struct {
 	Updated int64 `db:"updated"`
 
 	Tags sql.NullString `db:"tags"`
+
+	ExtraArtists   ExtraArtists   `db:"extra_artists"`
 }
 
 // TODO(patrik): Move down to the UpdateTrack
@@ -74,6 +105,28 @@ func TrackQuery() *goqu.SelectDataset {
 		).
 		GroupBy(goqu.I("tracks_to_tags.track_id"))
 
+	extraArtists := dialect.From("tracks_extra_artists").
+		Select(
+			goqu.I("tracks_extra_artists.track_id").As("track_id"),
+			goqu.Func(
+				"json_group_array",
+				goqu.Func(
+					"json_object",
+					"id",
+					goqu.I("artists.id"),
+					"name",
+					goqu.I("artists.name"),
+					"other_name",
+					goqu.I("artists.other_name"),
+				),
+			).As("artists"),
+		).
+		Join(
+			goqu.I("artists"),
+			goqu.On(goqu.I("tracks_extra_artists.artist_id").Eq(goqu.I("artists.id"))),
+		).
+		GroupBy(goqu.I("tracks_extra_artists.track_id"))
+
 	query := dialect.From("tracks").
 		Select(
 			"tracks.id",
@@ -99,6 +152,8 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.I("artists.name").As("artist_name"),
 
 			goqu.I("tags.tags").As("tags"),
+
+			goqu.I("extra_artists.artists").As("extra_artists"),
 		).
 		Prepared(true).
 		Join(
@@ -112,6 +167,10 @@ func TrackQuery() *goqu.SelectDataset {
 		LeftJoin(
 			tags.As("tags"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
+		).
+		LeftJoin(
+			extraArtists.As("extra_artists"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("extra_artists.track_id"))),
 		)
 
 	return query
@@ -427,6 +486,18 @@ func TrackMapNameToId(typ string, name string) string {
 	}
 
 	return ""
+}
+
+func (db *Database) RemoveAllExtraArtistsFromTrack(ctx context.Context, trackId string) error {
+	query := dialect.Delete("tracks_extra_artists").
+		Where(goqu.I("tracks_extra_artists.track_id").Eq(trackId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (db *Database) AddExtraArtistToTrack(ctx context.Context, trackId, artistId string) error {
