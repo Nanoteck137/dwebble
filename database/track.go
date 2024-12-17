@@ -4,95 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
-	"go/ast"
 	"strings"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/core/log"
+	"github.com/nanoteck137/dwebble/database/adapter"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
-
-var _ filter.ResolverAdapter = (*TrackResolverAdapter)(nil)
-
-type TrackResolverAdapter struct{}
-
-func (a *TrackResolverAdapter) DefaultSort() (string, filter.SortType) {
-	return "tracks.name", filter.SortTypeAsc
-}
-
-func (a *TrackResolverAdapter) ResolveNameToId(typ, name string) (string, bool) {
-	switch typ {
-	case "tags":
-		return utils.Slug(name), true
-	}
-
-	// fmt.Errorf("Unknown name type: %s (%s)", typ, name)
-	return "", false
-}
-
-func (a *TrackResolverAdapter) ResolveVariableName(name string) (filter.Name, bool) {
-	// TODO(patrik): Include all available fields to filter on
-	// TODO(patrik): Change names to match the types.Track names
-	switch name {
-	case "artist":
-		return filter.Name{
-			Kind: filter.NameKindString,
-			Name: "artists.name",
-		}, true
-	case "album":
-		return filter.Name{
-			Kind: filter.NameKindString,
-			Name: "albums.name",
-		}, true
-	case "albumId":
-		return filter.Name{
-			Kind: filter.NameKindString,
-			Name: "albums.id",
-		}, true
-	case "track":
-		return filter.Name{
-			Kind: filter.NameKindString,
-			Name: "tracks.name",
-		}, true
-	case "trackNumber":
-		return filter.Name{
-			Kind: filter.NameKindNumber,
-			Name: "tracks.track_number",
-		}, true
-	}
-
-	// fmt.Errorf("Unknown name: %s", name)
-	return filter.Name{}, false 
-}
-
-func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, bool) {
-	switch typ {
-	case "tags":
-		return filter.Table{
-			Name:       "tracks_to_tags",
-			SelectName: "track_id",
-			WhereName:  "tag_slug",
-		}, true
-	}
-
-	// fmt.Errorf("Unknown table type: %s", typ)
-	return filter.Table{}, false
-}
-
-func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
-	switch name {
-	case "hasTag":
-		return resolver.InTable(name, "tags", args)
-	}
-
-	// TODO(patrik): Create error type
-	return nil, fmt.Errorf("Unknown function name: %s", name)
-}
 
 type Track struct {
 	Id        string         `db:"id"`
@@ -201,9 +123,6 @@ type Scan interface {
 }
 
 // TODO(patrik): Move
-var ErrInvalidFilter = errors.New("Invalid filter")
-var ErrInvalidSort = errors.New("Invalid sort")
-
 type FetchOption struct {
 	Filter  string
 	Sort    string
@@ -216,7 +135,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr, sortStr string)
 
 	var err error
 
-	a := TrackResolverAdapter{}
+	a := adapter.TrackResolverAdapter{}
 	resolver := filter.New(&a)
 
 	query, err = applyFilter(query, resolver, filterStr)
@@ -243,7 +162,7 @@ func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOption) ([]Tra
 
 	var err error
 
-	a := TrackResolverAdapter{}
+	a := adapter.TrackResolverAdapter{}
 	resolver := filter.New(&a)
 
 	query, err = applyFilter(query, resolver, opts.Filter)

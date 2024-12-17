@@ -27,10 +27,14 @@ type Album struct {
 	Id         string       `json:"id"`
 	Name       string       `json:"name"`
 	OtherName  *string      `json:"otherName"`
+
+	Year       *int64       `json:"year"`
+
 	CoverArt   types.Images `json:"coverArt"`
+
 	ArtistId   string       `json:"artistId"`
 	ArtistName string       `json:"artistName"`
-	Year       *int64       `json:"year"`
+
 	Created    int64        `json:"created"`
 	Updated    int64        `json:"updated"`
 }
@@ -136,6 +140,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Path:     "/albums",
 			Method:   http.MethodGet,
 			DataType: GetAlbums{},
+			Errors:   []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -144,6 +149,14 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				albums, err := app.DB().GetAllAlbums(c.Request().Context(), filter, sort)
 				if err != nil {
+					if errors.Is(err, database.ErrInvalidFilter) {
+						return nil, InvalidFilter(err)
+					}
+
+					if errors.Is(err, database.ErrInvalidSort) {
+						return nil, InvalidSort(err)
+					}
+
 					return nil, err
 				}
 

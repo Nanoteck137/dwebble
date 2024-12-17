@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/dwebble/database/adapter"
+	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -40,11 +42,26 @@ func ArtistQuery() *goqu.SelectDataset {
 	return query
 }
 
-func (db *Database) GetAllArtists(ctx context.Context) ([]Artist, error) {
+func (db *Database) GetAllArtists(ctx context.Context, filterStr, sortStr string) ([]Artist, error) {
 	query := ArtistQuery()
 
+	var err error
+
+	a := adapter.ArtistResolverAdapter{}
+	resolver := filter.New(&a)
+
+	query, err = applyFilter(query, resolver, filterStr)
+	if err != nil {
+		return nil, err
+	}
+
+	query, err = applySort(query, resolver, sortStr)
+	if err != nil {
+		return nil, err
+	}
+
 	var items []Artist
-	err := db.Select(&items, query)
+	err = db.Select(&items, query)
 	if err != nil {
 		return nil, err
 	}

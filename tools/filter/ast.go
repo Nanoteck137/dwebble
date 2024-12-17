@@ -14,6 +14,11 @@ type OrExpr struct {
 	Right FilterExpr
 }
 
+type IsNullExpr struct {
+	Name string
+	Not  bool
+}
+
 type OpKind int
 
 const (
@@ -21,6 +26,9 @@ const (
 	OpNotEqual
 	OpLike
 	OpGreater
+	OpGreaterEqual
+	OpLesser
+	OpLesserEqual
 )
 
 type OpExpr struct {
@@ -43,5 +51,6 @@ type InTableExpr struct {
 
 func (e *AndExpr) filterExprType()     {}
 func (e *OrExpr) filterExprType()      {}
+func (e *IsNullExpr) filterExprType()  {}
 func (e *OpExpr) filterExprType()      {}
 func (e *InTableExpr) filterExprType() {}

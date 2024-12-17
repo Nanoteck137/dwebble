@@ -83,7 +83,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 
 				export := Export{}
 
-				artists, err := db.GetAllArtists(ctx)
+				artists, err := db.GetAllArtists(ctx, "", "")
 				if err != nil {
 					return nil, err
 				}

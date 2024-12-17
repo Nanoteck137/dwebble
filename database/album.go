@@ -8,6 +8,8 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/mattn/go-sqlite3"
+	"github.com/nanoteck137/dwebble/database/adapter"
+	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -125,18 +127,18 @@ func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr 
 
 	var err error
 
-	// a := AlbumResolverAdapter{}
-	// resolver := filter.New(&a)
-	//
-	// query, err = applyFilter(query, resolver, filterStr)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// query, err = applySort(query, resolver, filterStr)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	a := adapter.AlbumResolverAdapter{}
+	resolver := filter.New(&a)
+
+	query, err = applyFilter(query, resolver, filterStr)
+	if err != nil {
+		return nil, err
+	}
+
+	query, err = applySort(query, resolver, sortStr)
+	if err != nil {
+		return nil, err
+	}
 
 	var items []Album
 	err = db.Select(&items, query)

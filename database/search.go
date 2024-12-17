@@ -187,7 +187,7 @@ func (db *Database) RefillSearchTables(ctx context.Context) error {
 		return err
 	}
 
-	artists, err := db.GetAllArtists(ctx)
+	artists, err := db.GetAllArtists(ctx, "", "")
 	if err != nil {
 		return err
 	}

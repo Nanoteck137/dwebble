@@ -23,9 +23,6 @@ type Track struct {
 	Name      string  `json:"name"`
 	OtherName *string `json:"otherName"`
 
-	AlbumId  string `json:"albumId"`
-	ArtistId string `json:"artistId"`
-
 	Number   *int64 `json:"number"`
 	Duration *int64 `json:"duration"`
 	Year     *int64 `json:"year"`
@@ -33,6 +30,9 @@ type Track struct {
 	OriginalMediaUrl string       `json:"originalMediaUrl"`
 	MobileMediaUrl   string       `json:"mobileMediaUrl"`
 	CoverArt         types.Images `json:"coverArt"`
+
+	AlbumId  string `json:"albumId"`
+	ArtistId string `json:"artistId"`
 
 	AlbumName  string `json:"albumName"`
 	ArtistName string `json:"artistName"`

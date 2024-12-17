@@ -16,14 +16,20 @@ const (
 )
 
 type Name struct {
-	Kind NameKind
-	Name string
+	Kind     NameKind
+	Name     string
+	Nullable bool
 }
 
-var ErrUnknownName = errors.New("Unknown name")
+var ErrUnknownName = errors.New("unknown name")
+var ErrUnknownFunction = errors.New("unknown function")
 
 func UnknownName(name string) error {
 	return fmt.Errorf("%w: %s", ErrUnknownName, name)
+}
+
+func UnknownFunction(name string) error {
+	return fmt.Errorf("%w: %s", ErrUnknownFunction, name)
 }
 
 type IdMappingFunc func(typ string, name string) string
@@ -35,7 +41,6 @@ type ResolverAdapter interface {
 
 	ResolveFunctionCall(resolver *Resolver, name string, args []ast.Expr) (FilterExpr, error)
 
-	// TODO(patrik): Add sort direction ASC, DESC
 	DefaultSort() (string, SortType)
 }
 
@@ -52,7 +57,13 @@ func New(adpater ResolverAdapter) *Resolver {
 func (r *Resolver) ResolveToIdent(e ast.Expr) (string, error) {
 	ident, ok := e.(*ast.Ident)
 	if !ok {
-		return "", fmt.Errorf("Expected identifier got %T", e)
+		switch e := e.(type) {
+		case *ast.BasicLit:
+			return "", fmt.Errorf("expected identifier got %v", e.Value)
+		default:
+			return "", fmt.Errorf("expected identifier got %T", e)
+		}
+
 	}
 
 	return ident.Name, nil
@@ -61,16 +72,21 @@ func (r *Resolver) ResolveToIdent(e ast.Expr) (string, error) {
 func (r *Resolver) ResolveToStr(e ast.Expr) (string, error) {
 	lit, ok := e.(*ast.BasicLit)
 	if !ok {
-		return "", fmt.Errorf("Expected string got %T", e)
+		switch e := e.(type) {
+		case *ast.Ident:
+			return "", fmt.Errorf("expected string got %v", e.Name)
+		default:
+			return "", fmt.Errorf("expected string got %T", e)
+		}
 	}
 
 	if lit.Kind != token.STRING {
-		return "", fmt.Errorf("Expected string got %s", lit.Value)
+		return "", fmt.Errorf("expected string got %s", lit.Value)
 	}
 
 	s, err := strconv.Unquote(lit.Value)
 	if err != nil {
-		return "", fmt.Errorf("Failed to unquote string: %s", lit.Value)
+		return "", fmt.Errorf("failed to unquote string %s", lit.Value)
 	}
 
 	return s, nil
@@ -79,16 +95,21 @@ func (r *Resolver) ResolveToStr(e ast.Expr) (string, error) {
 func (r *Resolver) ResolveToNumber(e ast.Expr) (int64, error) {
 	lit, ok := e.(*ast.BasicLit)
 	if !ok {
-		return 0, fmt.Errorf("Expected number got %T", e)
+		switch e := e.(type) {
+		case *ast.Ident:
+			return 0, fmt.Errorf("expected number got %v", e.Name)
+		default:
+			return 0, fmt.Errorf("expected number got %T", e)
+		}
 	}
 
 	if lit.Kind != token.INT {
-		return 0, fmt.Errorf("Expected number got %s", lit.Value)
+		return 0, fmt.Errorf("expected number got %s", lit.Value)
 	}
 
 	i, err := strconv.ParseInt(lit.Value, 10, 64)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to parse number: %s", lit.Value)
+		return 0, fmt.Errorf("failed to parse number %s", lit.Value)
 	}
 
 	return i, nil
@@ -115,9 +136,9 @@ func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, e
 			return "", nil, err
 		}
 	default:
-		// TODO(patrik): We should panic here because this is an 
+		// TODO(patrik): We should panic here because this is an
 		// internal error or create internal error type should work also
-		return "", nil, fmt.Errorf("Unknown NameKind: %d", n.Kind)
+		return "", nil, fmt.Errorf("unknown name kind %d", n.Kind)
 	}
 
 	return n.Name, val, nil
@@ -148,7 +169,7 @@ func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, err
 
 	tbl, ok := r.adapter.ResolveTable(typ)
 	if !ok {
-		// TODO(patrik): Create custom error here, this might also 
+		// TODO(patrik): Create custom error here, this might also
 		// be an internal error
 		return nil, UnknownName(typ)
 	}
@@ -158,6 +179,16 @@ func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, err
 		Table: tbl,
 		Ids:   ids,
 	}, nil
+}
+
+var opMapping = map[token.Token]OpKind{
+	token.EQL: OpEqual,
+	token.NEQ: OpNotEqual,
+	token.REM: OpLike,
+	token.GTR: OpGreater,
+	token.GEQ: OpGreaterEqual,
+	token.LSS: OpLesser,
+	token.LEQ: OpLesserEqual,
 }
 
 func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
@@ -194,72 +225,44 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 				Left:  left,
 				Right: right,
 			}, nil
-		case token.EQL:
-			name, err := r.ResolveToIdent(e.X)
-			if err != nil {
-				return nil, err
-			}
-
-			name, value, err := r.resolveNameValue(name, e.Y)
-			if err != nil {
-				return nil, err
-			}
-
-			return &OpExpr{
-				Kind:  OpEqual,
-				Name:  name,
-				Value: value,
-			}, nil
-		case token.NEQ:
-			name, err := r.ResolveToIdent(e.X)
-			if err != nil {
-				return nil, err
-			}
-
-			name, value, err := r.resolveNameValue(name, e.Y)
-			if err != nil {
-				return nil, err
-			}
-
-			return &OpExpr{
-				Kind:  OpNotEqual,
-				Name:  name,
-				Value: value,
-			}, nil
-		case token.REM:
-			name, err := r.ResolveToIdent(e.X)
-			if err != nil {
-				return nil, err
-			}
-
-			name, value, err := r.resolveNameValue(name, e.Y)
-			if err != nil {
-				return nil, err
-			}
-
-			return &OpExpr{
-				Kind:  OpLike,
-				Name:  name,
-				Value: value,
-			}, nil
-		case token.GTR:
-			name, err := r.ResolveToIdent(e.X)
-			if err != nil {
-				return nil, err
-			}
-
-			name, value, err := r.resolveNameValue(name, e.Y)
-			if err != nil {
-				return nil, err
-			}
-
-			return &OpExpr{
-				Kind:  OpGreater,
-				Name:  name,
-				Value: value,
-			}, nil
 		default:
-			return nil, fmt.Errorf("Unsupported binary operator: %s", e.Op.String())
+			if op, ok := opMapping[e.Op]; ok {
+				name, err := r.ResolveToIdent(e.X)
+				if err != nil {
+					return nil, err
+				}
+
+				if ident, ok := e.Y.(*ast.Ident); ok {
+					if ident.Name == "null" {
+						n, ok := r.adapter.ResolveVariableName(name)
+						if !ok {
+							return nil, UnknownName(name)
+						}
+
+						if !n.Nullable {
+							return nil, fmt.Errorf("%s is not nullable", name)
+						}
+
+						return &IsNullExpr{
+							Name: n.Name,
+							Not:  e.Op != token.EQL,
+						}, nil
+					}
+				}
+
+				name, value, err := r.resolveNameValue(name, e.Y)
+				if err != nil {
+					return nil, err
+				}
+
+				return &OpExpr{
+					Kind:  op,
+					Name:  name,
+					Value: value,
+				}, nil
+			}
+
+			return nil, fmt.Errorf("unsupported binary operator %s", e.Op.String())
 		}
 	case *ast.CallExpr:
 		name, err := r.ResolveToIdent(e.Fun)
@@ -284,10 +287,10 @@ func (r *Resolver) Resolve(e ast.Expr) (FilterExpr, error) {
 
 	switch e := e.(type) {
 	case *ast.Ident:
-		return nil, fmt.Errorf("Unexpected identifier: %s", e.String())
+		return nil, fmt.Errorf("unexpected identifier %s", e.String())
 	case *ast.BasicLit:
-		return nil, fmt.Errorf("Unexpected literal: %s", e.Value)
+		return nil, fmt.Errorf("unexpected literal %s", e.Value)
 	default:
-		return nil, fmt.Errorf("Unexpected expr: %T", e)
+		return nil, fmt.Errorf("unexpected expr %T", e)
 	}
 }

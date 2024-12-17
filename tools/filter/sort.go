@@ -75,7 +75,7 @@ func ParseSort(s string) (SortExpr, error) {
 	case "", "default":
 		return &SortExprDefault{}, nil
 	default:
-		return nil, errors.New("Unknown sort mode")
+		return nil, errors.New("unknown sort mode")
 	}
 }
 
@@ -107,5 +107,5 @@ func (r *Resolver) ResolveSort(e SortExpr) (SortExpr, error) {
 	}
 
 	// TODO(patrik): Internal error
-	return nil, fmt.Errorf("Unimplemented expr %T", e)
+	return nil, fmt.Errorf("unimplemented expr %T", e)
 }

@@ -10,6 +10,7 @@ import (
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/database/adapter"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
@@ -223,13 +224,14 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				// TODO(patrik): Move to helper
 				ast, err := parser.ParseExpr(body.Filter)
 				if err != nil {
 					// TODO(patrik): Better errors
 					return nil, err
 				}
 
-				a := database.TrackResolverAdapter{}
+				a := adapter.TrackResolverAdapter{}
 				r := filter.New(&a)
 				_, err = r.Resolve(ast)
 				if err != nil {
@@ -295,13 +297,14 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				if filterChange.Changed {
+					// TODO(patrik): Move to helper
 					ast, err := parser.ParseExpr(filterChange.Value)
 					if err != nil {
 						// TODO(patrik): Better errors
 						return nil, err
 					}
 
-					a := database.TrackResolverAdapter{}
+					a := adapter.TrackResolverAdapter{}
 					r := filter.New(&a)
 					_, err = r.Resolve(ast)
 					if err != nil {

@@ -10,6 +10,18 @@ import (
 	"github.com/nanoteck137/dwebble/tools/filter"
 )
 
+// TODO(patrik): Move
+var ErrInvalidFilter = errors.New("invalid filter")
+var ErrInvalidSort = errors.New("invalid sort")
+
+func InvalidFilter(err error) error {
+	return fmt.Errorf("%w: %w", ErrInvalidFilter, err)
+}
+
+func InvalidSort(err error) error {
+	return fmt.Errorf("%w: %w", ErrInvalidSort, err)
+}
+
 func applyFilter(query *goqu.SelectDataset, resolver *filter.Resolver, filterStr string) (*goqu.SelectDataset, error) {
 	if filterStr == "" {
 		return query, nil
@@ -27,21 +39,17 @@ func applyFilter(query *goqu.SelectDataset, resolver *filter.Resolver, filterStr
 func applySort(query *goqu.SelectDataset, resolver *filter.Resolver, sortStr string) (*goqu.SelectDataset, error) {
 	sortExpr, err := filter.ParseSort(sortStr)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
+		return nil, InvalidSort(err)
 	}
 
 	sortExpr, err = resolver.ResolveSort(sortExpr)
 	if err != nil {
-		if errors.Is(err, filter.ErrUnknownName) {
-			return nil, fmt.Errorf("%w: %w", ErrInvalidSort, err)
-		}
-
-		return nil, err
+		return nil, InvalidSort(err)
 	}
 
 	exprs, err := generateSort(sortExpr)
 	if err != nil {
-		return nil, err
+		return nil, InvalidSort(err)
 	}
 
 	return query.Order(exprs...), nil
@@ -50,30 +58,36 @@ func applySort(query *goqu.SelectDataset, resolver *filter.Resolver, sortStr str
 func fullParseFilter(resolver *filter.Resolver, filterStr string) (exp.Expression, error) {
 	ast, err := parser.ParseExpr(filterStr)
 	if err != nil {
-		// TODO(patrik): Better errors
-		return nil, err
+		return nil, InvalidFilter(err)
 	}
 
 	e, err := resolver.Resolve(ast)
 	if err != nil {
-		// TODO(patrik): Better errors
-		return nil, err
+		return nil, InvalidFilter(err)
 	}
 
 	re, err := generateFilter(e)
 	if err != nil {
-		// TODO(patrik): Better errors
-		return nil, err
+		return nil, InvalidFilter(err)
 	}
 
 	return re, nil
 }
 
-
 func generateTableSelect(table *filter.Table, ids []string) *goqu.SelectDataset {
 	return goqu.From(table.Name).
 		Select(table.SelectName).
 		Where(goqu.I(table.WhereName).In(ids))
+}
+
+var opMapping = map[filter.OpKind]string{
+	filter.OpEqual:        "(? == ?)",
+	filter.OpNotEqual:     "(? != ?)",
+	filter.OpLike:         "(? LIKE ?)",
+	filter.OpGreater:      "(? > ?)",
+	filter.OpGreaterEqual: "(? >= ?)",
+	filter.OpLesser:       "(? < ?)",
+	filter.OpLesserEqual:  "(? <= ?)",
 }
 
 func generateFilter(e filter.FilterExpr) (exp.Expression, error) {
@@ -102,19 +116,18 @@ func generateFilter(e filter.FilterExpr) (exp.Expression, error) {
 		}
 
 		return goqu.L("(? OR ?)", left, right), nil
-	case *filter.OpExpr:
-		switch e.Kind {
-		case filter.OpEqual:
-			return goqu.L("(? == ?)", goqu.I(e.Name), e.Value), nil
-		case filter.OpNotEqual:
-			return goqu.L("(? != ?)", goqu.I(e.Name), e.Value), nil
-		case filter.OpLike:
-			return goqu.L("(? LIKE ?)", goqu.I(e.Name), e.Value), nil
-		case filter.OpGreater:
-			return goqu.L("(? > ?)", goqu.I(e.Name), e.Value), nil
-		default:
-			return nil, fmt.Errorf("Unimplemented OpKind %d", e.Kind)
+	case *filter.IsNullExpr:
+		if e.Not {
+			return goqu.L("(? IS NOT NULL)", goqu.I(e.Name)), nil
+		} else {
+			return goqu.L("(? IS NULL)", goqu.I(e.Name)), nil
 		}
+	case *filter.OpExpr:
+		if op, ok := opMapping[e.Kind]; ok {
+			return goqu.L(op, goqu.I(e.Name), e.Value), nil
+		}
+
+		return nil, fmt.Errorf("unimplemented OpKind %d", e.Kind)
 	case *filter.InTableExpr:
 		s := generateTableSelect(&e.Table, e.Ids)
 

@@ -79,9 +79,23 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodGet,
 			Path:     "/artists",
 			DataType: GetArtists{},
+			Errors:   []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				artists, err := app.DB().GetAllArtists(c.Request().Context())
+				q := c.Request().URL.Query()
+
+				filter := q.Get("filter")
+				sort := q.Get("sort")
+
+				artists, err := app.DB().GetAllArtists(c.Request().Context(), filter, sort)
 				if err != nil {
+					if errors.Is(err, database.ErrInvalidFilter) {
+						return nil, InvalidFilter(err)
+					}
+
+					if errors.Is(err, database.ErrInvalidSort) {
+						return nil, InvalidSort(err)
+					}
+
 					return nil, err
 				}
 
