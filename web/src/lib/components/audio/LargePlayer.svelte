@@ -1,6 +1,6 @@
 <script lang="ts">
   import Slider from "$lib/components/SeekSlider.svelte";
-  import { ScrollArea, Sheet } from "@nanoteck137/nano-ui";
+  import { ScrollArea, Separator, Sheet } from "@nanoteck137/nano-ui";
   import { musicManager, type MusicTrack } from "$lib/music-manager";
   import { formatTime } from "$lib/utils";
   import {
@@ -71,7 +71,9 @@
       <ScrollArea class="h-full pb-6">
         <div class="flex flex-col gap-2">
           {#each queue as track, i}
-            <div class="flex items-center gap-2">
+            <div
+              class={`flex items-center gap-2 rounded p-1 ${currentQueueIndex === i ? "bg-accent text-accent-foreground" : ""}`}
+            >
               <div class="group relative">
                 <img
                   class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
@@ -80,7 +82,7 @@
                 />
                 {#if i == currentQueueIndex}
                   <div
-                    class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center border bg-black/80"
+                    class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center rounded border bg-black/80"
                   >
                     <Play size="25" />
                   </div>
@@ -108,6 +110,7 @@
                 </p>
               </div>
             </div>
+            <Separator />
           {/each}
         </div>
       </ScrollArea>
