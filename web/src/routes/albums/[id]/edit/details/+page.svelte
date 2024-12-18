@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { artistQuery, type Artist } from "$lib";
+  import { type Artist } from "$lib";
   import { ApiClient } from "$lib/api/client.js";
-  import ArtistQuery from "$lib/components/ArtistQuery.svelte";
+  import { getModalState } from "$lib/modal.svelte.js";
   import {
     Breadcrumb,
     Button,
@@ -12,26 +12,11 @@
 
   const { data } = $props();
 
+  const modalState = getModalState();
+
   let currentArtist: Artist = $state({
     id: data.album.artistId,
     name: data.album.artistName.default,
-  });
-
-  let { open, artist, currentQuery, queryResults, onInput } = artistQuery(
-    () => {
-      return new ApiClient(data.apiAddress);
-    },
-  );
-
-  $effect(() => {
-    if ($artist) {
-      currentArtist = $artist;
-    } else {
-      currentArtist = {
-        id: data.album.artistId,
-        name: data.album.artistName.default,
-      };
-    }
   });
 </script>
 
@@ -85,7 +70,7 @@
             class="w-full"
             id="name"
             name="name"
-            value={data.album.name}
+            value={data.album.name.default}
             type="text"
             autocomplete="off"
           />
@@ -106,16 +91,24 @@
         <p>Artist: {currentArtist?.name}</p>
         <p>Artist Id: {currentArtist?.id}</p>
         <input name="artistId" value={currentArtist?.id} type="hidden" />
-        <ArtistQuery
-          bind:open={$open}
-          currentQuery={$currentQuery}
-          queryResults={$queryResults}
-          onArtistSelected={(a) => {
-            $artist = a;
-          }}
-          {onInput}
-        />
       </div>
+
+      <Button
+        variant="outline"
+        onclick={() => {
+          modalState.pushModal({
+            type: "modal-query-artist",
+            // TODO(patrik): Use another apiClient later when we have
+            // fixed this
+            apiClient: new ApiClient(data.apiAddress),
+            onArtistSelected: (artist) => {
+              currentArtist = artist;
+            },
+          });
+        }}
+      >
+        Change Artist
+      </Button>
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">
       <Button href="/albums/{data.album.id}/edit" variant="outline">

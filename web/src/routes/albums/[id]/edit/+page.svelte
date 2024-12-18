@@ -18,9 +18,13 @@
     DropdownMenu,
     Separator,
   } from "@nanoteck137/nano-ui";
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
+  import { getModalState } from "$lib/modal.svelte.js";
+  import { ApiClient } from "$lib/api/client.js";
 
   const { data } = $props();
+
+  const modalState = getModalState();
 </script>
 
 <div class="py-2">
@@ -256,7 +260,23 @@
 
               <DropdownMenu.Item
                 onSelect={() => {
-                  goto(`/albums/${data.album.id}/edit/delete/${track.id}`);
+                  modalState.pushModal({
+                    type: "modal-confirm",
+                    title: "Are you sure?",
+                    description: "You are about to delete this track",
+                    confirmDelete: true,
+                    onConfirm: async () => {
+                      const apiClient = new ApiClient(data.apiAddress);
+                      apiClient.setToken(data.userToken);
+
+                      const res = await apiClient.deleteTrack(track.id);
+                      if (!res.success) {
+                        throw res.error.message;
+                      }
+
+                      await invalidateAll();
+                    },
+                  });
                 }}
               >
                 <Trash />

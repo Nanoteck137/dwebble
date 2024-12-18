@@ -76,4 +76,8 @@
   body[data-player="true"] main {
     padding-bottom: 5.5rem;
   }
+
+  body.modal-open {
+    overflow: hidden !important;
+  }
 }
