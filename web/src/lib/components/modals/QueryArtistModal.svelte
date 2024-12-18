@@ -32,7 +32,7 @@
       if (res.success) {
         queryResults = res.data.artists.map((artist) => ({
           id: artist.id,
-          name: artist.name,
+          name: artist.name.default,
         }));
       } else {
         console.error(res.error.message);
