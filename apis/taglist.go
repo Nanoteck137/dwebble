@@ -6,7 +6,6 @@ import (
 	"go/parser"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
@@ -14,6 +13,8 @@ import (
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/nanoteck137/validate"
 )
 
 type Taglist struct {
@@ -47,10 +48,50 @@ type CreateTaglistBody struct {
 	Filter string `json:"filter"`
 }
 
+func (b *CreateTaglistBody) Transform() {
+	b.Name = transform.String(b.Name)
+	b.Filter = transform.String(b.Filter)
+}
+
+func (b CreateTaglistBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required),
+		validate.Field(&b.Filter, validate.Required),
+	)
+}
+
 // TODO(patrik): Validation and transform
 type UpdateTaglistBody struct {
 	Name   *string `json:"name,omitempty"`
 	Filter *string `json:"filter,omitempty"`
+}
+
+func (b *UpdateTaglistBody) Transform() {
+	b.Name = transform.StringPtr(b.Name)
+	b.Filter = transform.StringPtr(b.Filter)
+}
+
+func (b UpdateTaglistBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required.When(b.Name != nil)),
+		validate.Field(&b.Filter, validate.Required.When(b.Filter != nil)),
+	)
+}
+
+func TestFilter(filterStr string) error {
+	ast, err := parser.ParseExpr(filterStr)
+	if err != nil {
+		return InvalidFilter(err)
+	}
+
+	a := adapter.TrackResolverAdapter{}
+	r := filter.New(&a)
+	_, err = r.Resolve(ast)
+	if err != nil {
+		return InvalidFilter(err)
+	}
+
+	return nil
 }
 
 func InstallTaglistHandlers(app core.App, group pyrin.Group) {
@@ -131,6 +172,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 			Path:     "/taglists/:id/tracks",
 			Method:   http.MethodGet,
 			DataType: GetTaglistTracks{},
+			Errors:   []pyrin.ErrorType{ErrTypeTaglistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 				taglistId := c.Param("id")
@@ -144,12 +186,15 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 
 				taglist, err := app.DB().GetTaglistById(ctx, taglistId)
 				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TaglistNotFound()
+					}
+
 					return nil, err
 				}
 
 				if taglist.OwnerId != user.Id {
-					// TODO(patrik): Fix error
-					return nil, errors.New("No taglist")
+					return nil, TaglistNotFound()
 				}
 
 				// TODO(patrik): Standardize FetchOption
@@ -213,6 +258,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 			Method:   http.MethodPost,
 			DataType: CreateTaglist{},
 			BodyType: CreateTaglistBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeInvalidFilter},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -224,18 +270,8 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				// TODO(patrik): Move to helper
-				ast, err := parser.ParseExpr(body.Filter)
+				err = TestFilter(body.Filter)
 				if err != nil {
-					// TODO(patrik): Better errors
-					return nil, err
-				}
-
-				a := adapter.TrackResolverAdapter{}
-				r := filter.New(&a)
-				_, err = r.Resolve(ast)
-				if err != nil {
-					// TODO(patrik): Better errors
 					return nil, err
 				}
 
@@ -259,6 +295,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 			Path:     "/taglists/:id",
 			Method:   http.MethodPatch,
 			BodyType: UpdateTaglistBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeTaglistNotFound, ErrTypeInvalidFilter},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				taglistId := c.Param("id")
 
@@ -274,49 +311,41 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 
 				taglist, err := app.DB().GetTaglistById(c.Request().Context(), taglistId)
 				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TaglistNotFound()
+					}
+
 					return nil, err
 				}
 
 				if taglist.OwnerId != user.Id {
-					// TODO(patrik): Fix error
-					return nil, errors.New("No taglist")
+					return nil, TaglistNotFound()
 				}
 
-				var name types.Change[string]
+				changes := database.TaglistChanges{}
+
 				if body.Name != nil {
-					n := strings.TrimSpace(*body.Name)
-					name.Value = n
-					name.Changed = n != taglist.Name
+					changes.Name = types.Change[string]{
+						Value:   *body.Name,
+						Changed: *body.Name != taglist.Name,
+					}
 				}
 
-				var filterChange types.Change[string]
 				if body.Filter != nil {
-					f := strings.TrimSpace(*body.Filter)
-					filterChange.Value = f
-					filterChange.Changed = f != taglist.Filter
+					changes.Filter = types.Change[string]{
+						Value:   *body.Filter,
+						Changed: *body.Filter != taglist.Filter,
+					}
 				}
 
-				if filterChange.Changed {
-					// TODO(patrik): Move to helper
-					ast, err := parser.ParseExpr(filterChange.Value)
+				if changes.Filter.Changed {
+					err = TestFilter(changes.Filter.Value)
 					if err != nil {
-						// TODO(patrik): Better errors
-						return nil, err
-					}
-
-					a := adapter.TrackResolverAdapter{}
-					r := filter.New(&a)
-					_, err = r.Resolve(ast)
-					if err != nil {
-						// TODO(patrik): Better errors
 						return nil, err
 					}
 				}
 
-				err = app.DB().UpdateTaglist(c.Request().Context(), taglist.Id, database.TaglistChanges{
-					Name:   name,
-					Filter: filterChange,
-				})
+				err = app.DB().UpdateTaglist(c.Request().Context(), taglist.Id, changes)
 				if err != nil {
 					return nil, err
 				}

@@ -2,6 +2,8 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -104,6 +106,10 @@ func (db *Database) GetTaglistById(ctx context.Context, id string) (Taglist, err
 	var item Taglist
 	err := db.Get(&item, query)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Taglist{}, ErrItemNotFound
+		}
+
 		return Taglist{}, err
 	}
 

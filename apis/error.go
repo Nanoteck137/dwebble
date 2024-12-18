@@ -11,6 +11,7 @@ const (
 	ErrTypeAlbumNotFound    pyrin.ErrorType = "ALBUM_NOT_FOUND"
 	ErrTypeTrackNotFound    pyrin.ErrorType = "TRACK_NOT_FOUND"
 	ErrTypePlaylistNotFound pyrin.ErrorType = "PLAYLIST_NOT_FOUND"
+	ErrTypeTaglistNotFound  pyrin.ErrorType = "TAGLIST_NOT_FOUND"
 	ErrTypeApiTokenNotFound pyrin.ErrorType = "API_TOKEN_NOT_FOUND"
 
 	ErrTypeInvalidFilter     pyrin.ErrorType = "INVALID_FILTER"
@@ -47,6 +48,14 @@ func PlaylistNotFound() *pyrin.Error {
 		Code:    http.StatusNotFound,
 		Type:    ErrTypePlaylistNotFound,
 		Message: "Playlist not found",
+	}
+}
+
+func TaglistNotFound() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusNotFound,
+		Type:    ErrTypeTaglistNotFound,
+		Message: "Taglist not found",
 	}
 }
 
