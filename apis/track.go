@@ -20,8 +20,8 @@ import (
 )
 
 type Name struct {
-	Name      string  `json:"name"`
-	OtherName *string `json:"otherName"`
+	Default string  `json:"default"`
+	Other   *string `json:"other"`
 }
 
 type Track struct {
@@ -53,8 +53,8 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 	return Track{
 		Id: track.Id,
 		Name: Name{
-			Name:      track.Name,
-			OtherName: ConvertSqlNullString(track.OtherName),
+			Default:      track.Name,
+			Other: ConvertSqlNullString(track.OtherName),
 		},
 		Number:           ConvertSqlNullInt64(track.Number),
 		Duration:         ConvertSqlNullInt64(track.Duration),
@@ -65,12 +65,12 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 		AlbumId:          track.AlbumId,
 		ArtistId:         track.ArtistId,
 		AlbumName: Name{
-			Name:      track.AlbumName,
-			OtherName: ConvertSqlNullString(track.AlbumOtherName),
+			Default:      track.AlbumName,
+			Other: ConvertSqlNullString(track.AlbumOtherName),
 		},
 		ArtistName: Name{
-			Name:      track.ArtistName,
-			OtherName: ConvertSqlNullString(track.ArtistOtherName),
+			Default:      track.ArtistName,
+			Other: ConvertSqlNullString(track.ArtistOtherName),
 		},
 		Tags:         utils.SplitString(track.Tags.String),
 		ExtraArtists: ConvertDBExtraArtists(track.ExtraArtists),

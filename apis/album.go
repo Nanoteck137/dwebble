@@ -44,15 +44,15 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 	return Album{
 		Id: album.Id,
 		Name: Name{
-			Name:      album.Name,
-			OtherName: ConvertSqlNullString(album.OtherName),
+			Default: album.Name,
+			Other:   ConvertSqlNullString(album.OtherName),
 		},
-		Year:         ConvertSqlNullInt64(album.Year),
-		CoverArt:     utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
-		ArtistId:     album.ArtistId,
-		ArtistName:   Name{
-			Name:      album.ArtistName,
-			OtherName: ConvertSqlNullString(album.ArtistOtherName),
+		Year:     ConvertSqlNullInt64(album.Year),
+		CoverArt: utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
+		ArtistId: album.ArtistId,
+		ArtistName: Name{
+			Default: album.ArtistName,
+			Other:   ConvertSqlNullString(album.ArtistOtherName),
 		},
 		ExtraArtists: ConvertDBExtraArtists(album.ExtraArtists),
 		Created:      album.Created,

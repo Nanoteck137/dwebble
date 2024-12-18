@@ -25,13 +25,13 @@ type ExtraArtist struct {
 }
 
 func ConvertDBExtraArtists(extras database.ExtraArtists) []ExtraArtist {
-	var res []ExtraArtist
+	res := []ExtraArtist{}
 	for _, extraArtist := range extras {
 		res = append(res, ExtraArtist{
 			Id: extraArtist.Id,
 			Name: Name{
-				Name:      extraArtist.Name,
-				OtherName: extraArtist.OtherName,
+				Default:      extraArtist.Name,
+				Other: extraArtist.OtherName,
 			},
 		})
 	}
@@ -53,8 +53,8 @@ func ConvertDBArtist(c pyrin.Context, artist database.Artist) Artist {
 	return Artist{
 		Id: artist.Id,
 		Name: Name{
-			Name:      artist.Name,
-			OtherName: ConvertSqlNullString(artist.OtherName),
+			Default:      artist.Name,
+			Other: ConvertSqlNullString(artist.OtherName),
 		},
 		Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
 		Created: artist.Created,
