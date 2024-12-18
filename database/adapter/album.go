@@ -48,6 +48,12 @@ func (a *AlbumResolverAdapter) ResolveVariableName(name string) (filter.Name, bo
 			Kind: filter.NameKindString,
 			Name: "artists.name",
 		}, true
+	case "artistOtherName":
+		return filter.Name{
+			Kind: filter.NameKindString,
+			Name: "artists.other_name",
+			Nullable: true,
+		}, true
 	case "created":
 		return filter.Name{
 			Kind: filter.NameKindNumber,
