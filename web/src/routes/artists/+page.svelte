@@ -28,10 +28,10 @@
           <div class="h-2"></div>
           <a
             class="line-clamp-2 w-40 text-sm font-medium group-hover:underline"
-            title={artist.name}
+            title={artist.name.default}
             href="/artists/{artist.id}"
           >
-            {artist.name}
+            {artist.name.default}
           </a>
         </div>
         <div class="h-2"></div>

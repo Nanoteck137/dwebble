@@ -66,18 +66,18 @@
           <div class="h-2"></div>
           <a
             class="line-clamp-2 w-40 text-sm font-medium group-hover:underline"
-            title={album.name}
+            title={album.name.default}
             href="/albums/{album.id}"
           >
-            {album.name}
+            {album.name.default}
           </a>
         </div>
         <a
           class="line-clamp-1 w-40 text-xs hover:underline"
-          title={album.artistName}
+          title={album.artistName.default}
           href="/artist/{album.artistId}"
         >
-          {album.artistName}
+          {album.artistName.default}
         </a>
         <div class="h-2"></div>
       </div>

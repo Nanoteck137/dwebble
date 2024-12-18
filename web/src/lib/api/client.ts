@@ -22,6 +22,7 @@ export const SEARCH_TRACKS_URL = "/api/v1/tracks/search"
 export const GET_TRACK_BY_ID_URL = "/api/v1/tracks/:id"
 export const REMOVE_TRACK_URL = "/api/v1/tracks/:id"
 export const EDIT_TRACK_URL = "/api/v1/tracks/:id"
+export const DELETE_TRACK_URL = "/api/v1/tracks/:id"
 export const SIGNUP_URL = "/api/v1/auth/signup"
 export const SIGNIN_URL = "/api/v1/auth/signin"
 export const CHANGE_PASSWORD_URL = "/api/v1/auth/password"
@@ -131,6 +132,10 @@ export class ApiClient extends BaseApiClient {
   
   editTrack(id: string, body: api.EditTrackBody, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}`, "PATCH", z.undefined(), z.any(), body, options)
+  }
+  
+  deleteTrack(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/tracks/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
   }
   
   signup(body: api.SignupBody, options?: ExtraOptions) {

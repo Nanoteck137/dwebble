@@ -14,14 +14,14 @@
   apiClient.setToken(data.userToken);
 
   let trackNumber = $state(data.track.number?.toString() ?? "");
-  let trackName = $state(data.track.name);
-  let trackOtherName = $state(data.track.otherName ?? "");
+  let trackName = $state(data.track.name.default);
+  let trackOtherName = $state(data.track.name.other ?? "");
   let trackYear = $state(data.track.year?.toString() ?? "");
   let trackTags = $state(data.track.tags.join(","));
 
   let currentArtist: Artist = $state({
     id: data.track.artistId,
-    name: data.track.artistName,
+    name: data.track.artistName.default,
   });
 
   let { open, artist, currentQuery, queryResults, onInput } = artistQuery(
@@ -36,7 +36,7 @@
     } else {
       currentArtist = {
         id: data.track.artistId,
-        name: data.track.artistName,
+        name: data.track.artistName.default,
       };
     }
   });
@@ -76,7 +76,7 @@
   <Card.Root class="mx-auto w-full max-w-[560px]">
     <Card.Header>
       <Card.Title>Edit Track</Card.Title>
-      <Card.Description>{data.track.name}</Card.Description>
+      <Card.Description>{data.track.name.default}</Card.Description>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <div class="flex flex-col gap-2 py-2">
@@ -90,7 +90,7 @@
           >
             <Play size="18" />
           </button>
-          <p>{data.track.name}</p>
+          <p>{data.track.name.default}</p>
         </div>
 
         <div class="flex flex-col gap-2">

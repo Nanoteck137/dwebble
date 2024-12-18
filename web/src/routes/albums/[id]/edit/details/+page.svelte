@@ -14,7 +14,7 @@
 
   let currentArtist: Artist = $state({
     id: data.album.artistId,
-    name: data.album.artistName,
+    name: data.album.artistName.default,
   });
 
   let { open, artist, currentQuery, queryResults, onInput } = artistQuery(
@@ -29,7 +29,7 @@
     } else {
       currentArtist = {
         id: data.album.artistId,
-        name: data.album.artistName,
+        name: data.album.artistName.default,
       };
     }
   });
@@ -97,7 +97,7 @@
         <Input
           id="other-name"
           name="otherName"
-          value={data.album.otherName ?? ""}
+          value={data.album.name.other ?? ""}
           type="text"
         />
       </div>

@@ -12,8 +12,8 @@ export function formatTime(s: number) {
 
 export function trackToMusicTrack(track: Track): MusicTrack {
   return {
-    name: track.name,
-    artistName: track.artistName,
+    name: track.name.default,
+    artistName: track.artistName.default,
     source: track.mobileMediaUrl,
     coverArt: track.coverArt.small,
   };

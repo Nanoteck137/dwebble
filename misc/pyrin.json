@@ -1,6 +1,22 @@
 {
   "types": [
     {
+      "name": "Name",
+      "extend": "",
+      "fields": [
+        {
+          "name": "default",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "other",
+          "type": "*string",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "Images",
       "extend": "",
       "fields": [
@@ -37,7 +53,7 @@
         },
         {
           "name": "name",
-          "type": "string",
+          "type": "Name",
           "omit": false
         },
         {
@@ -74,6 +90,22 @@
       "fields": null
     },
     {
+      "name": "ExtraArtist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "Name",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "Album",
       "extend": "",
       "fields": [
@@ -84,12 +116,12 @@
         },
         {
           "name": "name",
-          "type": "string",
+          "type": "Name",
           "omit": false
         },
         {
-          "name": "otherName",
-          "type": "*string",
+          "name": "year",
+          "type": "*int",
           "omit": false
         },
         {
@@ -104,12 +136,12 @@
         },
         {
           "name": "artistName",
-          "type": "string",
+          "type": "Name",
           "omit": false
         },
         {
-          "name": "year",
-          "type": "*int",
+          "name": "extraArtists",
+          "type": "[]ExtraArtist",
           "omit": false
         },
         {
@@ -173,22 +205,7 @@
         },
         {
           "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "otherName",
-          "type": "*string",
-          "omit": false
-        },
-        {
-          "name": "albumId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artistId",
-          "type": "string",
+          "type": "Name",
           "omit": false
         },
         {
@@ -222,18 +239,33 @@
           "omit": false
         },
         {
-          "name": "albumName",
+          "name": "albumId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "artistName",
+          "name": "artistId",
           "type": "string",
+          "omit": false
+        },
+        {
+          "name": "albumName",
+          "type": "Name",
+          "omit": false
+        },
+        {
+          "name": "artistName",
+          "type": "Name",
           "omit": false
         },
         {
           "name": "tags",
           "type": "[]string",
+          "omit": false
+        },
+        {
+          "name": "extraArtists",
+          "type": "[]ExtraArtist",
           "omit": false
         },
         {
@@ -286,6 +318,11 @@
         {
           "name": "year",
           "type": "*int",
+          "omit": true
+        },
+        {
+          "name": "extraArtistIds",
+          "type": "*[]string",
           "omit": true
         }
       ]
@@ -411,6 +448,11 @@
         },
         {
           "name": "tags",
+          "type": "*[]string",
+          "omit": true
+        },
+        {
+          "name": "extraArtists",
           "type": "*[]string",
           "omit": true
         }
@@ -984,6 +1026,8 @@
       "method": "GET",
       "path": "/api/v1/artists",
       "errorTypes": [
+        "INVALID_FILTER",
+        "INVALID_SORT",
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
@@ -1066,6 +1110,8 @@
       "method": "GET",
       "path": "/api/v1/albums",
       "errorTypes": [
+        "INVALID_FILTER",
+        "INVALID_SORT",
         "ROUTE_NOT_FOUND",
         "UNKNOWN_ERROR",
         "VALIDATION_ERROR"
@@ -1242,6 +1288,7 @@
       "method": "PATCH",
       "path": "/api/v1/tracks/:id",
       "errorTypes": [
+        "ARTIST_NOT_FOUND",
         "ROUTE_NOT_FOUND",
         "TRACK_NOT_FOUND",
         "UNKNOWN_ERROR",
@@ -1249,6 +1296,20 @@
       ],
       "responseType": "",
       "bodyType": "EditTrackBody",
+      "requireFormData": false
+    },
+    {
+      "name": "DeleteTrack",
+      "method": "DELETE",
+      "path": "/api/v1/tracks/:id",
+      "errorTypes": [
+        "ROUTE_NOT_FOUND",
+        "TRACK_NOT_FOUND",
+        "UNKNOWN_ERROR",
+        "VALIDATION_ERROR"
+      ],
+      "responseType": "",
+      "bodyType": "",
       "requireFormData": false
     },
     {

@@ -32,7 +32,7 @@
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
         <Breadcrumb.Link href="/albums/{data.album.id}">
-          {data.album.name}
+          {data.album.name.default}
         </Breadcrumb.Link>
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
@@ -124,16 +124,16 @@
 
   <div class="flex flex-col py-2">
     <p class="font-bold">
-      {data.album.name}
+      {data.album.name.default}
     </p>
     <p class="text-xs">
       Artist: <a class="hover:underline" href="/artists/{data.album.artistId}">
-        {data.album.artistName}
+        {data.album.artistName.default}
       </a>
     </p>
 
-    {#if data.album.otherName}
-      <p class="text-xs">Other Name: {data.album.otherName}</p>
+    {#if data.album.name.other}
+      <p class="text-xs">Other Name: {data.album.name.other}</p>
     {/if}
 
     {#if data.album.year}
@@ -162,22 +162,22 @@
     <div class="flex items-center gap-2 py-2">
       <div class="flex flex-grow flex-col">
         <div class="flex items-center gap-2">
-          <p class="text-sm font-medium" title={track.name}>
+          <p class="text-sm font-medium" title={track.name.default}>
             {#if track.number}
               <span>{track.number}.</span>
             {/if}
-            {track.name}
+            {track.name.default}
           </p>
         </div>
         <div class="h-1"></div>
-        <p class="text-xs" title={track.artistName}>
+        <p class="text-xs" title={track.artistName.default}>
           Artist: <a class="hover:underline" href="/artists/{track.artistId}"
-            >{track.artistName}</a
+            >{track.artistName.default}</a
           >
         </p>
 
-        {#if track.otherName}
-          <p class="text-xs">Other Name: {track.otherName}</p>
+        {#if track.name.other}
+          <p class="text-xs">Other Name: {track.name.other}</p>
         {/if}
 
         {#if track.year}

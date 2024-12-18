@@ -21,7 +21,7 @@
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
-        <Breadcrumb.Page>{data.album.name}</Breadcrumb.Page>
+        <Breadcrumb.Page>{data.album.name.default}</Breadcrumb.Page>
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
@@ -36,9 +36,9 @@
 
   <div class="flex flex-col py-2">
     <div class="flex flex-col">
-      <p class="font-bold">{data.album.name}</p>
+      <p class="font-bold">{data.album.name.default}</p>
       <a class="text-xs hover:underline" href="/artists/{data.album.artistId}">
-        {data.album.artistName}
+        {data.album.artistName.default}
       </a>
     </div>
 
@@ -101,15 +101,15 @@
         <Play size="20" />
       </button>
       <div class="flex flex-grow flex-col py-1">
-        <p class="line-clamp-1 text-sm font-medium" title={track.name}>
-          {track.name}
+        <p class="line-clamp-1 text-sm font-medium" title={track.name.default}>
+          {track.name.default}
         </p>
         <a
           class="line-clamp-1 w-fit text-xs hover:underline"
-          title={track.artistName}
+          title={track.artistName.default}
           href={`/artists/${track.artistId}`}
         >
-          {track.artistName}
+          {track.artistName.default}
         </a>
       </div>
       <div class="flex items-center gap-2">

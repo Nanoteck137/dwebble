@@ -321,6 +321,22 @@ func (c *Client) EditTrack(id string, body EditTrackBody, options Options) (*any
 	return Request[any](data)
 }
 
+func (c *Client) DeleteTrack(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/tracks/%v", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "DELETE",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) Signup(body SignupBody, options Options) (*Signup, error) {
 	path := "/api/v1/auth/signup"
 	url, err := createUrl(c.addr, path, options.QueryParams)

@@ -34,18 +34,21 @@
   </div>
   <div class="flex flex-grow flex-col">
     <div class="flex items-center gap-1">
-      <p class="line-clamp-1 w-fit text-sm font-medium" title={track.name}>
-        {track.name}
+      <p
+        class="line-clamp-1 w-fit text-sm font-medium"
+        title={track.name.default}
+      >
+        {track.name.default}
       </p>
 
       <p>•</p>
 
       <a
         class="line-clamp-1 text-xs font-light hover:underline"
-        title={track.artistName}
+        title={track.artistName.default}
         href={`/artists/${track.artistId}`}
       >
-        {track.artistName}
+        {track.artistName.default}
       </a>
     </div>
 
