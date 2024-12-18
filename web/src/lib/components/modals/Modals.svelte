@@ -1,10 +1,30 @@
 <script lang="ts">
+  import { browser } from "$app/environment";
+  import { navigating } from "$app/stores";
   import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
   import QueryArtistModal from "$lib/components/modals/QueryArtistModal.svelte";
   import { getModalState } from "$lib/modal.svelte";
   import { fade } from "svelte/transition";
 
   const modalState = getModalState();
+
+  $effect(() => {
+    if (!browser) return;
+
+    if (modalState.modals.length > 0) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+  });
+
+  $effect(() => {
+    if ($navigating !== null) {
+      modalState.modals.forEach((modal) => {
+        modalState.removeModal(modal.id);
+      });
+    }
+  });
 </script>
 
 {#each modalState.modals as modal (modal.id)}
