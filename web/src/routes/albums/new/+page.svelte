@@ -48,18 +48,6 @@
         <Input id="name" name="name" type="text" bind:value={$form.name} />
         <Errors errors={$errors.name} />
       </div>
-      <!-- <div class="flex flex-col gap-2">
-        <Label for="password">Password</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          bind:value={$form.password}
-        />
-        <Errors errors={$errors.password} />
-      </div> -->
-
-      <Errors errors={$errors.artistId} />
 
       {#if $artist}
         <input name="artistId" value={$artist.id} type="hidden" />
@@ -76,9 +64,10 @@
         }}
         {onInput}
       />
+      <Errors errors={$errors.artistId} />
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">
-      <Button type="submit">Login</Button>
+      <Button type="submit">Create Album</Button>
     </Card.Footer>
   </Card.Root>
 </form>
