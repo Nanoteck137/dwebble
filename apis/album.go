@@ -5,7 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path"
 	"strings"
 
 	"github.com/nanoteck137/dwebble/core"
@@ -450,106 +453,108 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			},
 		},
 
-		// TODO(patrik): Fix
-		// pyrin.ApiHandler{
-		// 	Name:        "ChangeAlbumCover",
-		// 	Method:      http.MethodPost,
-		// 	Path:        "/albums/:id/cover",
-		// 	RequireForm: true,
-		// 	HandlerFunc: func(c pyrin.Context) (any, error) {
-		// 		id := c.Param("id")
-		//
-		// 		err := c.Request().ParseMultipartForm(defaultMemory)
-		// 		if err != nil {
-		// 			return nil, err
-		// 		}
-		//
-		// 		form := c.Request().MultipartForm
-		//
-		// 		db, tx, err := app.DB().Begin()
-		// 		if err != nil {
-		// 			return nil, err
-		// 		}
-		// 		defer tx.Rollback()
-		//
-		// 		ctx := context.TODO()
-		// 		album, err := db.GetAlbumById(ctx, id)
-		// 		if err != nil {
-		// 			// TODO(patrik): Handle error
-		// 			return nil, err
-		// 		}
-		//
-		// 		albumDir := app.WorkDir().Album(album.Id)
-		//
-		// 		// TODO(patrik): Check content-type
-		// 		// TODO(patrik): Return error if there is no files attached
-		// 		coverArt := form.File["cover"]
-		// 		fmt.Printf("coverArt: %v\n", coverArt)
-		// 		if len(coverArt) > 0 {
-		// 			f := coverArt[0]
-		//
-		// 			ext := path.Ext(f.Filename)
-		// 			filename := "cover-original" + ext
-		//
-		// 			dst := path.Join(albumDir, filename)
-		//
-		// 			file, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
-		// 			if err != nil {
-		// 				return nil, err
-		// 			}
-		// 			defer file.Close()
-		//
-		// 			ff, err := f.Open()
-		// 			if err != nil {
-		// 				return nil, err
-		// 			}
-		// 			defer ff.Close()
-		//
-		// 			_, err = io.Copy(file, ff)
-		// 			if err != nil {
-		// 				return nil, err
-		// 			}
-		//
-		// 			i := path.Join(albumDir, "cover-128.png")
-		// 			err = utils.CreateResizedImage(dst, i, 128)
-		// 			if err != nil {
-		// 				return nil, err
-		// 			}
-		//
-		// 			i = path.Join(albumDir, "cover-256.png")
-		// 			err = utils.CreateResizedImage(dst, i, 256)
-		// 			if err != nil {
-		// 				return nil, err
-		// 			}
-		//
-		// 			i = path.Join(albumDir, "cover-512.png")
-		// 			err = utils.CreateResizedImage(dst, i, 512)
-		// 			if err != nil {
-		// 				return nil, err
-		// 			}
-		//
-		// 			err = db.UpdateAlbum(ctx, album.Id, database.AlbumChanges{
-		// 				CoverArt: types.Change[sql.NullString]{
-		// 					Value: sql.NullString{
-		// 						String: filename,
-		// 						Valid:  true,
-		// 					},
-		// 					Changed: true,
-		// 				},
-		// 			})
-		//
-		// 			if err != nil {
-		// 				return nil, err
-		// 			}
-		// 		}
-		//
-		// 		err = tx.Commit()
-		// 		if err != nil {
-		// 			return nil, err
-		// 		}
-		//
-		// 		return nil, nil
-		// 	},
-		// },
+		pyrin.FormApiHandler{
+			Name:   "ChangeAlbumCover",
+			Method: http.MethodPost,
+			Path:   "/albums/:id/cover",
+			Spec: pyrin.FormSpec{
+				Files: map[string]pyrin.FormFileSpec{
+					"cover": {
+						NumExpected: 1,
+					},
+				},
+			},
+			Errors: []pyrin.ErrorType{ErrTypeAlbumNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
+				ctx := context.TODO()
+				album, err := db.GetAlbumById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, AlbumNotFound()
+					}
+
+					return nil, err
+				}
+
+				albumDir := app.WorkDir().Album(album.Id)
+
+				files, err := pyrin.FormFiles(c, "cover")
+				if err != nil {
+					return nil, err
+				}
+
+				file := files[0]
+
+				// TODO(patrik): Check content-type
+				ext := path.Ext(file.Filename)
+				filename := "cover-original" + ext
+
+				dst := path.Join(albumDir, filename)
+
+				dstFile, err := os.OpenFile(dst, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+				if err != nil {
+					return nil, err
+				}
+				defer dstFile.Close()
+
+				src, err := file.Open()
+				if err != nil {
+					return nil, err
+				}
+				defer src.Close()
+
+				_, err = io.Copy(dstFile, src)
+				if err != nil {
+					return nil, err
+				}
+
+				i := path.Join(albumDir, "cover-128.png")
+				err = utils.CreateResizedImage(dst, i, 128)
+				if err != nil {
+					return nil, err
+				}
+
+				i = path.Join(albumDir, "cover-256.png")
+				err = utils.CreateResizedImage(dst, i, 256)
+				if err != nil {
+					return nil, err
+				}
+
+				i = path.Join(albumDir, "cover-512.png")
+				err = utils.CreateResizedImage(dst, i, 512)
+				if err != nil {
+					return nil, err
+				}
+
+				err = db.UpdateAlbum(ctx, album.Id, database.AlbumChanges{
+					CoverArt: types.Change[sql.NullString]{
+						Value: sql.NullString{
+							String: filename,
+							Valid:  true,
+						},
+						Changed: true,
+					},
+				})
+
+				if err != nil {
+					return nil, err
+				}
+
+				err = tx.Commit()
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
 	)
 }

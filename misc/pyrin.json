@@ -1372,6 +1372,13 @@
   ],
   "formApiEndpoints": [
     {
+      "name": "ChangeAlbumCover",
+      "method": "POST",
+      "path": "/api/v1/albums/:id/cover",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "UploadTrack",
       "method": "POST",
       "path": "/api/v1/tracks",
