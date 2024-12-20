@@ -63,7 +63,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:       "GetPlaylists",
 			Path:       "/playlists",
 			Method:     http.MethodGet,
-			ReturnType: GetPlaylists{},
+			ResponseType: GetPlaylists{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -94,7 +94,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:       "CreatePlaylist",
 			Path:       "/playlists",
 			Method:     http.MethodPost,
-			ReturnType: CreatePlaylist{},
+			ResponseType: CreatePlaylist{},
 			BodyType:   CreatePlaylistBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
@@ -128,7 +128,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:       "CreatePlaylistFromFilter",
 			Path:       "/playlists/filter",
 			Method:     http.MethodPost,
-			ReturnType: CreatePlaylist{},
+			ResponseType: CreatePlaylist{},
 			BodyType:   PostPlaylistFilterBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
@@ -191,7 +191,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Name:       "GetPlaylistById",
 			Path:       "/playlists/:id",
 			Method:     http.MethodGet,
-			ReturnType: GetPlaylistById{},
+			ResponseType: GetPlaylistById{},
 			Errors:     []pyrin.ErrorType{ErrTypePlaylistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playlistId := c.Param("id")

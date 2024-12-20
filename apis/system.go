@@ -59,10 +59,10 @@ type Export struct {
 func InstallSystemHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:       "GetSystemInfo",
-			Path:       "/system/info",
-			Method:     http.MethodGet,
-			ReturnType: GetSystemInfo{},
+			Name:         "GetSystemInfo",
+			Path:         "/system/info",
+			Method:       http.MethodGet,
+			ResponseType: GetSystemInfo{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				return GetSystemInfo{
 					Version: dwebble.Version,
@@ -71,10 +71,10 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "SystemExport",
-			Path:       "/system/export",
-			Method:     http.MethodPost,
-			ReturnType: Export{},
+			Name:         "SystemExport",
+			Path:         "/system/export",
+			Method:       http.MethodPost,
+			ResponseType: Export{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				db := app.DB()
 

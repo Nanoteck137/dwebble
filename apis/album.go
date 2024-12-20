@@ -126,11 +126,11 @@ func (b CreateAlbumBody) Validate() error {
 func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:       "GetAlbums",
-			Path:       "/albums",
-			Method:     http.MethodGet,
-			ReturnType: GetAlbums{},
-			Errors:     []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
+			Name:         "GetAlbums",
+			Path:         "/albums",
+			Method:       http.MethodGet,
+			ResponseType: GetAlbums{},
+			Errors:       []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -163,10 +163,10 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "SearchAlbums",
-			Path:       "/albums/search",
-			Method:     http.MethodGet,
-			ReturnType: GetAlbums{},
+			Name:         "SearchAlbums",
+			Path:         "/albums/search",
+			Method:       http.MethodGet,
+			ResponseType: GetAlbums{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -190,11 +190,11 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetAlbumById",
-			Method:     http.MethodGet,
-			Path:       "/albums/:id",
-			ReturnType: GetAlbumById{},
-			Errors:     []pyrin.ErrorType{ErrTypeAlbumNotFound},
+			Name:         "GetAlbumById",
+			Method:       http.MethodGet,
+			Path:         "/albums/:id",
+			ResponseType: GetAlbumById{},
+			Errors:       []pyrin.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
@@ -214,11 +214,11 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetAlbumTracks",
-			Method:     http.MethodGet,
-			Path:       "/albums/:id/tracks",
-			ReturnType: GetAlbumTracks{},
-			Errors:     []pyrin.ErrorType{ErrTypeAlbumNotFound},
+			Name:         "GetAlbumTracks",
+			Method:       http.MethodGet,
+			Path:         "/albums/:id/tracks",
+			ResponseType: GetAlbumTracks{},
+			Errors:       []pyrin.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
@@ -413,12 +413,12 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "CreateAlbum",
-			Method:     http.MethodPost,
-			Path:       "/albums",
-			ReturnType: CreateAlbum{},
-			BodyType:   CreateAlbumBody{},
-			Errors:     []pyrin.ErrorType{ErrTypeArtistNotFound},
+			Name:         "CreateAlbum",
+			Method:       http.MethodPost,
+			Path:         "/albums",
+			ResponseType: CreateAlbum{},
+			BodyType:     CreateAlbumBody{},
+			Errors:       []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				body, err := pyrin.Body[CreateAlbumBody](c)
 				if err != nil {

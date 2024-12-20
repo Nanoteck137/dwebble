@@ -61,8 +61,8 @@ type GetAlbumById Album
 type Track struct {
 	Id string `json:"id"`
 	Name Name `json:"name"`
+	Duration int `json:"duration"`
 	Number *int `json:"number,omitempty"`
-	Duration *int `json:"duration,omitempty"`
 	Year *int `json:"year,omitempty"`
 	OriginalMediaUrl string `json:"originalMediaUrl"`
 	MobileMediaUrl string `json:"mobileMediaUrl"`
@@ -99,10 +99,6 @@ type CreateAlbumBody struct {
 	ArtistId string `json:"artistId"`
 }
 
-type UploadTracksBody struct {
-	ForceExtractNumber bool `json:"forceExtractNumber"`
-}
-
 type Page struct {
 	Page int `json:"page"`
 	PerPage int `json:"perPage"`
@@ -126,6 +122,17 @@ type EditTrackBody struct {
 	Number *int `json:"number,omitempty"`
 	Tags *[]string `json:"tags,omitempty"`
 	ExtraArtists *[]string `json:"extraArtists,omitempty"`
+}
+
+type UploadTrackBody struct {
+	Name string `json:"name"`
+	OtherName string `json:"otherName"`
+	Number int `json:"number"`
+	Year int `json:"year"`
+	AlbumId string `json:"albumId"`
+	ArtistId string `json:"artistId"`
+	Tags []string `json:"tags"`
+	ExtraArtists []string `json:"extraArtists"`
 }
 
 type Signup struct {
@@ -219,10 +226,9 @@ type ExportTrack struct {
 	Name string `json:"name"`
 	AlbumId string `json:"albumId"`
 	ArtistId string `json:"artistId"`
-	Number int `json:"number"`
 	Duration int `json:"duration"`
+	Number int `json:"number"`
 	Year int `json:"year"`
-	ExportName string `json:"exportName"`
 	OriginalFilename string `json:"originalFilename"`
 	MobileFilename string `json:"mobileFilename"`
 	Created int `json:"created"`

@@ -1,4 +1,21 @@
 {
+  "errorTypes": [
+    "ALBUM_NOT_FOUND",
+    "API_TOKEN_NOT_FOUND",
+    "ARTIST_NOT_FOUND",
+    "BAD_CONTENT_TYPE_ERROR",
+    "EMPTY_BODY_ERROR",
+    "FORM_VALIDATION_ERROR",
+    "INVALID_FILTER",
+    "INVALID_SORT",
+    "PLAYLIST_NOT_FOUND",
+    "ROUTE_NOT_FOUND",
+    "TAGLIST_NOT_FOUND",
+    "TRACK_NOT_FOUND",
+    "UNKNOWN_ERROR",
+    "USER_ALREADY_EXISTS",
+    "VALIDATION_ERROR"
+  ],
   "types": [
     {
       "name": "Name",
@@ -209,12 +226,12 @@
           "omit": false
         },
         {
-          "name": "number",
-          "type": "*int",
+          "name": "duration",
+          "type": "int",
           "omit": false
         },
         {
-          "name": "duration",
+          "name": "number",
           "type": "*int",
           "omit": false
         },
@@ -355,17 +372,6 @@
       ]
     },
     {
-      "name": "UploadTracksBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "forceExtractNumber",
-          "type": "bool",
-          "omit": false
-        }
-      ]
-    },
-    {
       "name": "Page",
       "extend": "",
       "fields": [
@@ -455,6 +461,52 @@
           "name": "extraArtists",
           "type": "*[]string",
           "omit": true
+        }
+      ]
+    },
+    {
+      "name": "UploadTrackBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "otherName",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "number",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "albumId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artistId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omit": false
+        },
+        {
+          "name": "extraArtists",
+          "type": "[]string",
+          "omit": false
         }
       ]
     },
@@ -764,23 +816,18 @@
           "omit": false
         },
         {
-          "name": "number",
+          "name": "duration",
           "type": "int",
           "omit": false
         },
         {
-          "name": "duration",
+          "name": "number",
           "type": "int",
           "omit": false
         },
         {
           "name": "year",
           "type": "int",
-          "omit": false
-        },
-        {
-          "name": "exportName",
-          "type": "string",
           "omit": false
         },
         {
@@ -1020,627 +1067,338 @@
       ]
     }
   ],
-  "endpoints": [
+  "apiEndpoints": [
     {
       "name": "GetArtists",
       "method": "GET",
       "path": "/api/v1/artists",
-      "errorTypes": [
-        "INVALID_FILTER",
-        "INVALID_SORT",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetArtists",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "SearchArtists",
       "method": "GET",
       "path": "/api/v1/artists/search",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetArtists",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetArtistById",
       "method": "GET",
       "path": "/api/v1/artists/:id",
-      "errorTypes": [
-        "ARTIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetArtistById",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetArtistAlbums",
       "method": "GET",
       "path": "/api/v1/artists/:id/albums",
-      "errorTypes": [
-        "ARTIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetArtistAlbumsById",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "EditArtist",
       "method": "PATCH",
       "path": "/api/v1/artists/:id",
-      "errorTypes": [
-        "ARTIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "EditArtistBody",
-      "requireFormData": false
-    },
-    {
-      "name": "ChangeArtistPicture",
-      "method": "PATCH",
-      "path": "/api/v1/artists/:id/picture",
-      "errorTypes": [
-        "ARTIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
-      "responseType": "",
-      "bodyType": "",
-      "requireFormData": true
+      "bodyType": "EditArtistBody"
     },
     {
       "name": "GetAlbums",
       "method": "GET",
       "path": "/api/v1/albums",
-      "errorTypes": [
-        "INVALID_FILTER",
-        "INVALID_SORT",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetAlbums",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "SearchAlbums",
       "method": "GET",
       "path": "/api/v1/albums/search",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetAlbums",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetAlbumById",
       "method": "GET",
       "path": "/api/v1/albums/:id",
-      "errorTypes": [
-        "ALBUM_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetAlbumById",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetAlbumTracks",
       "method": "GET",
       "path": "/api/v1/albums/:id/tracks",
-      "errorTypes": [
-        "ALBUM_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetAlbumTracks",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "EditAlbum",
       "method": "PATCH",
       "path": "/api/v1/albums/:id",
-      "errorTypes": [
-        "ALBUM_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "EditAlbumBody",
-      "requireFormData": false
+      "bodyType": "EditAlbumBody"
     },
     {
       "name": "DeleteAlbum",
       "method": "DELETE",
       "path": "/api/v1/albums/:id",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "CreateAlbum",
       "method": "POST",
       "path": "/api/v1/albums",
-      "errorTypes": [
-        "ARTIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "CreateAlbum",
-      "bodyType": "CreateAlbumBody",
-      "requireFormData": false
-    },
-    {
-      "name": "ChangeAlbumCover",
-      "method": "POST",
-      "path": "/api/v1/albums/:id/cover",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
-      "responseType": "",
-      "bodyType": "",
-      "requireFormData": true
-    },
-    {
-      "name": "UploadTracks",
-      "method": "POST",
-      "path": "/api/v1/albums/:id/upload",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
-      "responseType": "",
-      "bodyType": "UploadTracksBody",
-      "requireFormData": true
+      "bodyType": "CreateAlbumBody"
     },
     {
       "name": "GetTracks",
       "method": "GET",
       "path": "/api/v1/tracks",
-      "errorTypes": [
-        "INVALID_FILTER",
-        "INVALID_SORT",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetTracks",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "SearchTracks",
       "method": "GET",
       "path": "/api/v1/tracks/search",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetTracks",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetTrackById",
       "method": "GET",
       "path": "/api/v1/tracks/:id",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "TRACK_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetTrackById",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "RemoveTrack",
       "method": "DELETE",
       "path": "/api/v1/tracks/:id",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "EditTrack",
       "method": "PATCH",
       "path": "/api/v1/tracks/:id",
-      "errorTypes": [
-        "ARTIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "TRACK_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "EditTrackBody",
-      "requireFormData": false
+      "bodyType": "EditTrackBody"
     },
     {
       "name": "DeleteTrack",
       "method": "DELETE",
       "path": "/api/v1/tracks/:id",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "TRACK_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "Signup",
       "method": "POST",
       "path": "/api/v1/auth/signup",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "USER_ALREADY_EXISTS",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "Signup",
-      "bodyType": "SignupBody",
-      "requireFormData": false
+      "bodyType": "SignupBody"
     },
     {
       "name": "Signin",
       "method": "POST",
       "path": "/api/v1/auth/signin",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "Signin",
-      "bodyType": "SigninBody",
-      "requireFormData": false
+      "bodyType": "SigninBody"
     },
     {
       "name": "ChangePassword",
       "method": "PATCH",
       "path": "/api/v1/auth/password",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "ChangePasswordBody",
-      "requireFormData": false
+      "bodyType": "ChangePasswordBody"
     },
     {
       "name": "GetMe",
       "method": "GET",
       "path": "/api/v1/auth/me",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetMe",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetPlaylists",
       "method": "GET",
       "path": "/api/v1/playlists",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetPlaylists",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "CreatePlaylist",
       "method": "POST",
       "path": "/api/v1/playlists",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "CreatePlaylist",
-      "bodyType": "CreatePlaylistBody",
-      "requireFormData": false
+      "bodyType": "CreatePlaylistBody"
     },
     {
       "name": "CreatePlaylistFromFilter",
       "method": "POST",
       "path": "/api/v1/playlists/filter",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "CreatePlaylist",
-      "bodyType": "PostPlaylistFilterBody",
-      "requireFormData": false
+      "bodyType": "PostPlaylistFilterBody"
     },
     {
       "name": "GetPlaylistById",
       "method": "GET",
       "path": "/api/v1/playlists/:id",
-      "errorTypes": [
-        "PLAYLIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetPlaylistById",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "AddItemToPlaylist",
       "method": "POST",
       "path": "/api/v1/playlists/:id/items",
-      "errorTypes": [
-        "PLAYLIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "AddItemToPlaylistBody",
-      "requireFormData": false
+      "bodyType": "AddItemToPlaylistBody"
     },
     {
       "name": "RemovePlaylistItem",
       "method": "DELETE",
       "path": "/api/v1/playlists/:id/items",
-      "errorTypes": [
-        "PLAYLIST_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "RemovePlaylistItemBody",
-      "requireFormData": false
+      "bodyType": "RemovePlaylistItemBody"
     },
     {
       "name": "GetSystemInfo",
       "method": "GET",
       "path": "/api/v1/system/info",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetSystemInfo",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "SystemExport",
       "method": "POST",
       "path": "/api/v1/system/export",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "Export",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "Process",
       "method": "POST",
       "path": "/api/v1/system/process",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetTaglists",
       "method": "GET",
       "path": "/api/v1/taglists",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetTaglists",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetTaglistById",
       "method": "GET",
       "path": "/api/v1/taglists/:id",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetTaglistById",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "GetTaglistTracks",
       "method": "GET",
       "path": "/api/v1/taglists/:id/tracks",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetTaglistTracks",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "CreateTaglist",
       "method": "POST",
       "path": "/api/v1/taglists",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "CreateTaglist",
-      "bodyType": "CreateTaglistBody",
-      "requireFormData": false
+      "bodyType": "CreateTaglistBody"
     },
     {
       "name": "UpdateTaglist",
       "method": "PATCH",
       "path": "/api/v1/taglists/:id",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "UpdateTaglistBody",
-      "requireFormData": false
+      "bodyType": "UpdateTaglistBody"
     },
     {
       "name": "UpdateUserSettings",
       "method": "PATCH",
       "path": "/api/v1/user/settings",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "UpdateUserSettingsBody",
-      "requireFormData": false
+      "bodyType": "UpdateUserSettingsBody"
     },
     {
       "name": "AddToUserQuickPlaylist",
       "method": "POST",
       "path": "/api/v1/user/quickplaylist",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "TrackId",
-      "requireFormData": false
+      "bodyType": "TrackId"
     },
     {
       "name": "RemoveItemFromUserQuickPlaylist",
       "method": "DELETE",
       "path": "/api/v1/user/quickplaylist",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "TrackId",
-      "requireFormData": false
+      "bodyType": "TrackId"
     },
     {
       "name": "GetUserQuickPlaylistItemIds",
       "method": "GET",
       "path": "/api/v1/user/quickplaylist",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetUserQuickPlaylistItemIds",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "CreateApiToken",
       "method": "POST",
       "path": "/api/v1/user/apitoken",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "CreateApiToken",
-      "bodyType": "CreateApiTokenBody",
-      "requireFormData": false
+      "bodyType": "CreateApiTokenBody"
     },
     {
       "name": "GetAllApiTokens",
       "method": "GET",
       "path": "/api/v1/user/apitoken",
-      "errorTypes": [
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "GetAllApiTokens",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
     },
     {
       "name": "RemoveApiToken",
       "method": "DELETE",
       "path": "/api/v1/user/apitoken/:id",
-      "errorTypes": [
-        "API_TOKEN_NOT_FOUND",
-        "ROUTE_NOT_FOUND",
-        "UNKNOWN_ERROR",
-        "VALIDATION_ERROR"
-      ],
       "responseType": "",
-      "bodyType": "",
-      "requireFormData": false
+      "bodyType": ""
+    }
+  ],
+  "formApiEndpoints": [
+    {
+      "name": "UploadTrack",
+      "method": "POST",
+      "path": "/api/v1/tracks",
+      "responseType": "",
+      "bodyType": "UploadTrackBody"
+    }
+  ],
+  "normalEndpoints": [
+    {
+      "name": "",
+      "method": "GET",
+      "path": "/files/images/default/:image"
+    },
+    {
+      "name": "",
+      "method": "GET",
+      "path": "/files/albums/images/:albumId/:image"
+    },
+    {
+      "name": "",
+      "method": "GET",
+      "path": "/files/artists/:artistId/:file"
+    },
+    {
+      "name": "",
+      "method": "GET",
+      "path": "/files/tracks/:trackId/:file"
     }
   ]
 }

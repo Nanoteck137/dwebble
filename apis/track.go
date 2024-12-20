@@ -223,11 +223,11 @@ func (b UploadTrackBody) Validate() error {
 func InstallTrackHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:       "GetTracks",
-			Method:     http.MethodGet,
-			Path:       "/tracks",
-			ReturnType: GetTracks{},
-			Errors:     []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
+			Name:         "GetTracks",
+			Method:       http.MethodGet,
+			Path:         "/tracks",
+			ResponseType: GetTracks{},
+			Errors:       []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -287,11 +287,11 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "SearchTracks",
-			Method:     http.MethodGet,
-			Path:       "/tracks/search",
-			ReturnType: GetTracks{},
-			Errors:     []pyrin.ErrorType{},
+			Name:         "SearchTracks",
+			Method:       http.MethodGet,
+			Path:         "/tracks/search",
+			ResponseType: GetTracks{},
+			Errors:       []pyrin.ErrorType{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -315,11 +315,11 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetTrackById",
-			Method:     http.MethodGet,
-			Path:       "/tracks/:id",
-			ReturnType: GetTrackById{},
-			Errors:     []pyrin.ErrorType{ErrTypeTrackNotFound},
+			Name:         "GetTrackById",
+			Method:       http.MethodGet,
+			Path:         "/tracks/:id",
+			ResponseType: GetTrackById{},
+			Errors:       []pyrin.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
@@ -654,7 +654,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 
 				for _, tag := range body.Tags {
-					// TODO(patrik): Move slugify to transform function 
+					// TODO(patrik): Move slugify to transform function
 					slug := utils.Slug(tag)
 
 					err := db.CreateTag(ctx, slug)

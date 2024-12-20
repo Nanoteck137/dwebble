@@ -87,11 +87,11 @@ func (b EditArtistBody) Validate() error {
 func InstallArtistHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:       "GetArtists",
-			Method:     http.MethodGet,
-			Path:       "/artists",
-			ReturnType: GetArtists{},
-			Errors:     []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
+			Name:         "GetArtists",
+			Method:       http.MethodGet,
+			Path:         "/artists",
+			ResponseType: GetArtists{},
+			Errors:       []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -124,10 +124,10 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "SearchArtists",
-			Method:     http.MethodGet,
-			Path:       "/artists/search",
-			ReturnType: GetArtists{},
+			Name:         "SearchArtists",
+			Method:       http.MethodGet,
+			Path:         "/artists/search",
+			ResponseType: GetArtists{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -150,11 +150,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetArtistById",
-			Method:     http.MethodGet,
-			Path:       "/artists/:id",
-			ReturnType: GetArtistById{},
-			Errors:     []pyrin.ErrorType{ErrTypeArtistNotFound},
+			Name:         "GetArtistById",
+			Method:       http.MethodGet,
+			Path:         "/artists/:id",
+			ResponseType: GetArtistById{},
+			Errors:       []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
@@ -173,11 +173,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetArtistAlbums",
-			Method:     http.MethodGet,
-			Path:       "/artists/:id/albums",
-			ReturnType: GetArtistAlbumsById{},
-			Errors:     []pyrin.ErrorType{ErrTypeArtistNotFound},
+			Name:         "GetArtistAlbums",
+			Method:       http.MethodGet,
+			Path:         "/artists/:id/albums",
+			ResponseType: GetArtistAlbumsById{},
+			Errors:       []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 

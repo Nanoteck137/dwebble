@@ -97,10 +97,10 @@ func TestFilter(filterStr string) error {
 func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:       "GetTaglists",
-			Path:       "/taglists",
-			Method:     http.MethodGet,
-			ReturnType: GetTaglists{},
+			Name:         "GetTaglists",
+			Path:         "/taglists",
+			Method:       http.MethodGet,
+			ResponseType: GetTaglists{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -131,10 +131,10 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetTaglistById",
-			Path:       "/taglists/:id",
-			Method:     http.MethodGet,
-			ReturnType: GetTaglistById{},
+			Name:         "GetTaglistById",
+			Path:         "/taglists/:id",
+			Method:       http.MethodGet,
+			ResponseType: GetTaglistById{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				taglistId := c.Param("id")
 
@@ -168,11 +168,11 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetTaglistTracks",
-			Path:       "/taglists/:id/tracks",
-			Method:     http.MethodGet,
-			ReturnType: GetTaglistTracks{},
-			Errors:     []pyrin.ErrorType{ErrTypeTaglistNotFound},
+			Name:         "GetTaglistTracks",
+			Path:         "/taglists/:id/tracks",
+			Method:       http.MethodGet,
+			ResponseType: GetTaglistTracks{},
+			Errors:       []pyrin.ErrorType{ErrTypeTaglistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 				taglistId := c.Param("id")
@@ -253,12 +253,12 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "CreateTaglist",
-			Path:       "/taglists",
-			Method:     http.MethodPost,
-			ReturnType: CreateTaglist{},
-			BodyType:   CreateTaglistBody{},
-			Errors:     []pyrin.ErrorType{ErrTypeInvalidFilter},
+			Name:         "CreateTaglist",
+			Path:         "/taglists",
+			Method:       http.MethodPost,
+			ResponseType: CreateTaglist{},
+			BodyType:     CreateTaglistBody{},
+			Errors:       []pyrin.ErrorType{ErrTypeInvalidFilter},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {

@@ -190,10 +190,10 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetUserQuickPlaylistItemIds",
-			Method:     http.MethodGet,
-			Path:       "/user/quickplaylist",
-			ReturnType: GetUserQuickPlaylistItemIds{},
+			Name:         "GetUserQuickPlaylistItemIds",
+			Method:       http.MethodGet,
+			Path:         "/user/quickplaylist",
+			ResponseType: GetUserQuickPlaylistItemIds{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -225,11 +225,11 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "CreateApiToken",
-			Method:     http.MethodPost,
-			Path:       "/user/apitoken",
-			ReturnType: CreateApiToken{},
-			BodyType:   CreateApiTokenBody{},
+			Name:         "CreateApiToken",
+			Method:       http.MethodPost,
+			Path:         "/user/apitoken",
+			ResponseType: CreateApiToken{},
+			BodyType:     CreateApiTokenBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -258,10 +258,10 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:       "GetAllApiTokens",
-			Method:     http.MethodGet,
-			Path:       "/user/apitoken",
-			ReturnType: GetAllApiTokens{},
+			Name:         "GetAllApiTokens",
+			Method:       http.MethodGet,
+			Path:         "/user/apitoken",
+			ResponseType: GetAllApiTokens{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
