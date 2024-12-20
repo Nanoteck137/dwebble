@@ -1,24 +1,13 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { openArtistQuery } from "$lib";
-  import { ApiClient } from "$lib/api/client";
+  import { createApiClient } from "$lib";
   import type { UploadTrackBody } from "$lib/api/types.js";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import type { EditTrackData, UIArtist } from "$lib/types.js";
-  import {
-    Breadcrumb,
-    Button,
-    Card,
-    Input,
-    Label,
-    Separator,
-  } from "@nanoteck137/nano-ui";
-  import { Plus, X } from "lucide-svelte";
+  import { Breadcrumb, Button, Card, Separator } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
-
-  const apiClient = new ApiClient(data.apiAddress);
-  apiClient.setToken(data.userToken);
+  const apiClient = createApiClient(data);
 
   const albumArtist = $state<UIArtist>({
     name: data.album.artistName.default,
@@ -39,9 +28,6 @@
   let tracks = $state<Track[]>([]);
 
   async function submit() {
-    const apiClient = new ApiClient(data.apiAddress);
-    apiClient.setToken(data.userToken);
-
     uploadState.uploading = true;
     uploadState.numTracks = tracks.length;
     uploadState.currentTrack = 1;
@@ -137,7 +123,7 @@
       </Button>
       <Button
         type="submit"
-        disabled={tracks.length <= 0 || uploadState.uploading}>Save</Button
+        disabled={tracks.length <= 0 || uploadState.uploading}>Upload</Button
       >
     </Card.Footer>
   </Card.Root>

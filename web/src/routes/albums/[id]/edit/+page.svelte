@@ -22,8 +22,10 @@
   import { ApiClient } from "$lib/api/client.js";
   import { modals } from "svelte-modals";
   import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
+  import { createApiClient } from "$lib";
 
   const { data } = $props();
+  const apiClient = createApiClient(data);
 </script>
 
 <div class="py-2">
@@ -274,9 +276,6 @@
                   });
 
                   if (confirmed) {
-                    const apiClient = new ApiClient(data.apiAddress);
-                    apiClient.setToken(data.userToken);
-
                     const res = await apiClient.deleteTrack(track.id);
                     if (!res.success) {
                       throw res.error.message;

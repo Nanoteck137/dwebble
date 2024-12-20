@@ -1,8 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { artistQuery } from "$lib";
+  import { artistQuery, createApiClient, openArtistQuery } from "$lib";
   import { ApiClient } from "$lib/api/client.js";
   import ArtistQuery from "$lib/components/ArtistQuery.svelte";
+  import type { UIArtist } from "$lib/types.js";
   import {
     Breadcrumb,
     Button,
@@ -13,6 +14,7 @@
   } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
+  const apiClient = createApiClient(data);
 
   let useYear = $state(false);
   let year = $state("");
@@ -20,20 +22,12 @@
   let useTags = $state(false);
   let tags = $state("");
 
-  // svelte-ignore non_reactive_update
-  let { open, artist, currentQuery, queryResults, onInput } = artistQuery(
-    () => {
-      return new ApiClient(data.apiAddress);
-    },
-  );
+  let artist = $state<UIArtist>();
 
   async function submit() {
-    const apiClient = new ApiClient(data.apiAddress);
-    apiClient.setToken(data.userToken);
-
     const tagsArr = tags == "" ? [] : tags.split(",");
     const yearNum = year != "" ? parseInt(year) : 0;
-    const artistId = $artist ? $artist.id : undefined;
+    const artistId = artist ? artist.id : undefined;
 
     for (const track of data.tracks) {
       const res = await apiClient.editTrack(track.id, {
@@ -118,13 +112,13 @@
         </div>
       </div>
 
-      {#if $artist}
-        <p>Artist: {$artist.name}</p>
-        <p>Artist Id: {$artist.id}</p>
+      {#if artist}
+        <p>Artist: {artist.name}</p>
+        <p>Artist Id: {artist.id}</p>
         <Button
           variant="destructive"
           onclick={() => {
-            $artist = undefined;
+            artist = undefined;
           }}
         >
           Remove
@@ -133,15 +127,17 @@
 
       <div class="h-4"></div>
 
-      <ArtistQuery
-        bind:open={$open}
-        currentQuery={$currentQuery}
-        queryResults={$queryResults}
-        onArtistSelected={(a) => {
-          $artist = a;
+      <Button
+        variant="outline"
+        onclick={async () => {
+          const res = await openArtistQuery({ apiClient });
+          if (res) {
+            artist = res;
+          }
         }}
-        {onInput}
-      />
+      >
+        Set Artist
+      </Button>
     </Card.Content>
     <Card.Footer class="flex justify-end gap-2">
       <Button variant="outline" href="/albums/{data.album.id}/edit">

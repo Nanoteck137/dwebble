@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { createApiClient } from "$lib";
   import { ApiClient } from "$lib/api/client";
   import {
     Breadcrumb,
@@ -9,11 +10,9 @@
   } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
+  const apiClient = createApiClient(data);
 
   async function submit(formData: FormData) {
-    const apiClient = new ApiClient(data.apiAddress);
-    apiClient.setToken(data.userToken);
-
     // TODO(patrik): Fix
     // const res = await apiClient.changeAlbumCover(data.album.id, formData);
     // console.log(res);

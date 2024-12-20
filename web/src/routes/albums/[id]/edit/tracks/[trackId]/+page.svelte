@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { ApiClient } from "$lib/api/client.js";
+  import { createApiClient } from "$lib";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import { musicManager } from "$lib/music-manager";
   import { type EditTrackData } from "$lib/types.js";
@@ -9,9 +9,7 @@
   import { Play } from "lucide-svelte";
 
   const { data } = $props();
-
-  const apiClient = new ApiClient(data.apiAddress);
-  apiClient.setToken(data.userToken);
+  const apiClient = createApiClient(data);
 
   let track = $state<EditTrackData>({
     name: data.track.name.default,

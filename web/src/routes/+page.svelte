@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { createApiClient } from "$lib";
   import { ApiClient } from "$lib/api/client.js";
   import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
   import QueryArtistModal from "$lib/components/modals/QueryArtistModal.svelte";
@@ -6,6 +7,7 @@
   import { modals } from "svelte-modals";
 
   const { data } = $props();
+  const apiClient = createApiClient(data);
 
   async function test() {
     const confirmed = await modals.open(ConfirmModal, {
@@ -28,7 +30,7 @@
 <Button
   onclick={async () => {
     const res = await modals.open(QueryArtistModal, {
-      apiClient: new ApiClient(data.apiAddress),
+      apiClient,
     });
     console.log("artist", res);
   }}

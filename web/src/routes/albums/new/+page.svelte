@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { artistQuery } from "$lib";
+  import { artistQuery, createApiClient, openArtistQuery } from "$lib";
   import { ApiClient } from "$lib/api/client.js";
   import ArtistQuery from "$lib/components/ArtistQuery.svelte";
   import Errors from "$lib/components/Errors.svelte";
+  import type { UIArtist } from "$lib/types.js";
   import {
     Breadcrumb,
     Button,
@@ -13,14 +14,11 @@
   import SuperDebug, { superForm } from "sveltekit-superforms";
 
   const { data } = $props();
+  const apiClient = createApiClient(data);
 
   const { form, errors, enhance } = superForm(data.form, { onError: "apply" });
 
-  let { open, artist, currentQuery, queryResults, onInput } = artistQuery(
-    () => {
-      return new ApiClient(data.apiAddress);
-    },
-  );
+  let artist = $state<UIArtist>();
 </script>
 
 <div class="py-2">
@@ -49,21 +47,24 @@
         <Errors errors={$errors.name} />
       </div>
 
-      {#if $artist}
-        <input name="artistId" value={$artist.id} type="hidden" />
-        <p>Artist: {$artist.name}</p>
-        <p>Artist Id: {$artist.id}</p>
+      {#if artist}
+        <input name="artistId" value={artist.id} type="hidden" />
+        <p>Artist: {artist.name}</p>
+        <p>Artist Id: {artist.id}</p>
       {/if}
 
-      <ArtistQuery
-        bind:open={$open}
-        currentQuery={$currentQuery}
-        queryResults={$queryResults}
-        onArtistSelected={(a) => {
-          $artist = a;
+      <Button
+        variant="outline"
+        onclick={async () => {
+          const res = await openArtistQuery({ apiClient });
+          if (res) {
+            artist = res;
+          }
         }}
-        {onInput}
-      />
+      >
+        Set Artist
+      </Button>
+
       <Errors errors={$errors.artistId} />
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">

@@ -1,6 +1,6 @@
 // place files you want to import through the `$lib` alias in this folder.
 
-import type { ApiClient } from "$lib/api/client";
+import { ApiClient } from "$lib/api/client";
 import QueryArtistModal, {
   type Props as QueryArtistModalProps,
 } from "$lib/components/modals/QueryArtistModal.svelte";
@@ -10,6 +10,15 @@ import { writable, type Writable } from "svelte/store";
 
 export function openArtistQuery(props: QueryArtistModalProps) {
   return modals.open(QueryArtistModal, props);
+}
+
+export function createApiClient(data: {
+  apiAddress: string;
+  userToken?: string;
+}) {
+  const apiClient = new ApiClient(data.apiAddress);
+  apiClient.setToken(data.userToken);
+  return apiClient;
 }
 
 type GetApiClient = () => ApiClient;

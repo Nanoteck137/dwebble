@@ -1,9 +1,10 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { ApiClient } from "$lib/api/client.js";
+  import { createApiClient } from "$lib";
   import { Breadcrumb, Button, Card } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
+  const apiClient = createApiClient(data);
 </script>
 
 <div class="py-2">
@@ -44,9 +45,6 @@
     <Button
       variant="destructive"
       onclick={async () => {
-        const apiClient = new ApiClient(data.apiAddress);
-        apiClient.setToken(data.userToken);
-
         const res = await apiClient.deleteAlbum(data.album.id);
         if (!res.success) {
           // TODO(patrik): Toast
