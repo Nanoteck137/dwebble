@@ -186,8 +186,8 @@ type UploadTrackBody struct {
 	AlbumId  string `json:"albumId"`
 	ArtistId string `json:"artistId"`
 
-	Tags           []string `json:"tags"`
-	ExtraArtistIds []string `json:"extraArtistIds"`
+	Tags         []string `json:"tags"`
+	ExtraArtists []string `json:"extraArtists"`
 }
 
 // TODO(patrik): Move to pyrin
@@ -209,8 +209,8 @@ func (b *UploadTrackBody) Transform() {
 
 	b.Tags = StringArray(b.Tags)
 	b.Tags = DiscardEntriesStringArray(b.Tags)
-	b.ExtraArtistIds = StringArray(b.ExtraArtistIds)
-	b.ExtraArtistIds = DiscardEntriesStringArray(b.ExtraArtistIds)
+	b.ExtraArtists = StringArray(b.ExtraArtists)
+	b.ExtraArtists = DiscardEntriesStringArray(b.ExtraArtists)
 }
 
 func (b UploadTrackBody) Validate() error {
@@ -507,7 +507,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 						}
 
 						err = db.AddExtraArtistToTrack(ctx, track.Id, artist.Id)
-						if err != nil {
+						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 							return nil, err
 						}
 					}
@@ -643,9 +643,48 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					Number:    body.Number,
 					Year:      body.Year,
 				}
-				_, err = helper.ImportTrack(ctx, app.DB(), app.WorkDir(), data)
+				trackId, err := helper.ImportTrack(ctx, db, app.WorkDir(), data)
 				if err != nil {
 					return nil, err
+				}
+
+				err = db.RemoveAllTagsFromTrack(ctx, trackId)
+				if err != nil {
+					return nil, err
+				}
+
+				for _, tag := range body.Tags {
+					slug := utils.Slug(tag)
+
+					err := db.CreateTag(ctx, slug, tag)
+					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+						return nil, err
+					}
+
+					err = db.AddTagToTrack(ctx, slug, trackId)
+					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+						return nil, err
+					}
+				}
+
+				for _, artistId := range body.ExtraArtists {
+					artist, err := db.GetArtistById(ctx, artistId)
+					if err != nil {
+						if errors.Is(err, database.ErrItemNotFound) {
+							// TODO(patrik): Should we just be
+							// silently continuing
+							// NOTE(patrik): If we don't find the artist
+							// we just silently continue
+							continue
+						}
+
+						return nil, err
+					}
+
+					err = db.AddExtraArtistToTrack(ctx, trackId, artist.Id)
+					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+						return nil, err
+					}
 				}
 
 				err = tx.Commit()
