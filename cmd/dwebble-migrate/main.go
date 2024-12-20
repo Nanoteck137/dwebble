@@ -50,12 +50,14 @@ var rootCmd = &cobra.Command{
 	Version: dwebble.Version,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		dir, _ := cmd.Flags().GetString("dir")
+
 		oldDb, err := sql.Open("sqlite3", fmt.Sprintf("file:%s", args[0]))
 		if err != nil {
 			log.Fatal("Failed", "err", err)
 		}
 
-		workDir := types.WorkDir(".")
+		workDir := types.WorkDir(dir)
 
 		db, err := database.Open(workDir)
 		if err != nil {
@@ -236,6 +238,7 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	rootCmd.Flags().StringP("dir", "d", ".", "Work Directory")
 	rootCmd.SetVersionTemplate(dwebble.VersionTemplate(AppName))
 }
 
