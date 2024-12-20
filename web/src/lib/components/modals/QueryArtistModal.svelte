@@ -5,12 +5,17 @@
   import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
   import type { ModalProps } from "svelte-modals";
 
-  interface Props extends ModalProps<Artist | null> {
+  export type Props = {
     title?: string;
     apiClient: ApiClient;
-  }
+  };
 
-  const { title, apiClient, isOpen, close }: Props = $props();
+  const {
+    title,
+    apiClient,
+    isOpen,
+    close,
+  }: Props & ModalProps<Artist | null> = $props();
 
   let currentQuery = $state("");
   let queryResults = $state<QueryArtist[]>([]);
@@ -88,7 +93,14 @@
       </div>
     </ScrollArea>
     <Dialog.Footer>
-      <Button variant="outline">Close</Button>
+      <Button
+        variant="outline"
+        onclick={() => {
+          close(null);
+        }}
+      >
+        Close
+      </Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
