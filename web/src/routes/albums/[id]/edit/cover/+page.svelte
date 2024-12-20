@@ -14,12 +14,13 @@
     const apiClient = new ApiClient(data.apiAddress);
     apiClient.setToken(data.userToken);
 
-    const res = await apiClient.changeAlbumCover(data.album.id, formData);
-    console.log(res);
-    if (!res.success) {
-      // TODO(patrik): Toast
-      throw res.error.message;
-    }
+    // TODO(patrik): Fix
+    // const res = await apiClient.changeAlbumCover(data.album.id, formData);
+    // console.log(res);
+    // if (!res.success) {
+    //   // TODO(patrik): Toast
+    //   throw res.error.message;
+    // }
 
     // TODO(patrik): Not the best solution, but i need the browser to
     // refresh for the new image to show
