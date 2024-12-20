@@ -2,52 +2,6 @@ import { z } from "zod";
 import * as api from "./types";
 import { BaseApiClient, type ExtraOptions } from "./base-client";
 
-export const GET_ARTISTS_URL = "/api/v1/artists"
-export const SEARCH_ARTISTS_URL = "/api/v1/artists/search"
-export const GET_ARTIST_BY_ID_URL = "/api/v1/artists/:id"
-export const GET_ARTIST_ALBUMS_URL = "/api/v1/artists/:id/albums"
-export const EDIT_ARTIST_URL = "/api/v1/artists/:id"
-export const CHANGE_ARTIST_PICTURE_URL = "/api/v1/artists/:id/picture"
-export const GET_ALBUMS_URL = "/api/v1/albums"
-export const SEARCH_ALBUMS_URL = "/api/v1/albums/search"
-export const GET_ALBUM_BY_ID_URL = "/api/v1/albums/:id"
-export const GET_ALBUM_TRACKS_URL = "/api/v1/albums/:id/tracks"
-export const EDIT_ALBUM_URL = "/api/v1/albums/:id"
-export const DELETE_ALBUM_URL = "/api/v1/albums/:id"
-export const CREATE_ALBUM_URL = "/api/v1/albums"
-export const CHANGE_ALBUM_COVER_URL = "/api/v1/albums/:id/cover"
-export const UPLOAD_TRACKS_URL = "/api/v1/albums/:id/upload"
-export const GET_TRACKS_URL = "/api/v1/tracks"
-export const SEARCH_TRACKS_URL = "/api/v1/tracks/search"
-export const GET_TRACK_BY_ID_URL = "/api/v1/tracks/:id"
-export const REMOVE_TRACK_URL = "/api/v1/tracks/:id"
-export const EDIT_TRACK_URL = "/api/v1/tracks/:id"
-export const DELETE_TRACK_URL = "/api/v1/tracks/:id"
-export const SIGNUP_URL = "/api/v1/auth/signup"
-export const SIGNIN_URL = "/api/v1/auth/signin"
-export const CHANGE_PASSWORD_URL = "/api/v1/auth/password"
-export const GET_ME_URL = "/api/v1/auth/me"
-export const GET_PLAYLISTS_URL = "/api/v1/playlists"
-export const CREATE_PLAYLIST_URL = "/api/v1/playlists"
-export const CREATE_PLAYLIST_FROM_FILTER_URL = "/api/v1/playlists/filter"
-export const GET_PLAYLIST_BY_ID_URL = "/api/v1/playlists/:id"
-export const ADD_ITEM_TO_PLAYLIST_URL = "/api/v1/playlists/:id/items"
-export const REMOVE_PLAYLIST_ITEM_URL = "/api/v1/playlists/:id/items"
-export const GET_SYSTEM_INFO_URL = "/api/v1/system/info"
-export const SYSTEM_EXPORT_URL = "/api/v1/system/export"
-export const PROCESS_URL = "/api/v1/system/process"
-export const GET_TAGLISTS_URL = "/api/v1/taglists"
-export const GET_TAGLIST_BY_ID_URL = "/api/v1/taglists/:id"
-export const GET_TAGLIST_TRACKS_URL = "/api/v1/taglists/:id/tracks"
-export const CREATE_TAGLIST_URL = "/api/v1/taglists"
-export const UPDATE_TAGLIST_URL = "/api/v1/taglists/:id"
-export const UPDATE_USER_SETTINGS_URL = "/api/v1/user/settings"
-export const ADD_TO_USER_QUICK_PLAYLIST_URL = "/api/v1/user/quickplaylist"
-export const REMOVE_ITEM_FROM_USER_QUICK_PLAYLIST_URL = "/api/v1/user/quickplaylist"
-export const GET_USER_QUICK_PLAYLIST_ITEM_IDS_URL = "/api/v1/user/quickplaylist"
-export const CREATE_API_TOKEN_URL = "/api/v1/user/apitoken"
-export const GET_ALL_API_TOKENS_URL = "/api/v1/user/apitoken"
-export const REMOVE_API_TOKEN_URL = "/api/v1/user/apitoken/:id"
 
 export class ApiClient extends BaseApiClient {
   constructor(baseUrl: string) {
@@ -72,10 +26,6 @@ export class ApiClient extends BaseApiClient {
   
   editArtist(id: string, body: api.EditArtistBody, options?: ExtraOptions) {
     return this.request(`/api/v1/artists/${id}`, "PATCH", z.undefined(), z.any(), body, options)
-  }
-  
-  changeArtistPicture(id: string, formData: FormData, options?: ExtraOptions) {
-    return this.requestWithFormData(`/api/v1/artists/${id}/picture`, "PATCH", z.undefined(), z.undefined(), formData, options)
   }
   
   getAlbums(options?: ExtraOptions) {
@@ -104,14 +54,6 @@ export class ApiClient extends BaseApiClient {
   
   createAlbum(body: api.CreateAlbumBody, options?: ExtraOptions) {
     return this.request("/api/v1/albums", "POST", api.CreateAlbum, z.any(), body, options)
-  }
-  
-  changeAlbumCover(id: string, formData: FormData, options?: ExtraOptions) {
-    return this.requestWithFormData(`/api/v1/albums/${id}/cover`, "POST", z.undefined(), z.undefined(), formData, options)
-  }
-  
-  uploadTracks(id: string, formData: FormData, options?: ExtraOptions) {
-    return this.requestWithFormData(`/api/v1/albums/${id}/upload`, "POST", z.undefined(), z.undefined(), formData, options)
   }
   
   getTracks(options?: ExtraOptions) {
@@ -236,5 +178,9 @@ export class ApiClient extends BaseApiClient {
   
   removeApiToken(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/user/apitoken/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
+  }
+  
+  uploadTrack(formData: FormData, options?: ExtraOptions) {
+    return this.requestWithFormData("/api/v1/tracks", "POST", z.undefined(), z.undefined(), formData, options)
   }
 }

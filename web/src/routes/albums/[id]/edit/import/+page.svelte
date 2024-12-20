@@ -14,20 +14,18 @@
   let uploading = $state(false);
 
   async function submit(formData: FormData) {
-    const apiClient = new ApiClient(data.apiAddress);
-    apiClient.setToken(data.userToken);
-
-    const res = await apiClient.uploadTracks(data.album.id, formData);
-    uploading = false;
-    if (!res.success) {
-      // TODO(patrik): Toast
-      throw res.error.message;
-    }
-
-    // TODO(patrik): Not the best solution, but i need the browser to
-    // refresh for the new image to show
-    // window.location.href = `/albums/${data.album.id}/edit`;
-    goto(`/albums/${data.album.id}/edit`, { invalidateAll: true });
+    // const apiClient = new ApiClient(data.apiAddress);
+    // apiClient.setToken(data.userToken);
+    // const res = await apiClient.uploadTrack(data.album.id, formData);
+    // uploading = false;
+    // if (!res.success) {
+    //   // TODO(patrik): Toast
+    //   throw res.error.message;
+    // }
+    // // TODO(patrik): Not the best solution, but i need the browser to
+    // // refresh for the new image to show
+    // // window.location.href = `/albums/${data.album.id}/edit`;
+    // goto(`/albums/${data.album.id}/edit`, { invalidateAll: true });
   }
 </script>
 
@@ -40,7 +38,7 @@
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
         <Breadcrumb.Link href="/albums/{data.album.id}">
-          {data.album.name}
+          {data.album.name.default}
         </Breadcrumb.Link>
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
@@ -51,7 +49,7 @@
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
-        <Breadcrumb.Page>Change Cover</Breadcrumb.Page>
+        <Breadcrumb.Page>Import Tracks</Breadcrumb.Page>
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
@@ -68,7 +66,7 @@
   <Card.Root class="mx-auto w-full max-w-[560px]">
     <Card.Header>
       <Card.Title>Import Tracks</Card.Title>
-      <Card.Description>{data.album.name}</Card.Description>
+      <Card.Description>{data.album.name.default}</Card.Description>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <div class="flex flex-col gap-2">

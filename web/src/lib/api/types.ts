@@ -72,8 +72,8 @@ export type GetAlbumById = z.infer<typeof GetAlbumById>;
 export const Track = z.object({
   id: z.string(),
   name: Name,
+  duration: z.number(),
   number: z.number().nullable(),
-  duration: z.number().nullable(),
   year: z.number().nullable(),
   originalMediaUrl: z.string(),
   mobileMediaUrl: z.string(),
@@ -115,11 +115,6 @@ export const CreateAlbumBody = z.object({
 });
 export type CreateAlbumBody = z.infer<typeof CreateAlbumBody>;
 
-export const UploadTracksBody = z.object({
-  forceExtractNumber: z.boolean(),
-});
-export type UploadTracksBody = z.infer<typeof UploadTracksBody>;
-
 export const Page = z.object({
   page: z.number(),
   perPage: z.number(),
@@ -148,6 +143,18 @@ export const EditTrackBody = z.object({
   extraArtists: z.array(z.string()).nullable().optional(),
 });
 export type EditTrackBody = z.infer<typeof EditTrackBody>;
+
+export const UploadTrackBody = z.object({
+  name: z.string(),
+  otherName: z.string(),
+  number: z.number(),
+  year: z.number(),
+  albumId: z.string(),
+  artistId: z.string(),
+  tags: z.array(z.string()),
+  extraArtists: z.array(z.string()),
+});
+export type UploadTrackBody = z.infer<typeof UploadTrackBody>;
 
 export const Signup = z.object({
   id: z.string(),
@@ -257,10 +264,9 @@ export const ExportTrack = z.object({
   name: z.string(),
   albumId: z.string(),
   artistId: z.string(),
-  number: z.number(),
   duration: z.number(),
+  number: z.number(),
   year: z.number(),
-  exportName: z.string(),
   originalFilename: z.string(),
   mobileFilename: z.string(),
   created: z.number(),

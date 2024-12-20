@@ -28,7 +28,7 @@
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
         <Breadcrumb.Link href="/albums/{data.album.id}">
-          {data.album.name}
+          {data.album.name.default}
         </Breadcrumb.Link>
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
