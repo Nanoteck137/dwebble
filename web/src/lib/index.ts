@@ -4,13 +4,9 @@ import type { ApiClient } from "$lib/api/client";
 import QueryArtistModal, {
   type Props as QueryArtistModalProps,
 } from "$lib/components/modals/QueryArtistModal.svelte";
+import type { UIArtist } from "$lib/types";
 import { modals } from "svelte-modals";
 import { writable, type Writable } from "svelte/store";
-
-export type Artist = {
-  id: string;
-  name: string;
-};
 
 export function openArtistQuery(props: QueryArtistModalProps) {
   return modals.open(QueryArtistModal, props);
@@ -21,10 +17,10 @@ type GetApiClient = () => ApiClient;
 export function artistQuery(getApiClient: GetApiClient) {
   const open = writable(false);
 
-  const artist: Writable<Artist | undefined> = writable();
+  const artist: Writable<UIArtist | undefined> = writable();
 
   const currentQuery = writable("");
-  const queryResults = writable([] as Artist[]);
+  const queryResults = writable([] as UIArtist[]);
 
   open.subscribe((v) => {
     if (v) {

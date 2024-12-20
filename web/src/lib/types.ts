@@ -1,6 +1,23 @@
 import type { Album, Artist, Track } from "$lib/api/types";
 import { z } from "zod";
 
+// TODO(patrik): Better name
+export type UIArtist = {
+  id: string;
+  name: string;
+};
+
+export type EditTrackData = {
+  name: string;
+  otherName: string;
+  artist: UIArtist;
+  num?: number;
+  year?: number;
+  tags: string;
+  extraArtists: UIArtist[];
+};
+
+// TODO(patrik): Replace with UIArtist
 export type QueryArtist = {
   id: string;
   name: string;
