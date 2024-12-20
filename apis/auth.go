@@ -97,19 +97,19 @@ type GetMe struct {
 	Username string `json:"username"`
 	Role     string `json:"role"`
 
-	DisplayName   string `json:"displayName"`
+	DisplayName   string  `json:"displayName"`
 	QuickPlaylist *string `json:"quickPlaylist"`
 }
 
 func InstallAuthHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:     "Signup",
-			Path:     "/auth/signup",
-			Method:   http.MethodPost,
-			DataType: Signup{},
-			BodyType: SignupBody{},
-			Errors:   []pyrin.ErrorType{ErrTypeUserAlreadyExists},
+			Name:       "Signup",
+			Path:       "/auth/signup",
+			Method:     http.MethodPost,
+			ReturnType: Signup{},
+			BodyType:   SignupBody{},
+			Errors:     []pyrin.ErrorType{ErrTypeUserAlreadyExists},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				body, err := pyrin.Body[SignupBody](c)
 				if err != nil {
@@ -143,11 +143,11 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "Signin",
-			Path:     "/auth/signin",
-			Method:   http.MethodPost,
-			DataType: Signin{},
-			BodyType: SigninBody{},
+			Name:       "Signin",
+			Path:       "/auth/signin",
+			Method:     http.MethodPost,
+			ReturnType: Signin{},
+			BodyType:   SigninBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				body, err := pyrin.Body[SigninBody](c)
 				if err != nil {
@@ -222,10 +222,10 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "GetMe",
-			Path:     "/auth/me",
-			Method:   http.MethodGet,
-			DataType: GetMe{},
+			Name:       "GetMe",
+			Path:       "/auth/me",
+			Method:     http.MethodGet,
+			ReturnType: GetMe{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {

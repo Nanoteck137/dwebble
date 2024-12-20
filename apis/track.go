@@ -5,13 +5,18 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path"
 	"strconv"
 	"strings"
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
@@ -28,8 +33,8 @@ type Track struct {
 	Id   string `json:"id"`
 	Name Name   `json:"name"`
 
+	Duration int64  `json:"duration"`
 	Number   *int64 `json:"number"`
-	Duration *int64 `json:"duration"`
 	Year     *int64 `json:"year"`
 
 	OriginalMediaUrl string       `json:"originalMediaUrl"`
@@ -53,11 +58,11 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 	return Track{
 		Id: track.Id,
 		Name: Name{
-			Default:      track.Name,
-			Other: ConvertSqlNullString(track.OtherName),
+			Default: track.Name,
+			Other:   ConvertSqlNullString(track.OtherName),
 		},
+		Duration:         track.Duration,
 		Number:           ConvertSqlNullInt64(track.Number),
-		Duration:         ConvertSqlNullInt64(track.Duration),
 		Year:             ConvertSqlNullInt64(track.Year),
 		OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.OriginalFilename)),
 		MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.MobileFilename)),
@@ -65,12 +70,12 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 		AlbumId:          track.AlbumId,
 		ArtistId:         track.ArtistId,
 		AlbumName: Name{
-			Default:      track.AlbumName,
-			Other: ConvertSqlNullString(track.AlbumOtherName),
+			Default: track.AlbumName,
+			Other:   ConvertSqlNullString(track.AlbumOtherName),
 		},
 		ArtistName: Name{
-			Default:      track.ArtistName,
-			Other: ConvertSqlNullString(track.ArtistOtherName),
+			Default: track.ArtistName,
+			Other:   ConvertSqlNullString(track.ArtistOtherName),
 		},
 		Tags:         utils.SplitString(track.Tags.String),
 		ExtraArtists: ConvertDBExtraArtists(track.ExtraArtists),
@@ -100,8 +105,23 @@ type EditTrackBody struct {
 	ExtraArtists *[]string `json:"extraArtists,omitempty"`
 }
 
+func DiscardEntriesStringArray(arr []string) []string {
+	if arr == nil {
+		return nil
+	}
+
+	var res []string
+	for _, s := range arr {
+		if s != "" {
+			res = append(res, s)
+		}
+	}
+
+	return res
+}
+
 // TODO(patrik): Should this be pyrins default
-func DiscardEmptyStringEntries(arr *[]string) *[]string {
+func DiscardEntriesStringArrayPtr(arr *[]string) *[]string {
 	if arr == nil {
 		return nil
 	}
@@ -122,8 +142,8 @@ func (b *EditTrackBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
 	b.OtherName = transform.StringPtr(b.OtherName)
 	b.Tags = transform.StringArrayPtr(b.Tags)
-	b.Tags = DiscardEmptyStringEntries(b.Tags)
-	b.ExtraArtists = DiscardEmptyStringEntries(b.ExtraArtists)
+	b.Tags = DiscardEntriesStringArrayPtr(b.Tags)
+	b.ExtraArtists = DiscardEntriesStringArrayPtr(b.ExtraArtists)
 }
 
 func (b EditTrackBody) Validate() error {
@@ -152,14 +172,62 @@ func (b EditTrackBody) Validate() error {
 	)
 }
 
+type UploadTrack struct {
+	Id string `json:"id"`
+}
+
+type UploadTrackBody struct {
+	Name      string `json:"name"`
+	OtherName string `json:"otherName"`
+
+	Number int64 `json:"number"`
+	Year   int64 `json:"year"`
+
+	AlbumId  string `json:"albumId"`
+	ArtistId string `json:"artistId"`
+
+	Tags           []string `json:"tags"`
+	ExtraArtistIds []string `json:"extraArtistIds"`
+}
+
+// TODO(patrik): Move to pyrin
+func StringArray(arr []string) []string {
+	if arr == nil {
+		return nil
+	}
+
+	for i, s := range arr {
+		arr[i] = transform.String(s)
+	}
+
+	return arr
+}
+
+func (b *UploadTrackBody) Transform() {
+	b.Name = transform.String(b.Name)
+	b.OtherName = transform.String(b.OtherName)
+
+	b.Tags = StringArray(b.Tags)
+	b.Tags = DiscardEntriesStringArray(b.Tags)
+	b.ExtraArtistIds = StringArray(b.ExtraArtistIds)
+	b.ExtraArtistIds = DiscardEntriesStringArray(b.ExtraArtistIds)
+}
+
+func (b UploadTrackBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required),
+		// validate.Field(&b.OtherName, validate.Required.When(b.OtherName != nil)),
+	)
+}
+
 func InstallTrackHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:     "GetTracks",
-			Method:   http.MethodGet,
-			Path:     "/tracks",
-			DataType: GetTracks{},
-			Errors:   []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
+			Name:       "GetTracks",
+			Method:     http.MethodGet,
+			Path:       "/tracks",
+			ReturnType: GetTracks{},
+			Errors:     []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -219,11 +287,11 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "SearchTracks",
-			Method:   http.MethodGet,
-			Path:     "/tracks/search",
-			DataType: GetTracks{},
-			Errors:   []pyrin.ErrorType{},
+			Name:       "SearchTracks",
+			Method:     http.MethodGet,
+			Path:       "/tracks/search",
+			ReturnType: GetTracks{},
+			Errors:     []pyrin.ErrorType{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
@@ -247,11 +315,11 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "GetTrackById",
-			Method:   http.MethodGet,
-			Path:     "/tracks/:id",
-			DataType: GetTrackById{},
-			Errors:   []pyrin.ErrorType{ErrTypeTrackNotFound},
+			Name:       "GetTrackById",
+			Method:     http.MethodGet,
+			Path:       "/tracks/:id",
+			ReturnType: GetTrackById{},
+			Errors:     []pyrin.ErrorType{ErrTypeTrackNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
@@ -474,6 +542,113 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 
 				err = app.DB().RemoveTrack(ctx, track.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.FormApiHandler{
+			Name:   "UploadTrack",
+			Method: http.MethodPost,
+			Path:   "/tracks",
+			Spec: pyrin.FormSpec{
+				BodyType: UploadTrackBody{},
+				Files: map[string]pyrin.FormFileSpec{
+					"track": {
+						NumExpected: 1,
+					},
+				},
+			},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				body, err := pyrin.Body[UploadTrackBody](c)
+				if err != nil {
+					return nil, err
+				}
+
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
+				ctx := context.TODO()
+
+				album, err := db.GetAlbumById(ctx, body.AlbumId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, AlbumNotFound()
+					}
+
+					return nil, err
+				}
+
+				artist, err := db.GetArtistById(ctx, body.ArtistId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, ArtistNotFound()
+					}
+
+					return nil, err
+				}
+
+				copyFormFileToTemp := func(file *multipart.FileHeader) (string, error) {
+					ext := path.Ext(file.Filename)
+
+					src, err := file.Open()
+					if err != nil {
+						return "", err
+					}
+					defer src.Close()
+
+					// TODO(patrik): Copy the file to $trackDir/raw.flac instead
+					dst, err := os.CreateTemp("", "track.*"+ext)
+					if err != nil {
+						return "", err
+					}
+					defer dst.Close()
+
+					_, err = io.Copy(dst, src)
+					if err != nil {
+						return "", err
+					}
+
+					return dst.Name(), nil
+				}
+
+				files, err := pyrin.FormFiles(c, "track")
+				if err != nil {
+					return nil, err
+				}
+
+				file := files[0]
+
+				// ext := path.Ext(file.Filename)
+				// name := strings.TrimSuffix(file.Filename, ext)
+
+				filename, err := copyFormFileToTemp(file)
+				if err != nil {
+					return nil, err
+				}
+				defer os.Remove(filename)
+
+				data := helper.ImportTrackData{
+					InputFile: filename,
+					Name:      body.Name,
+					OtherName: body.OtherName,
+					AlbumId:   album.Id,
+					ArtistId:  artist.Id,
+					Number:    body.Number,
+					Year:      body.Year,
+				}
+				_, err = helper.ImportTrack(ctx, app.DB(), app.WorkDir(), data)
+				if err != nil {
+					return nil, err
+				}
+
+				err = tx.Commit()
 				if err != nil {
 					return nil, err
 				}

@@ -24,11 +24,10 @@ type Track struct {
 	AlbumId  string `db:"album_id"`
 	ArtistId string `db:"artist_id"`
 
-	Number   sql.NullInt64 `db:"track_number"`
-	Duration sql.NullInt64 `db:"duration"`
+	Duration int64         `db:"duration"`
+	Number   sql.NullInt64 `db:"number"`
 	Year     sql.NullInt64 `db:"year"`
 
-	ExportName       string `db:"export_name"`
 	OriginalFilename string `db:"original_filename"`
 	MobileFilename   string `db:"mobile_filename"`
 
@@ -55,11 +54,10 @@ type TrackChanges struct {
 	AlbumId  types.Change[string]
 	ArtistId types.Change[string]
 
+	Duration types.Change[int64]
 	Number   types.Change[sql.NullInt64]
-	Duration types.Change[sql.NullInt64]
 	Year     types.Change[sql.NullInt64]
 
-	ExportName       types.Change[string]
 	OriginalFilename types.Change[string]
 	MobileFilename   types.Change[string]
 
@@ -138,11 +136,10 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.album_id",
 			"tracks.artist_id",
 
-			"tracks.track_number",
+			"tracks.number",
 			"tracks.duration",
 			"tracks.year",
 
-			"tracks.export_name",
 			"tracks.original_filename",
 			"tracks.mobile_filename",
 
@@ -274,7 +271,7 @@ func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOption) ([]Tra
 func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
 	query := TrackQuery().
 		Where(goqu.I("tracks.album_id").Eq(albumId)).
-		Order(goqu.I("tracks.track_number").Asc().NullsLast(), goqu.I("tracks.name").Asc())
+		Order(goqu.I("tracks.number").Asc().NullsLast(), goqu.I("tracks.name").Asc())
 
 	var items []Track
 	err := db.Select(&items, query)
@@ -332,11 +329,10 @@ type CreateTrackParams struct {
 	AlbumId  string
 	ArtistId string
 
+	Duration int64
 	Number   sql.NullInt64
-	Duration sql.NullInt64
 	Year     sql.NullInt64
 
-	ExportName       string
 	OriginalFilename string
 	MobileFilename   string
 
@@ -367,11 +363,10 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"album_id":  params.AlbumId,
 		"artist_id": params.ArtistId,
 
-		"track_number": params.Number,
-		"duration":     params.Duration,
-		"year":         params.Year,
+		"duration": params.Duration,
+		"number":   params.Number,
+		"year":     params.Year,
 
-		"export_name":       params.ExportName,
 		"original_filename": params.OriginalFilename,
 		"mobile_filename":   params.MobileFilename,
 
@@ -412,11 +407,10 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	addToRecord(record, "album_id", changes.AlbumId)
 	addToRecord(record, "artist_id", changes.ArtistId)
 
-	addToRecord(record, "track_number", changes.Number)
 	addToRecord(record, "duration", changes.Duration)
+	addToRecord(record, "number", changes.Number)
 	addToRecord(record, "year", changes.Year)
 
-	addToRecord(record, "export_name", changes.ExportName)
 	addToRecord(record, "original_filename", changes.OriginalFilename)
 	addToRecord(record, "mobile_filename", changes.MobileFilename)
 

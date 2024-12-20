@@ -29,11 +29,10 @@ type ExportTrack struct {
 	AlbumId  string `json:"albumId"`
 	ArtistId string `json:"artistId"`
 
-	Number   int64 `json:"number"`
 	Duration int64 `json:"duration"`
+	Number   int64 `json:"number"`
 	Year     int64 `json:"year"`
 
-	ExportName       string `json:"exportName"`
 	OriginalFilename string `json:"originalFilename"`
 	MobileFilename   string `json:"mobileFilename"`
 
@@ -60,10 +59,10 @@ type Export struct {
 func InstallSystemHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:     "GetSystemInfo",
-			Path:     "/system/info",
-			Method:   http.MethodGet,
-			DataType: GetSystemInfo{},
+			Name:       "GetSystemInfo",
+			Path:       "/system/info",
+			Method:     http.MethodGet,
+			ReturnType: GetSystemInfo{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				return GetSystemInfo{
 					Version: dwebble.Version,
@@ -72,10 +71,10 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "SystemExport",
-			Path:     "/system/export",
-			Method:   http.MethodPost,
-			DataType: Export{},
+			Name:       "SystemExport",
+			Path:       "/system/export",
+			Method:     http.MethodPost,
+			ReturnType: Export{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				db := app.DB()
 
@@ -125,10 +124,9 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 						Name:             track.Name,
 						AlbumId:          track.AlbumId,
 						ArtistId:         track.ArtistId,
+						Duration:         track.Duration,
 						Number:           track.Number.Int64,
-						Duration:         track.Duration.Int64,
 						Year:             track.Year.Int64,
-						ExportName:       track.ExportName,
 						OriginalFilename: track.OriginalFilename,
 						MobileFilename:   track.MobileFilename,
 						Created:          track.Created,

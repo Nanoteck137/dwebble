@@ -378,6 +378,8 @@ func ProbeTrack(filepath string) (ProbeResult, error) {
 		return ProbeResult{}, err
 	}
 
+	fmt.Printf("string(data): %v\n", string(data))
+
 	var probe probe
 	err = json.Unmarshal(data, &probe)
 	if err != nil {

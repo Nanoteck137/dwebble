@@ -41,11 +41,10 @@ CREATE TABLE tracks (
     album_id TEXT NOT NULL REFERENCES albums(id),
     artist_id TEXT NOT NULL REFERENCES artists(id),
 
-    track_number INT,
-    duration INT,
+    duration INT NOT NULL,
+    number INT,
     year INT,
 
-    export_name TEXT NOT NULL,
     original_filename TEXT NOT NULL,
     mobile_filename TEXT NOT NULL,
 

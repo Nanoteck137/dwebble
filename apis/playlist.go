@@ -60,10 +60,10 @@ type MovePlaylistItemBody struct {
 func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
-			Name:     "GetPlaylists",
-			Path:     "/playlists",
-			Method:   http.MethodGet,
-			DataType: GetPlaylists{},
+			Name:       "GetPlaylists",
+			Path:       "/playlists",
+			Method:     http.MethodGet,
+			ReturnType: GetPlaylists{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -91,11 +91,11 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "CreatePlaylist",
-			Path:     "/playlists",
-			Method:   http.MethodPost,
-			DataType: CreatePlaylist{},
-			BodyType: CreatePlaylistBody{},
+			Name:       "CreatePlaylist",
+			Path:       "/playlists",
+			Method:     http.MethodPost,
+			ReturnType: CreatePlaylist{},
+			BodyType:   CreatePlaylistBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -125,11 +125,11 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "CreatePlaylistFromFilter",
-			Path:     "/playlists/filter",
-			Method:   http.MethodPost,
-			DataType: CreatePlaylist{},
-			BodyType: PostPlaylistFilterBody{},
+			Name:       "CreatePlaylistFromFilter",
+			Path:       "/playlists/filter",
+			Method:     http.MethodPost,
+			ReturnType: CreatePlaylist{},
+			BodyType:   PostPlaylistFilterBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				user, err := User(app, c)
 				if err != nil {
@@ -188,11 +188,11 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "GetPlaylistById",
-			Path:     "/playlists/:id",
-			Method:   http.MethodGet,
-			DataType: GetPlaylistById{},
-			Errors:   []pyrin.ErrorType{ErrTypePlaylistNotFound},
+			Name:       "GetPlaylistById",
+			Path:       "/playlists/:id",
+			Method:     http.MethodGet,
+			ReturnType: GetPlaylistById{},
+			Errors:     []pyrin.ErrorType{ErrTypePlaylistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playlistId := c.Param("id")
 

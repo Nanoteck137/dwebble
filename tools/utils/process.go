@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"os/exec"
 	"path"
 )
@@ -27,8 +28,8 @@ func ProcessMobileVersion(input string, outputDir, name string) (string, error) 
 	args = append(args, path.Join(outputDir, filename))
 
 	cmd := exec.Command("ffmpeg", args...)
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 	if err != nil {
@@ -38,7 +39,7 @@ func ProcessMobileVersion(input string, outputDir, name string) (string, error) 
 	return filename, nil
 }
 
-func ProcessOriginalVersion(input string, outputDir, name string) (string, TrackInfo, error) {
+func ProcessOriginalVersion(input string, outputDir, name string) (string, error) {
 	inputExt := path.Ext(input)
 	// isLossyInput := inputExt == ".opus"
 
@@ -66,19 +67,13 @@ func ProcessOriginalVersion(input string, outputDir, name string) (string, Track
 	args = append(args, out)
 
 	cmd := exec.Command("ffmpeg", args...)
-	// TODO(patrik): Print error
-	// cmd.Stdout = os.Stdout
-	// cmd.Stderr = &b
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 	if err != nil {
-		return "", TrackInfo{}, err
+		return "", err
 	}
 
-	info, err := GetTrackInfo(input)
-	if err != nil {
-		return "", TrackInfo{}, err
-	}
-
-	return filename, info, nil
+	return filename, nil
 }
