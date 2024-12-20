@@ -472,7 +472,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					for _, tag := range tags {
 						slug := utils.Slug(tag)
 
-						err := db.CreateTag(ctx, slug, tag)
+						err := db.CreateTag(ctx, slug)
 						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 							return nil, err
 						}
@@ -654,9 +654,10 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 
 				for _, tag := range body.Tags {
+					// TODO(patrik): Move slugify to transform function 
 					slug := utils.Slug(tag)
 
-					err := db.CreateTag(ctx, slug, tag)
+					err := db.CreateTag(ctx, slug)
 					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 						return nil, err
 					}

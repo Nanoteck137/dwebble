@@ -60,8 +60,7 @@ CREATE TABLE tracks_extra_artists (
 );
 
 CREATE TABLE tags (
-    slug TEXT PRIMARY KEY,
-    name TEXT NOT NULL
+    slug TEXT PRIMARY KEY
 );
 
 CREATE TABLE tracks_to_tags (

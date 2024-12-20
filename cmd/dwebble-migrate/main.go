@@ -204,7 +204,7 @@ var rootCmd = &cobra.Command{
 			ctx := context.TODO()
 
 			for _, v := range tags {
-				err := db.CreateTag(ctx, v["slug"].(string), v["name"].(string))
+				err := db.CreateTag(ctx, v["slug"].(string))
 				if err != nil {
 					log.Fatal("Failed", "err", err)
 				}

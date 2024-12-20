@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -96,7 +95,7 @@ func TrackQuery() *goqu.SelectDataset {
 	tags := dialect.From("tracks_to_tags").
 		Select(
 			goqu.I("tracks_to_tags.track_id").As("track_id"),
-			goqu.Func("group_concat", goqu.I("tags.name"), ",").As("tags"),
+			goqu.Func("group_concat", goqu.I("tags.slug"), ",").As("tags"),
 		).
 		Join(
 			goqu.I("tags"),
@@ -373,8 +372,8 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"created": created,
 		"updated": updated,
 	}).
-		Returning("id").
-		Prepared(true)
+		Prepared(true).
+		Returning("id")
 
 	var item string
 
@@ -423,9 +422,9 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	record["updated"] = time.Now().UnixMilli()
 
 	ds := dialect.Update("tracks").
+		Prepared(true).
 		Set(record).
-		Where(goqu.I("tracks.id").Eq(id)).
-		Prepared(true)
+		Where(goqu.I("tracks.id").Eq(id))
 
 	_, err := db.Exec(ctx, ds)
 	if err != nil {
@@ -477,19 +476,58 @@ func (db *Database) Invalidate() {
 func TrackMapNameToId(typ string, name string) string {
 	switch typ {
 	case "tags":
-		for _, t := range tags {
-			if t.Name == strings.ToLower(name) {
-				return t.Name
-			}
-		}
+		// TODO(patrik): Fix
+		// for _, t := range tags {
+		// 	if t.Name == strings.ToLower(name) {
+		// 		return t.Name
+		// 	}
+		// }
 	}
 
 	return ""
 }
 
+func (db *Database) AddTagToTrack(ctx context.Context, tagSlug, trackId string) error {
+	ds := dialect.Insert("tracks_to_tags").
+		Prepared(true).
+		Rows(goqu.Record{
+			"track_id": trackId,
+			"tag_slug": tagSlug,
+		})
+
+	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		var e sqlite3.Error
+		if errors.As(err, &e) {
+			if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+				return ErrItemAlreadyExists
+			}
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) RemoveAllTagsFromTrack(ctx context.Context, trackId string) error {
+	query := dialect.Delete("tracks_to_tags").
+		Prepared(true).
+		Where(goqu.I("track_id").Eq(trackId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
 // TODO(patrik): Generalize
 func (db *Database) RemoveAllExtraArtistsFromTrack(ctx context.Context, trackId string) error {
 	query := dialect.Delete("tracks_extra_artists").
+		Prepared(true).
 		Where(goqu.I("tracks_extra_artists.track_id").Eq(trackId))
 
 	_, err := db.Exec(ctx, query)
@@ -503,6 +541,7 @@ func (db *Database) RemoveAllExtraArtistsFromTrack(ctx context.Context, trackId 
 // TODO(patrik): Generalize
 func (db *Database) AddExtraArtistToTrack(ctx context.Context, trackId, artistId string) error {
 	query := dialect.Insert("tracks_extra_artists").
+		Prepared(true).
 		Rows(goqu.Record{
 			"track_id":  trackId,
 			"artist_id": artistId,
