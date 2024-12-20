@@ -39,18 +39,10 @@
   });
 
   $effect(() => {
-    if (!browser) return;
-
-    if (modals.stack.length > 0) {
-      document.body.classList.add("modal-open");
-    } else {
-      document.body.classList.remove("modal-open");
-    }
-  });
-
-  $effect(() => {
     if ($navigating !== null) {
-      modals.closeAll();
+      if (modals.stack.length > 0) {
+        modals.closeAll();
+      }
     }
   });
 </script>
