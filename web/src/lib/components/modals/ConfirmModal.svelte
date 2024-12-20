@@ -1,50 +1,45 @@
 <script lang="ts">
-  import type { ModalConfirm, ModalState } from "$lib/modal.svelte";
-  import { Button } from "@nanoteck137/nano-ui";
-  import { fade, slide } from "svelte/transition";
+  import { AlertDialog, Button } from "@nanoteck137/nano-ui";
+  import type { ModalProps } from "svelte-modals";
+  import { fade } from "svelte/transition";
 
-  interface Props {
-    data: ModalConfirm;
-    modalState: ModalState;
+  interface Props extends ModalProps<boolean> {
+    title: string;
+    description?: string;
+    confirmDelete?: boolean;
   }
 
-  const { data, modalState }: Props = $props();
+  const { title, description, isOpen, confirmDelete, close }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-2">
-  <p class="text-lg font-semibold">{data.title}</p>
-  {#if data.description}
-    <p class="text-sm text-muted-foreground">{data.description}</p>
-  {/if}
-</div>
-<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-  <Button
-    variant="outline"
-    onclick={() => {
-      modalState.popModal();
-    }}
-  >
-    Close
-  </Button>
-
-  {#if data.confirmDelete}
-    <Button
-      variant="destructive"
-      onclick={() => {
-        modalState.popModal();
-        data.onConfirm?.();
-      }}
-    >
-      Delete
-    </Button>
-  {:else}
-    <Button
-      onclick={() => {
-        modalState.popModal();
-        data.onConfirm?.();
-      }}
-    >
-      Confirm
-    </Button>
-  {/if}
-</div>
+<AlertDialog.Root
+  controlledOpen
+  open={isOpen}
+  onOpenChange={(v) => {
+    if (!v) {
+      close(false);
+    }
+  }}
+>
+  <AlertDialog.Content>
+    <AlertDialog.Header>
+      <AlertDialog.Title>{title}</AlertDialog.Title>
+      {#if description}
+        <AlertDialog.Description>
+          {description}
+        </AlertDialog.Description>
+      {/if}
+    </AlertDialog.Header>
+    <AlertDialog.Footer>
+      <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+      <Button
+        variant={confirmDelete ? "destructive" : "default"}
+        onclick={() => {
+          close(true);
+        }}
+      >
+        {confirmDelete ? "Delete" : "Confirm"}
+      </Button>
+    </AlertDialog.Footer>
+  </AlertDialog.Content>
+</AlertDialog.Root>

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { type Artist } from "$lib";
   import { ApiClient } from "$lib/api/client.js";
-  import { getModalState } from "$lib/modal.svelte.js";
+  import QueryArtistModal from "$lib/components/modals/QueryArtistModal.svelte";
   import {
     Breadcrumb,
     Button,
@@ -9,10 +9,9 @@
     Input,
     Label,
   } from "@nanoteck137/nano-ui";
+  import { modals } from "svelte-modals";
 
   const { data } = $props();
-
-  const modalState = getModalState();
 
   let currentArtist: Artist = $state({
     id: data.album.artistId,
@@ -95,16 +94,26 @@
 
       <Button
         variant="outline"
-        onclick={() => {
-          modalState.pushModal({
-            type: "modal-query-artist",
-            // TODO(patrik): Use another apiClient later when we have
-            // fixed this
-            apiClient: new ApiClient(data.apiAddress),
-            onArtistSelected: (artist) => {
-              currentArtist = artist;
-            },
+        onclick={async () => {
+          const apiClient = new ApiClient(data.apiAddress);
+          apiClient.setToken(data.userToken);
+
+          const res = await modals.open(QueryArtistModal, {
+            apiClient: apiClient,
           });
+          if (res) {
+            currentArtist = res;
+          }
+
+          // modalState.pushModal({
+          //   type: "modal-query-artist",
+          //   // TODO(patrik): Use another apiClient later when we have
+          //   // fixed this
+          //   apiClient: new ApiClient(data.apiAddress),
+          //   onArtistSelected: (artist) => {
+          //     currentArtist = artist;
+          //   },
+          // });
         }}
       >
         Change Artist

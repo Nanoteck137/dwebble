@@ -1,14 +1,16 @@
 <script lang="ts">
-  import type { ModalQueryArtist, ModalState } from "$lib/modal.svelte";
+  import type { Artist } from "$lib";
+  import type { ApiClient } from "$lib/api/client";
   import type { QueryArtist } from "$lib/types";
-  import { Button, Input, ScrollArea } from "@nanoteck137/nano-ui";
+  import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
+  import type { ModalProps } from "svelte-modals";
 
-  interface Props {
-    data: ModalQueryArtist;
-    modalState: ModalState;
+  interface Props extends ModalProps<Artist | null> {
+    title?: string;
+    apiClient: ApiClient;
   }
 
-  const { data, modalState }: Props = $props();
+  const { title, apiClient, isOpen, close }: Props = $props();
 
   let currentQuery = $state("");
   let queryResults = $state<QueryArtist[]>([]);
@@ -23,7 +25,7 @@
 
     clearTimeout(timer);
     timer = setTimeout(async () => {
-      const res = await data.apiClient.searchArtists({
+      const res = await apiClient.searchArtists({
         query: {
           query: current,
         },
@@ -41,45 +43,52 @@
   }
 </script>
 
-<p class="text-lg font-semibold">{data.title ?? "Search Artist"}</p>
-<Input oninput={onInput} placeholder="Search..." />
-{#if currentQuery.length > 0}
-  <Button
-    type="submit"
-    variant="secondary"
-    onclick={() => {
-      modalState.popModal();
-      // TODO(patrik): Create new artist here
-    }}
-  >
-    New Artist: {currentQuery}
-  </Button>
-{/if}
-
-<ScrollArea class="max-h-36 overflow-y-clip">
-  <div class="flex flex-col">
-    {#each queryResults as result}
+<Dialog.Root
+  controlledOpen
+  open={isOpen}
+  onOpenChange={(v) => {
+    if (!v) {
+      close(null);
+    }
+  }}
+>
+  <Dialog.Content>
+    <Dialog.Header>
+      <Dialog.Title>{title ?? "Search Artist"}</Dialog.Title>
+    </Dialog.Header>
+    <Input oninput={onInput} placeholder="Search..." />
+    {#if currentQuery.length > 0}
       <Button
         type="submit"
-        variant="ghost"
-        title={result.id}
+        variant="secondary"
         onclick={() => {
-          modalState.popModal();
-          data.onArtistSelected(result);
+          close(null);
+          // TODO(patrik): Create new artist here
         }}
       >
-        {result.name}
+        New Artist: {currentQuery}
       </Button>
-    {/each}
-  </div>
-</ScrollArea>
-<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-  <Button
-    variant="outline"
-    onclick={() => {
-      modalState.popModal();
-    }}
-  >
-    Close
-  </Button>
-</div>
+    {/if}
+
+    <ScrollArea class="max-h-36 overflow-y-clip">
+      <div class="flex flex-col">
+        {#each queryResults as result}
+          <Button
+            type="submit"
+            variant="ghost"
+            title={result.id}
+            onclick={() => {
+              close(result);
+              // data.onArtistSelected(result);
+            }}
+          >
+            {result.name}
+          </Button>
+        {/each}
+      </div>
+    </ScrollArea>
+    <Dialog.Footer>
+      <Button variant="outline">Close</Button>
+    </Dialog.Footer>
+  </Dialog.Content>
+</Dialog.Root>

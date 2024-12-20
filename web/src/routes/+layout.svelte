@@ -19,12 +19,10 @@
   import { browser } from "$app/environment";
   import { fade, fly } from "svelte/transition";
   import { Button } from "@nanoteck137/nano-ui";
-  import { setModalState } from "$lib/modal.svelte";
-  import Modals from "$lib/components/modals/Modals.svelte";
+  import { modals, Modals } from "svelte-modals";
+  import { navigating } from "$app/stores";
 
   let { children, data } = $props();
-
-  setModalState();
 
   let showSideMenu = $state(false);
 
@@ -37,6 +35,22 @@
       if (browser) document.body.style.overflow = "hidden";
     } else {
       if (browser) document.body.style.overflow = "";
+    }
+  });
+
+  $effect(() => {
+    if (!browser) return;
+
+    if (modals.stack.length > 0) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+  });
+
+  $effect(() => {
+    if ($navigating !== null) {
+      modals.closeAll();
     }
   });
 </script>

@@ -19,12 +19,11 @@
     Separator,
   } from "@nanoteck137/nano-ui";
   import { goto, invalidateAll } from "$app/navigation";
-  import { getModalState } from "$lib/modal.svelte.js";
   import { ApiClient } from "$lib/api/client.js";
+  import { modals } from "svelte-modals";
+  import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
 
   const { data } = $props();
-
-  const modalState = getModalState();
 </script>
 
 <div class="py-2">
@@ -259,24 +258,24 @@
               <DropdownMenu.Separator />
 
               <DropdownMenu.Item
-                onSelect={() => {
-                  modalState.pushModal({
-                    type: "modal-confirm",
+                onSelect={async () => {
+                  const confirmed = await modals.open(ConfirmModal, {
                     title: "Are you sure?",
                     description: "You are about to delete this track",
                     confirmDelete: true,
-                    onConfirm: async () => {
-                      const apiClient = new ApiClient(data.apiAddress);
-                      apiClient.setToken(data.userToken);
-
-                      const res = await apiClient.deleteTrack(track.id);
-                      if (!res.success) {
-                        throw res.error.message;
-                      }
-
-                      await invalidateAll();
-                    },
                   });
+
+                  if (confirmed) {
+                    const apiClient = new ApiClient(data.apiAddress);
+                    apiClient.setToken(data.userToken);
+
+                    const res = await apiClient.deleteTrack(track.id);
+                    if (!res.success) {
+                      throw res.error.message;
+                    }
+
+                    await invalidateAll();
+                  }
                 }}
               >
                 <Trash />

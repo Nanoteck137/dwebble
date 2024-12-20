@@ -1,43 +1,36 @@
 <script lang="ts">
-  import { ApiClient } from "$lib/api/client";
-  import { getModalState } from "$lib/modal.svelte";
+  import { ApiClient } from "$lib/api/client.js";
+  import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
+  import QueryArtistModal from "$lib/components/modals/QueryArtistModal.svelte";
   import { AlertDialog, Button, buttonVariants } from "@nanoteck137/nano-ui";
-
-  const modalState = getModalState();
+  import { modals } from "svelte-modals";
 
   const { data } = $props();
+
+  async function test() {
+    const confirmed = await modals.open(ConfirmModal, {
+      title: "Are you sure?",
+      description: "Hello World",
+      confirmDelete: true,
+    });
+    console.log(confirmed);
+  }
 </script>
 
 <p class="p-4 text-xl">Home Page</p>
 
 <Button
-  onclick={() => {
-    modalState.pushModal({
-      type: "modal-confirm",
-      title: "Are you sure?",
-      description: "You are about to delete this",
-      confirmDelete: true,
-      onConfirm: () => {
-        modalState.pushModal({
-          type: "modal-confirm",
-          title: "Testing",
-        });
-      },
-    });
-  }}
+  onclick={async () => {
+    test();
+  }}>Open Modal</Button
 >
-  Open Modal
-</Button>
 
 <Button
-  onclick={() => {
-    modalState.pushModal({
-      type: "modal-query-artist",
+  onclick={async () => {
+    const res = await modals.open(QueryArtistModal, {
       apiClient: new ApiClient(data.apiAddress),
-      onArtistSelected: (artist) => {
-        console.log(artist);
-      },
     });
+    console.log("artist", res);
   }}
 >
   Open Artist Query
@@ -57,7 +50,7 @@
     </AlertDialog.Header>
     <AlertDialog.Footer>
       <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-      <AlertDialog.Action>Continue</AlertDialog.Action>
+      <Button variant="destructive">Delete</Button>
     </AlertDialog.Footer>
   </AlertDialog.Content>
 </AlertDialog.Root>
