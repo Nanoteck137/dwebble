@@ -174,9 +174,10 @@
         </div>
         <div class="h-1"></div>
         <p class="text-xs" title={track.artistName.default}>
-          Artist: <a class="hover:underline" href="/artists/{track.artistId}"
-            >{track.artistName.default}</a
-          >
+          Artist:
+          <a class="hover:underline" href="/artists/{track.artistId}">
+            {track.artistName.default}
+          </a>
         </p>
 
         {#if track.name.other}
@@ -193,6 +194,13 @@
 
         {#if track.duration}
           <p class="text-xs">Duration: {formatTime(track.duration ?? 0)}</p>
+        {/if}
+
+        {#if track.extraArtists.length > 0}
+          <p class="text-xs">Extra Artists</p>
+          {#each track.extraArtists as artist}
+            <p class="pl-2 text-xs">{artist.name.default}</p>
+          {/each}
         {/if}
       </div>
 
