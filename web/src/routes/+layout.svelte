@@ -66,7 +66,6 @@
     </button>
 
     <a class="text-2xl font-medium text-[--logo-color]" href="/">Dwebble</a>
-    <p>{data.user?.role}</p>
 
     <div class="flex-grow"></div>
 
