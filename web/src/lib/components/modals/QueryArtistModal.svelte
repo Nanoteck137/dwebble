@@ -1,7 +1,6 @@
 <script lang="ts">
-  import type { Artist } from "$lib";
   import type { ApiClient } from "$lib/api/client";
-  import type { QueryArtist } from "$lib/types";
+  import type { QueryArtist, UIArtist } from "$lib/types";
   import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
   import type { ModalProps } from "svelte-modals";
 
@@ -15,7 +14,7 @@
     apiClient,
     isOpen,
     close,
-  }: Props & ModalProps<Artist | null> = $props();
+  }: Props & ModalProps<UIArtist | null> = $props();
 
   let currentQuery = $state("");
   let queryResults = $state<QueryArtist[]>([]);
