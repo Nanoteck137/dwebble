@@ -60,7 +60,7 @@
             class="w-24"
             id="year"
             name="year"
-            value={data.album.year ?? 0}
+            value={data.album.year}
             type="number"
             autocomplete="off"
           />
