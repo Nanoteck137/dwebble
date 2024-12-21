@@ -196,6 +196,33 @@
       ]
     },
     {
+      "name": "CreateArtist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "CreateArtistBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "otherName",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetAlbums",
       "extend": "",
       "fields": [
@@ -1102,6 +1129,13 @@
       "path": "/api/v1/artists/:id",
       "responseType": "",
       "bodyType": "EditArtistBody"
+    },
+    {
+      "name": "CreateArtist",
+      "method": "POST",
+      "path": "/api/v1/artists",
+      "responseType": "CreateArtist",
+      "bodyType": "CreateArtistBody"
     },
     {
       "name": "GetAlbums",

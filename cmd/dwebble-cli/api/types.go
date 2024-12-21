@@ -52,6 +52,15 @@ type EditArtistBody struct {
 	Name *string `json:"name,omitempty"`
 }
 
+type CreateArtist struct {
+	Id string `json:"id"`
+}
+
+type CreateArtistBody struct {
+	Name string `json:"name"`
+	OtherName string `json:"otherName"`
+}
+
 type GetAlbums struct {
 	Albums []Album `json:"albums"`
 }

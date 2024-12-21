@@ -94,8 +94,9 @@
       <Button
         variant="outline"
         onclick={async () => {
-          const res = openArtistQuery({ apiClient });
+          const res = await openArtistQuery({ apiClient });
           if (res) {
+            console.log(res);
             currentArtist = res;
           }
         }}

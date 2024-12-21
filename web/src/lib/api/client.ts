@@ -28,6 +28,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/artists/${id}`, "PATCH", z.undefined(), z.any(), body, options)
   }
   
+  createArtist(body: api.CreateArtistBody, options?: ExtraOptions) {
+    return this.request("/api/v1/artists", "POST", api.CreateArtist, z.any(), body, options)
+  }
+  
   getAlbums(options?: ExtraOptions) {
     return this.request("/api/v1/albums", "GET", api.GetAlbums, z.any(), undefined, options)
   }

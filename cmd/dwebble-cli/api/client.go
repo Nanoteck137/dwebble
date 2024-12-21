@@ -81,6 +81,22 @@ func (c *Client) EditArtist(id string, body EditArtistBody, options Options) (*a
 	return Request[any](data)
 }
 
+func (c *Client) CreateArtist(body CreateArtistBody, options Options) (*CreateArtist, error) {
+	path := "/api/v1/artists"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[CreateArtist](data)
+}
+
 func (c *Client) GetAlbums(options Options) (*GetAlbums, error) {
 	path := "/api/v1/albums"
 	url, err := createUrl(c.addr, path, options.QueryParams)

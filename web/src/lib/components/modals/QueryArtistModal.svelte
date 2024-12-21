@@ -65,9 +65,23 @@
       <Button
         type="submit"
         variant="secondary"
-        onclick={() => {
-          close(null);
-          // TODO(patrik): Create new artist here
+        onclick={async () => {
+          const res = await apiClient.createArtist({
+            name: currentQuery,
+            otherName: "",
+          });
+          if (!res.success) {
+            // TODO(patrik): Toast
+            throw res.error.message;
+          }
+
+          const artist = await apiClient.getArtistById(res.data.id);
+          if (!artist.success) {
+            // TODO(patrik): Toast
+            throw artist.error.message;
+          }
+
+          close({ id: artist.data.id, name: artist.data.name.default });
         }}
       >
         New Artist: {currentQuery}

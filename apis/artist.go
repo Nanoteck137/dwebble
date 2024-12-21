@@ -2,6 +2,7 @@ package apis
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"net/http"
 	"strings"
@@ -81,6 +82,26 @@ func (b *EditArtistBody) Transform() {
 func (b EditArtistBody) Validate() error {
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Name, validate.Required.When(b.Name != nil)),
+	)
+}
+
+type CreateArtist struct {
+	Id string `json:"id"`
+}
+
+type CreateArtistBody struct {
+	Name      string `json:"name"`
+	OtherName string `json:"otherName"`
+}
+
+func (b *CreateArtistBody) Transform() {
+	b.Name = transform.String(b.Name)
+	b.OtherName = transform.String(b.OtherName)
+}
+
+func (b CreateArtistBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required),
 	)
 }
 
@@ -246,6 +267,37 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:         "CreateArtist",
+			Method:       http.MethodPost,
+			Path:         "/artists",
+			ResponseType: CreateArtist{},
+			BodyType:     CreateArtistBody{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				body, err := pyrin.Body[CreateArtistBody](c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				artist, err := app.DB().CreateArtist(ctx, database.CreateArtistParams{
+					Name: body.Name,
+					OtherName: sql.NullString{
+						String: body.OtherName,
+						Valid:  body.OtherName != "",
+					},
+				})
+				if err != nil {
+					return nil, err
+				}
+
+				return CreateArtist{
+					Id: artist.Id,
+				}, nil
 			},
 		},
 

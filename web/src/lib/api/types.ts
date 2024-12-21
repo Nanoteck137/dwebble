@@ -61,6 +61,17 @@ export const EditArtistBody = z.object({
 });
 export type EditArtistBody = z.infer<typeof EditArtistBody>;
 
+export const CreateArtist = z.object({
+  id: z.string(),
+});
+export type CreateArtist = z.infer<typeof CreateArtist>;
+
+export const CreateArtistBody = z.object({
+  name: z.string(),
+  otherName: z.string(),
+});
+export type CreateArtistBody = z.infer<typeof CreateArtistBody>;
+
 export const GetAlbums = z.object({
   albums: z.array(Album),
 });
