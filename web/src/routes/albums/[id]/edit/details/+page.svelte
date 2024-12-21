@@ -96,7 +96,6 @@
         onclick={async () => {
           const res = await openArtistQuery({ apiClient });
           if (res) {
-            console.log(res);
             currentArtist = res;
           }
         }}

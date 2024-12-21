@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { openInput } from "$lib";
   import type { ApiClient } from "$lib/api/client";
+  import { GetArtistById } from "$lib/api/types";
   import type { QueryArtist, UIArtist } from "$lib/types";
   import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
   import type { ModalProps } from "svelte-modals";
@@ -60,9 +62,35 @@
     <Dialog.Header>
       <Dialog.Title>{title ?? "Search Artist"}</Dialog.Title>
     </Dialog.Header>
+
     <Input oninput={onInput} placeholder="Search..." />
+
+    <Button
+      class="flex-1"
+      variant="secondary"
+      onclick={async () => {
+        const res = await openInput({});
+        if (res) {
+          const artist = await apiClient.getArtistById(res);
+          if (!artist.success) {
+            // TODO(patrik): Toast
+            console.error(artist.error.message);
+            return;
+          }
+
+          close({
+            id: artist.data.id,
+            name: artist.data.name.default,
+          });
+        }
+      }}
+    >
+      Use ID
+    </Button>
+
     {#if currentQuery.length > 0}
       <Button
+        class="line-clamp-1 flex-1 overflow-ellipsis"
         type="submit"
         variant="secondary"
         onclick={async () => {
