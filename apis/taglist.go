@@ -293,8 +293,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 		pyrin.ApiHandler{
 			Name:     "DeleteTaglist",
 			Path:     "/taglists/:id",
-			Method:   http.MethodPatch,
-			BodyType: UpdateTaglistBody{},
+			Method:   http.MethodDelete,
 			Errors:   []pyrin.ErrorType{ErrTypeTaglistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				taglistId := c.Param("id")
