@@ -12,6 +12,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
@@ -538,6 +539,15 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 						return nil, TrackNotFound()
 					}
 
+					return nil, err
+				}
+
+				dir := app.WorkDir().Track(track.Id)
+				targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
+				target := path.Join(app.WorkDir().Trash(), targetName)
+
+				err = os.Rename(dir, target)
+				if err != nil && !os.IsNotExist(err) {
 					return nil, err
 				}
 

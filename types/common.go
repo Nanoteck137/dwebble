@@ -18,6 +18,14 @@ func (d WorkDir) ExportFile() string {
 	return path.Join(d.String(), "export.json")
 }
 
+func (d WorkDir) SetupFile() string {
+	return path.Join(d.String(), "setup")
+}
+
+func (d WorkDir) Trash() string {
+	return path.Join(d.String(), "trash")
+}
+
 func (d WorkDir) Artists() string {
 	return path.Join(d.String(), "artists")
 }

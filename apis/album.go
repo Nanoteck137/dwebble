@@ -10,6 +10,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
@@ -387,8 +388,20 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Name:   "DeleteAlbum",
 			Method: http.MethodDelete,
 			Path:   "/albums/:id",
+			Errors: []pyrin.ErrorType{ErrTypeAlbumNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
+
+				ctx := context.TODO()
+
+				album, err := app.DB().GetAlbumById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, AlbumNotFound()
+					}
+
+					return nil, err
+				}
 
 				db, tx, err := app.DB().Begin()
 				if err != nil {
@@ -396,14 +409,40 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				}
 				defer tx.Rollback()
 
-				err = db.RemoveAlbumTracks(c.Request().Context(), id)
+				tracks, err := db.GetTracksByAlbum(ctx, album.Id)
 				if err != nil {
-					return nil, fmt.Errorf("Failed to remove album tracks: %w", err)
+					return nil, err
+				}
+
+				// TODO(patrik): This is duplicated code from the tracks api move to helper
+				for _, track := range tracks {
+					dir := app.WorkDir().Track(track.Id)
+					targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
+					target := path.Join(app.WorkDir().Trash(), targetName)
+
+					err = os.Rename(dir, target)
+					if err != nil && !os.IsNotExist(err) {
+						return nil, err
+					}
+
+					err = app.DB().RemoveTrack(ctx, track.Id)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				dir := app.WorkDir().Album(album.Id)
+				targetName := fmt.Sprintf("album-%s-%d", album.Id, time.Now().UnixMilli())
+				target := path.Join(app.WorkDir().Trash(), targetName)
+
+				err = os.Rename(dir, target)
+				if err != nil && !os.IsNotExist(err) {
+					return nil, err
 				}
 
 				err = db.RemoveAlbum(c.Request().Context(), id)
 				if err != nil {
-					return nil, fmt.Errorf("Failed to remove album: %w", err)
+					return nil, err
 				}
 
 				err = tx.Commit()

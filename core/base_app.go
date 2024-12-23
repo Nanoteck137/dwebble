@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"os"
-	"path"
 
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core/log"
@@ -40,6 +39,7 @@ func (app *BaseApp) Bootstrap() error {
 		workDir.Artists(),
 		workDir.Albums(),
 		workDir.Tracks(),
+		workDir.Trash(),
 	}
 
 	for _, dir := range dirs {
@@ -59,19 +59,13 @@ func (app *BaseApp) Bootstrap() error {
 		return err
 	}
 
-	err = app.db.InitializeSearch()
-	if err != nil {
-		return err
-	}
-
 	err = app.db.RefillSearchTables(context.TODO())
 	if err != nil {
 		return err
 	}
 
 	// TODO(patrik): Move to workdir
-	setupFilePath := path.Join(workDir.String(), "setup")
-	_, err = os.Stat(setupFilePath)
+	_, err = os.Stat(workDir.SetupFile())
 	if errors.Is(err, os.ErrNotExist) {
 		log.Info("Server not setup, creating the initial user")
 
@@ -86,7 +80,7 @@ func (app *BaseApp) Bootstrap() error {
 			return err
 		}
 
-		f, err := os.Create(setupFilePath)
+		f, err := os.Create(workDir.SetupFile())
 		if err != nil {
 			return err
 		}
