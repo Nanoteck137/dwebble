@@ -115,30 +115,8 @@ func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 
 	searchQuery = "\"" + searchQuery + "\""
 
-	query := dialect.From("tracks_search").Select(
-		"tracks.id",
-		"tracks.name",
-
-		"tracks.album_id",
-		"tracks.artist_id",
-
-		"tracks.track_number",
-		"tracks.duration",
-		"tracks.year",
-
-		"tracks.export_name",
-		"tracks.original_filename",
-		"tracks.mobile_filename",
-
-		"tracks.created",
-		"tracks.updated",
-
-		"tracks.album_name",
-		"tracks.album_cover_art",
-		"tracks.artist_name",
-
-		"tracks.tags",
-	).
+	query := dialect.From("tracks_search").
+		Select("tracks.*").
 		Prepared(true).
 		Join(
 			TrackQuery().As("tracks"),
