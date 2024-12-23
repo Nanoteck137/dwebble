@@ -16,7 +16,7 @@
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
         <Breadcrumb.Link href="/albums/{data.album.id}">
-          {data.album.name}
+          {data.album.name.default}
         </Breadcrumb.Link>
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
@@ -38,7 +38,7 @@
     <Card.Title>Are you sure?</Card.Title>
   </Card.Header>
   <Card.Content>
-    <p>You are about to delete '{data.album.name}'</p>
+    <p>You are about to delete '{data.album.name.default}'</p>
   </Card.Content>
   <Card.Footer class="flex justify-end gap-2">
     <Button href="/albums/{data.album.id}/edit" variant="outline">Back</Button>
