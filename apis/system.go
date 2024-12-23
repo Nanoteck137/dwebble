@@ -170,5 +170,22 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 				return nil, nil
 			},
 		},
+
+		pyrin.ApiHandler{
+			Name:   "RefillSearch",
+			Path:   "/system/search",
+			Method: http.MethodPost,
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				// TODO(patrik): Restrict to only admin/superusers
+
+				ctx := context.TODO()
+				err := app.DB().RefillSearchTables(ctx)
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
 	)
 }

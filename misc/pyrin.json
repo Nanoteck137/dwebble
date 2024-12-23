@@ -1320,6 +1320,13 @@
       "bodyType": ""
     },
     {
+      "name": "RefillSearch",
+      "method": "POST",
+      "path": "/api/v1/system/search",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "GetTaglists",
       "method": "GET",
       "path": "/api/v1/taglists",

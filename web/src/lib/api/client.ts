@@ -136,6 +136,10 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/system/process", "POST", z.undefined(), z.any(), undefined, options)
   }
   
+  refillSearch(options?: ExtraOptions) {
+    return this.request("/api/v1/system/search", "POST", z.undefined(), z.any(), undefined, options)
+  }
+  
   getTaglists(options?: ExtraOptions) {
     return this.request("/api/v1/taglists", "GET", api.GetTaglists, z.any(), undefined, options)
   }
