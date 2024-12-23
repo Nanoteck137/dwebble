@@ -1348,6 +1348,13 @@
       "bodyType": "CreateTaglistBody"
     },
     {
+      "name": "DeleteTaglist",
+      "method": "DELETE",
+      "path": "/api/v1/taglists/:id",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "UpdateTaglist",
       "method": "PATCH",
       "path": "/api/v1/taglists/:id",

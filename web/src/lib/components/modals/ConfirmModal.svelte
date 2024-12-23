@@ -3,13 +3,19 @@
   import type { ModalProps } from "svelte-modals";
   import { fade } from "svelte/transition";
 
-  interface Props extends ModalProps<boolean> {
+  export type Props = {
     title: string;
     description?: string;
     confirmDelete?: boolean;
-  }
+  };
 
-  const { title, description, isOpen, confirmDelete, close }: Props = $props();
+  const {
+    title,
+    description,
+    isOpen,
+    confirmDelete,
+    close,
+  }: Props & ModalProps<boolean> = $props();
 </script>
 
 <AlertDialog.Root

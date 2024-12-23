@@ -2,6 +2,7 @@
   import { enhance } from "$app/forms";
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
+  import { createApiClient, openConfirm } from "$lib";
   import TrackListItem from "$lib/components/TrackListItem.svelte";
   import { musicManager } from "$lib/music-manager.js";
   import { cn, shuffle, trackToMusicTrack } from "$lib/utils.js";
@@ -24,6 +25,7 @@
   } from "lucide-svelte";
 
   const { data } = $props();
+  const apiClient = createApiClient(data);
 </script>
 
 <div class="py-2">
@@ -45,6 +47,22 @@
 {/if}
 
 <Button href="/taglists/{data.taglist.id}/edit">Edit Taglist</Button>
+<Button
+  onclick={async () => {
+    // TODO(patrik): Better title and desc
+    const confirmed = await openConfirm({ title: "Are you sure?" });
+
+    if (confirmed) {
+      const res = await apiClient.deleteTaglist(data.taglist.id);
+      if (!res.success) {
+        // TODO(patrik): Toast
+        throw res.error.message;
+      }
+
+      goto("/taglists");
+    }
+  }}>Delete Taglist</Button
+>
 
 <form
   method="GET"

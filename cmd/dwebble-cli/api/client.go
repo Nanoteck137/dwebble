@@ -577,6 +577,22 @@ func (c *Client) CreateTaglist(body CreateTaglistBody, options Options) (*Create
 	return Request[CreateTaglist](data)
 }
 
+func (c *Client) DeleteTaglist(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/taglists/%v", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "DELETE",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) UpdateTaglist(id string, body UpdateTaglistBody, options Options) (*any, error) {
 	path := Sprintf("/api/v1/taglists/%v", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)

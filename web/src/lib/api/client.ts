@@ -152,6 +152,10 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/taglists", "POST", api.CreateTaglist, z.any(), body, options)
   }
   
+  deleteTaglist(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/taglists/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
+  }
+  
   updateTaglist(id: string, body: api.UpdateTaglistBody, options?: ExtraOptions) {
     return this.request(`/api/v1/taglists/${id}`, "PATCH", z.undefined(), z.any(), body, options)
   }
