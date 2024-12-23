@@ -1,9 +1,10 @@
 <script lang="ts">
   import Slider from "$lib/components/SeekSlider.svelte";
-  import { ScrollArea, Separator, Sheet } from "@nanoteck137/nano-ui";
+  import { Button, ScrollArea, Separator, Sheet } from "@nanoteck137/nano-ui";
   import { musicManager, type MusicTrack } from "$lib/music-manager";
   import { formatTime } from "$lib/utils";
   import {
+    ListX,
     Logs,
     Pause,
     Play,
@@ -67,7 +68,20 @@
       <Logs size="24" />
     </Sheet.Trigger>
     <Sheet.Content side="right">
-      <p class="pb-2">Queue</p>
+      <div class="flex items-center gap-2 pb-2">
+        <p>Queue</p>
+        <Button
+          class="rounded-full"
+          variant="ghost"
+          size="icon"
+          onclick={() => {
+            musicManager.clearQueue();
+          }}
+        >
+          <ListX />
+        </Button>
+      </div>
+
       <ScrollArea class="h-full pb-6">
         <div class="flex flex-col gap-2">
           {#each queue as track, i}
