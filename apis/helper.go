@@ -21,11 +21,16 @@ func User(app core.App, c pyrin.Context) (*database.User, error) {
 		ctx := context.TODO()
 		token, err := app.DB().GetApiTokenById(ctx, apiTokenHeader)
 		if err != nil {
+			if errors.Is(err, database.ErrItemNotFound) {
+				return nil, InvalidAuth("invalid api token")
+			}
+
 			return nil, err
 		}
 
 		user, err := app.DB().GetUserById(c.Request().Context(), token.UserId)
 		if err != nil {
+			// TODO(patrik): Should we handle error here?
 			return nil, err
 		}
 
@@ -35,43 +40,39 @@ func User(app core.App, c pyrin.Context) (*database.User, error) {
 	authHeader := c.Request().Header.Get("Authorization")
 	tokenString := utils.ParseAuthHeader(authHeader)
 	if tokenString == "" {
-		// TODO(patrik): Fix error
-		return nil, errors.New("Invalid auth header")
+		return nil, InvalidAuth("invalid authorization header")
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return []byte(app.Config().JwtSecret), nil
 	})
 
 	if err != nil {
-		// TODO(patrik): Fix error
-		return nil, errors.New("Invalid token")
+		// TODO(patrik): Handle error better
+		return nil, InvalidAuth("invalid authorization token")
 	}
 
 	jwtValidator := jwt.NewValidator(jwt.WithIssuedAt())
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		if err := jwtValidator.Validate(token.Claims); err != nil {
-			// TODO(patrik): Fix error
-			return nil, errors.New("Invalid token")
+			return nil, InvalidAuth("invalid authorization token")
 		}
 
 		userId := claims["userId"].(string)
 		user, err := app.DB().GetUserById(c.Request().Context(), userId)
 		if err != nil {
-			// TODO(patrik): Fix error
-			return nil, errors.New("Invalid token")
+			return nil, InvalidAuth("invalid authorization token")
 		}
 
 		return &user, nil
 	}
 
-	// TODO(patrik): Fix error
-	return nil, errors.New("Invalid token")
+	return nil, InvalidAuth("invalid authorization token")
 }
 
 func ConvertSqlNullString(value sql.NullString) *string {

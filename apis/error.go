@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	ErrTypeInvalidAuth      pyrin.ErrorType = "INVALID_AUTH"
 	ErrTypeArtistNotFound   pyrin.ErrorType = "ARTIST_NOT_FOUND"
 	ErrTypeAlbumNotFound    pyrin.ErrorType = "ALBUM_NOT_FOUND"
 	ErrTypeTrackNotFound    pyrin.ErrorType = "TRACK_NOT_FOUND"
@@ -18,6 +19,14 @@ const (
 	ErrTypeInvalidSort       pyrin.ErrorType = "INVALID_SORT"
 	ErrTypeUserAlreadyExists pyrin.ErrorType = "USER_ALREADY_EXISTS"
 )
+
+func InvalidAuth(message string) *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusBadRequest,
+		Type:    ErrTypeInvalidAuth,
+		Message: "Invalid auth: " + message,
+	}
+}
 
 func ArtistNotFound() *pyrin.Error {
 	return &pyrin.Error{
