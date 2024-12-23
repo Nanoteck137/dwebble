@@ -139,10 +139,24 @@ func (db *Database) UpdateTaglist(ctx context.Context, id string, changes Taglis
 
 	ds := dialect.Update("taglists").
 		Set(record).
-		Where(goqu.I("id").Eq(id)).
+		Where(goqu.I("taglists.id").Eq(id)).
 		Prepared(true)
 
 	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) RemoveTaglist(ctx context.Context, id string) error {
+	query := dialect.Delete("taglists").
+		Prepared(true).
+		Where(goqu.I("taglists.id").Eq(id))
+
+	// TODO(patrik): Check result?
+	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
