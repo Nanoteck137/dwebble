@@ -198,9 +198,9 @@
           <p class="text-xs">Duration: {formatTime(track.duration ?? 0)}</p>
         {/if}
 
-        {#if track.extraArtists.length > 0}
-          <p class="text-xs">Extra Artists</p>
-          {#each track.extraArtists as artist}
+        {#if track.featuringArtists.length > 0}
+          <p class="text-xs">Featuring Artists</p>
+          {#each track.featuringArtists as artist}
             <p class="pl-2 text-xs">{artist.name.default}</p>
           {/each}
         {/if}

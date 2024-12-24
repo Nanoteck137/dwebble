@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from "$app/navigation";
   import { createApiClient, openArtistQuery } from "$lib";
   import type { UIArtist } from "$lib/types.js";
   import {
@@ -8,14 +9,40 @@
     Input,
     Label,
   } from "@nanoteck137/nano-ui";
+  import { Plus, X } from "lucide-svelte";
+  import { preventDefault } from "svelte/legacy";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
 
-  let currentArtist: UIArtist = $state({
+  let name = $state(data.album.name.default);
+  let otherName = $state(data.album.name.other);
+  let year = $state(data.album.year);
+  let artist: UIArtist = $state({
     id: data.album.artistId,
     name: data.album.artistName.default,
   });
+  let featuringArtists = $state<UIArtist[]>(
+    data.album.featuringArtists.map((a) => ({
+      id: a.id,
+      name: a.name.default,
+    })),
+  );
+
+  async function submit() {
+    const res = await apiClient.editAlbum(data.album.id, {
+      name: name,
+      otherName: otherName,
+      year: year ?? 0,
+      artistId: artist.id,
+      featuringArtists: featuringArtists.map((a) => a.id),
+    });
+    if (!res.success) {
+      throw res.error.message;
+    }
+
+    goto(`/albums/${data.album.id}/edit`, { invalidateAll: true });
+  }
 </script>
 
 <div class="py-2">
@@ -44,64 +71,96 @@
   </Breadcrumb.Root>
 </div>
 
-<form action="?/submitEdit" class="flex flex-col gap-2" method="post">
+{#snippet cardContent()}
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2 sm:flex-row">
+      <div class="flex flex-col gap-2 sm:max-w-24">
+        <Label for="year">Year</Label>
+        <Input id="year" type="number" bind:value={year} />
+      </div>
+
+      <div class="flex w-full flex-col gap-2">
+        <Label for="name">Name</Label>
+        <Input id="name" type="text" bind:value={name} />
+      </div>
+    </div>
+
+    <div class="flex w-full flex-col gap-2">
+      <Label for="otherName">Other Name</Label>
+      <Input id="otherName" type="text" bind:value={otherName} />
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <p>Artist: {artist?.name}</p>
+      <p>Artist Id: {artist?.id}</p>
+    </div>
+
+    <Button
+      variant="outline"
+      onclick={async () => {
+        const res = await openArtistQuery({ apiClient });
+        if (res) {
+          artist = res;
+        }
+      }}
+    >
+      Change Artist
+    </Button>
+
+    <Label class="flex items-center gap-2">
+      Featuring Artists
+      <button
+        type="button"
+        class="hover:cursor-pointer"
+        tabindex={7}
+        onclick={async () => {
+          const res = await openArtistQuery({ apiClient });
+          if (res) {
+            const index = featuringArtists.findIndex((a) => a.id === res.id);
+            if (index === -1) {
+              featuringArtists.push(res);
+            }
+          }
+        }}
+      >
+        <Plus size="16" />
+      </button>
+    </Label>
+
+    <div class="flex flex-wrap gap-2">
+      {#each featuringArtists as artist, i}
+        <p
+          class="flex w-fit items-center gap-1 rounded-full bg-white px-2 py-1 text-xs text-black"
+          title={`${artist.id}: ${artist.name}`}
+        >
+          <button
+            type="button"
+            class="text-red-400 hover:cursor-pointer"
+            onclick={() => {
+              featuringArtists.splice(i, 1);
+            }}
+          >
+            <X size="16" />
+          </button>
+          {artist.name}
+        </p>
+      {/each}
+    </div>
+  </div>
+{/snippet}
+
+<form
+  onsubmit={(e) => {
+    e.preventDefault();
+    submit();
+  }}
+>
   <Card.Root class="mx-auto w-full max-w-[560px]">
     <Card.Header>
       <Card.Title>Edit Album Details</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <div class="flex flex-col gap-1">
-        <div class="flex items-center gap-2">
-          <Label class="w-24" for="year">Year</Label>
-          <Label for="name">Name</Label>
-        </div>
-        <div class="flex items-center gap-2">
-          <Input
-            class="w-24"
-            id="year"
-            name="year"
-            value={data.album.year}
-            type="number"
-            autocomplete="off"
-          />
-          <Input
-            class="w-full"
-            id="name"
-            name="name"
-            value={data.album.name.default}
-            type="text"
-            autocomplete="off"
-          />
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <Label for="other-name">Other Name</Label>
-        <Input
-          id="other-name"
-          name="otherName"
-          value={data.album.name.other ?? ""}
-          type="text"
-        />
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <p>Artist: {currentArtist?.name}</p>
-        <p>Artist Id: {currentArtist?.id}</p>
-        <input name="artistId" value={currentArtist?.id} type="hidden" />
-      </div>
-
-      <Button
-        variant="outline"
-        onclick={async () => {
-          const res = await openArtistQuery({ apiClient });
-          if (res) {
-            currentArtist = res;
-          }
-        }}
-      >
-        Change Artist
-      </Button>
+      {@render cardContent()}
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">
       <Button href="/albums/{data.album.id}/edit" variant="outline">

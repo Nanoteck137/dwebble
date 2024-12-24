@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button, Select } from "@nanoteck137/nano-ui";
   import type { PageData } from "./$types";
+  import ArtistList from "$lib/components/ArtistList.svelte";
 
   interface Props {
     data: PageData;
@@ -72,13 +73,7 @@
             {album.name.default}
           </a>
         </div>
-        <a
-          class="line-clamp-1 w-40 text-xs hover:underline"
-          title={album.artistName.default}
-          href="/artist/{album.artistId}"
-        >
-          {album.artistName.default}
-        </a>
+        <ArtistList artists={album.allArtists} />
         <div class="h-2"></div>
       </div>
     {/each}

@@ -21,7 +21,7 @@
     num: data.track.number ?? 0,
     year: data.track.year ?? 0,
     tags: data.track.tags.join(","),
-    extraArtists: data.track.extraArtists.map((a) => ({
+    featuringArtists: data.track.featuringArtists.map((a) => ({
       id: a.id,
       name: a.name.default,
     })),
@@ -35,7 +35,7 @@
       number: track.num,
       year: track.year,
       tags: track.tags.split(","),
-      extraArtists: track.extraArtists.map((a) => a.id),
+      featuringArtists: track.featuringArtists.map((a) => a.id),
     });
     if (!res.success) {
       // TODO(patrik): Toast

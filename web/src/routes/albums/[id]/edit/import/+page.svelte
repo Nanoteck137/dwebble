@@ -32,6 +32,7 @@
     uploadState.numTracks = tracks.length;
     uploadState.currentTrack = 1;
     for (const track of tracks) {
+      console.log(track);
       const body: UploadTrackBody = {
         name: track.name,
         otherName: track.otherName,
@@ -39,7 +40,7 @@
         artistId: track.artist.id,
         number: track.num ?? 0,
         year: track.year ?? 0,
-        extraArtists: track.extraArtists.map((a) => a.id),
+        extraArtists: track.featuringArtists.map((a) => a.id),
         tags: track.tags.split(","),
       };
 
@@ -146,7 +147,7 @@
         tracks.push({
           name: file.name,
           otherName: "",
-          extraArtists: [],
+          featuringArtists: [],
           file,
           artist: albumArtist,
           tags: "",

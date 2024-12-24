@@ -32,11 +32,11 @@ export type GetArtists = z.infer<typeof GetArtists>;
 export const GetArtistById = Artist;
 export type GetArtistById = z.infer<typeof GetArtistById>;
 
-export const ExtraArtist = z.object({
+export const ArtistInfo = z.object({
   id: z.string(),
   name: Name,
 });
-export type ExtraArtist = z.infer<typeof ExtraArtist>;
+export type ArtistInfo = z.infer<typeof ArtistInfo>;
 
 export const Album = z.object({
   id: z.string(),
@@ -45,7 +45,8 @@ export const Album = z.object({
   coverArt: Images,
   artistId: z.string(),
   artistName: Name,
-  extraArtists: z.array(ExtraArtist),
+  featuringArtists: z.array(ArtistInfo),
+  allArtists: z.array(ArtistInfo),
   created: z.number(),
   updated: z.number(),
 });
@@ -94,7 +95,8 @@ export const Track = z.object({
   albumName: Name,
   artistName: Name,
   tags: z.array(z.string()),
-  extraArtists: z.array(ExtraArtist),
+  featuringArtists: z.array(ArtistInfo),
+  allArtists: z.array(ArtistInfo),
   created: z.number(),
   updated: z.number(),
 });
@@ -111,7 +113,7 @@ export const EditAlbumBody = z.object({
   artistId: z.string().nullable().optional(),
   artistName: z.string().nullable().optional(),
   year: z.number().nullable().optional(),
-  extraArtistIds: z.array(z.string()).nullable().optional(),
+  featuringArtists: z.array(z.string()).nullable().optional(),
 });
 export type EditAlbumBody = z.infer<typeof EditAlbumBody>;
 
@@ -151,7 +153,7 @@ export const EditTrackBody = z.object({
   year: z.number().nullable().optional(),
   number: z.number().nullable().optional(),
   tags: z.array(z.string()).nullable().optional(),
-  extraArtists: z.array(z.string()).nullable().optional(),
+  featuringArtists: z.array(z.string()).nullable().optional(),
 });
 export type EditTrackBody = z.infer<typeof EditTrackBody>;
 

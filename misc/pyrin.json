@@ -107,7 +107,7 @@
       "fields": null
     },
     {
-      "name": "ExtraArtist",
+      "name": "ArtistInfo",
       "extend": "",
       "fields": [
         {
@@ -157,8 +157,13 @@
           "omit": false
         },
         {
-          "name": "extraArtists",
-          "type": "[]ExtraArtist",
+          "name": "featuringArtists",
+          "type": "[]ArtistInfo",
+          "omit": false
+        },
+        {
+          "name": "allArtists",
+          "type": "[]ArtistInfo",
           "omit": false
         },
         {
@@ -308,8 +313,13 @@
           "omit": false
         },
         {
-          "name": "extraArtists",
-          "type": "[]ExtraArtist",
+          "name": "featuringArtists",
+          "type": "[]ArtistInfo",
+          "omit": false
+        },
+        {
+          "name": "allArtists",
+          "type": "[]ArtistInfo",
           "omit": false
         },
         {
@@ -365,7 +375,7 @@
           "omit": true
         },
         {
-          "name": "extraArtistIds",
+          "name": "featuringArtists",
           "type": "*[]string",
           "omit": true
         }
@@ -485,7 +495,7 @@
           "omit": true
         },
         {
-          "name": "extraArtists",
+          "name": "featuringArtists",
           "type": "*[]string",
           "omit": true
         }

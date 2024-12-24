@@ -25,7 +25,7 @@
       />
     </div>
 
-    <div class="w-full">
+    <div class="flex w-full flex-col gap-2">
       <Label for="trackName">Name</Label>
       <Input id="trackName" type="text" tabindex={2} bind:value={track.name} />
     </div>
@@ -76,7 +76,7 @@
   </div>
 
   <Label class="flex items-center gap-2">
-    Extra Artists
+    Featuring Artists
     <button
       type="button"
       class="hover:cursor-pointer"
@@ -84,9 +84,11 @@
       onclick={async () => {
         const res = await openArtistQuery({ apiClient });
         if (res) {
-          const index = track.extraArtists.findIndex((a) => a.id === res.id);
+          const index = track.featuringArtists.findIndex(
+            (a) => a.id === res.id,
+          );
           if (index === -1) {
-            track.extraArtists.push(res);
+            track.featuringArtists.push(res);
           }
         }
       }}
@@ -96,7 +98,7 @@
   </Label>
 
   <div class="flex flex-wrap gap-2">
-    {#each track.extraArtists as artist, i}
+    {#each track.featuringArtists as artist, i}
       <p
         class="flex w-fit items-center gap-1 rounded-full bg-white px-2 py-1 text-xs text-black"
         title={`${artist.id}: ${artist.name}`}
@@ -105,7 +107,7 @@
           type="button"
           class="text-red-400 hover:cursor-pointer"
           onclick={() => {
-            track.extraArtists.splice(i, 1);
+            track.featuringArtists.splice(i, 1);
           }}
         >
           <X size="16" />

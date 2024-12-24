@@ -14,7 +14,7 @@ export type EditTrackData = {
   num?: number;
   year?: number;
   tags: string;
-  extraArtists: UIArtist[];
+  featuringArtists: UIArtist[];
 };
 
 // TODO(patrik): Replace with UIArtist

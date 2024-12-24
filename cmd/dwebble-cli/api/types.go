@@ -27,7 +27,7 @@ type GetArtists struct {
 
 type GetArtistById Artist
 
-type ExtraArtist struct {
+type ArtistInfo struct {
 	Id string `json:"id"`
 	Name Name `json:"name"`
 }
@@ -39,7 +39,8 @@ type Album struct {
 	CoverArt Images `json:"coverArt"`
 	ArtistId string `json:"artistId"`
 	ArtistName Name `json:"artistName"`
-	ExtraArtists []ExtraArtist `json:"extraArtists"`
+	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
+	AllArtists []ArtistInfo `json:"allArtists"`
 	Created int `json:"created"`
 	Updated int `json:"updated"`
 }
@@ -81,7 +82,8 @@ type Track struct {
 	AlbumName Name `json:"albumName"`
 	ArtistName Name `json:"artistName"`
 	Tags []string `json:"tags"`
-	ExtraArtists []ExtraArtist `json:"extraArtists"`
+	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
+	AllArtists []ArtistInfo `json:"allArtists"`
 	Created int `json:"created"`
 	Updated int `json:"updated"`
 }
@@ -96,7 +98,7 @@ type EditAlbumBody struct {
 	ArtistId *string `json:"artistId,omitempty"`
 	ArtistName *string `json:"artistName,omitempty"`
 	Year *int `json:"year,omitempty"`
-	ExtraArtistIds *[]string `json:"extraArtistIds,omitempty"`
+	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
 }
 
 type CreateAlbum struct {
@@ -130,7 +132,7 @@ type EditTrackBody struct {
 	Year *int `json:"year,omitempty"`
 	Number *int `json:"number,omitempty"`
 	Tags *[]string `json:"tags,omitempty"`
-	ExtraArtists *[]string `json:"extraArtists,omitempty"`
+	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
 }
 
 type UploadTrackBody struct {

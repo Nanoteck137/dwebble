@@ -22,6 +22,7 @@
   import { page } from "$app/stores";
   import TrackListItem from "$lib/components/TrackListItem.svelte";
   import { enhance } from "$app/forms";
+  import type { UIArtist } from "$lib/types.js";
 
   let { data } = $props();
 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Track } from "$lib/api/types";
+  import ArtistList from "$lib/components/ArtistList.svelte";
   import { Play } from "lucide-svelte";
   import type { Snippet } from "svelte";
 
@@ -40,19 +41,11 @@
       >
         {track.name.default}
       </p>
-
-      <p>•</p>
-
-      <a
-        class="line-clamp-1 text-xs font-light hover:underline"
-        title={track.artistName.default}
-        href={`/artists/${track.artistId}`}
-      >
-        {track.artistName.default}
-      </a>
     </div>
 
-    <p class="line-clamp-1 text-xs font-light">
+    <ArtistList class="text-muted-foreground" artists={track.allArtists} />
+
+    <p class="line-clamp-1 text-xs text-muted-foreground">
       {#if track.tags.length > 0}
         {track.tags.join(", ")}
       {:else}
