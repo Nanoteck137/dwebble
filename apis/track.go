@@ -48,8 +48,8 @@ type Track struct {
 	AlbumName  Name `json:"albumName"`
 	ArtistName Name `json:"artistName"`
 
-	Tags         []string      `json:"tags"`
-	ExtraArtists []ArtistInfo `json:"extraArtists"`
+	Tags             []string     `json:"tags"`
+	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
 
 	AllArtists []ArtistInfo `json:"allArtists"`
 
@@ -58,7 +58,7 @@ type Track struct {
 }
 
 func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
-	allArtists := make([]ArtistInfo, len(track.ExtraArtists)+1)
+	allArtists := make([]ArtistInfo, len(track.FeaturingArtists)+1)
 
 	allArtists[0] = ArtistInfo{
 		Id: track.ArtistId,
@@ -68,8 +68,8 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 		},
 	}
 
-	extraArtists := ConvertDBExtraArtists(track.ExtraArtists)
-	for i, v := range extraArtists {
+	featuringArtists := ConvertDBExtraArtists(track.FeaturingArtists)
+	for i, v := range featuringArtists {
 		allArtists[i+1] = v
 	}
 
@@ -95,11 +95,11 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 			Default: track.ArtistName,
 			Other:   ConvertSqlNullString(track.ArtistOtherName),
 		},
-		Tags:         utils.SplitString(track.Tags.String),
-		ExtraArtists: extraArtists,
-		AllArtists:   allArtists,
-		Created:      track.Created,
-		Updated:      track.Updated,
+		Tags:             utils.SplitString(track.Tags.String),
+		FeaturingArtists: featuringArtists,
+		AllArtists:       allArtists,
+		Created:          track.Created,
+		Updated:          track.Updated,
 	}
 }
 
@@ -117,11 +117,11 @@ type EditTrackBody struct {
 	OtherName *string `json:"otherName,omitempty"`
 	ArtistId  *string `json:"artistId,omitempty"`
 	// TODO(patrik): Remove artistName
-	ArtistName   *string   `json:"artistName,omitempty"`
-	Year         *int64    `json:"year,omitempty"`
-	Number       *int64    `json:"number,omitempty"`
-	Tags         *[]string `json:"tags,omitempty"`
-	ExtraArtists *[]string `json:"extraArtists,omitempty"`
+	ArtistName       *string   `json:"artistName,omitempty"`
+	Year             *int64    `json:"year,omitempty"`
+	Number           *int64    `json:"number,omitempty"`
+	Tags             *[]string `json:"tags,omitempty"`
+	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
 }
 
 func DiscardEntriesStringArray(arr []string) []string {
@@ -162,7 +162,7 @@ func (b *EditTrackBody) Transform() {
 	b.OtherName = transform.StringPtr(b.OtherName)
 	b.Tags = transform.StringArrayPtr(b.Tags)
 	b.Tags = DiscardEntriesStringArrayPtr(b.Tags)
-	b.ExtraArtists = DiscardEntriesStringArrayPtr(b.ExtraArtists)
+	b.FeaturingArtists = DiscardEntriesStringArrayPtr(b.FeaturingArtists)
 }
 
 func (b EditTrackBody) Validate() error {
@@ -503,15 +503,15 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				if body.ExtraArtists != nil {
-					extraArtists := *body.ExtraArtists
+				if body.FeaturingArtists != nil {
+					featuringArtists := *body.FeaturingArtists
 
-					err := db.RemoveAllExtraArtistsFromTrack(ctx, track.Id)
+					err := db.RemoveAllTrackFeaturingArtists(ctx, track.Id)
 					if err != nil {
 						return nil, err
 					}
 
-					for _, artistId := range extraArtists {
+					for _, artistId := range featuringArtists {
 						artist, err := db.GetArtistById(ctx, artistId)
 						if err != nil {
 							if errors.Is(err, database.ErrItemNotFound) {
@@ -525,7 +525,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 							return nil, err
 						}
 
-						err = db.AddExtraArtistToTrack(ctx, track.Id, artist.Id)
+						err = db.AddFeaturingArtistToTrack(ctx, track.Id, artist.Id)
 						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 							return nil, err
 						}
@@ -676,11 +676,6 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				err = db.RemoveAllTagsFromTrack(ctx, trackId)
-				if err != nil {
-					return nil, err
-				}
-
 				for _, tag := range body.Tags {
 					// TODO(patrik): Move slugify to transform function
 					slug := utils.Slug(tag)
@@ -710,7 +705,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 
-					err = db.AddExtraArtistToTrack(ctx, trackId, artist.Id)
+					err = db.AddFeaturingArtistToTrack(ctx, trackId, artist.Id)
 					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 						return nil, err
 					}

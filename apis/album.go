@@ -33,7 +33,7 @@ type Album struct {
 	ArtistId   string `json:"artistId"`
 	ArtistName Name   `json:"artistName"`
 
-	ExtraArtists []ArtistInfo `json:"extraArtists"`
+	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
 
 	AllArtists []ArtistInfo `json:"allArtists"`
 
@@ -42,7 +42,7 @@ type Album struct {
 }
 
 func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
-	allArtists := make([]ArtistInfo, len(album.ExtraArtists)+1)
+	allArtists := make([]ArtistInfo, len(album.FeaturingArtists)+1)
 
 	allArtists[0] = ArtistInfo{
 		Id: album.ArtistId,
@@ -52,8 +52,8 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 		},
 	}
 
-	extraArtists := ConvertDBExtraArtists(album.ExtraArtists)
-	for i, v := range extraArtists {
+	featuringArtists := ConvertDBExtraArtists(album.FeaturingArtists)
+	for i, v := range featuringArtists {
 		allArtists[i+1] = v
 	}
 
@@ -70,10 +70,10 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 			Default: album.ArtistName,
 			Other:   ConvertSqlNullString(album.ArtistOtherName),
 		},
-		ExtraArtists: extraArtists,
-		AllArtists: allArtists,
-		Created:      album.Created,
-		Updated:      album.Updated,
+		FeaturingArtists: featuringArtists,
+		AllArtists:       allArtists,
+		Created:          album.Created,
+		Updated:          album.Updated,
 	}
 }
 
@@ -90,19 +90,19 @@ type GetAlbumTracks struct {
 }
 
 type EditAlbumBody struct {
-	Name           *string   `json:"name,omitempty"`
-	OtherName      *string   `json:"otherName,omitempty"`
-	ArtistId       *string   `json:"artistId,omitempty"`
-	ArtistName     *string   `json:"artistName,omitempty"`
-	Year           *int64    `json:"year,omitempty"`
-	ExtraArtistIds *[]string `json:"extraArtistIds,omitempty"`
+	Name             *string   `json:"name,omitempty"`
+	OtherName        *string   `json:"otherName,omitempty"`
+	ArtistId         *string   `json:"artistId,omitempty"`
+	ArtistName       *string   `json:"artistName,omitempty"`
+	Year             *int64    `json:"year,omitempty"`
+	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
 }
 
 func (b *EditAlbumBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
 	b.OtherName = transform.StringPtr(b.OtherName)
 	b.ArtistName = transform.StringPtr(b.ArtistName)
-	b.ExtraArtistIds = DiscardEntriesStringArrayPtr(b.ExtraArtistIds)
+	b.FeaturingArtists = DiscardEntriesStringArrayPtr(b.FeaturingArtists)
 }
 
 func (b EditAlbumBody) Validate() error {
@@ -364,15 +364,15 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				if body.ExtraArtistIds != nil {
-					extraArtistIds := *body.ExtraArtistIds
+				if body.FeaturingArtists != nil {
+					featuringArtists := *body.FeaturingArtists
 
-					err := db.RemoveAllExtraArtistsFromAlbum(ctx, album.Id)
+					err := db.RemoveAllAlbumFeaturingArtists(ctx, album.Id)
 					if err != nil {
 						return nil, err
 					}
 
-					for _, artistId := range extraArtistIds {
+					for _, artistId := range featuringArtists {
 						artist, err := db.GetArtistById(ctx, artistId)
 						if err != nil {
 							if errors.Is(err, database.ErrItemNotFound) {
@@ -386,7 +386,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 							return nil, err
 						}
 
-						err = db.AddExtraArtistToAlbum(ctx, album.Id, artist.Id)
+						err = db.AddFeaturingArtistToAlbum(ctx, album.Id, artist.Id)
 						if err != nil {
 							return nil, err
 						}

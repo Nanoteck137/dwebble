@@ -42,7 +42,7 @@ type Track struct {
 
 	Tags sql.NullString `db:"tags"`
 
-	ExtraArtists ExtraArtists `db:"extra_artists"`
+	FeaturingArtists ExtraArtists `db:"featuring_artists"`
 }
 
 // TODO(patrik): Move down to the UpdateTrack
@@ -154,7 +154,7 @@ func TrackQuery() *goqu.SelectDataset {
 
 			goqu.I("tags.tags").As("tags"),
 
-			goqu.I("extra_artists.artists").As("extra_artists"),
+			goqu.I("featuring_artists.artists").As("featuring_artists"),
 		).
 		Prepared(true).
 		Join(
@@ -170,8 +170,8 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
 		).
 		LeftJoin(
-			ExtraArtistsQuery("tracks_extra_artists", "track_id").As("extra_artists"),
-			goqu.On(goqu.I("tracks.id").Eq(goqu.I("extra_artists.id"))),
+			ExtraArtistsQuery("tracks_featuring_artists", "track_id").As("featuring_artists"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("featuring_artists.id"))),
 		)
 
 	return query
@@ -523,12 +523,11 @@ func (db *Database) RemoveAllTagsFromTrack(ctx context.Context, trackId string) 
 	return nil
 }
 
-
 // TODO(patrik): Generalize
-func (db *Database) RemoveAllExtraArtistsFromTrack(ctx context.Context, trackId string) error {
-	query := dialect.Delete("tracks_extra_artists").
+func (db *Database) RemoveAllTrackFeaturingArtists(ctx context.Context, trackId string) error {
+	query := dialect.Delete("tracks_featuring_artists").
 		Prepared(true).
-		Where(goqu.I("tracks_extra_artists.track_id").Eq(trackId))
+		Where(goqu.I("tracks_featuring_artists.track_id").Eq(trackId))
 
 	_, err := db.Exec(ctx, query)
 	if err != nil {
@@ -539,8 +538,8 @@ func (db *Database) RemoveAllExtraArtistsFromTrack(ctx context.Context, trackId 
 }
 
 // TODO(patrik): Generalize
-func (db *Database) AddExtraArtistToTrack(ctx context.Context, trackId, artistId string) error {
-	query := dialect.Insert("tracks_extra_artists").
+func (db *Database) AddFeaturingArtistToTrack(ctx context.Context, trackId, artistId string) error {
+	query := dialect.Insert("tracks_featuring_artists").
 		Prepared(true).
 		Rows(goqu.Record{
 			"track_id":  trackId,

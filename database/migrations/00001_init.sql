@@ -26,9 +26,9 @@ CREATE TABLE albums (
     updated INTEGER NOT NULL
 );
 
-CREATE TABLE albums_extra_artists (
-    album_id TEXT NOT NULL REFERENCES albums(id),
-    artist_id TEXT NOT NULL REFERENCES artists(id),
+CREATE TABLE albums_featuring_artists (
+    album_id TEXT NOT NULL REFERENCES albums(id) ON DELETE CASCADE,
+    artist_id TEXT NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
 
     PRIMARY KEY(album_id, artist_id)
 );
@@ -52,9 +52,9 @@ CREATE TABLE tracks (
     updated INTEGER NOT NULL
 );
 
-CREATE TABLE tracks_extra_artists (
-    track_id TEXT NOT NULL REFERENCES tracks(id),
-    artist_id TEXT NOT NULL REFERENCES artists(id),
+CREATE TABLE tracks_featuring_artists (
+    track_id TEXT NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    artist_id TEXT NOT NULL REFERENCES artists(id) ON DELETE CASCADE,
 
     PRIMARY KEY(track_id, artist_id)
 );

@@ -89,13 +89,13 @@ type Album struct {
 	CoverArt sql.NullString `db:"cover_art"`
 	Year     sql.NullInt64  `db:"year"`
 
-	ArtistName      string `db:"artist_name"`
+	ArtistName      string         `db:"artist_name"`
 	ArtistOtherName sql.NullString `db:"artist_other_name"`
 
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
 
-	ExtraArtists ExtraArtists `db:"extra_artists"`
+	FeaturingArtists ExtraArtists `db:"featuring_artists"`
 }
 
 func AlbumQuery() *goqu.SelectDataset {
@@ -116,7 +116,7 @@ func AlbumQuery() *goqu.SelectDataset {
 			goqu.I("artists.name").As("artist_name"),
 			goqu.I("artists.other_name").As("artist_other_name"),
 
-			goqu.I("extra_artists.artists").As("extra_artists"),
+			goqu.I("featuring_artists.artists").As("featuring_artists"),
 		).
 		Prepared(true).
 		Join(
@@ -126,8 +126,8 @@ func AlbumQuery() *goqu.SelectDataset {
 			),
 		).
 		LeftJoin(
-			ExtraArtistsQuery("albums_extra_artists", "album_id").As("extra_artists"),
-			goqu.On(goqu.I("albums.id").Eq(goqu.I("extra_artists.id"))),
+			ExtraArtistsQuery("albums_featuring_artists", "album_id").As("featuring_artists"),
+			goqu.On(goqu.I("albums.id").Eq(goqu.I("featuring_artists.id"))),
 		)
 
 	return query
@@ -330,9 +330,10 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 }
 
 // TODO(patrik): Generalize
-func (db *Database) RemoveAllExtraArtistsFromAlbum(ctx context.Context, trackId string) error {
-	query := dialect.Delete("albums_extra_artists").
-		Where(goqu.I("albums_extra_artists.album_id").Eq(trackId))
+func (db *Database) RemoveAllAlbumFeaturingArtists(ctx context.Context, albumId string) error {
+	query := dialect.Delete("albums_featuring_artists").
+		Prepared(true).
+		Where(goqu.I("albums_featuring_artists.album_id").Eq(albumId))
 
 	_, err := db.Exec(ctx, query)
 	if err != nil {
@@ -343,8 +344,9 @@ func (db *Database) RemoveAllExtraArtistsFromAlbum(ctx context.Context, trackId 
 }
 
 // TODO(patrik): Generalize
-func (db *Database) AddExtraArtistToAlbum(ctx context.Context, albumId, artistId string) error {
-	query := dialect.Insert("albums_extra_artists").
+func (db *Database) AddFeaturingArtistToAlbum(ctx context.Context, albumId, artistId string) error {
+	query := dialect.Insert("albums_featuring_artists").
+		Prepared(true).
 		Rows(goqu.Record{
 			"album_id":  albumId,
 			"artist_id": artistId,
