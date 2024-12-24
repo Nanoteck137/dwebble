@@ -26,8 +26,6 @@ type ImportTrackData struct {
 func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkDir, data ImportTrackData) (string, error) {
 	trackId := utils.CreateTrackId()
 
-	name := data.Name
-
 	trackDir := workDir.Track(trackId)
 	err := os.Mkdir(trackDir, 0755)
 	if err != nil {
@@ -77,7 +75,11 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 
 	trackId, err = db.CreateTrack(ctx, database.CreateTrackParams{
 		Id:       trackId,
-		Name:     name,
+		Name:     data.Name,
+		OtherName: sql.NullString{
+			String: data.OtherName,
+			Valid:  data.OtherName != "",
+		},
 		AlbumId:  data.AlbumId,
 		ArtistId: data.ArtistId,
 		Duration: int64(trackInfo.Duration),
