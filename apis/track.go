@@ -49,13 +49,30 @@ type Track struct {
 	ArtistName Name `json:"artistName"`
 
 	Tags         []string      `json:"tags"`
-	ExtraArtists []ExtraArtist `json:"extraArtists"`
+	ExtraArtists []ArtistInfo `json:"extraArtists"`
+
+	AllArtists []ArtistInfo `json:"allArtists"`
 
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
 }
 
 func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
+	allArtists := make([]ArtistInfo, len(track.ExtraArtists)+1)
+
+	allArtists[0] = ArtistInfo{
+		Id: track.ArtistId,
+		Name: Name{
+			Default: track.ArtistName,
+			Other:   ConvertSqlNullString(track.ArtistOtherName),
+		},
+	}
+
+	extraArtists := ConvertDBExtraArtists(track.ExtraArtists)
+	for i, v := range extraArtists {
+		allArtists[i+1] = v
+	}
+
 	return Track{
 		Id: track.Id,
 		Name: Name{
@@ -79,7 +96,8 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 			Other:   ConvertSqlNullString(track.ArtistOtherName),
 		},
 		Tags:         utils.SplitString(track.Tags.String),
-		ExtraArtists: ConvertDBExtraArtists(track.ExtraArtists),
+		ExtraArtists: extraArtists,
+		AllArtists:   allArtists,
 		Created:      track.Created,
 		Updated:      track.Updated,
 	}

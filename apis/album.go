@@ -33,13 +33,30 @@ type Album struct {
 	ArtistId   string `json:"artistId"`
 	ArtistName Name   `json:"artistName"`
 
-	ExtraArtists []ExtraArtist `json:"extraArtists"`
+	ExtraArtists []ArtistInfo `json:"extraArtists"`
+
+	AllArtists []ArtistInfo `json:"allArtists"`
 
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
 }
 
 func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
+	allArtists := make([]ArtistInfo, len(album.ExtraArtists)+1)
+
+	allArtists[0] = ArtistInfo{
+		Id: album.ArtistId,
+		Name: Name{
+			Default: album.ArtistName,
+			Other:   ConvertSqlNullString(album.ArtistOtherName),
+		},
+	}
+
+	extraArtists := ConvertDBExtraArtists(album.ExtraArtists)
+	for i, v := range extraArtists {
+		allArtists[i+1] = v
+	}
+
 	return Album{
 		Id: album.Id,
 		Name: Name{
@@ -53,7 +70,8 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 			Default: album.ArtistName,
 			Other:   ConvertSqlNullString(album.ArtistOtherName),
 		},
-		ExtraArtists: ConvertDBExtraArtists(album.ExtraArtists),
+		ExtraArtists: extraArtists,
+		AllArtists: allArtists,
 		Created:      album.Created,
 		Updated:      album.Updated,
 	}

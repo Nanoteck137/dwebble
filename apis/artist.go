@@ -16,15 +16,15 @@ import (
 	"github.com/nanoteck137/validate"
 )
 
-type ExtraArtist struct {
+type ArtistInfo struct {
 	Id   string `json:"id"`
 	Name Name   `json:"name"`
 }
 
-func ConvertDBExtraArtists(extras database.ExtraArtists) []ExtraArtist {
-	res := []ExtraArtist{}
+func ConvertDBExtraArtists(extras database.ExtraArtists) []ArtistInfo {
+	res := []ArtistInfo{}
 	for _, extraArtist := range extras {
-		res = append(res, ExtraArtist{
+		res = append(res, ArtistInfo{
 			Id: extraArtist.Id,
 			Name: Name{
 				Default: extraArtist.Name,
