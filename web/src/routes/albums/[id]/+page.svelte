@@ -9,6 +9,7 @@
   import { musicManager } from "$lib/music-manager";
   import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
   import { EllipsisVertical, Pencil, Play } from "lucide-svelte";
+  import ArtistList from "$lib/components/ArtistList.svelte";
 
   let { data } = $props();
 </script>
@@ -37,9 +38,10 @@
   <div class="flex flex-col py-2">
     <div class="flex flex-col">
       <p class="font-bold">{data.album.name.default}</p>
-      <a class="text-xs hover:underline" href="/artists/{data.album.artistId}">
+      <ArtistList artists={data.album.allArtists} />
+      <!-- <a class="text-xs hover:underline" href="/artists/{data.album.artistId}">
         {data.album.artistName.default}
-      </a>
+      </a> -->
     </div>
 
     <div class="flex-grow"></div>
@@ -104,13 +106,14 @@
         <p class="line-clamp-1 text-sm font-medium" title={track.name.default}>
           {track.name.default}
         </p>
-        <a
+        <ArtistList artists={track.allArtists} />
+        <!-- <a
           class="line-clamp-1 w-fit text-xs hover:underline"
           title={track.artistName.default}
           href={`/artists/${track.artistId}`}
         >
           {track.artistName.default}
-        </a>
+        </a> -->
       </div>
       <div class="flex items-center gap-2">
         <p class="text-xs">

@@ -13,7 +13,7 @@
 <p class={cn("line-clamp-1 text-xs", className)}>
   {#each artists as artist, i}
     {#if i > 0}
-      {" & "}
+      {", "}
     {/if}
     <a class="hover:underline" href="/artists/{artist.id}">
       {artist.name.default}

@@ -144,6 +144,13 @@
     {#if data.album.year}
       <p class="text-xs">Year: {data.album.year}</p>
     {/if}
+
+    {#if data.album.featuringArtists.length > 0}
+      <p class="text-xs">Featuring Artists</p>
+      {#each data.album.featuringArtists as artist}
+        <p class="pl-2 text-xs">{artist.name.default}</p>
+      {/each}
+    {/if}
   </div>
 </div>
 
