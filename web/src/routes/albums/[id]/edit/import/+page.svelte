@@ -146,6 +146,7 @@
       if (file) {
         tracks.push({
           name: file.name,
+          year: data.album.year ?? undefined,
           otherName: "",
           featuringArtists: [],
           file,
