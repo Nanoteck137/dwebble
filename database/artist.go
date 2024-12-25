@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/database/adapter"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -23,9 +24,22 @@ type Artist struct {
 
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
+
+	Tags sql.NullString `db:"tags"`
 }
 
 func ArtistQuery() *goqu.SelectDataset {
+	tags := dialect.From("artists_tags").
+		Select(
+			goqu.I("artists_tags.artist_id").As("artist_id"),
+			goqu.Func("group_concat", goqu.I("tags.slug"), ",").As("tags"),
+		).
+		Join(
+			goqu.I("tags"),
+			goqu.On(goqu.I("artists_tags.tag_slug").Eq(goqu.I("tags.slug"))),
+		).
+		GroupBy(goqu.I("artists_tags.artist_id"))
+
 	query := dialect.From("artists").
 		Select(
 			"artists.id",
@@ -36,8 +50,14 @@ func ArtistQuery() *goqu.SelectDataset {
 
 			"artists.updated",
 			"artists.created",
+
+			goqu.I("tags.tags").As("tags"),
 		).
-		Prepared(true)
+		Prepared(true).
+		LeftJoin(
+			tags.As("tags"),
+			goqu.On(goqu.I("artists.id").Eq(goqu.I("tags.artist_id"))),
+		)
 
 	return query
 }
@@ -190,6 +210,46 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 		Prepared(true)
 
 	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO(patrik): Generalize
+// TODO(patrik): Rename to AddArtistTag, same with track
+func (db *Database) AddTagToArtist(ctx context.Context, tagSlug, artistId string) error {
+	ds := dialect.Insert("artists_tags").
+		Prepared(true).
+		Rows(goqu.Record{
+			"artist_id": artistId,
+			"tag_slug": tagSlug,
+		})
+
+	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		var e sqlite3.Error
+		if errors.As(err, &e) {
+			if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+				return ErrItemAlreadyExists
+			}
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+// TODO(patrik): Generalize
+// TODO(patrik): Rename to RemoveAllArtistTags, same with track
+func (db *Database) RemoveAllTagsFromArtist(ctx context.Context, artistId string) error {
+	query := dialect.Delete("artists_tags").
+		Prepared(true).
+		Where(goqu.I("artist_id").Eq(artistId))
+
+	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}

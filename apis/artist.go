@@ -42,6 +42,8 @@ type Artist struct {
 
 	Picture types.Images `json:"picture"`
 
+	Tags []string `json:"tags"`
+
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
 }
@@ -54,6 +56,7 @@ func ConvertDBArtist(c pyrin.Context, artist database.Artist) Artist {
 			Other:   ConvertSqlNullString(artist.OtherName),
 		},
 		Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
+		Tags:    utils.SplitString(artist.Tags.String),
 		Created: artist.Created,
 		Updated: artist.Updated,
 	}
@@ -72,11 +75,13 @@ type GetArtistAlbumsById struct {
 }
 
 type EditArtistBody struct {
-	Name *string `json:"name"`
+	Name *string   `json:"name"`
+	Tags *[]string `json:"tags,omitempty"`
 }
 
 func (b *EditArtistBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
+	b.Tags = DiscardEntriesStringArrayPtr(b.Tags)
 }
 
 func (b EditArtistBody) Validate() error {
@@ -264,6 +269,30 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				err = app.DB().UpdateArtist(ctx, artist.Id, changes)
 				if err != nil {
 					return nil, err
+				}
+
+				// TODO(patrik): Use transaction
+				if body.Tags != nil {
+					tags := *body.Tags
+
+					err = app.DB().RemoveAllTagsFromArtist(ctx, artist.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					for _, tag := range tags {
+						slug := utils.Slug(tag)
+
+						err := app.DB().CreateTag(ctx, slug)
+						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+							return nil, err
+						}
+
+						err = app.DB().AddTagToArtist(ctx, slug, artist.Id)
+						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+							return nil, err
+						}
+					}
 				}
 
 				return nil, nil

@@ -19,6 +19,7 @@ export const Artist = z.object({
   id: z.string(),
   name: Name,
   picture: Images,
+  tags: z.array(z.string()),
   created: z.number(),
   updated: z.number(),
 });
@@ -60,6 +61,7 @@ export type GetArtistAlbumsById = z.infer<typeof GetArtistAlbumsById>;
 
 export const EditArtistBody = z.object({
   name: z.string().nullable(),
+  tags: z.array(z.string()).nullable().optional(),
 });
 export type EditArtistBody = z.infer<typeof EditArtistBody>;
 

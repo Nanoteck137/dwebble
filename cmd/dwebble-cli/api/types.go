@@ -17,6 +17,7 @@ type Artist struct {
 	Id string `json:"id"`
 	Name Name `json:"name"`
 	Picture Images `json:"picture"`
+	Tags []string `json:"tags"`
 	Created int `json:"created"`
 	Updated int `json:"updated"`
 }
@@ -52,6 +53,7 @@ type GetArtistAlbumsById struct {
 
 type EditArtistBody struct {
 	Name *string `json:"name,omitempty"`
+	Tags *[]string `json:"tags,omitempty"`
 }
 
 type CreateArtist struct {

@@ -79,6 +79,11 @@
           "omit": false
         },
         {
+          "name": "tags",
+          "type": "[]string",
+          "omit": false
+        },
+        {
           "name": "created",
           "type": "int",
           "omit": false
@@ -202,6 +207,11 @@
           "name": "name",
           "type": "*string",
           "omit": false
+        },
+        {
+          "name": "tags",
+          "type": "*[]string",
+          "omit": true
         }
       ]
     },
