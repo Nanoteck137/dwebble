@@ -12,6 +12,7 @@ import (
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
@@ -316,7 +317,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 
 				ctx := context.TODO()
 
-				artist, err := app.DB().CreateArtist(ctx, database.CreateArtistParams{
+				artist, err := helper.CreateArtist(ctx, app.DB(), app.WorkDir(), database.CreateArtistParams{
 					Name: body.Name,
 					OtherName: sql.NullString{
 						String: body.OtherName,
@@ -334,9 +335,9 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.FormApiHandler{
-			Name:   "ChangeArtistCover",
+			Name:   "ChangeArtistPicture",
 			Method: http.MethodPost,
-			Path:   "/artists/:id/cover",
+			Path:   "/artists/:id/picture",
 			Spec: pyrin.FormSpec{
 				Files: map[string]pyrin.FormFileSpec{
 					"cover": {

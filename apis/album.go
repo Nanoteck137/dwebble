@@ -325,25 +325,26 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 						Changed: *body.ArtistId != album.ArtistId,
 					}
 				} else if body.ArtistName != nil {
-					artistName := *body.ArtistName
-
-					// TODO(patrik): Move to helper?
-					artist, err := app.DB().GetArtistByName(ctx, artistName)
-					if err != nil {
-						if errors.Is(err, database.ErrItemNotFound) {
-							artist, err = helper.CreateArtist(ctx, app.DB(), app.WorkDir(), artistName)
-							if err != nil {
-								return nil, err
-							}
-						} else {
-							return nil, err
-						}
-					}
-
-					changes.ArtistId = types.Change[string]{
-						Value:   artist.Id,
-						Changed: artist.Id != album.ArtistId,
-					}
+					// TODO(patrik): Remove ArtistName
+					// artistName := *body.ArtistName
+					//
+					// // TODO(patrik): Move to helper?
+					// artist, err := app.DB().GetArtistByName(ctx, artistName)
+					// if err != nil {
+					// 	if errors.Is(err, database.ErrItemNotFound) {
+					// 		artist, err = helper.CreateArtist(ctx, app.DB(), app.WorkDir(), artistName)
+					// 		if err != nil {
+					// 			return nil, err
+					// 		}
+					// 	} else {
+					// 		return nil, err
+					// 	}
+					// }
+					//
+					// changes.ArtistId = types.Change[string]{
+					// 	Value:   artist.Id,
+					// 	Changed: artist.Id != album.ArtistId,
+					// }
 				}
 
 				if body.Year != nil {

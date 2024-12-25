@@ -117,10 +117,8 @@ func CreateAlbum(ctx context.Context, db *database.Database, workDir types.WorkD
 	return album, nil
 }
 
-func CreateArtist(ctx context.Context, db *database.Database, workDir types.WorkDir, name string) (database.Artist, error) {
-	artist, err := db.CreateArtist(ctx, database.CreateArtistParams{
-		Name: name,
-	})
+func CreateArtist(ctx context.Context, db *database.Database, workDir types.WorkDir, params database.CreateArtistParams) (database.Artist, error) {
+	artist, err := db.CreateArtist(ctx, params)
 	if err != nil {
 		return database.Artist{}, err
 	}
