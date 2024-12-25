@@ -737,6 +737,22 @@ func (c *Client) RemoveApiToken(id string, options Options) (*any, error) {
 	return Request[any](data)
 }
 
+func (c *Client) ChangeArtistPicture(id string, body Reader, options Options) (*any, error) {
+	path := Sprintf("/api/v1/artists/%v/picture", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: nil,
+	}
+	return RequestForm[any](data, options.Boundary, body)
+}
+
 func (c *Client) ChangeAlbumCover(id string, body Reader, options Options) (*any, error) {
 	path := Sprintf("/api/v1/albums/%v/cover", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)

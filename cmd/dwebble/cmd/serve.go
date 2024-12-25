@@ -1,4 +1,4 @@
-package cli
+package cmd
 
 import (
 	"github.com/nanoteck137/dwebble/apis"
