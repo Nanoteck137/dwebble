@@ -132,7 +132,8 @@
       {data.album.name.default}
     </p>
     <p class="text-xs">
-      Artist: <a class="hover:underline" href="/artists/{data.album.artistId}">
+      Artist:
+      <a class="hover:underline" href="/artists/{data.album.artistId}">
         {data.album.artistName.default}
       </a>
     </p>

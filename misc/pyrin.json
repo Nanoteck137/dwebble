@@ -1450,6 +1450,13 @@
   ],
   "formApiEndpoints": [
     {
+      "name": "ChangeArtistPicture",
+      "method": "POST",
+      "path": "/api/v1/artists/:id/picture",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "ChangeAlbumCover",
       "method": "POST",
       "path": "/api/v1/albums/:id/cover",

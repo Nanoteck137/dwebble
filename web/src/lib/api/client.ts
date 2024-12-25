@@ -192,6 +192,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/user/apitoken/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
   }
   
+  changeArtistPicture(id: string, formData: FormData, options?: ExtraOptions) {
+    return this.requestWithFormData(`/api/v1/artists/${id}/picture`, "POST", z.undefined(), z.undefined(), formData, options)
+  }
+  
   changeAlbumCover(id: string, formData: FormData, options?: ExtraOptions) {
     return this.requestWithFormData(`/api/v1/albums/${id}/cover`, "POST", z.undefined(), z.undefined(), formData, options)
   }
