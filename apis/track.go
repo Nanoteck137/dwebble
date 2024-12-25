@@ -50,8 +50,7 @@ type Track struct {
 
 	Tags             []string     `json:"tags"`
 	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
-
-	AllArtists []ArtistInfo `json:"allArtists"`
+	AllArtists       []ArtistInfo `json:"allArtists"`
 
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`

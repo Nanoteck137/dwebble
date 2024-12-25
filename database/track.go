@@ -92,16 +92,16 @@ func ExtraArtistsQuery(table, idColName string) *goqu.SelectDataset {
 
 // TODO(patrik): Use goqu.T more
 func TrackQuery() *goqu.SelectDataset {
-	tags := dialect.From("tracks_to_tags").
+	tags := dialect.From("tracks_tags").
 		Select(
-			goqu.I("tracks_to_tags.track_id").As("track_id"),
+			goqu.I("tracks_tags.track_id").As("track_id"),
 			goqu.Func("group_concat", goqu.I("tags.slug"), ",").As("tags"),
 		).
 		Join(
 			goqu.I("tags"),
-			goqu.On(goqu.I("tracks_to_tags.tag_slug").Eq(goqu.I("tags.slug"))),
+			goqu.On(goqu.I("tracks_tags.tag_slug").Eq(goqu.I("tags.slug"))),
 		).
-		GroupBy(goqu.I("tracks_to_tags.track_id"))
+		GroupBy(goqu.I("tracks_tags.track_id"))
 
 	// TODO(patrik): Remove
 	// extraArtists := dialect.From("tracks_extra_artists").
@@ -488,7 +488,7 @@ func TrackMapNameToId(typ string, name string) string {
 }
 
 func (db *Database) AddTagToTrack(ctx context.Context, tagSlug, trackId string) error {
-	ds := dialect.Insert("tracks_to_tags").
+	ds := dialect.Insert("tracks_tags").
 		Prepared(true).
 		Rows(goqu.Record{
 			"track_id": trackId,
@@ -511,7 +511,7 @@ func (db *Database) AddTagToTrack(ctx context.Context, tagSlug, trackId string) 
 }
 
 func (db *Database) RemoveAllTagsFromTrack(ctx context.Context, trackId string) error {
-	query := dialect.Delete("tracks_to_tags").
+	query := dialect.Delete("tracks_tags").
 		Prepared(true).
 		Where(goqu.I("track_id").Eq(trackId))
 

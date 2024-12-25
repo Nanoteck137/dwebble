@@ -33,9 +33,9 @@ type Album struct {
 	ArtistId   string `json:"artistId"`
 	ArtistName Name   `json:"artistName"`
 
+	Tags             []string     `json:"tags"`
 	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
-
-	AllArtists []ArtistInfo `json:"allArtists"`
+	AllArtists       []ArtistInfo `json:"allArtists"`
 
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
@@ -70,6 +70,7 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 			Default: album.ArtistName,
 			Other:   ConvertSqlNullString(album.ArtistOtherName),
 		},
+		Tags:             utils.SplitString(album.Tags.String),
 		FeaturingArtists: featuringArtists,
 		AllArtists:       allArtists,
 		Created:          album.Created,
@@ -95,6 +96,7 @@ type EditAlbumBody struct {
 	ArtistId         *string   `json:"artistId,omitempty"`
 	ArtistName       *string   `json:"artistName,omitempty"`
 	Year             *int64    `json:"year,omitempty"`
+	Tags             *[]string `json:"tags,omitempty"`
 	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
 }
 
@@ -102,6 +104,7 @@ func (b *EditAlbumBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
 	b.OtherName = transform.StringPtr(b.OtherName)
 	b.ArtistName = transform.StringPtr(b.ArtistName)
+	b.Tags = DiscardEntriesStringArrayPtr(b.Tags)
 	b.FeaturingArtists = DiscardEntriesStringArrayPtr(b.FeaturingArtists)
 }
 
@@ -362,6 +365,29 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				err = db.UpdateAlbum(ctx, album.Id, changes)
 				if err != nil {
 					return nil, err
+				}
+
+				if body.Tags != nil {
+					tags := *body.Tags
+
+					err = db.RemoveAllTagsFromAlbum(ctx, album.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					for _, tag := range tags {
+						slug := utils.Slug(tag)
+
+						err := db.CreateTag(ctx, slug)
+						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+							return nil, err
+						}
+
+						err = db.AddTagToAlbum(ctx, slug, album.Id)
+						if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+							return nil, err
+						}
+					}
 				}
 
 				if body.FeaturingArtists != nil {

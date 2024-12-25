@@ -95,10 +95,23 @@ type Album struct {
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
 
+	Tags sql.NullString `db:"tags"`
+
 	FeaturingArtists ExtraArtists `db:"featuring_artists"`
 }
 
 func AlbumQuery() *goqu.SelectDataset {
+	tags := dialect.From("albums_tags").
+		Select(
+			goqu.I("albums_tags.album_id").As("album_id"),
+			goqu.Func("group_concat", goqu.I("tags.slug"), ",").As("tags"),
+		).
+		Join(
+			goqu.I("tags"),
+			goqu.On(goqu.I("albums_tags.tag_slug").Eq(goqu.I("tags.slug"))),
+		).
+		GroupBy(goqu.I("albums_tags.album_id"))
+
 	query := dialect.From("albums").
 		Select(
 			"albums.id",
@@ -116,6 +129,8 @@ func AlbumQuery() *goqu.SelectDataset {
 			goqu.I("artists.name").As("artist_name"),
 			goqu.I("artists.other_name").As("artist_other_name"),
 
+			goqu.I("tags.tags").As("tags"),
+
 			goqu.I("featuring_artists.artists").As("featuring_artists"),
 		).
 		Prepared(true).
@@ -124,6 +139,10 @@ func AlbumQuery() *goqu.SelectDataset {
 			goqu.On(
 				goqu.I("albums.artist_id").Eq(goqu.I("artists.id")),
 			),
+		).
+		LeftJoin(
+			tags.As("tags"),
+			goqu.On(goqu.I("albums.id").Eq(goqu.I("tags.album_id"))),
 		).
 		LeftJoin(
 			ExtraArtistsQuery("albums_featuring_artists", "album_id").As("featuring_artists"),
@@ -322,6 +341,46 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 		Prepared(true)
 
 	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// TODO(patrik): Generalize
+// TODO(patrik): Rename to AddAlbumTag, same with track
+func (db *Database) AddTagToAlbum(ctx context.Context, tagSlug, albumId string) error {
+	ds := dialect.Insert("albums_tags").
+		Prepared(true).
+		Rows(goqu.Record{
+			"album_id": albumId,
+			"tag_slug": tagSlug,
+		})
+
+	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		var e sqlite3.Error
+		if errors.As(err, &e) {
+			if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
+				return ErrItemAlreadyExists
+			}
+		}
+
+		return err
+	}
+
+	return nil
+}
+
+// TODO(patrik): Generalize
+// TODO(patrik): Rename to RemoveAllAlbumTags, same with track
+func (db *Database) RemoveAllTagsFromAlbum(ctx context.Context, albumId string) error {
+	query := dialect.Delete("albums_tags").
+		Prepared(true).
+		Where(goqu.I("album_id").Eq(albumId))
+
+	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}

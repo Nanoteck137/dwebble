@@ -9,6 +9,7 @@ CREATE TABLE artists (
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
 
+    -- TODO(patrik): Remove
     -- UNIQUE (name COLLATE NOCASE)
 );
 
@@ -63,7 +64,21 @@ CREATE TABLE tags (
     slug TEXT PRIMARY KEY
 );
 
-CREATE TABLE tracks_to_tags (
+CREATE TABLE artists_tags  (
+    artist_id TEXT REFERENCES artists(id) ON DELETE CASCADE,
+    tag_slug TEXT REFERENCES tags(slug),
+
+    PRIMARY KEY(artist_id, tag_slug)
+);
+
+CREATE TABLE albums_tags  (
+    album_id TEXT REFERENCES albums(id) ON DELETE CASCADE,
+    tag_slug TEXT REFERENCES tags(slug),
+
+    PRIMARY KEY(album_id, tag_slug)
+);
+
+CREATE TABLE tracks_tags (
     track_id TEXT REFERENCES tracks(id) ON DELETE CASCADE,
     tag_slug TEXT REFERENCES tags(slug),
 
@@ -139,9 +154,15 @@ DROP TABLE playlists;
 DROP TABLE users_settings;
 DROP TABLE users;
 
-DROP TABLE tracks_to_tags;
+DROP TABLE tracks_tags;
+DROP TABLE albums_tags;
+DROP TABLE artists_tags;
 DROP TABLE tags;
 
+DROP TABLE tracks_featuring_artists
 DROP TABLE tracks;
+
+DROP TABLE albums_featuring_artists
 DROP TABLE albums;
+
 DROP TABLE artists;

@@ -111,7 +111,7 @@ func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, bool) {
 	switch typ {
 	case "tags":
 		return filter.Table{
-			Name:       "tracks_to_tags",
+			Name:       "tracks_tags",
 			SelectName: "track_id",
 			WhereName:  "tag_slug",
 		}, true
