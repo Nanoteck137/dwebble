@@ -157,6 +157,11 @@
           "omit": false
         },
         {
+          "name": "tags",
+          "type": "[]string",
+          "omit": false
+        },
+        {
           "name": "featuringArtists",
           "type": "[]ArtistInfo",
           "omit": false
@@ -372,6 +377,11 @@
         {
           "name": "year",
           "type": "*int",
+          "omit": true
+        },
+        {
+          "name": "tags",
+          "type": "*[]string",
           "omit": true
         },
         {

@@ -45,6 +45,7 @@ export const Album = z.object({
   coverArt: Images,
   artistId: z.string(),
   artistName: Name,
+  tags: z.array(z.string()),
   featuringArtists: z.array(ArtistInfo),
   allArtists: z.array(ArtistInfo),
   created: z.number(),
@@ -113,6 +114,7 @@ export const EditAlbumBody = z.object({
   artistId: z.string().nullable().optional(),
   artistName: z.string().nullable().optional(),
   year: z.number().nullable().optional(),
+  tags: z.array(z.string()).nullable().optional(),
   featuringArtists: z.array(z.string()).nullable().optional(),
 });
 export type EditAlbumBody = z.infer<typeof EditAlbumBody>;

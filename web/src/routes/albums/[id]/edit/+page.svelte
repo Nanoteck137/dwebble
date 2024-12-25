@@ -145,6 +145,10 @@
       <p class="text-xs">Year: {data.album.year}</p>
     {/if}
 
+    {#if data.album.tags.length > 0}
+      <p class="text-xs">Tags: {data.album.tags.join(", ")}</p>
+    {/if}
+
     {#if data.album.featuringArtists.length > 0}
       <p class="text-xs">Featuring Artists</p>
       {#each data.album.featuringArtists as artist}

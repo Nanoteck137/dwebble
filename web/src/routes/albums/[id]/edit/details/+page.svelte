@@ -18,6 +18,7 @@
   let name = $state(data.album.name.default);
   let otherName = $state(data.album.name.other);
   let year = $state(data.album.year);
+  let tags = $state(data.album.tags.join(","));
   let artist: UIArtist = $state({
     id: data.album.artistId,
     name: data.album.artistName.default,
@@ -35,6 +36,7 @@
       otherName: otherName,
       year: year ?? 0,
       artistId: artist.id,
+      tags: tags.split(","),
       featuringArtists: featuringArtists.map((a) => a.id),
     });
     if (!res.success) {
@@ -88,6 +90,11 @@
     <div class="flex w-full flex-col gap-2">
       <Label for="otherName">Other Name</Label>
       <Input id="otherName" type="text" bind:value={otherName} />
+    </div>
+
+    <div class="flex w-full flex-col gap-2">
+      <Label for="tags">Tags</Label>
+      <Input id="tags" type="text" bind:value={tags} />
     </div>
 
     <div class="flex flex-col gap-2">

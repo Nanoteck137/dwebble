@@ -39,6 +39,7 @@ type Album struct {
 	CoverArt Images `json:"coverArt"`
 	ArtistId string `json:"artistId"`
 	ArtistName Name `json:"artistName"`
+	Tags []string `json:"tags"`
 	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
 	AllArtists []ArtistInfo `json:"allArtists"`
 	Created int `json:"created"`
@@ -98,6 +99,7 @@ type EditAlbumBody struct {
 	ArtistId *string `json:"artistId,omitempty"`
 	ArtistName *string `json:"artistName,omitempty"`
 	Year *int `json:"year,omitempty"`
+	Tags *[]string `json:"tags,omitempty"`
 	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
 }
 
