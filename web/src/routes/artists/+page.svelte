@@ -16,7 +16,7 @@
     {#each data.artists as artist}
       <div class="flex flex-col items-center">
         <div class="group">
-          <a href="/artists/${artist.id}">
+          <a href="/artists/{artist.id}">
             <!-- svelte-ignore a11y_img_redundant_alt -->
             <img
               class="inline-flex aspect-square w-40 min-w-40 items-center justify-center rounded border object-cover text-xs group-hover:brightness-75"
