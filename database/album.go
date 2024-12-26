@@ -14,71 +14,6 @@ import (
 	"github.com/nanoteck137/dwebble/types"
 )
 
-// TODO(patrik): Remove
-// type AlbumResolverAdapter struct {
-// }
-//
-// func (*AlbumResolverAdapter) DefaultSort() string {
-// 	return "albums.name"
-// }
-//
-// func (*AlbumResolverAdapter) MapSortName(name string) (filter.Name, error) {
-// 	// TODO(patrik): Include all available fields to sort on
-// 	switch name {
-// 	case "album":
-// 		return filter.Name{
-// 			Kind: filter.NameKindString,
-// 			Name: "albums.name",
-// 		}, nil
-// 	case "created":
-// 		return filter.Name{
-// 			Kind: filter.NameKindNumber,
-// 			Name: "albums.created",
-// 		}, nil
-// 	case "updated":
-// 		return filter.Name{
-// 			Kind: filter.NameKindNumber,
-// 			Name: "albums.updated",
-// 		}, nil
-// 	}
-//
-// 	return filter.Name{}, filter.UnknownName(name)
-//
-// }
-//
-// func (a *AlbumResolverAdapter) GetDefaultSort() string {
-// 	return "albums.name"
-// }
-//
-// func (a *AlbumResolverAdapter) MapNameToId(typ, name string) (string, error) {
-// 	return "", fmt.Errorf("Unknown name type: %s (%s)", typ, name)
-// }
-//
-// func (a *AlbumResolverAdapter) MapName(name string) (filter.Name, error) {
-// 	switch name {
-// 	case "artist":
-// 		return filter.Name{
-// 			Kind: filter.NameKindString,
-// 			Name: "artists.name",
-// 		}, nil
-// 	case "album":
-// 		return filter.Name{
-// 			Kind: filter.NameKindString,
-// 			Name: "albums.name",
-// 		}, nil
-// 	}
-//
-// 	return filter.Name{}, fmt.Errorf("Unknown name: %s", name)
-// }
-//
-// func (a *AlbumResolverAdapter) ResolveTable(typ string) (filter.Table, error) {
-// 	return filter.Table{}, fmt.Errorf("Unknown table type: %s", typ)
-// }
-//
-// func (a *AlbumResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
-// 	return nil, fmt.Errorf("Unknown function name: %s", name)
-// }
-
 type Album struct {
 	Id        string         `db:"id"`
 	Name      string         `db:"name"`
@@ -295,7 +230,6 @@ func (db *Database) RemoveAlbum(ctx context.Context, id string) error {
 		Prepared(true).
 		Where(goqu.I("albums.id").Eq(id))
 
-	// TODO(patrik): Check result?
 	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err

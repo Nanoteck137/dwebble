@@ -74,7 +74,5 @@ func Server(app core.App) (*pyrin.Server, error) {
 		},
 	})
 
-	app.DB().Invalidate()
-
 	return s, nil
 }

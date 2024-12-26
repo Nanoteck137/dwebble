@@ -8,7 +8,6 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/mattn/go-sqlite3"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database/adapter"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -43,24 +42,6 @@ type Track struct {
 	Tags sql.NullString `db:"tags"`
 
 	FeaturingArtists FeaturingArtists `db:"featuring_artists"`
-}
-
-// TODO(patrik): Move down to the UpdateTrack
-type TrackChanges struct {
-	Name      types.Change[string]
-	OtherName types.Change[sql.NullString]
-
-	AlbumId  types.Change[string]
-	ArtistId types.Change[string]
-
-	Duration types.Change[int64]
-	Number   types.Change[sql.NullInt64]
-	Year     types.Change[sql.NullInt64]
-
-	OriginalFilename types.Change[string]
-	MobileFilename   types.Change[string]
-
-	Created types.Change[int64]
 }
 
 // TODO(patrik): Move
@@ -102,29 +83,6 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.On(goqu.I("tracks_tags.tag_slug").Eq(goqu.I("tags.slug"))),
 		).
 		GroupBy(goqu.I("tracks_tags.track_id"))
-
-	// TODO(patrik): Remove
-	// extraArtists := dialect.From("tracks_extra_artists").
-	// 	Select(
-	// 		goqu.I("tracks_extra_artists.track_id").As("track_id"),
-	// 		goqu.Func(
-	// 			"json_group_array",
-	// 			goqu.Func(
-	// 				"json_object",
-	// 				"id",
-	// 				goqu.I("artists.id"),
-	// 				"name",
-	// 				goqu.I("artists.name"),
-	// 				"other_name",
-	// 				goqu.I("artists.other_name"),
-	// 			),
-	// 		).As("artists"),
-	// 	).
-	// 	Join(
-	// 		goqu.I("artists"),
-	// 		goqu.On(goqu.I("tracks_extra_artists.artist_id").Eq(goqu.I("artists.id"))),
-	// 	).
-	// 	GroupBy(goqu.I("tracks_extra_artists.track_id"))
 
 	query := dialect.From("tracks").
 		Select(
@@ -175,11 +133,6 @@ func TrackQuery() *goqu.SelectDataset {
 		)
 
 	return query
-}
-
-// TODO(patrik): Remove?
-type Scan interface {
-	Scan(dest ...any) error
 }
 
 // TODO(patrik): Move
@@ -390,11 +343,21 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	return item, nil
 }
 
-// TODO(patrik): Move
-func addToRecord[T any](record goqu.Record, name string, change types.Change[T]) {
-	if change.Changed {
-		record[name] = change.Value
-	}
+type TrackChanges struct {
+	Name      types.Change[string]
+	OtherName types.Change[sql.NullString]
+
+	AlbumId  types.Change[string]
+	ArtistId types.Change[string]
+
+	Duration types.Change[int64]
+	Number   types.Change[sql.NullInt64]
+	Year     types.Change[sql.NullInt64]
+
+	OriginalFilename types.Change[string]
+	MobileFilename   types.Change[string]
+
+	Created types.Change[int64]
 }
 
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
@@ -439,7 +402,6 @@ func (db *Database) RemoveAlbumTracks(ctx context.Context, albumId string) error
 		Prepared(true).
 		Where(goqu.I("tracks.album_id").Eq(albumId))
 
-	// TODO(patrik): Check result?
 	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err
@@ -453,7 +415,6 @@ func (db *Database) RemoveTrack(ctx context.Context, id string) error {
 		Prepared(true).
 		Where(goqu.I("tracks.id").Eq(id))
 
-	// TODO(patrik): Check result?
 	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err
@@ -462,26 +423,10 @@ func (db *Database) RemoveTrack(ctx context.Context, id string) error {
 	return nil
 }
 
-// TODO(patrik): This need cleanup
-var tags []Tag
-
-func (db *Database) Invalidate() {
-	log.Debug("Database.Invalidate")
-
-	ctx := context.Background()
-
-	tags, _ = db.GetAllTags(ctx)
-}
-
 func TrackMapNameToId(typ string, name string) string {
 	switch typ {
 	case "tags":
-		// TODO(patrik): Fix
-		// for _, t := range tags {
-		// 	if t.Name == strings.ToLower(name) {
-		// 		return t.Name
-		// 	}
-		// }
+		return name
 	}
 
 	return ""

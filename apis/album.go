@@ -94,7 +94,6 @@ type EditAlbumBody struct {
 	Name             *string   `json:"name,omitempty"`
 	OtherName        *string   `json:"otherName,omitempty"`
 	ArtistId         *string   `json:"artistId,omitempty"`
-	ArtistName       *string   `json:"artistName,omitempty"`
 	Year             *int64    `json:"year,omitempty"`
 	Tags             *[]string `json:"tags,omitempty"`
 	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
@@ -103,25 +102,15 @@ type EditAlbumBody struct {
 func (b *EditAlbumBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
 	b.OtherName = transform.StringPtr(b.OtherName)
-	b.ArtistName = transform.StringPtr(b.ArtistName)
 	b.Tags = DiscardEntriesStringArrayPtr(b.Tags)
 	b.FeaturingArtists = DiscardEntriesStringArrayPtr(b.FeaturingArtists)
 }
 
 func (b EditAlbumBody) Validate() error {
-	checkBoth := validate.By(func(value interface{}) error {
-		if b.ArtistName != nil && b.ArtistId != nil {
-			return errors.New("both 'artistId' and 'artistName' cannot be set")
-		}
-
-		return nil
-	})
-
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Name, validate.Required.When(b.Name != nil)),
 		// validate.Field(&b.OtherName, validate.Required.When(b.OtherName != nil)),
-		validate.Field(&b.ArtistId, checkBoth, validate.Required.When(b.ArtistId != nil)),
-		validate.Field(&b.ArtistName, checkBoth, validate.Required.When(b.ArtistName != nil)),
+		validate.Field(&b.ArtistId, validate.Required.When(b.ArtistId != nil)),
 		validate.Field(&b.Year, validate.Min(0)),
 	)
 }
@@ -130,7 +119,6 @@ type CreateAlbum struct {
 	AlbumId string `json:"albumId"`
 }
 
-// TODO(patrik): Add ArtistId
 type CreateAlbumBody struct {
 	Name      string `json:"name"`
 	OtherName string `json:"otherName"`
@@ -337,28 +325,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 						Value:   *body.ArtistId,
 						Changed: *body.ArtistId != album.ArtistId,
 					}
-				} else if body.ArtistName != nil {
-					// TODO(patrik): Remove ArtistName
-					// artistName := *body.ArtistName
-					//
-					// // TODO(patrik): Move to helper?
-					// artist, err := app.DB().GetArtistByName(ctx, artistName)
-					// if err != nil {
-					// 	if errors.Is(err, database.ErrItemNotFound) {
-					// 		artist, err = helper.CreateArtist(ctx, app.DB(), app.WorkDir(), artistName)
-					// 		if err != nil {
-					// 			return nil, err
-					// 		}
-					// 	} else {
-					// 		return nil, err
-					// 	}
-					// }
-					//
-					// changes.ArtistId = types.Change[string]{
-					// 	Value:   artist.Id,
-					// 	Changed: artist.Id != album.ArtistId,
-					// }
-				}
+				} 
 
 				if body.Year != nil {
 					changes.Year = types.Change[sql.NullInt64]{

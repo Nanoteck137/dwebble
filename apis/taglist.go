@@ -60,7 +60,6 @@ func (b CreateTaglistBody) Validate() error {
 	)
 }
 
-// TODO(patrik): Validation and transform
 type UpdateTaglistBody struct {
 	Name   *string `json:"name,omitempty"`
 	Filter *string `json:"filter,omitempty"`
@@ -135,6 +134,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 			Path:         "/taglists/:id",
 			Method:       http.MethodGet,
 			ResponseType: GetTaglistById{},
+			Errors:       []pyrin.ErrorType{ErrTypeTaglistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				taglistId := c.Param("id")
 
@@ -145,12 +145,15 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 
 				taglist, err := app.DB().GetTaglistById(c.Request().Context(), taglistId)
 				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TaglistNotFound()
+					}
+
 					return nil, err
 				}
 
 				if taglist.OwnerId != user.Id {
-					// TODO(patrik): Fix error
-					return nil, errors.New("No taglist")
+					return nil, TaglistNotFound()
 				}
 
 				res := GetTaglistById{
@@ -291,10 +294,10 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "DeleteTaglist",
-			Path:     "/taglists/:id",
-			Method:   http.MethodDelete,
-			Errors:   []pyrin.ErrorType{ErrTypeTaglistNotFound},
+			Name:   "DeleteTaglist",
+			Path:   "/taglists/:id",
+			Method: http.MethodDelete,
+			Errors: []pyrin.ErrorType{ErrTypeTaglistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				taglistId := c.Param("id")
 

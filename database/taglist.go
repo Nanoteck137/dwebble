@@ -155,7 +155,6 @@ func (db *Database) RemoveTaglist(ctx context.Context, id string) error {
 		Prepared(true).
 		Where(goqu.I("taglists.id").Eq(id))
 
-	// TODO(patrik): Check result?
 	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err

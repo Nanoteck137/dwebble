@@ -64,7 +64,6 @@ func (app *BaseApp) Bootstrap() error {
 		return err
 	}
 
-	// TODO(patrik): Move to workdir
 	_, err = os.Stat(workDir.SetupFile())
 	if errors.Is(err, os.ErrNotExist) {
 		log.Info("Server not setup, creating the initial user")

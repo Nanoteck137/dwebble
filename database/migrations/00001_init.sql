@@ -8,9 +8,6 @@ CREATE TABLE artists (
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
-
-    -- TODO(patrik): Remove
-    -- UNIQUE (name COLLATE NOCASE)
 );
 
 CREATE TABLE albums (
@@ -126,7 +123,6 @@ CREATE TABLE taglists (
 
     filter TEXT NOT NULL,
 
-    -- TODO(patrik): Nullable for system lists
     owner_id TEXT NOT NULL REFERENCES users(id),
 
     created INTEGER NOT NULL,
