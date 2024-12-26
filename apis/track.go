@@ -67,7 +67,7 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 		},
 	}
 
-	featuringArtists := ConvertDBExtraArtists(track.FeaturingArtists)
+	featuringArtists := ConvertDBFeaturingArtists(track.FeaturingArtists)
 	for i, v := range featuringArtists {
 		allArtists[i+1] = v
 	}
@@ -205,7 +205,7 @@ type UploadTrackBody struct {
 	ArtistId string `json:"artistId"`
 
 	Tags         []string `json:"tags"`
-	ExtraArtists []string `json:"extraArtists"`
+	FeaturingArtists []string `json:"featuringArtists"`
 }
 
 // TODO(patrik): Move to pyrin
@@ -227,8 +227,8 @@ func (b *UploadTrackBody) Transform() {
 
 	b.Tags = StringArray(b.Tags)
 	b.Tags = DiscardEntriesStringArray(b.Tags)
-	b.ExtraArtists = StringArray(b.ExtraArtists)
-	b.ExtraArtists = DiscardEntriesStringArray(b.ExtraArtists)
+	b.FeaturingArtists = StringArray(b.FeaturingArtists)
+	b.FeaturingArtists = DiscardEntriesStringArray(b.FeaturingArtists)
 }
 
 func (b UploadTrackBody) Validate() error {
@@ -691,7 +691,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				for _, artistId := range body.ExtraArtists {
+				for _, artistId := range body.FeaturingArtists {
 					artist, err := db.GetArtistById(ctx, artistId)
 					if err != nil {
 						if errors.Is(err, database.ErrItemNotFound) {

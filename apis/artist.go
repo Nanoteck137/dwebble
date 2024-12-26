@@ -25,7 +25,7 @@ type ArtistInfo struct {
 	Name Name   `json:"name"`
 }
 
-func ConvertDBExtraArtists(extras database.ExtraArtists) []ArtistInfo {
+func ConvertDBFeaturingArtists(extras database.FeaturingArtists) []ArtistInfo {
 	res := []ArtistInfo{}
 	for _, extraArtist := range extras {
 		res = append(res, ArtistInfo{

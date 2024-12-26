@@ -52,7 +52,7 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 		},
 	}
 
-	featuringArtists := ConvertDBExtraArtists(album.FeaturingArtists)
+	featuringArtists := ConvertDBFeaturingArtists(album.FeaturingArtists)
 	for i, v := range featuringArtists {
 		allArtists[i+1] = v
 	}
