@@ -10,6 +10,7 @@
   import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
   import { EllipsisVertical, Pencil, Play } from "lucide-svelte";
   import ArtistList from "$lib/components/ArtistList.svelte";
+  import TrackListItem from "$lib/components/TrackListItem.svelte";
 
   let { data } = $props();
 </script>
@@ -47,7 +48,19 @@
     <div class="flex-grow"></div>
 
     <div>
-      <Button variant="outline">
+      <Button
+        variant="outline"
+        onclick={() => {
+          musicManager.clearQueue();
+
+          for (const track of data.tracks) {
+            musicManager.addTrackToQueue(trackToMusicTrack(track), false);
+          }
+
+          musicManager.setQueueIndex(0);
+          musicManager.requestPlay();
+        }}
+      >
         <Play />
         Play
       </Button>
@@ -80,87 +93,20 @@
 
 <div class="flex flex-col gap-2">
   {#each data.tracks as track, i}
-    <div class="group flex items-center gap-2 py-1 pr-4">
-      <p class="min-w-10 text-right text-sm font-medium group-hover:hidden">
-        {#if track.number}
-          <span>{track.number}.</span>
-        {/if}
-      </p>
-      <button
-        class="hidden h-10 w-10 items-center justify-end group-hover:flex"
-        onclick={() => {
-          musicManager.clearQueue();
+    <TrackListItem
+      {track}
+      showNumber={true}
+      onPlayClicked={() => {
+        musicManager.clearQueue();
 
-          data.tracks.forEach((t) =>
-            musicManager.addTrackToQueue(trackToMusicTrack(t), false),
-          );
+        for (const track of data.tracks) {
+          musicManager.addTrackToQueue(trackToMusicTrack(track), false);
+        }
 
-          musicManager.setQueueIndex(i);
-
-          musicManager.requestPlay();
-        }}
-      >
-        <Play size="20" />
-      </button>
-      <div class="flex flex-grow flex-col py-1">
-        <p class="line-clamp-1 text-sm font-medium" title={track.name.default}>
-          {track.name.default}
-        </p>
-        <ArtistList artists={track.allArtists} />
-        <!-- <a
-          class="line-clamp-1 w-fit text-xs hover:underline"
-          title={track.artistName.default}
-          href={`/artists/${track.artistId}`}
-        >
-          {track.artistName.default}
-        </a> -->
-      </div>
-      <div class="flex items-center gap-2">
-        <p class="text-xs">
-          {formatTime(track.duration ?? 0)}
-        </p>
-        <!-- <button
-              class="hidden rounded-full p-1 hover:bg-black/20 group-hover:block"
-            >
-            </button> -->
-
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger
-            class={cn(
-              buttonVariants({ variant: "ghost", size: "icon" }),
-              "rounded-full",
-            )}
-          >
-            <EllipsisVertical />
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content align="end">
-            <DropdownMenu.Group>
-              <DropdownMenu.Item>
-                <button
-                  class="flex w-full items-center gap-2"
-                  onclick={() => {
-                    musicManager.clearQueue();
-
-                    data.tracks.forEach((t) =>
-                      musicManager.addTrackToQueue(
-                        trackToMusicTrack(t),
-                        false,
-                      ),
-                    );
-
-                    musicManager.setQueueIndex(i);
-                    musicManager.requestPlay();
-                  }}
-                >
-                  <Play size="16" />
-                  Play
-                </button>
-              </DropdownMenu.Item>
-            </DropdownMenu.Group>
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
-      </div>
-    </div>
+        musicManager.setQueueIndex(i);
+        musicManager.requestPlay();
+      }}
+    />
     <Separator />
   {/each}
 </div>
