@@ -592,6 +592,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				body, err := pyrin.Body[UploadTrackBody](c)
 				if err != nil {
+					pretty.Println(err)
 					return nil, err
 				}
 

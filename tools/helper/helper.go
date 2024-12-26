@@ -47,6 +47,7 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		return "", err
 	}
 
+	// TODO(patrik): Remove
 	// dateRegex := regexp.MustCompile(`^([12]\d\d\d)`)
 	// if tag, exists := trackInfo.Tags["title"]; exists {
 	// 	name = tag

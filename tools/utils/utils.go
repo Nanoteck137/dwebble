@@ -95,10 +95,9 @@ func Decode(input interface{}, output interface{}) error {
 }
 
 var validExts []string = []string{
-	"wav",
-	"m4a",
-	"flac",
-	"mp3",
+	".wav",
+	".flac",
+	".opus",
 }
 
 func IsValidTrackExt(ext string) bool {
@@ -377,8 +376,6 @@ func ProbeTrack(filepath string) (ProbeResult, error) {
 	if err != nil {
 		return ProbeResult{}, err
 	}
-
-	fmt.Printf("string(data): %v\n", string(data))
 
 	var probe probe
 	err = json.Unmarshal(data, &probe)
