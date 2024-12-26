@@ -96,19 +96,19 @@
                 />
                 {#if i == currentQueueIndex}
                   <div
-                    class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center rounded border bg-black/80"
+                    class="absolute bottom-0 left-0 right-0 top-0 flex items-center justify-center rounded border bg-muted/80"
                   >
-                    <Play size="25" />
+                    <Play class="text-muted-foreground" size="25" />
                   </div>
                 {:else}
                   <button
-                    class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center border bg-black/80 group-hover:flex`}
+                    class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center rounded border bg-muted/80 group-hover:flex`}
                     onclick={() => {
                       musicManager.setQueueIndex(i);
                       musicManager.requestPlay();
                     }}
                   >
-                    <Play size="25" />
+                    <Play class="text-muted-foreground" size="25" />
                   </button>
                 {/if}
               </div>
