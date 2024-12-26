@@ -136,7 +136,7 @@
               variant="ghost"
               size="icon-lg"
             >
-              <Star fill="#ffffff" />
+              <Star class="fill-primary" />
             </Button>
           </form>
         {:else}
