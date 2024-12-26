@@ -1,6 +1,9 @@
 // place files you want to import through the `$lib` alias in this folder.
 
 import { ApiClient } from "$lib/api/client";
+import AddToPlaylistModal, {
+  type Props as AddToPlaylistModalProps,
+} from "$lib/components/modals/AddToPlaylistModal.svelte";
 import ConfirmModal, {
   type Props as ConfirmModalProps,
 } from "$lib/components/modals/ConfirmModal.svelte";
@@ -13,6 +16,10 @@ import QueryArtistModal, {
 import type { UIArtist } from "$lib/types";
 import { modals } from "svelte-modals";
 import { writable, type Writable } from "svelte/store";
+
+export function openAddToPlaylist(props: AddToPlaylistModalProps) {
+  return modals.open(AddToPlaylistModal, props);
+}
 
 export function openConfirm(props: ConfirmModalProps) {
   return modals.open(ConfirmModal, props);

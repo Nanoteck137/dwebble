@@ -23,8 +23,10 @@
   import TrackListItem from "$lib/components/TrackListItem.svelte";
   import { enhance } from "$app/forms";
   import type { UIArtist } from "$lib/types.js";
+  import { createApiClient, openAddToPlaylist } from "$lib";
 
   let { data } = $props();
+  const apiClient = createApiClient(data);
 
   function isInQuickPlaylist(trackId: string) {
     if (!data.quickPlaylistIds) return false;
@@ -182,6 +184,20 @@
                 <Users size="16" />
                 Go to Artist
               </a>
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              onSelect={() => {
+                if (!data.userPlaylists) return;
+
+                openAddToPlaylist({
+                  apiClient,
+                  playlists: data.userPlaylists,
+                  track,
+                });
+              }}
+            >
+              <Users size="16" />
+              Save to Playlist
             </DropdownMenu.Item>
           </DropdownMenu.Group>
         </DropdownMenu.Content>
