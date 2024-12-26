@@ -25,14 +25,17 @@
       {#if link}
         <a
           class="line-clamp-1 w-fit text-sm font-medium hover:underline"
-          title={album.name}
+          title={album.name.default}
           href="/albums/{album.id}"
         >
-          {album.name}
+          {album.name.default}
         </a>
       {:else}
-        <p class="line-clamp-1 w-fit text-sm font-medium" title={album.name}>
-          {album.name}
+        <p
+          class="line-clamp-1 w-fit text-sm font-medium"
+          title={album.name.default}
+        >
+          {album.name.default}
         </p>
       {/if}
 
@@ -40,10 +43,10 @@
 
       <a
         class="line-clamp-1 text-xs font-light hover:underline"
-        title={album.artistName}
+        title={album.artistName.default}
         href={`/artists/${album.artistId}`}
       >
-        {album.artistName}
+        {album.artistName.default}
       </a>
     </div>
 

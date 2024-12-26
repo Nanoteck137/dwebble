@@ -25,14 +25,17 @@
       {#if link}
         <a
           class="line-clamp-1 w-fit text-sm font-medium hover:underline"
-          title={artist.name}
+          title={artist.name.default}
           href="/artists/{artist.id}"
         >
-          {artist.name}
+          {artist.name.default}
         </a>
       {:else}
-        <p class="line-clamp-1 w-fit text-sm font-medium" title={artist.name}>
-          {artist.name}
+        <p
+          class="line-clamp-1 w-fit text-sm font-medium"
+          title={artist.name.default}
+        >
+          {artist.name.default}
         </p>
       {/if}
     </div>
