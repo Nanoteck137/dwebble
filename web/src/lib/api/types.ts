@@ -128,7 +128,11 @@ export type CreateAlbum = z.infer<typeof CreateAlbum>;
 
 export const CreateAlbumBody = z.object({
   name: z.string(),
+  otherName: z.string(),
   artistId: z.string(),
+  year: z.number(),
+  tags: z.array(z.string()),
+  featuringArtists: z.array(z.string()),
 });
 export type CreateAlbumBody = z.infer<typeof CreateAlbumBody>;
 

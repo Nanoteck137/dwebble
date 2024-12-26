@@ -27,6 +27,7 @@ type ImportDataAlbum struct {
 	Name      string   `toml:"name"`
 	OtherName string   `toml:"other_name"`
 	Artists   []string `toml:"artists"`
+	Year      int      `toml:"year"`
 	Tags      []string `toml:"tags"`
 }
 
@@ -164,14 +165,18 @@ var importCmd = &cobra.Command{
 			artists: map[string]string{},
 		}
 
-		artistId, err := c.GetOrCreateArtist(data.Album.Artists[0])
+		artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(data.Album.Artists)
 		if err != nil {
 			log.Fatal("Failed to get/create album artist", "err", err)
 		}
 
 		album, err := client.CreateAlbum(api.CreateAlbumBody{
-			Name:     data.Album.Name,
-			ArtistId: artistId,
+			Name:             data.Album.Name,
+			OtherName:        data.Album.OtherName,
+			ArtistId:         artistId,
+			Year:             data.Album.Year,
+			Tags:             data.Album.Tags,
+			FeaturingArtists: featuringArtists,
 		}, api.Options{})
 		if err != nil {
 			log.Fatal("Failed", "err", err)

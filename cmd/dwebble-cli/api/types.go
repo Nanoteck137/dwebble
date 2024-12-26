@@ -111,7 +111,11 @@ type CreateAlbum struct {
 
 type CreateAlbumBody struct {
 	Name string `json:"name"`
+	OtherName string `json:"otherName"`
 	ArtistId string `json:"artistId"`
+	Year int `json:"year"`
+	Tags []string `json:"tags"`
+	FeaturingArtists []string `json:"featuringArtists"`
 }
 
 type Page struct {

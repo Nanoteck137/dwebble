@@ -132,13 +132,26 @@ type CreateAlbum struct {
 
 // TODO(patrik): Add ArtistId
 type CreateAlbumBody struct {
-	Name     string `json:"name"`
+	Name      string `json:"name"`
+	OtherName string `json:"otherName"`
+
 	ArtistId string `json:"artistId"`
+
+	Year int64 `json:"year"`
+
+	Tags             []string `json:"tags"`
+	FeaturingArtists []string `json:"featuringArtists"`
 }
 
 func (b *CreateAlbumBody) Transform() {
 	b.Name = transform.String(b.Name)
+	b.OtherName = transform.String(b.OtherName)
 	b.ArtistId = transform.String(b.ArtistId)
+
+	b.Tags = StringArray(b.Tags)
+	b.Tags = DiscardEntriesStringArray(b.Tags)
+	b.FeaturingArtists = StringArray(b.FeaturingArtists)
+	b.FeaturingArtists = DiscardEntriesStringArray(b.FeaturingArtists)
 }
 
 func (b CreateAlbumBody) Validate() error {
@@ -523,10 +536,64 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				album, err := helper.CreateAlbum(ctx, app.DB(), app.WorkDir(), database.CreateAlbumParams{
-					Name:     body.Name,
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
+				album, err := helper.CreateAlbum(ctx, db, app.WorkDir(), database.CreateAlbumParams{
+					Name: body.Name,
+					OtherName: sql.NullString{
+						String: body.OtherName,
+						Valid:  body.OtherName != "",
+					},
 					ArtistId: artist.Id,
+					Year: sql.NullInt64{
+						Int64: body.Year,
+						Valid: body.Year != 0,
+					},
 				})
+				if err != nil {
+					return nil, err
+				}
+
+				for _, tag := range body.Tags {
+					// TODO(patrik): Move slugify to transform function
+					slug := utils.Slug(tag)
+
+					err := db.CreateTag(ctx, slug)
+					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+						return nil, err
+					}
+
+					err = db.AddTagToAlbum(ctx, slug, album.Id)
+					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+						return nil, err
+					}
+				}
+
+				for _, artistId := range body.FeaturingArtists {
+					artist, err := db.GetArtistById(ctx, artistId)
+					if err != nil {
+						if errors.Is(err, database.ErrItemNotFound) {
+							// TODO(patrik): Should we just be
+							// silently continuing
+							// NOTE(patrik): If we don't find the artist
+							// we just silently continue
+							continue
+						}
+
+						return nil, err
+					}
+
+					err = db.AddFeaturingArtistToAlbum(ctx, album.Id, artist.Id)
+					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+						return nil, err
+					}
+				}
+
+				err = tx.Commit()
 				if err != nil {
 					return nil, err
 				}

@@ -422,8 +422,28 @@
           "omit": false
         },
         {
+          "name": "otherName",
+          "type": "string",
+          "omit": false
+        },
+        {
           "name": "artistId",
           "type": "string",
+          "omit": false
+        },
+        {
+          "name": "year",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omit": false
+        },
+        {
+          "name": "featuringArtists",
+          "type": "[]string",
           "omit": false
         }
       ]
