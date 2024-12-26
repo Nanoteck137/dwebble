@@ -42,7 +42,7 @@ type Track struct {
 
 	Tags sql.NullString `db:"tags"`
 
-	FeaturingArtists ExtraArtists `db:"featuring_artists"`
+	FeaturingArtists FeaturingArtists `db:"featuring_artists"`
 }
 
 // TODO(patrik): Move down to the UpdateTrack
@@ -64,7 +64,7 @@ type TrackChanges struct {
 }
 
 // TODO(patrik): Move
-func ExtraArtistsQuery(table, idColName string) *goqu.SelectDataset {
+func FeaturingArtistsQuery(table, idColName string) *goqu.SelectDataset {
 	tbl := goqu.T(table)
 
 	return dialect.From(tbl).
@@ -170,7 +170,7 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
 		).
 		LeftJoin(
-			ExtraArtistsQuery("tracks_featuring_artists", "track_id").As("featuring_artists"),
+			FeaturingArtistsQuery("tracks_featuring_artists", "track_id").As("featuring_artists"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("featuring_artists.id"))),
 		)
 

@@ -151,7 +151,7 @@ type UploadTrackBody struct {
 	AlbumId string `json:"albumId"`
 	ArtistId string `json:"artistId"`
 	Tags []string `json:"tags"`
-	ExtraArtists []string `json:"extraArtists"`
+	FeaturingArtists []string `json:"featuringArtists"`
 }
 
 type Signup struct {

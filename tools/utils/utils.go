@@ -251,9 +251,9 @@ func SymlinkReplace(src, dst string) error {
 }
 
 var validImageExts = []string{
-	"png",
-	"jpg",
-	"jpeg",
+	".png",
+	".jpg",
+	".jpeg",
 }
 
 func IsValidImageExt(ext string) bool {

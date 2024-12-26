@@ -7,19 +7,19 @@ import (
 	"fmt"
 )
 
-type ExtraArtist struct {
+type FeaturingArtist struct {
 	Id        string  `json:"id"`
 	Name      string  `json:"name"`
 	OtherName *string `json:"other_name"`
 }
 
-type ExtraArtists []ExtraArtist
+type FeaturingArtists []FeaturingArtist
 
-func (s ExtraArtists) Value() (driver.Value, error) {
+func (s FeaturingArtists) Value() (driver.Value, error) {
 	return json.Marshal(s)
 }
 
-func (v *ExtraArtists) Scan(value any) error {
+func (v *FeaturingArtists) Scan(value any) error {
 	if value == nil {
 		return nil
 	}

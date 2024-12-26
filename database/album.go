@@ -97,7 +97,7 @@ type Album struct {
 
 	Tags sql.NullString `db:"tags"`
 
-	FeaturingArtists ExtraArtists `db:"featuring_artists"`
+	FeaturingArtists FeaturingArtists `db:"featuring_artists"`
 }
 
 func AlbumQuery() *goqu.SelectDataset {
@@ -145,7 +145,7 @@ func AlbumQuery() *goqu.SelectDataset {
 			goqu.On(goqu.I("albums.id").Eq(goqu.I("tags.album_id"))),
 		).
 		LeftJoin(
-			ExtraArtistsQuery("albums_featuring_artists", "album_id").As("featuring_artists"),
+			FeaturingArtistsQuery("albums_featuring_artists", "album_id").As("featuring_artists"),
 			goqu.On(goqu.I("albums.id").Eq(goqu.I("featuring_artists.id"))),
 		)
 

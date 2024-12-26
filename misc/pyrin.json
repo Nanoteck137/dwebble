@@ -581,7 +581,7 @@
           "omit": false
         },
         {
-          "name": "extraArtists",
+          "name": "featuringArtists",
           "type": "[]string",
           "omit": false
         }

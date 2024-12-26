@@ -24,11 +24,12 @@ import (
 )
 
 type ImportDataAlbum struct {
-	Name      string   `toml:"name"`
-	OtherName string   `toml:"other_name"`
-	Artists   []string `toml:"artists"`
-	Year      int      `toml:"year"`
-	Tags      []string `toml:"tags"`
+	Name          string   `toml:"name"`
+	OtherName     string   `toml:"other_name"`
+	Artists       []string `toml:"artists"`
+	Year          int      `toml:"year"`
+	Tags          []string `toml:"tags"`
+	CoverArtFilename string   `toml:"coverArtFilename"`
 }
 
 type ImportDataTrack struct {
@@ -149,14 +150,10 @@ var importCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		dir, _ := cmd.Flags().GetString("dir")
 
-		fmt.Printf("dir: %v\n", dir)
-
 		data, err := getImportData(dir)
 		if err != nil {
 			log.Fatal("Failed to get import data", "err", err)
 		}
-
-		pretty.Println(data)
 
 		client := api.New("http://localhost:3000")
 
@@ -182,7 +179,56 @@ var importCmd = &cobra.Command{
 			log.Fatal("Failed", "err", err)
 		}
 
-		fmt.Printf("album.AlbumId: %v\n", album.AlbumId)
+		setAlbumCoverArt := func() error {
+			var b bytes.Buffer
+			w := multipart.NewWriter(&b)
+
+			{
+				dw, err := w.CreateFormFile("cover", data.Album.CoverArtFilename)
+				if err != nil {
+					return err
+				}
+
+				src, err := os.Open(path.Join(dir, data.Album.CoverArtFilename))
+				if err != nil {
+					return err
+				}
+
+				_, err = io.Copy(dw, src)
+				if err != nil {
+					return err
+				}
+			}
+
+			err = w.Close()
+			if err != nil {
+				return err
+			}
+
+			_, err = client.ChangeAlbumCover(album.AlbumId, &b, api.Options{
+				Boundary: w.Boundary(),
+			})
+			if err != nil {
+				var apiErr *api.ApiError[any]
+				if errors.As(err, &apiErr) {
+					pretty.Println(apiErr)
+				}
+
+				return err
+			}
+
+			return nil
+
+		}
+
+		fmt.Printf("Created album: (%s)\n", album.AlbumId)
+
+		fmt.Printf("Setting album cover art...")
+		err = setAlbumCoverArt()
+		if err != nil {
+			log.Fatal("Failed to set album cover art", "err", err)
+		}
+		fmt.Printf("done\n")
 
 		uploadTrack := func(track ImportDataTrack) error {
 			var b bytes.Buffer
@@ -207,14 +253,14 @@ var importCmd = &cobra.Command{
 				}
 
 				body := api.UploadTrackBody{
-					Name:         track.Name,
-					OtherName:    track.OtherName,
-					Number:       track.Number,
-					Year:         track.Year,
-					AlbumId:      album.AlbumId,
-					ArtistId:     artistId,
-					Tags:         tags,
-					ExtraArtists: featuringArtists,
+					Name:             track.Name,
+					OtherName:        track.OtherName,
+					Number:           track.Number,
+					Year:             track.Year,
+					AlbumId:          album.AlbumId,
+					ArtistId:         artistId,
+					Tags:             tags,
+					FeaturingArtists: featuringArtists,
 				}
 
 				encoder := json.NewEncoder(dw)
@@ -262,12 +308,13 @@ var importCmd = &cobra.Command{
 			return nil
 		}
 
-		for _, track := range data.Tracks {
-			fmt.Printf("track.Name: %v\n", track.Name)
+		for i, track := range data.Tracks {
+			fmt.Printf("Uploading track (%02d/%d): %s...", i + 1, len(data.Tracks), track.Name)
 			err = uploadTrack(track)
 			if err != nil {
 				log.Fatal("Failed to upload track", "err", err)
 			}
+			fmt.Printf("done\n")
 		}
 
 	},
@@ -328,13 +375,19 @@ var importInitCmd = &cobra.Command{
 
 		var importData ImportData
 
+		var images []string
 		var tracks []string
 
+		// TODO(patrik): Search only the top-level directory
 		filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
 			ext := path.Ext(p)
 
 			if utils.IsValidTrackExt(ext) {
 				tracks = append(tracks, p)
+			}
+
+			if utils.IsValidImageExt(ext) {
+				images = append(images, p)
 			}
 
 			return nil
@@ -386,6 +439,20 @@ var importInitCmd = &cobra.Command{
 					importData.Album.Artists = parseArtist(tag)
 				}
 			}
+
+			if tag, exists := probe.Tags["date"]; exists {
+				match := dateRegex.FindStringSubmatch(tag)
+				if len(match) > 0 {
+					importData.Album.Year, _ = strconv.Atoi(match[1])
+				}
+			}
+		}
+
+		if len(images) > 0 {
+			p := images[0]
+			filename := path.Base(p)
+
+			importData.Album.CoverArtFilename = filename
 		}
 
 		data, err := toml.Marshal(importData)

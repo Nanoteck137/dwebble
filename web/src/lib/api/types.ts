@@ -173,7 +173,7 @@ export const UploadTrackBody = z.object({
   albumId: z.string(),
   artistId: z.string(),
   tags: z.array(z.string()),
-  extraArtists: z.array(z.string()),
+  featuringArtists: z.array(z.string()),
 });
 export type UploadTrackBody = z.infer<typeof UploadTrackBody>;
 
