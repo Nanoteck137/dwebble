@@ -4,7 +4,9 @@
   import type { UploadTrackBody } from "$lib/api/types.js";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import type { EditTrackData, UIArtist } from "$lib/types.js";
+  import { formatError } from "$lib/utils.js";
   import { Breadcrumb, Button, Card, Separator } from "@nanoteck137/nano-ui";
+  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -50,8 +52,9 @@
 
       const res = await apiClient.uploadTrack(trackData);
       if (!res.success) {
-        // TODO(patrik): Toast
-        console.log(res.error.message);
+        // TODO(patrik): Should the toast include the error message?
+        toast.error("Unknown error");
+        throw formatError(res.error);
       }
       uploadState.currentTrack += 1;
     }

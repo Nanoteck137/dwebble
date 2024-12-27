@@ -20,6 +20,7 @@
   import { fade, fly } from "svelte/transition";
   import { Button } from "@nanoteck137/nano-ui";
   import { modals, Modals } from "svelte-modals";
+  import { Toaster } from "svelte-5-french-toast";
   import { navigating } from "$app/stores";
 
   let { children, data } = $props();
@@ -51,6 +52,7 @@
   <title>Dwebble</title>
 </svelte:head>
 
+<Toaster position="bottom-right" />
 <Modals />
 
 <header

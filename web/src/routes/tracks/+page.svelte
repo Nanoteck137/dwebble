@@ -18,7 +18,7 @@
     Input,
     Pagination,
   } from "@nanoteck137/nano-ui";
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import TrackListItem from "$lib/components/TrackListItem.svelte";
   import { enhance } from "$app/forms";
@@ -186,14 +186,15 @@
               </a>
             </DropdownMenu.Item>
             <DropdownMenu.Item
-              onSelect={() => {
+              onSelect={async () => {
                 if (!data.userPlaylists) return;
 
-                openAddToPlaylist({
+                await openAddToPlaylist({
                   apiClient,
                   playlists: data.userPlaylists,
                   track,
                 });
+                await invalidateAll();
               }}
             >
               <Users size="16" />

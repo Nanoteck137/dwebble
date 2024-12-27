@@ -3,7 +3,9 @@
   import type { ApiClient } from "$lib/api/client";
   import { GetArtistById } from "$lib/api/types";
   import type { QueryArtist, UIArtist } from "$lib/types";
+  import { formatError } from "$lib/utils";
   import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
+  import toast from "svelte-5-french-toast";
   import type { ModalProps } from "svelte-modals";
 
   export type Props = {
@@ -73,8 +75,13 @@
         if (res) {
           const artist = await apiClient.getArtistById(res);
           if (!artist.success) {
-            // TODO(patrik): Toast
-            console.error(artist.error.message);
+            if (artist.error.type === "ARTIST_NOT_FOUND") {
+              toast.error("Failed to find an artist with that id");
+            } else {
+              toast.error("Unknown error");
+            }
+
+            console.error(formatError(artist.error));
             return;
           }
 
@@ -99,14 +106,16 @@
             otherName: "",
           });
           if (!res.success) {
-            // TODO(patrik): Toast
-            throw res.error.message;
+            // TODO(patrik): Should the toast include the error message?
+            toast.error("Unknown error");
+            throw formatError(res.error);
           }
 
           const artist = await apiClient.getArtistById(res.data.id);
           if (!artist.success) {
-            // TODO(patrik): Toast
-            throw artist.error.message;
+            // TODO(patrik): Should the toast include the error message?
+            toast.error("Unknown error");
+            throw formatError(artist.error);
           }
 
           close({ id: artist.data.id, name: artist.data.name.default });

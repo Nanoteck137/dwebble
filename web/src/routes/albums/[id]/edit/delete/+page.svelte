@@ -1,7 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { createApiClient } from "$lib";
+  import { formatError } from "$lib/utils.js";
   import { Breadcrumb, Button, Card } from "@nanoteck137/nano-ui";
+  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -47,8 +49,9 @@
       onclick={async () => {
         const res = await apiClient.deleteAlbum(data.album.id);
         if (!res.success) {
-          // TODO(patrik): Toast
-          throw res.error;
+          // TODO(patrik): Should the toast include the error message?
+          toast.error("Unknown error");
+          throw formatError(res.error);
         }
 
         goto("/albums", { invalidateAll: true });

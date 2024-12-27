@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createApiClient } from "$lib";
   import { ApiClient } from "$lib/api/client";
+  import { formatError } from "$lib/utils.js";
   import {
     Breadcrumb,
     Button,
@@ -8,6 +9,7 @@
     Input,
     Label,
   } from "@nanoteck137/nano-ui";
+  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -15,8 +17,9 @@
   async function submit(formData: FormData) {
     const res = await apiClient.changeAlbumCover(data.album.id, formData);
     if (!res.success) {
-      // TODO(patrik): Toast
-      throw res.error.message;
+      // TODO(patrik): Should the toast include the error message?
+      toast.error("Unknown error");
+      throw formatError(res.error);
     }
 
     // TODO(patrik): Not the best solution, but i need the browser to

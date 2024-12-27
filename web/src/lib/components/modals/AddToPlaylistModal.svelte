@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { ApiClient } from "$lib/api/client";
   import type { Playlist, Track } from "$lib/api/types";
+  import { formatError } from "$lib/utils";
   import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
+  import toast from "svelte-5-french-toast";
   import type { ModalProps } from "svelte-modals";
 
   export type Props = {
@@ -34,19 +36,21 @@
           <Button
             variant="ghost"
             onclick={async () => {
-              console.log(track);
               const res = await apiClient.addItemToPlaylist(playlist.id, {
                 trackId: track.id,
               });
-              if (!res.success) {
-                // TODO(patrik): Toast
-                console.log(res.error.message);
 
-                close();
-                return;
+              if (!res.success) {
+                if (res.error.type === "PLAYLIST_ALREADY_HAS_TRACK") {
+                  toast.error("Track already in playlist");
+                  return;
+                } else {
+                  toast.error("Unknown error");
+                  throw formatError(res.error);
+                }
               }
 
-              // TODO(patrik): Toast
+              toast.success("Track added to playlist");
               close();
             }}
           >

@@ -4,9 +4,10 @@
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import { musicManager } from "$lib/music-manager";
   import { type EditTrackData } from "$lib/types.js";
-  import { trackToMusicTrack } from "$lib/utils";
+  import { formatError, trackToMusicTrack } from "$lib/utils";
   import { Button, Card } from "@nanoteck137/nano-ui";
   import { Play } from "lucide-svelte";
+  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -38,8 +39,8 @@
       featuringArtists: track.featuringArtists.map((a) => a.id),
     });
     if (!res.success) {
-      // TODO(patrik): Toast
-      throw res.error.message;
+      toast.error("Unknown error");
+      throw formatError(res.error);
     }
 
     goto(`/albums/${data.album.id}/edit`, { invalidateAll: true });

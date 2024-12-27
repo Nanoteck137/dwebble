@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createApiClient } from "$lib";
+  import { formatError } from "$lib/utils.js";
   import {
     Breadcrumb,
     Button,
@@ -7,6 +8,7 @@
     Input,
     Label,
   } from "@nanoteck137/nano-ui";
+  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -26,8 +28,8 @@
         formData,
       );
       if (!res.success) {
-        // TODO(patrik): Toast
-        throw res.error.message;
+        toast.error("Unknown error");
+        throw formatError(res.error);
       }
       // TODO(patrik): Not the best solution, but i need the browser to
       // refresh for the new image to show
