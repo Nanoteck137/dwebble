@@ -26,7 +26,6 @@ type CreatePlaylist struct {
 	Playlist
 }
 
-// TODO(patrik): Validation and transform
 type CreatePlaylistBody struct {
 	Name string `json:"name"`
 }
@@ -41,7 +40,6 @@ func (b CreatePlaylistBody) Validate() error {
 	)
 }
 
-// TODO(patrik): Validation and transform
 type PostPlaylistFilterBody struct {
 	Name   string `json:"name"`
 	Filter string `json:"filter"`
@@ -64,12 +62,10 @@ type GetPlaylistById struct {
 	Items []Track `json:"items"`
 }
 
-// TODO(patrik): Validation and transform
 type AddItemToPlaylistBody struct {
 	TrackId string `json:"trackId"`
 }
 
-// TODO(patrik): Validation and transform
 type RemovePlaylistItemBody struct {
 	TrackId string `json:"trackId"`
 }
