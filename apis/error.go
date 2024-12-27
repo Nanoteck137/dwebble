@@ -11,13 +11,15 @@ const (
 	ErrTypeArtistNotFound   pyrin.ErrorType = "ARTIST_NOT_FOUND"
 	ErrTypeAlbumNotFound    pyrin.ErrorType = "ALBUM_NOT_FOUND"
 	ErrTypeTrackNotFound    pyrin.ErrorType = "TRACK_NOT_FOUND"
-	ErrTypePlaylistNotFound pyrin.ErrorType = "PLAYLIST_NOT_FOUND"
 	ErrTypeTaglistNotFound  pyrin.ErrorType = "TAGLIST_NOT_FOUND"
 	ErrTypeApiTokenNotFound pyrin.ErrorType = "API_TOKEN_NOT_FOUND"
 
 	ErrTypeInvalidFilter     pyrin.ErrorType = "INVALID_FILTER"
 	ErrTypeInvalidSort       pyrin.ErrorType = "INVALID_SORT"
 	ErrTypeUserAlreadyExists pyrin.ErrorType = "USER_ALREADY_EXISTS"
+
+	ErrTypePlaylistNotFound        pyrin.ErrorType = "PLAYLIST_NOT_FOUND"
+	ErrTypePlaylistAlreadyHasTrack pyrin.ErrorType = "PLAYLIST_ALREADY_HAS_TRACK"
 )
 
 func InvalidAuth(message string) *pyrin.Error {
@@ -49,14 +51,6 @@ func TrackNotFound() *pyrin.Error {
 		Code:    http.StatusNotFound,
 		Type:    ErrTypeTrackNotFound,
 		Message: "Track not found",
-	}
-}
-
-func PlaylistNotFound() *pyrin.Error {
-	return &pyrin.Error{
-		Code:    http.StatusNotFound,
-		Type:    ErrTypePlaylistNotFound,
-		Message: "Playlist not found",
 	}
 }
 
@@ -97,5 +91,21 @@ func UserAlreadyExists() *pyrin.Error {
 		Code:    http.StatusBadRequest,
 		Type:    ErrTypeUserAlreadyExists,
 		Message: "User already exists",
+	}
+}
+
+func PlaylistNotFound() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusNotFound,
+		Type:    ErrTypePlaylistNotFound,
+		Message: "Playlist not found",
+	}
+}
+
+func PlaylistAlreadyHasTrack() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusBadRequest,
+		Type:    ErrTypePlaylistAlreadyHasTrack,
+		Message: "Playlist already has track",
 	}
 }

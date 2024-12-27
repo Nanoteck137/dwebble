@@ -253,7 +253,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			Path:     "/playlists/:id/items",
 			Method:   http.MethodPost,
 			BodyType: AddItemToPlaylistBody{},
-			Errors:   []pyrin.ErrorType{ErrTypePlaylistNotFound},
+			Errors:   []pyrin.ErrorType{ErrTypePlaylistNotFound, ErrTypePlaylistAlreadyHasTrack},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playlistId := c.Param("id")
 
@@ -283,6 +283,10 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 				// TODO(patrik): Check for trackId exists?
 				err = app.DB().AddItemToPlaylist(c.Request().Context(), playlist.Id, body.TrackId)
 				if err != nil {
+					if errors.Is(err, database.ErrItemAlreadyExists) {
+						return nil, PlaylistAlreadyHasTrack()
+					}
+
 					return nil, err
 				}
 
