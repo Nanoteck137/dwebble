@@ -40,7 +40,7 @@
         artistId: track.artist.id,
         number: track.num ?? 0,
         year: track.year ?? 0,
-        extraArtists: track.featuringArtists.map((a) => a.id),
+        featuringArtists: track.featuringArtists.map((a) => a.id),
         tags: track.tags.split(","),
       };
 
