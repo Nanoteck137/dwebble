@@ -10,7 +10,7 @@
     Users,
   } from "lucide-svelte";
   import { musicManager } from "$lib/music-manager";
-  import { cn, shuffle, trackToMusicTrack } from "$lib/utils";
+  import { cn, formatError, shuffle, trackToMusicTrack } from "$lib/utils";
   import {
     DropdownMenu,
     Button,
@@ -24,15 +24,11 @@
   import { enhance } from "$app/forms";
   import type { UIArtist } from "$lib/types.js";
   import { createApiClient, openAddToPlaylist } from "$lib";
+  import toast from "svelte-5-french-toast";
+  import QuickAddButton from "$lib/components/QuickAddButton.svelte";
 
   let { data } = $props();
   const apiClient = createApiClient(data);
-
-  function isInQuickPlaylist(trackId: string) {
-    if (!data.quickPlaylistIds) return false;
-
-    return !!data.quickPlaylistIds.find((v) => v === trackId);
-  }
 </script>
 
 <form method="GET">
@@ -126,34 +122,16 @@
         musicManager.requestPlay();
       }}
     >
-      {#if data.user && data.user.quickPlaylist}
-        {#if isInQuickPlaylist(track.id)}
-          <form action="?/removeQuickPlaylistItem" method="post" use:enhance>
-            <input name="trackId" type="hidden" value={track.id} />
-            <Button
-              type="submit"
-              class="rounded-full"
-              variant="ghost"
-              size="icon-lg"
-            >
-              <Star class="fill-primary" />
-            </Button>
-          </form>
-        {:else}
-          <form action="?/addToQuickPlaylist" method="post" use:enhance>
-            <input name="trackId" type="hidden" value={track.id} />
+      <QuickAddButton
+        show={!!(data.user && data.user.quickPlaylist)}
+        {track}
+        {apiClient}
+        isInQuickPlaylist={(trackId) => {
+          if (!data.quickPlaylistIds) return false;
+          return !!data.quickPlaylistIds.find((v) => v === trackId);
+        }}
+      />
 
-            <Button
-              type="submit"
-              class="rounded-full"
-              variant="ghost"
-              size="icon-lg"
-            >
-              <Star />
-            </Button>
-          </form>
-        {/if}
-      {/if}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           class={cn(
