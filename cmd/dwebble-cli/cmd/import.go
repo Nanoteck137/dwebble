@@ -9,13 +9,16 @@ import (
 	"io/fs"
 	"mime/multipart"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/charmbracelet/huh"
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/cmd/dwebble-cli/api"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -24,6 +27,26 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 )
+
+func openbrowser(url string) {
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+	// TODO(patrik): Return the error
+	if err != nil {
+		log.Fatal("Failed to open url", "err", err)
+	}
+
+}
 
 func TransformStringArray(arr []string) []string {
 	for i, v := range arr {
@@ -166,6 +189,56 @@ func (c *Context) SetAlbumCover(albumId, filename string) error {
 	}
 
 	_, err = c.client.ChangeAlbumCover(albumId, &b, api.Options{
+		Boundary: w.Boundary(),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Context) UploadTrackSimple(trackFilename string, body api.UploadTrackBody) error {
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	{
+		dw, err := w.CreateFormField("body")
+		if err != nil {
+			return err
+		}
+
+		encoder := json.NewEncoder(dw)
+		err = encoder.Encode(&body)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+
+		dw, err := w.CreateFormFile("track", path.Base(trackFilename))
+		if err != nil {
+			return err
+		}
+
+		src, err := os.Open(trackFilename)
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(dw, src)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := w.Close()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.client.UploadTrack(&b, api.Options{
 		Boundary: w.Boundary(),
 	})
 	if err != nil {
@@ -335,6 +408,23 @@ var importCmd = &cobra.Command{
 
 		data, err := getImportData(dir)
 		if err != nil {
+			if os.IsNotExist(err) {
+				fmt.Println("Testing")
+
+				huh.NewForm(
+					huh.NewGroup(
+						huh.NewInput().Title("Album Name"),
+						huh.NewInput().Title("Other Name"),
+						huh.NewInput().Title("Artists"),
+						huh.NewInput().Title("Year"),
+					),
+					huh.NewGroup(
+						huh.NewConfirm(),
+					),
+				).Run()
+
+				return
+			}
 			log.Fatal("Failed to get import data", "err", err)
 		}
 
@@ -590,11 +680,147 @@ var importInitCmd = &cobra.Command{
 	},
 }
 
+var importTestCmd = &cobra.Command{
+	Use: "test",
+	Run: func(cmd *cobra.Command, args []string) {
+		dir, _ := cmd.Flags().GetString("dir")
+
+		client := api.New("http://localhost:3000")
+
+		c := Context{
+			client:  client,
+			artists: map[string]string{},
+		}
+
+		var images []string
+		var tracks []string
+
+		// TODO(patrik): Search only the top-level directory
+		filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+			ext := path.Ext(p)
+
+			if utils.IsValidTrackExt(ext) {
+				tracks = append(tracks, p)
+			}
+
+			if utils.IsValidImageExt(ext) {
+				images = append(images, p)
+			}
+
+			return nil
+		})
+
+		pretty.Println(images)
+		pretty.Println(tracks)
+
+		if len(tracks) >= 1 {
+			p := tracks[0]
+
+			name := "Unknown Album name"
+			var artists []string
+			year := 0
+
+			probe, err := utils.ProbeTrack(p)
+			if err != nil {
+				log.Fatal("Failed to probe track", "err", err)
+			}
+
+			if tag, exists := probe.Tags["album"]; exists {
+				name = tag
+			}
+
+			if tag, exists := probe.Tags["album_artist"]; exists {
+				artists = parseArtist(tag)
+			} else {
+				if tag, exists := probe.Tags["artist"]; exists {
+					artists = parseArtist(tag)
+				}
+			}
+
+			if tag, exists := probe.Tags["date"]; exists {
+				match := dateRegex.FindStringSubmatch(tag)
+				if len(match) > 0 {
+					year, _ = strconv.Atoi(match[1])
+				}
+			}
+
+			// TODO(patrik): Add checks
+			artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(artists)
+			if err != nil {
+				log.Fatal("Failed to get/create album artist", "err", err)
+			}
+
+			album, err := client.CreateAlbum(api.CreateAlbumBody{
+				Name:             name,
+				OtherName:        "",
+				ArtistId:         artistId,
+				Year:             year,
+				Tags:             []string{},
+				FeaturingArtists: featuringArtists,
+			}, api.Options{})
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
+
+			fmt.Printf("Created album: (%s)\n", album.AlbumId)
+
+			if len(images) > 0 {
+				err = c.SetAlbumCover(album.AlbumId, images[0])
+				if err != nil {
+					log.Fatal("Failed to set album cover", "err", err)
+				}
+			}
+
+			for _, p := range tracks {
+				fmt.Printf("p: %v\n", p)
+
+				filename := path.Base(p)
+
+				trackInfo, err := getTrackInfo(p)
+				if err != nil {
+					log.Fatal("Failed to get track info", "err", err)
+				}
+
+				if trackInfo.Name == "" {
+					trackInfo.Name = strings.TrimSuffix(filename, path.Ext(p))
+				}
+
+				if trackInfo.Number == 0 {
+					trackInfo.Number = utils.ExtractNumber(filename)
+				}
+
+				artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(artists)
+				if err != nil {
+					log.Fatal("Failed to get/create album artist", "err", err)
+				}
+
+				err = c.UploadTrackSimple(p, api.UploadTrackBody{
+					Name:             trackInfo.Name,
+					OtherName:        "",
+					Number:           trackInfo.Number,
+					Year:             trackInfo.Year,
+					AlbumId:          album.AlbumId,
+					ArtistId:         artistId,
+					Tags:             []string{},
+					FeaturingArtists: featuringArtists,
+				})
+				if err != nil {
+					log.Fatal("Failed to upload track")
+				}
+			}
+
+			openbrowser(fmt.Sprintf("http://localhost:5173/albums/%s", album.AlbumId))
+		}
+	},
+}
+
 func init() {
 	importCmd.Flags().StringP("dir", "d", ".", "Directory to search")
 	importInitCmd.Flags().StringP("dir", "d", ".", "Directory to search")
+	importTestCmd.Flags().StringP("dir", "d", ".", "Directory to search")
 
 	importCmd.AddCommand(importInitCmd)
+	importCmd.AddCommand(importTestCmd)
 
 	rootCmd.AddCommand(importCmd)
 }
