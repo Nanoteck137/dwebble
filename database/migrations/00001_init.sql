@@ -63,21 +63,21 @@ CREATE TABLE tags (
 
 CREATE TABLE artists_tags  (
     artist_id TEXT REFERENCES artists(id) ON DELETE CASCADE,
-    tag_slug TEXT REFERENCES tags(slug),
+    tag_slug TEXT REFERENCES tags(slug) ON DELETE CASCADE,
 
     PRIMARY KEY(artist_id, tag_slug)
 );
 
 CREATE TABLE albums_tags  (
     album_id TEXT REFERENCES albums(id) ON DELETE CASCADE,
-    tag_slug TEXT REFERENCES tags(slug),
+    tag_slug TEXT REFERENCES tags(slug) ON DELETE CASCADE,
 
     PRIMARY KEY(album_id, tag_slug)
 );
 
 CREATE TABLE tracks_tags (
     track_id TEXT REFERENCES tracks(id) ON DELETE CASCADE,
-    tag_slug TEXT REFERENCES tags(slug),
+    tag_slug TEXT REFERENCES tags(slug) ON DELETE CASCADE,
 
     PRIMARY KEY(track_id, tag_slug)
 );
@@ -93,10 +93,10 @@ CREATE TABLE users (
 );
 
 CREATE TABLE users_settings (
-    id TEXT PRIMARY KEY REFERENCES users(id),
+    id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
     display_name TEXT,
 
-    quick_playlist TEXT REFERENCES playlists(id)
+    quick_playlist TEXT REFERENCES playlists(id) ON DELETE SET NULL
 );
 
 CREATE TABLE playlists (
@@ -104,7 +104,7 @@ CREATE TABLE playlists (
     name TEXT NOT NULL CHECK(name<>''),
     picture TEXT,
 
-    owner_id TEXT NOT NULL REFERENCES users(id),
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
@@ -123,7 +123,7 @@ CREATE TABLE taglists (
 
     filter TEXT NOT NULL,
 
-    owner_id TEXT NOT NULL REFERENCES users(id),
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
@@ -131,7 +131,7 @@ CREATE TABLE taglists (
 
 CREATE TABLE api_tokens (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id),
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
     name TEXT NOT NULL CHECK(name<>''),
 
