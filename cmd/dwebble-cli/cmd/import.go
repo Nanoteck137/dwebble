@@ -15,21 +15,45 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kr/pretty"
+	"github.com/charmbracelet/huh"
 	"github.com/nanoteck137/dwebble/cmd/dwebble-cli/api"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/tools/utils"
+	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/nanoteck137/validate"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 )
 
+func TransformStringArray(arr []string) []string {
+	for i, v := range arr {
+		arr[i] = transform.String(v)
+	}
+
+	return arr
+}
+
 type ImportDataAlbum struct {
-	Name          string   `toml:"name"`
-	OtherName     string   `toml:"other_name"`
-	Artists       []string `toml:"artists"`
-	Year          int      `toml:"year"`
-	Tags          []string `toml:"tags"`
+	Name             string   `toml:"name"`
+	OtherName        string   `toml:"other_name"`
+	Artists          []string `toml:"artists"`
+	Year             int      `toml:"year"`
+	Tags             []string `toml:"tags"`
 	CoverArtFilename string   `toml:"coverArtFilename"`
+}
+
+func (d *ImportDataAlbum) Transform() {
+	d.Name = transform.String(d.Name)
+	d.OtherName = transform.String(d.OtherName)
+
+	d.Artists = TransformStringArray(d.Artists)
+}
+
+func (d ImportDataAlbum) Validate() error {
+	return validate.ValidateStruct(&d,
+		validate.Field(&d.Name, validate.Required),
+		validate.Field(&d.Artists, validate.Required),
+	)
 }
 
 type ImportDataTrack struct {
@@ -42,10 +66,38 @@ type ImportDataTrack struct {
 	Tags      []string `toml:"tags"`
 }
 
+func (d *ImportDataTrack) Transform() {
+	d.Name = transform.String(d.Name)
+	d.OtherName = transform.String(d.OtherName)
+	d.Artists = TransformStringArray(d.Artists)
+}
+
+func (d ImportDataTrack) Validate() error {
+	return validate.ValidateStruct(&d,
+		validate.Field(&d.Filename, validate.Required),
+		validate.Field(&d.Name, validate.Required),
+		validate.Field(&d.Artists, validate.Required),
+	)
+}
+
 type ImportData struct {
 	UseAlbumTagsForTracks bool              `toml:"use_album_tags_for_tracks"`
 	Album                 ImportDataAlbum   `toml:"album"`
 	Tracks                []ImportDataTrack `toml:"tracks"`
+}
+
+func (d *ImportData) Transform() {
+	d.Album.Transform()
+
+	for i := range d.Tracks {
+		d.Tracks[i].Transform()
+	}
+}
+
+func (d ImportData) Validate() error {
+	return validate.ValidateStruct(&d,
+		validate.Field(&d.Tracks),
+	)
 }
 
 func WriteFile(name string, data []byte) error {
@@ -85,6 +137,137 @@ func getImportData(dir string) (ImportData, error) {
 type Context struct {
 	client  *api.Client
 	artists map[string]string
+}
+
+func (c *Context) SetAlbumCover(albumId, filename string) error {
+	// TODO(patrik): Check cover type
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	dw, err := w.CreateFormFile("cover", path.Base(filename))
+	if err != nil {
+		return err
+	}
+
+	src, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(dw, src)
+	if err != nil {
+		return err
+	}
+
+	err = w.Close()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.client.ChangeAlbumCover(albumId, &b, api.Options{
+		Boundary: w.Boundary(),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Context) UploadTrack(albumId string, dir string, data ImportData, track ImportDataTrack) error {
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	{
+		dw, err := w.CreateFormField("body")
+		if err != nil {
+			return err
+		}
+
+		var tags []string
+		tags = append(tags, track.Tags...)
+
+		if data.UseAlbumTagsForTracks {
+			tags = append(tags, data.Album.Tags...)
+		}
+
+		artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(track.Artists)
+		if err != nil {
+			return err
+		}
+
+		body := api.UploadTrackBody{
+			Name:             track.Name,
+			OtherName:        track.OtherName,
+			Number:           track.Number,
+			Year:             track.Year,
+			AlbumId:          albumId,
+			ArtistId:         artistId,
+			Tags:             tags,
+			FeaturingArtists: featuringArtists,
+		}
+
+		encoder := json.NewEncoder(dw)
+		err = encoder.Encode(&body)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+
+		dw, err := w.CreateFormFile("track", track.Filename)
+		if err != nil {
+			return err
+		}
+
+		src, err := os.Open(path.Join(dir, track.Filename))
+		if err != nil {
+			return err
+		}
+
+		_, err = io.Copy(dw, src)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := w.Close()
+	if err != nil {
+		return err
+	}
+
+	_, err = c.client.UploadTrack(&b, api.Options{
+		Boundary: w.Boundary(),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Context) SearchAlbum(search string) ([]api.Album, error) {
+	res, err := c.client.SearchAlbums(api.Options{})
+	if err != nil {
+		return nil, err
+	}
+
+	return res.Albums, nil
+}
+
+func (c *Context) FindAlbums(name, artist string) ([]api.Album, error) {
+	search, err := c.client.GetAlbums(api.Options{
+		QueryParams: map[string]string{
+			"filter": fmt.Sprintf("name == \"%s\" && artistName == \"%s\"", name, artist),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return search.Albums, nil
 }
 
 func (c *Context) GetOrCreateMultipleArtists(names []string) (string, []string, error) {
@@ -155,6 +338,24 @@ var importCmd = &cobra.Command{
 			log.Fatal("Failed to get import data", "err", err)
 		}
 
+		data.Transform()
+
+		err = data.Validate()
+		if err != nil {
+			log.Fatal("Validation failed", "err", err)
+		}
+
+		// pretty.Println(data)
+
+		// TODO(patrik):
+		//  - [x] Find albums
+		//    - [ ] Find album by id
+		//    - [x] Updated album with values
+		//    - [ ] Find matching tracks
+		//      - [ ] Update tracks with values
+		//    - [ ] Give the user the option to replace all tracks inside
+		//      the found album
+
 		client := api.New("http://localhost:3000")
 
 		c := Context{
@@ -162,159 +363,74 @@ var importCmd = &cobra.Command{
 			artists: map[string]string{},
 		}
 
-		artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(data.Album.Artists)
-		if err != nil {
-			log.Fatal("Failed to get/create album artist", "err", err)
-		}
+		const ActionSearchAlbum = "search_album"
+		const ActionAlbumById = "album_by_id"
+		const ActionCreateAlbum = "create_album"
 
-		album, err := client.CreateAlbum(api.CreateAlbumBody{
-			Name:             data.Album.Name,
-			OtherName:        data.Album.OtherName,
-			ArtistId:         artistId,
-			Year:             data.Album.Year,
-			Tags:             data.Album.Tags,
-			FeaturingArtists: featuringArtists,
-		}, api.Options{})
-		if err != nil {
-			log.Fatal("Failed", "err", err)
-		}
-
-		setAlbumCoverArt := func() error {
-			var b bytes.Buffer
-			w := multipart.NewWriter(&b)
-
-			{
-				dw, err := w.CreateFormFile("cover", data.Album.CoverArtFilename)
-				if err != nil {
-					return err
-				}
-
-				src, err := os.Open(path.Join(dir, data.Album.CoverArtFilename))
-				if err != nil {
-					return err
-				}
-
-				_, err = io.Copy(dw, src)
-				if err != nil {
-					return err
-				}
-			}
-
-			err = w.Close()
+		{
+			var selected string
+			err := huh.NewSelect[string]().
+				Title("Select action").
+				Options(
+					huh.NewOption[string]("Create new Album", ActionCreateAlbum),
+					huh.NewOption[string]("Search for Album", ActionSearchAlbum),
+					huh.NewOption[string]("Use Album ID", ActionAlbumById),
+				).
+				Value(&selected).
+				Run()
 			if err != nil {
-				return err
+				log.Fatal("Failed", "err", err)
 			}
 
-			_, err = client.ChangeAlbumCover(album.AlbumId, &b, api.Options{
-				Boundary: w.Boundary(),
-			})
-			if err != nil {
-				var apiErr *api.ApiError[any]
-				if errors.As(err, &apiErr) {
-					pretty.Println(apiErr)
-				}
+			switch selected {
+			case ActionSearchAlbum:
+				log.Fatal("Not implemented yet")
+			case ActionAlbumById:
+				log.Fatal("Not implemented yet")
+			case ActionCreateAlbum:
 
-				return err
-			}
-
-			return nil
-
-		}
-
-		fmt.Printf("Created album: (%s)\n", album.AlbumId)
-
-		fmt.Printf("Setting album cover art...")
-		err = setAlbumCoverArt()
-		if err != nil {
-			log.Fatal("Failed to set album cover art", "err", err)
-		}
-		fmt.Printf("done\n")
-
-		uploadTrack := func(track ImportDataTrack) error {
-			var b bytes.Buffer
-			w := multipart.NewWriter(&b)
-
-			{
-				dw, err := w.CreateFormField("body")
+				artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(data.Album.Artists)
 				if err != nil {
-					return err
+					log.Fatal("Failed to get/create album artist", "err", err)
 				}
 
-				var tags []string
-				tags = append(tags, track.Tags...)
-
-				if data.UseAlbumTagsForTracks {
-					tags = append(tags, data.Album.Tags...)
-				}
-
-				artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(track.Artists)
-				if err != nil {
-					return err
-				}
-
-				body := api.UploadTrackBody{
-					Name:             track.Name,
-					OtherName:        track.OtherName,
-					Number:           track.Number,
-					Year:             track.Year,
-					AlbumId:          album.AlbumId,
+				album, err := client.CreateAlbum(api.CreateAlbumBody{
+					Name:             data.Album.Name,
+					OtherName:        data.Album.OtherName,
 					ArtistId:         artistId,
-					Tags:             tags,
+					Year:             data.Album.Year,
+					Tags:             data.Album.Tags,
 					FeaturingArtists: featuringArtists,
-				}
-
-				encoder := json.NewEncoder(dw)
-				err = encoder.Encode(&body)
+				}, api.Options{})
 				if err != nil {
-					return err
+					log.Fatal("Failed", "err", err)
 				}
-			}
 
-			{
+				albumId := album.AlbumId
+				fmt.Printf("Created album: (%s)\n", album.AlbumId)
 
-				dw, err := w.CreateFormFile("track", track.Filename)
+				// TODO(patrik): check 'data.Album.CoverArtFilename'
+				fmt.Println("Album cover set")
+
+				// TODO(patrik): Create user option
+				fmt.Printf("Setting album cover art...")
+				err = c.SetAlbumCover(albumId, path.Join(dir, data.Album.CoverArtFilename))
 				if err != nil {
-					return err
+					log.Fatal("Failed to set album cover art", "err", err)
 				}
+				fmt.Printf("done\n")
 
-				src, err := os.Open(path.Join(dir, track.Filename))
-				if err != nil {
-					return err
+				for i, track := range data.Tracks {
+					fmt.Printf("Uploading track (%02d/%02d): %s...", i+1, len(data.Tracks), track.Name)
+					err = c.UploadTrack(albumId, dir, data, track)
+					if err != nil {
+						log.Fatal("Failed to upload track", "err", err)
+					}
+					fmt.Printf("done\n")
 				}
-
-				_, err = io.Copy(dw, src)
-				if err != nil {
-					return err
-				}
+			default:
+				log.Fatal("Unimplemented action", "action", selected)
 			}
-
-			err = w.Close()
-			if err != nil {
-				return err
-			}
-
-			_, err = client.UploadTrack(&b, api.Options{
-				Boundary: w.Boundary(),
-			})
-			if err != nil {
-				var apiErr *api.ApiError[any]
-				if errors.As(err, &apiErr) {
-					pretty.Println(apiErr)
-				}
-
-				return err
-			}
-
-			return nil
-		}
-
-		for i, track := range data.Tracks {
-			fmt.Printf("Uploading track (%02d/%d): %s...", i + 1, len(data.Tracks), track.Name)
-			err = uploadTrack(track)
-			if err != nil {
-				log.Fatal("Failed to upload track", "err", err)
-			}
-			fmt.Printf("done\n")
 		}
 
 	},
@@ -374,6 +490,8 @@ var importInitCmd = &cobra.Command{
 		dir, _ := cmd.Flags().GetString("dir")
 
 		var importData ImportData
+		// NOTE(patrik): Default behavior
+		importData.UseAlbumTagsForTracks = true
 
 		var images []string
 		var tracks []string
@@ -454,6 +572,8 @@ var importInitCmd = &cobra.Command{
 
 			importData.Album.CoverArtFilename = filename
 		}
+
+		importData.Transform()
 
 		data, err := toml.Marshal(importData)
 		if err != nil {
