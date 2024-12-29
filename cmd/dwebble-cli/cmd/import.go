@@ -445,6 +445,9 @@ var importCmd = &cobra.Command{
 				trackInfo.Number = utils.ExtractNumber(filename)
 			}
 
+			// TODO(patrik): If artist is empty then use album maybe
+			artists := parseArtist(trackInfo.Artist)
+
 			artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(artists)
 			if err != nil {
 				fmt.Printf("failed\n")
