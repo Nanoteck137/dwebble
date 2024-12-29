@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { Button, buttonVariants, DropdownMenu } from "@nanoteck137/nano-ui";
+  import {
+    Button,
+    buttonVariants,
+    DropdownMenu,
+    Separator,
+  } from "@nanoteck137/nano-ui";
   import TrackListItem from "./TrackListItem.svelte";
   import { musicManager } from "$lib/music-manager";
   import {
@@ -152,5 +157,7 @@
         </DropdownMenu.Content>
       </DropdownMenu.Root>
     </TrackListItem>
+
+    <Separator />
   {/each}
 </div>
