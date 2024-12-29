@@ -112,11 +112,9 @@ type GetTrackById struct {
 }
 
 type EditTrackBody struct {
-	Name      *string `json:"name,omitempty"`
-	OtherName *string `json:"otherName,omitempty"`
-	ArtistId  *string `json:"artistId,omitempty"`
-	// TODO(patrik): Remove artistName
-	ArtistName       *string   `json:"artistName,omitempty"`
+	Name             *string   `json:"name,omitempty"`
+	OtherName        *string   `json:"otherName,omitempty"`
+	ArtistId         *string   `json:"artistId,omitempty"`
 	Year             *int64    `json:"year,omitempty"`
 	Number           *int64    `json:"number,omitempty"`
 	Tags             *[]string `json:"tags,omitempty"`
@@ -165,26 +163,14 @@ func (b *EditTrackBody) Transform() {
 }
 
 func (b EditTrackBody) Validate() error {
-	checkBothArtist := validate.By(func(value interface{}) error {
-		if b.ArtistId != nil && b.ArtistName != nil {
-			return errors.New("both 'artistId' and 'artistName' can't be specified remove one of them")
-		}
-
-		return nil
-	})
-
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Name,
 			validate.Required.When(b.Name != nil),
 		),
 		validate.Field(&b.ArtistId,
 			validate.Required.When(b.ArtistId != nil),
-			checkBothArtist,
 		),
-		validate.Field(&b.ArtistName,
-			validate.Required.When(b.ArtistName != nil),
-			checkBothArtist,
-		),
+		// TODO(patrik): Add this to all numbers (album, artists)
 		validate.Field(&b.Year, validate.Min(0)),
 		validate.Field(&b.Number, validate.Min(0)),
 	)
@@ -204,7 +190,7 @@ type UploadTrackBody struct {
 	AlbumId  string `json:"albumId"`
 	ArtistId string `json:"artistId"`
 
-	Tags         []string `json:"tags"`
+	Tags             []string `json:"tags"`
 	FeaturingArtists []string `json:"featuringArtists"`
 }
 
