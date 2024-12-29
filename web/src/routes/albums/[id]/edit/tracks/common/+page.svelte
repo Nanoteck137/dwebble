@@ -25,7 +25,7 @@
   let useTags = $state(false);
   let tags = $state("");
 
-  let changeAlbum = $state(false);
+  let changeAlbum = $state(true);
 
   let artist = $state<UIArtist>();
 
