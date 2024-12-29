@@ -8,6 +8,7 @@
     "FORM_VALIDATION_ERROR",
     "INVALID_FILTER",
     "INVALID_SORT",
+    "PLAYLIST_ALREADY_HAS_TRACK",
     "PLAYLIST_NOT_FOUND",
     "ROUTE_NOT_FOUND",
     "TAGLIST_NOT_FOUND",
@@ -380,11 +381,6 @@
           "omit": true
         },
         {
-          "name": "artistName",
-          "type": "*string",
-          "omit": true
-        },
-        {
           "name": "year",
           "type": "*int",
           "omit": true
@@ -511,11 +507,6 @@
         },
         {
           "name": "artistId",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "artistName",
           "type": "*string",
           "omit": true
         },

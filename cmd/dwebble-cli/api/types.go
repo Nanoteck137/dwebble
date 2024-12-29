@@ -99,7 +99,6 @@ type EditAlbumBody struct {
 	Name *string `json:"name,omitempty"`
 	OtherName *string `json:"otherName,omitempty"`
 	ArtistId *string `json:"artistId,omitempty"`
-	ArtistName *string `json:"artistName,omitempty"`
 	Year *int `json:"year,omitempty"`
 	Tags *[]string `json:"tags,omitempty"`
 	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
@@ -136,7 +135,6 @@ type EditTrackBody struct {
 	Name *string `json:"name,omitempty"`
 	OtherName *string `json:"otherName,omitempty"`
 	ArtistId *string `json:"artistId,omitempty"`
-	ArtistName *string `json:"artistName,omitempty"`
 	Year *int `json:"year,omitempty"`
 	Number *int `json:"number,omitempty"`
 	Tags *[]string `json:"tags,omitempty"`
