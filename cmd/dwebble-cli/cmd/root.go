@@ -27,5 +27,9 @@ func init() {
 
 	rootCmd.PersistentFlags().String("server", "", "Server Address")
 	rootCmd.MarkPersistentFlagRequired("server")
+
+	rootCmd.PersistentFlags().String("web", "", "Web Address")
+	rootCmd.MarkPersistentFlagRequired("web")
+
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "Config File")
 }
