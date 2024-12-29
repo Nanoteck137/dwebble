@@ -4,6 +4,7 @@
   import { ApiClient } from "$lib/api/client.js";
   import ArtistQuery from "$lib/components/ArtistQuery.svelte";
   import type { UIArtist } from "$lib/types.js";
+  import { formatError } from "$lib/utils";
   import {
     Breadcrumb,
     Button,
@@ -11,7 +12,9 @@
     Checkbox,
     Input,
     Label,
+    Switch,
   } from "@nanoteck137/nano-ui";
+  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -22,12 +25,27 @@
   let useTags = $state(false);
   let tags = $state("");
 
+  let changeAlbum = $state(false);
+
   let artist = $state<UIArtist>();
 
   async function submit() {
     const tagsArr = tags == "" ? [] : tags.split(",");
     const yearNum = year != "" ? parseInt(year) : 0;
     const artistId = artist ? artist.id : undefined;
+
+    if (changeAlbum) {
+      const res = await apiClient.editAlbum(data.album.id, {
+        artistId,
+        tags: useTags ? tagsArr : undefined,
+        year: useYear ? yearNum : undefined,
+      });
+
+      if (!res.success) {
+        toast.error("Failed to set album values");
+        console.error(formatError(res.error));
+      }
+    }
 
     for (const track of data.tracks) {
       const res = await apiClient.editTrack(track.id, {
@@ -36,7 +54,8 @@
         year: useYear ? yearNum : undefined,
       });
       if (!res.success) {
-        throw res.error.message;
+        toast.error("Failed to set track values");
+        console.error(formatError(res.error));
       }
     }
 
@@ -80,7 +99,7 @@
     <Card.Header>
       <Card.Title>Set Common Values</Card.Title>
     </Card.Header>
-    <Card.Content>
+    <Card.Content class="flex flex-col gap-2">
       <div class="flex w-32 flex-col gap-2">
         <Label for="year">Year</Label>
 
@@ -94,8 +113,6 @@
           />
         </div>
       </div>
-
-      <div class="h-2"></div>
 
       <div class="flex flex-col gap-2">
         <Label for="tags">Tags</Label>
@@ -112,6 +129,11 @@
         </div>
       </div>
 
+      <div class="flex items-center gap-2">
+        <Switch bind:checked={changeAlbum} />
+        <p class="text-sm">Set album values</p>
+      </div>
+
       {#if artist}
         <p>Artist: {artist.name}</p>
         <p>Artist Id: {artist.id}</p>
@@ -124,8 +146,6 @@
           Remove
         </Button>
       {/if}
-
-      <div class="h-4"></div>
 
       <Button
         variant="outline"
