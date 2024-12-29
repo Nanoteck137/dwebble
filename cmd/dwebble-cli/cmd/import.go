@@ -18,7 +18,6 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/huh"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/cmd/dwebble-cli/api"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -695,8 +694,18 @@ var importTestCmd = &cobra.Command{
 		var images []string
 		var tracks []string
 
-		// TODO(patrik): Search only the top-level directory
-		filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+		entries, err := os.ReadDir(dir)
+		if err != nil {
+			log.Fatal("Failed to read dir", "err", err)
+		}
+
+		for _, e := range entries {
+			if e.IsDir() {
+				continue
+			}
+
+			p := path.Join(dir, e.Name())
+
 			ext := path.Ext(p)
 
 			if utils.IsValidTrackExt(ext) {
@@ -706,29 +715,39 @@ var importTestCmd = &cobra.Command{
 			if utils.IsValidImageExt(ext) {
 				images = append(images, p)
 			}
+		}
 
-			return nil
-		})
+		if len(tracks) <= 0 {
+			log.Warn("No tracks found... Quitting")
+			return
+		}
 
-		pretty.Println(images)
-		pretty.Println(tracks)
+		p := tracks[0]
 
-		if len(tracks) >= 1 {
-			p := tracks[0]
+		name := "Unknown Album name"
+		var artists []string
+		year := 0
 
-			name := "Unknown Album name"
-			var artists []string
-			year := 0
+		probe, err := utils.ProbeTrack(p)
+		if err != nil {
+			log.Fatal("Failed to probe track", "err", err)
+		}
 
-			probe, err := utils.ProbeTrack(p)
-			if err != nil {
-				log.Fatal("Failed to probe track", "err", err)
-			}
+		isSingle := len(tracks) == 1
 
+		if !isSingle {
 			if tag, exists := probe.Tags["album"]; exists {
 				name = tag
 			}
+		} else {
+			// NOTE(patrik): If we only have one track then we make the
+			// album name the same as the track name
+			if tag, exists := probe.Tags["title"]; exists {
+				name = tag
+			}
+		}
 
+		if !isSingle {
 			if tag, exists := probe.Tags["album_artist"]; exists {
 				artists = parseArtist(tag)
 			} else {
@@ -736,79 +755,119 @@ var importTestCmd = &cobra.Command{
 					artists = parseArtist(tag)
 				}
 			}
+		} else {
+			if tag, exists := probe.Tags["artist"]; exists {
+				artists = parseArtist(tag)
+			}
+		}
 
-			if tag, exists := probe.Tags["date"]; exists {
-				match := dateRegex.FindStringSubmatch(tag)
-				if len(match) > 0 {
-					year, _ = strconv.Atoi(match[1])
+		if tag, exists := probe.Tags["date"]; exists {
+			match := dateRegex.FindStringSubmatch(tag)
+			if len(match) > 0 {
+				year, _ = strconv.Atoi(match[1])
+			}
+		}
+
+		// NOTE(patrik): Try to extract the real year if yt-dlp has been used
+		if tag, exists := probe.Tags["synopsis"]; exists {
+			fmt.Printf("tag: %v\n", tag)
+
+			lines := strings.Split(tag, "\n")
+
+			for _, line := range lines {
+				if strings.Contains(line, "Released on:") {
+					line = strings.TrimPrefix(line, "Released on:")
+					line = strings.TrimSpace(line)
+
+					y := utils.ExtractNumber(line)
+					if y != 0 {
+						year = y
+					}
 				}
 			}
+		}
 
-			// TODO(patrik): Add checks
+		// TODO(patrik): Add checks
+		artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(artists)
+		if err != nil {
+			log.Fatal("Failed to get/create album artist", "err", err)
+		}
+
+		album, err := client.CreateAlbum(api.CreateAlbumBody{
+			Name:             name,
+			OtherName:        "",
+			ArtistId:         artistId,
+			Year:             year,
+			Tags:             []string{},
+			FeaturingArtists: featuringArtists,
+		}, api.Options{})
+		if err != nil {
+			log.Fatal("Failed", "err", err)
+		}
+
+		fmt.Printf("Created album: %s (%s)\n", name, album.AlbumId)
+
+		if len(images) > 0 {
+			fmt.Printf("Setting album cover art...")
+			err = c.SetAlbumCover(album.AlbumId, images[0])
+			if err != nil {
+				fmt.Printf("failed\n")
+				log.Fatal("Failed to set album cover", "err", err)
+			}
+			fmt.Printf("done\n")
+		}
+
+		for i, p := range tracks {
+			filename := path.Base(p)
+			fmt.Printf("Uploading track (%02d/%02d): %s ...", i+1, len(tracks), filename)
+
+			trackInfo, err := getTrackInfo(p)
+			if err != nil {
+				fmt.Printf("failed\n")
+				log.Fatal("Failed to get track info", "err", err)
+			}
+
+			if trackInfo.Name == "" {
+				trackInfo.Name = strings.TrimSuffix(filename, path.Ext(p))
+			}
+
+			if trackInfo.Number == 0 {
+				trackInfo.Number = utils.ExtractNumber(filename)
+			}
+
 			artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(artists)
 			if err != nil {
-				log.Fatal("Failed to get/create album artist", "err", err)
+				fmt.Printf("failed\n")
+				log.Fatal("Failed to get/create track artist", "err", err)
 			}
 
-			album, err := client.CreateAlbum(api.CreateAlbumBody{
-				Name:             name,
+			err = c.UploadTrackSimple(p, api.UploadTrackBody{
+				Name:             trackInfo.Name,
 				OtherName:        "",
+				Number:           trackInfo.Number,
+				Year:             trackInfo.Year,
+				AlbumId:          album.AlbumId,
 				ArtistId:         artistId,
-				Year:             year,
 				Tags:             []string{},
 				FeaturingArtists: featuringArtists,
-			}, api.Options{})
+			})
 			if err != nil {
-				log.Fatal("Failed", "err", err)
+				fmt.Printf("failed\n")
+				log.Fatal("Failed to upload track", "err", err)
 			}
+			fmt.Printf("done\n")
+		}
 
-			fmt.Printf("Created album: (%s)\n", album.AlbumId)
+		confirmed := false
+		err = huh.NewConfirm().
+			Title("Want to open the album in the browser?").
+			Value(&confirmed).
+			Run()
+		if err != nil {
+			log.Fatal("Failed", "err", err)
+		}
 
-			if len(images) > 0 {
-				err = c.SetAlbumCover(album.AlbumId, images[0])
-				if err != nil {
-					log.Fatal("Failed to set album cover", "err", err)
-				}
-			}
-
-			for _, p := range tracks {
-				fmt.Printf("p: %v\n", p)
-
-				filename := path.Base(p)
-
-				trackInfo, err := getTrackInfo(p)
-				if err != nil {
-					log.Fatal("Failed to get track info", "err", err)
-				}
-
-				if trackInfo.Name == "" {
-					trackInfo.Name = strings.TrimSuffix(filename, path.Ext(p))
-				}
-
-				if trackInfo.Number == 0 {
-					trackInfo.Number = utils.ExtractNumber(filename)
-				}
-
-				artistId, featuringArtists, err := c.GetOrCreateMultipleArtists(artists)
-				if err != nil {
-					log.Fatal("Failed to get/create album artist", "err", err)
-				}
-
-				err = c.UploadTrackSimple(p, api.UploadTrackBody{
-					Name:             trackInfo.Name,
-					OtherName:        "",
-					Number:           trackInfo.Number,
-					Year:             trackInfo.Year,
-					AlbumId:          album.AlbumId,
-					ArtistId:         artistId,
-					Tags:             []string{},
-					FeaturingArtists: featuringArtists,
-				})
-				if err != nil {
-					log.Fatal("Failed to upload track")
-				}
-			}
-
+		if confirmed {
 			openbrowser(fmt.Sprintf("http://localhost:5173/albums/%s", album.AlbumId))
 		}
 	},
