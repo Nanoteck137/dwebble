@@ -11,8 +11,11 @@
   import { EllipsisVertical, Pencil, Play } from "lucide-svelte";
   import ArtistList from "$lib/components/ArtistList.svelte";
   import TrackListItem from "$lib/components/TrackListItem.svelte";
+  import QuickAddButton from "$lib/components/QuickAddButton.svelte";
+  import { createApiClient } from "$lib";
 
   let { data } = $props();
+  const apiClient = createApiClient(data);
 </script>
 
 <div class="py-2">
@@ -38,8 +41,16 @@
 
   <div class="flex flex-col py-2">
     <div class="flex flex-col">
-      <p class="font-bold">{data.album.name.default}</p>
+      <p class="font-bold">
+        {data.album.name.default}
+        {#if data.album.year}
+          ({data.album.year})
+        {/if}
+      </p>
       <ArtistList artists={data.album.allArtists} />
+      {#if data.album.tags}
+        <p class="text-xs">{data.album.tags.join(", ")}</p>
+      {/if}
       <!-- <a class="text-xs hover:underline" href="/artists/{data.album.artistId}">
         {data.album.artistName.default}
       </a> -->
@@ -106,7 +117,17 @@
         musicManager.setQueueIndex(i);
         musicManager.requestPlay();
       }}
-    />
+    >
+      <QuickAddButton
+        show={!!(data.user && data.user.quickPlaylist)}
+        {track}
+        {apiClient}
+        isInQuickPlaylist={(trackId) => {
+          if (!data.quickPlaylistIds) return false;
+          return !!data.quickPlaylistIds.find((v) => v === trackId);
+        }}
+      />
+    </TrackListItem>
     <Separator />
   {/each}
 </div>
