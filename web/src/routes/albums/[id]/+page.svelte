@@ -13,6 +13,7 @@
   import TrackListItem from "$lib/components/TrackListItem.svelte";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
   import { createApiClient } from "$lib";
+  import TrackList from "$lib/components/track-list/TrackList.svelte";
 
   let { data } = $props();
   const apiClient = createApiClient(data);
@@ -102,32 +103,15 @@
 
 <div class="h-4"></div>
 
-<div class="flex flex-col gap-2">
-  {#each data.tracks as track, i}
-    <TrackListItem
-      {track}
-      showNumber={true}
-      onPlayClicked={() => {
-        musicManager.clearQueue();
-
-        for (const track of data.tracks) {
-          musicManager.addTrackToQueue(trackToMusicTrack(track), false);
-        }
-
-        musicManager.setQueueIndex(i);
-        musicManager.requestPlay();
-      }}
-    >
-      <QuickAddButton
-        show={!!(data.user && data.user.quickPlaylist)}
-        {track}
-        {apiClient}
-        isInQuickPlaylist={(trackId) => {
-          if (!data.quickPlaylistIds) return false;
-          return !!data.quickPlaylistIds.find((v) => v === trackId);
-        }}
-      />
-    </TrackListItem>
-    <Separator />
-  {/each}
-</div>
+<TrackList
+  {apiClient}
+  isAlbumShowcase={true}
+  totalTracks={0}
+  tracks={data.tracks}
+  userPlaylists={data.userPlaylists}
+  quickPlaylist={data.user?.quickPlaylist}
+  isInQuickPlaylist={(trackId) => {
+    if (!data.quickPlaylistIds) return false;
+    return !!data.quickPlaylistIds.find((v) => v === trackId);
+  }}
+/>

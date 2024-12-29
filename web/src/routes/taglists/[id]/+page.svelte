@@ -3,6 +3,7 @@
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import { createApiClient, openConfirm } from "$lib";
+  import TrackList from "$lib/components/track-list/TrackList.svelte";
   import TrackListItem from "$lib/components/TrackListItem.svelte";
   import { musicManager } from "$lib/music-manager.js";
   import { cn, shuffle, trackToMusicTrack } from "$lib/utils.js";
@@ -94,109 +95,17 @@
 
 <div class="h-2"></div>
 
-<div class="flex flex-col">
-  <div class="flex gap-2">
-    <Button
-      size="sm"
-      variant="ghost"
-      onclick={() => {
-        musicManager.clearQueue();
-        for (const track of data.tracks) {
-          musicManager.addTrackToQueue(trackToMusicTrack(track));
-        }
-      }}
-    >
-      <Play />
-      Play
-    </Button>
-
-    <form action="?/newPlaylist" method="post">
-      <input name="filter" value={data.filter} type="hidden" />
-      <input name="sort" value={data.sort} type="hidden" />
-      <Button type="submit" size="sm" variant="ghost">
-        <ListPlus />
-        Create Playlist
-      </Button>
-    </form>
-
-    <Button
-      size="sm"
-      variant="ghost"
-      onclick={() => {
-        let tracks = shuffle([...data.tracks]);
-
-        musicManager.clearQueue();
-        for (const track of tracks) {
-          musicManager.addTrackToQueue(trackToMusicTrack(track));
-        }
-      }}
-    >
-      <Shuffle />
-      Shuffle Play
-    </Button>
-  </div>
-
-  <div class="flex items-center justify-between">
-    <p class="text-bold text-xl">Tracks</p>
-    <p class="text-sm">{data.page.totalItems} track(s)</p>
-  </div>
-
-  {#each data.tracks as track, i}
-    <TrackListItem
-      {track}
-      onPlayClicked={() => {
-        musicManager.clearQueue();
-        for (const track of data.tracks) {
-          musicManager.addTrackToQueue(trackToMusicTrack(track), false);
-        }
-        musicManager.setQueueIndex(i);
-
-        musicManager.requestPlay();
-      }}
-    >
-      <DropdownMenu.Root>
-        <DropdownMenu.Trigger
-          class={cn(
-            buttonVariants({ variant: "ghost", size: "icon-lg" }),
-            "rounded-full",
-          )}
-        >
-          <EllipsisVertical />
-        </DropdownMenu.Trigger>
-        <DropdownMenu.Content align="end">
-          <DropdownMenu.Group>
-            <DropdownMenu.Item>
-              <form
-                class="jusitfy-center flex items-center"
-                action="?/quickAddToPlaylist"
-                method="post"
-                use:enhance
-              >
-                <input type="hidden" name="trackId" value={track.id} />
-                <button
-                  class="flex w-full items-center gap-2 py-1"
-                  title="Quick Add"
-                >
-                  <Plus size="16" />
-                  Quick add to Playlist
-                </button>
-              </form>
-            </DropdownMenu.Item>
-            <DropdownMenu.Item>
-              <a
-                class="flex h-full w-full items-center gap-2 py-1"
-                href="/albums/{track.albumId}"
-              >
-                <Pencil size="16" />
-                Go to Album
-              </a>
-            </DropdownMenu.Item>
-          </DropdownMenu.Group>
-        </DropdownMenu.Content>
-      </DropdownMenu.Root>
-    </TrackListItem>
-  {/each}
-</div>
+<TrackList
+  {apiClient}
+  totalTracks={data.page.totalItems}
+  tracks={data.tracks}
+  userPlaylists={data.userPlaylists}
+  quickPlaylist={data.user?.quickPlaylist}
+  isInQuickPlaylist={(trackId) => {
+    if (!data.quickPlaylistIds) return false;
+    return !!data.quickPlaylistIds.find((v) => v === trackId);
+  }}
+/>
 
 <Pagination.Root
   page={data.page.page + 1}
