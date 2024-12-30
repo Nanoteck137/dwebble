@@ -23,6 +23,7 @@
   import { modals } from "svelte-modals";
   import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
   import { createApiClient } from "$lib";
+  import QuickAddButton from "$lib/components/QuickAddButton.svelte";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -219,6 +220,16 @@
       </div>
 
       <div class="flex items-center gap-2">
+        <QuickAddButton
+          show={!!(data.user && data.user.quickPlaylist)}
+          {track}
+          {apiClient}
+          isInQuickPlaylist={(trackId) => {
+            if (!data.quickPlaylistIds) return false;
+            return !!data.quickPlaylistIds.find((v) => v === trackId);
+          }}
+        />
+
         <Button
           class="rounded-full"
           variant="ghost"
