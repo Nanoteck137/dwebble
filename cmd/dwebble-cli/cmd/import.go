@@ -15,7 +15,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/charmbracelet/huh"
 	"github.com/nanoteck137/dwebble/cmd/dwebble-cli/api"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/tools/utils"
