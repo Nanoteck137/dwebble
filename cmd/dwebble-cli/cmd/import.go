@@ -293,6 +293,8 @@ var importCmd = &cobra.Command{
 		server, _ := cmd.Flags().GetString("server")
 		web, _ := cmd.Flags().GetString("web")
 		dir, _ := cmd.Flags().GetString("dir")
+		open, _ := cmd.Flags().GetBool("open")
+
 
 		client := api.New(server)
 
@@ -304,6 +306,7 @@ var importCmd = &cobra.Command{
 		var images []string
 		var tracks []string
 
+		// TODO(patrik): Discard hidden files (starts with .)
 		entries, err := os.ReadDir(dir)
 		if err != nil {
 			log.Fatal("Failed to read dir", "err", err)
@@ -471,16 +474,7 @@ var importCmd = &cobra.Command{
 			fmt.Printf("done\n")
 		}
 
-		confirmed := false
-		err = huh.NewConfirm().
-			Title("Want to open the album in the browser?").
-			Value(&confirmed).
-			Run()
-		if err != nil {
-			log.Fatal("Failed", "err", err)
-		}
-
-		if confirmed {
+		if open {
 			openbrowser(fmt.Sprintf("%s/albums/%s", web, album.AlbumId))
 		}
 	},
@@ -488,6 +482,7 @@ var importCmd = &cobra.Command{
 
 func init() {
 	importCmd.Flags().StringP("dir", "d", ".", "Directory to search")
+	importCmd.Flags().BoolP("open", "-p", false, "Open in Browser")
 
 	rootCmd.AddCommand(importCmd)
 }
