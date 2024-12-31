@@ -39,7 +39,7 @@
 
           tags = ["fts5"];
 
-          vendorHash = "sha256-0gJVWZSusckKTzS4xjwvhP1WIRzTm7bto9n66yrZ6iA=";
+          vendorHash = "sha256-pkzhRvemmC1IFmX2ZciT8PUSTuRoUwacupA+4f8LwAM=";
 
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
