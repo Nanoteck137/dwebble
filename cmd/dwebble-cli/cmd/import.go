@@ -301,6 +301,7 @@ var importCmd = &cobra.Command{
 		web, _ := cmd.Flags().GetString("web")
 		dir, _ := cmd.Flags().GetString("dir")
 		open, _ := cmd.Flags().GetBool("open")
+		extract, _ := cmd.Flags().GetBool("extract")
 
 
 		client := api.New(server)
@@ -451,7 +452,7 @@ var importCmd = &cobra.Command{
 				trackInfo.Name = strings.TrimSuffix(filename, path.Ext(p))
 			}
 
-			if trackInfo.Number == 0 {
+			if trackInfo.Number == 0 || extract {
 				trackInfo.Number = utils.ExtractNumber(filename)
 			}
 
@@ -490,6 +491,7 @@ var importCmd = &cobra.Command{
 func init() {
 	importCmd.Flags().StringP("dir", "d", ".", "Directory to search")
 	importCmd.Flags().BoolP("open", "p", false, "Open in Browser")
+	importCmd.Flags().BoolP("extract", "e", false, "Force extract track number from filename")
 
 	rootCmd.AddCommand(importCmd)
 }
