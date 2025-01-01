@@ -21,6 +21,14 @@ import (
 	"github.com/nanoteck137/pyrin/tools/transform"
 	"github.com/spf13/cobra"
 )
+var quoteEscaper = strings.NewReplacer(
+	`'`, `\'`, 
+	`"`, `\"`,
+)
+
+func escapeFilter(s string) string {
+	return quoteEscaper.Replace(s)
+}
 
 func openbrowser(url string) {
 	var err error
@@ -170,7 +178,7 @@ func (c *Context) SearchAlbum(search string) ([]api.Album, error) {
 func (c *Context) FindAlbums(name, artist string) ([]api.Album, error) {
 	search, err := c.client.GetAlbums(api.Options{
 		QueryParams: map[string]string{
-			"filter": fmt.Sprintf("name == \"%s\" && artistName == \"%s\"", name, artist),
+			"filter": fmt.Sprintf("name == \"%s\" && artistName == \"%s\"", escapeFilter(name), escapeFilter(artist)),
 		},
 	})
 	if err != nil {
@@ -211,7 +219,7 @@ func (c *Context) GetOrCreateArtist(name string) (string, error) {
 
 	search, err := c.client.GetArtists(api.Options{
 		QueryParams: map[string]string{
-			"filter": fmt.Sprintf("name == \"%s\"", name),
+			"filter": fmt.Sprintf("name == \"%s\"", escapeFilter(name)),
 		},
 	})
 	if err != nil {
