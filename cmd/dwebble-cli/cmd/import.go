@@ -22,7 +22,6 @@ import (
 	"github.com/spf13/cobra"
 )
 var quoteEscaper = strings.NewReplacer(
-	`'`, `\'`, 
 	`"`, `\"`,
 )
 
