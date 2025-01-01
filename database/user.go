@@ -118,7 +118,7 @@ func (db *Database) CreateUser(ctx context.Context, params CreateUserParams) (Us
 	query := dialect.
 		Insert("users").
 		Rows(goqu.Record{
-			"id":       utils.CreateId(),
+			"id":       id,
 			"username": params.Username,
 			"password": params.Password,
 			"role":     params.Role,
