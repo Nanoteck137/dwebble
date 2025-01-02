@@ -94,6 +94,7 @@ func (c *Context) SetAlbumCover(albumId, filename string) error {
 	if err != nil {
 		return err
 	}
+	defer src.Close()
 
 	_, err = io.Copy(dw, src)
 	if err != nil {
@@ -143,6 +144,7 @@ func (c *Context) UploadTrackSimple(trackFilename string, body api.UploadTrackBo
 		if err != nil {
 			return err
 		}
+		defer src.Close()
 
 		_, err = io.Copy(dw, src)
 		if err != nil {
