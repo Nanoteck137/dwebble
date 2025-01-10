@@ -450,7 +450,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 
-					err = app.DB().RemoveTrack(ctx, track.Id)
+					err = db.RemoveTrack(ctx, track.Id)
 					if err != nil {
 						return nil, err
 					}
