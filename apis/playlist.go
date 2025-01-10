@@ -58,7 +58,9 @@ func (b PostPlaylistFilterBody) Validate() error {
 
 type GetPlaylistById struct {
 	Playlist
+}
 
+type GetPlaylistItems struct {
 	Items []Track `json:"items"`
 }
 
@@ -227,16 +229,50 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, PlaylistNotFound()
 				}
 
-				tracks, err := app.DB().GetPlaylistTracks(c.Request().Context(), playlist.Id)
-				if err != nil {
-					return nil, err
-				}
-
-				res := GetPlaylistById{
+				return GetPlaylistById{
 					Playlist: Playlist{
 						Id:   playlist.Id,
 						Name: playlist.Name,
 					},
+				}, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:         "GetPlaylistItems",
+			Path:         "/playlists/:id/items",
+			Method:       http.MethodGet,
+			ResponseType: GetPlaylistItems{},
+			Errors:       []pyrin.ErrorType{ErrTypePlaylistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				playlistId := c.Param("id")
+
+				ctx := context.TODO()
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				playlist, err := app.DB().GetPlaylistById(ctx, playlistId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, PlaylistNotFound()
+					}
+
+					return nil, err
+				}
+
+				if playlist.OwnerId != user.Id {
+					return nil, PlaylistNotFound()
+				}
+
+				tracks, err := app.DB().GetPlaylistTracks(ctx, playlist.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				res := GetPlaylistItems{
 					Items: make([]Track, len(tracks)),
 				}
 
