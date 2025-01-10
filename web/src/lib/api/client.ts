@@ -116,6 +116,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/playlists/${id}`, "GET", api.GetPlaylistById, z.any(), undefined, options)
   }
   
+  getPlaylistItems(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/playlists/${id}/items`, "GET", api.GetPlaylistItems, z.any(), undefined, options)
+  }
+  
   addItemToPlaylist(id: string, body: api.AddItemToPlaylistBody, options?: ExtraOptions) {
     return this.request(`/api/v1/playlists/${id}/items`, "POST", z.undefined(), z.any(), body, options)
   }

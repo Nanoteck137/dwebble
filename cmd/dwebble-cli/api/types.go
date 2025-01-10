@@ -206,9 +206,9 @@ type PostPlaylistFilterBody struct {
 	Filter string `json:"filter"`
 }
 
-type GetPlaylistById struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
+type GetPlaylistById Playlist
+
+type GetPlaylistItems struct {
 	Items []Track `json:"items"`
 }
 

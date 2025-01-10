@@ -433,6 +433,22 @@ func (c *Client) GetPlaylistById(id string, options Options) (*GetPlaylistById, 
 	return Request[GetPlaylistById](data)
 }
 
+func (c *Client) GetPlaylistItems(id string, options Options) (*GetPlaylistItems, error) {
+	path := Sprintf("/api/v1/playlists/%v/items", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetPlaylistItems](data)
+}
+
 func (c *Client) AddItemToPlaylist(id string, body AddItemToPlaylistBody, options Options) (*any, error) {
 	path := Sprintf("/api/v1/playlists/%v/items", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)

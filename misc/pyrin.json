@@ -755,18 +755,13 @@
     },
     {
       "name": "GetPlaylistById",
+      "extend": "Playlist",
+      "fields": null
+    },
+    {
+      "name": "GetPlaylistItems",
       "extend": "",
       "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
         {
           "name": "items",
           "type": "[]Track",
@@ -1323,6 +1318,13 @@
       "method": "GET",
       "path": "/api/v1/playlists/:id",
       "responseType": "GetPlaylistById",
+      "bodyType": ""
+    },
+    {
+      "name": "GetPlaylistItems",
+      "method": "GET",
+      "path": "/api/v1/playlists/:id/items",
+      "responseType": "GetPlaylistItems",
       "bodyType": ""
     },
     {

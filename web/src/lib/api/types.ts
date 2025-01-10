@@ -240,12 +240,13 @@ export const PostPlaylistFilterBody = z.object({
 });
 export type PostPlaylistFilterBody = z.infer<typeof PostPlaylistFilterBody>;
 
-export const GetPlaylistById = z.object({
-  id: z.string(),
-  name: z.string(),
+export const GetPlaylistById = Playlist;
+export type GetPlaylistById = z.infer<typeof GetPlaylistById>;
+
+export const GetPlaylistItems = z.object({
   items: z.array(Track),
 });
-export type GetPlaylistById = z.infer<typeof GetPlaylistById>;
+export type GetPlaylistItems = z.infer<typeof GetPlaylistItems>;
 
 export const AddItemToPlaylistBody = z.object({
   trackId: z.string(),
