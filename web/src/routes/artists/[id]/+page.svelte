@@ -28,7 +28,7 @@
 
 <Separator />
 
-<p>Num Albums: {data.trackPage.totalItems}</p>
+<p>Num Tracks: {data.trackPage.totalItems}</p>
 {#each data.tracks as track}
   <p>{track.name.default}</p>
 {/each}
