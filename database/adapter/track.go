@@ -102,6 +102,8 @@ func (a *TrackResolverAdapter) ResolveNameToId(typ, name string) (string, bool) 
 	switch typ {
 	case "tags":
 		return utils.Slug(name), true
+	case "featuringArtists":
+		return name, true
 	}
 
 	return "", false
@@ -115,6 +117,12 @@ func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, bool) {
 			SelectName: "track_id",
 			WhereName:  "tag_slug",
 		}, true
+	case "featuringArtists":
+		return filter.Table{
+			Name:       "tracks_featuring_artists",
+			SelectName: "track_id",
+			WhereName:  "artist_id",
+		}, true
 	}
 
 	return filter.Table{}, false
@@ -123,7 +131,9 @@ func (a *TrackResolverAdapter) ResolveTable(typ string) (filter.Table, bool) {
 func (a *TrackResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
 	switch name {
 	case "hasTag":
-		return resolver.InTable(name, "tags", args)
+		return resolver.InTable(name, "tags", "tracks.id", args)
+	case "hasFeaturingArtist":
+		return resolver.InTable(name, "featuringArtists", "tracks.id", args)
 	}
 
 	return nil, filter.UnknownFunction(name)

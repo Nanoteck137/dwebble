@@ -45,6 +45,7 @@ type Table struct {
 
 type InTableExpr struct {
 	Not   bool
+	IdSelector string
 	Table Table
 	Ids   []string
 }

@@ -133,9 +133,9 @@ func generateFilter(e filter.FilterExpr) (exp.Expression, error) {
 
 		if e.Not {
 			// TODO(patrik): Move tracks.id
-			return goqu.L("? NOT IN ?", goqu.I("tracks.id"), s), nil
+			return goqu.L("? NOT IN ?", goqu.I(e.IdSelector), s), nil
 		} else {
-			return goqu.L("? IN ?", goqu.I("tracks.id"), s), nil
+			return goqu.L("? IN ?", goqu.I(e.IdSelector), s), nil
 		}
 	}
 

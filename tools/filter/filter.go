@@ -145,7 +145,7 @@ func (r *Resolver) resolveNameValue(name string, value ast.Expr) (string, any, e
 	return n.Name, val, nil
 }
 
-func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, error) {
+func (r *Resolver) InTable(name, typ, idSelector string, args []ast.Expr) (*InTableExpr, error) {
 	if len(args) <= 0 {
 		return nil, fmt.Errorf("'%s' requires at least 1 parameter", name)
 	}
@@ -176,9 +176,10 @@ func (r *Resolver) InTable(name, typ string, args []ast.Expr) (*InTableExpr, err
 	}
 
 	return &InTableExpr{
-		Not:   false,
-		Table: tbl,
-		Ids:   ids,
+		Not:        false,
+		IdSelector: idSelector,
+		Table:      tbl,
+		Ids:        ids,
 	}, nil
 }
 

@@ -4,6 +4,7 @@ import (
 	"go/ast"
 
 	"github.com/nanoteck137/dwebble/tools/filter"
+	"github.com/nanoteck137/dwebble/tools/utils"
 )
 
 var _ filter.ResolverAdapter = (*TrackResolverAdapter)(nil)
@@ -70,32 +71,42 @@ func (a *AlbumResolverAdapter) ResolveVariableName(name string) (filter.Name, bo
 }
 
 func (a *AlbumResolverAdapter) ResolveNameToId(typ, name string) (string, bool) {
-	// switch typ {
-	// case "tags":
-	// 	return utils.Slug(name), true
-	// }
+	switch typ {
+	case "tags":
+		return utils.Slug(name), true
+	case "featuringArtists":
+		return name, true
+	}
 
 	return "", false
 }
 
 func (a *AlbumResolverAdapter) ResolveTable(typ string) (filter.Table, bool) {
-	// switch typ {
-	// case "tags":
-	// 	return filter.Table{
-	// 		Name:       "tracks_to_tags",
-	// 		SelectName: "track_id",
-	// 		WhereName:  "tag_slug",
-	// 	}, true
-	// }
+	switch typ {
+	case "tags":
+		return filter.Table{
+			Name:       "albums_tags",
+			SelectName: "album_id",
+			WhereName:  "tag_slug",
+		}, true
+	case "featuringArtists":
+		return filter.Table{
+			Name:       "albums_featuring_artists",
+			SelectName: "album_id",
+			WhereName:  "artist_id",
+		}, true
+	}
 
 	return filter.Table{}, false
 }
 
 func (a *AlbumResolverAdapter) ResolveFunctionCall(resolver *filter.Resolver, name string, args []ast.Expr) (filter.FilterExpr, error) {
-	// switch name {
-	// case "hasTag":
-	// 	return resolver.InTable(name, "tags", args)
-	// }
+	switch name {
+	case "hasTag":
+		return resolver.InTable(name, "tags", "albums.id", args)
+	case "hasFeaturingArtist":
+		return resolver.InTable(name, "featuringArtists", "albums.id", args)
+	}
 
 	return nil, filter.UnknownFunction(name)
 }
