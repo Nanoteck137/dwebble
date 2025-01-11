@@ -10,6 +10,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/helper"
@@ -112,6 +113,10 @@ func (b CreateArtistBody) Validate() error {
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Name, validate.Required),
 	)
+}
+
+type MergeArtistsBody struct {
+	Artists []string `json:"artists"`
 }
 
 func InstallArtistHandlers(app core.App, group pyrin.Group) {
@@ -413,6 +418,59 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 						Changed: true,
 					},
 				})
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "MergeArtists",
+			Method:   http.MethodPost,
+			Path:     "/artists/:id/merge",
+			BodyType: MergeArtistsBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeArtistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				body, err := pyrin.Body[MergeArtistsBody](c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
+				artist, err := db.GetArtistById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, ArtistNotFound()
+					}
+				}
+
+				pretty.Print(artist)
+
+
+				for _, srcId := range body.Artists {
+					err := db.MergeArtist(ctx, artist.Id, srcId)
+					if err != nil {
+						return nil, err
+					}
+
+					err = db.RemoveArtist(ctx, srcId)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				err = tx.Commit()
 				if err != nil {
 					return nil, err
 				}

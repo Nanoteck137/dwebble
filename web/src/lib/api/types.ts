@@ -76,6 +76,11 @@ export const CreateArtistBody = z.object({
 });
 export type CreateArtistBody = z.infer<typeof CreateArtistBody>;
 
+export const MergeArtistsBody = z.object({
+  artists: z.array(z.string()),
+});
+export type MergeArtistsBody = z.infer<typeof MergeArtistsBody>;
+
 export const GetAlbums = z.object({
   albums: z.array(Album),
 });

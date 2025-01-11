@@ -244,6 +244,17 @@
       ]
     },
     {
+      "name": "MergeArtistsBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "artists",
+          "type": "[]string",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetAlbums",
       "extend": "",
       "fields": [
@@ -1172,6 +1183,13 @@
       "path": "/api/v1/artists",
       "responseType": "CreateArtist",
       "bodyType": "CreateArtistBody"
+    },
+    {
+      "name": "MergeArtists",
+      "method": "POST",
+      "path": "/api/v1/artists/:id/merge",
+      "responseType": "",
+      "bodyType": "MergeArtistsBody"
     },
     {
       "name": "GetAlbums",

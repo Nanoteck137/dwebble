@@ -1,41 +1,184 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import { goto, invalidateAll } from "$app/navigation";
+  import { createApiClient } from "$lib";
+  import { ApiClient } from "$lib/api/client.js";
+  import { Artist } from "$lib/api/types";
+  import { cn, formatError, formatName } from "$lib/utils";
+  import {
+    Button,
+    buttonVariants,
+    Checkbox,
+    DropdownMenu,
+    Separator,
+  } from "@nanoteck137/nano-ui";
+  import { EllipsisVertical, Merge, Users, X } from "lucide-svelte";
+  import toast from "svelte-5-french-toast";
 
-  interface Props {
-    data: PageData;
+  let { data } = $props();
+  const apiClient = createApiClient(data);
+
+  let merge = $state<string>();
+  let selected = $state<string[]>([]);
+
+  function isSelected(id: string) {
+    return !!selected.find((i) => i === id);
   }
-
-  let { data }: Props = $props();
 </script>
 
-<div class="flex flex-col">
-  <p>Num Artists: {data.artists.length}</p>
-  <div
-    class="grid grid-cols-2 gap-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7"
-  >
-    {#each data.artists as artist}
-      <div class="flex flex-col items-center">
-        <div class="group">
-          <a href="/artists/{artist.id}">
-            <!-- svelte-ignore a11y_img_redundant_alt -->
-            <img
-              class="inline-flex aspect-square w-40 min-w-40 items-center justify-center rounded border object-cover text-xs group-hover:brightness-75"
-              src={artist.picture.medium}
-              alt="picture"
-              loading="lazy"
-            />
-          </a>
-          <div class="h-2"></div>
+{#snippet artistItem(artist: Artist)}
+  {@const isMergeTarget = artist.id === merge}
+  {@const isSelectedTarget = isSelected(artist.id)}
+  <div class="py-2">
+    <div
+      class={`relative flex items-center gap-2 rounded pr-2 ${isMergeTarget ? "bg-muted text-muted-foreground" : ""}`}
+    >
+      {#if merge}
+        <!-- svelte-ignore a11y_consider_explicit_label -->
+        <button
+          class="absolute inset-0"
+          onclick={() => {
+            if (isSelected(artist.id)) {
+              selected = selected.filter((i) => i !== artist.id);
+            } else {
+              selected.push(artist.id);
+            }
+          }}
+        ></button>
+      {/if}
+      <a href={`/artists/${artist.id}`}>
+        <img
+          class="inline-flex aspect-square w-14 min-w-14 items-center justify-center rounded border object-cover text-xs"
+          src={artist.picture.small}
+          alt="cover"
+          loading="lazy"
+        />
+      </a>
+      <div class="flex flex-grow flex-col">
+        <div class="flex items-center gap-1">
           <a
-            class="line-clamp-2 w-40 text-sm font-medium group-hover:underline"
-            title={artist.name.default}
-            href="/artists/{artist.id}"
+            class="line-clamp-1 w-fit text-sm font-medium"
+            href={`/artists/${artist.id}`}
+            title={formatName(artist.name)}
           >
-            {artist.name.default}
+            {formatName(artist.name)}
           </a>
         </div>
-        <div class="h-2"></div>
+
+        <!-- <ArtistList class="text-muted-foreground" artists={track.allArtists} /> -->
+
+        <p class="line-clamp-1 text-xs text-muted-foreground">
+          {#if artist.tags.length > 0}
+            {artist.tags.join(", ")}
+          {:else}
+            No Tags
+          {/if}
+        </p>
       </div>
-    {/each}
+      <div class="flex items-center">
+        {#if merge}
+          {#if !isMergeTarget}
+            <Checkbox checked={isSelectedTarget} />
+          {/if}
+        {:else}
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger
+              class={cn(
+                buttonVariants({ variant: "ghost", size: "icon-lg" }),
+                "rounded-full",
+              )}
+            >
+              <EllipsisVertical />
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content align="end">
+              <DropdownMenu.Group>
+                <DropdownMenu.Item
+                  onSelect={() => {
+                    goto(`/artists/${artist.id}`);
+                  }}
+                >
+                  <Users />
+                  Go to Artist
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onSelect={() => {
+                    merge = artist.id;
+                    selected = [];
+                  }}
+                >
+                  <Merge />
+                  Merge Artist
+                </DropdownMenu.Item>
+              </DropdownMenu.Group>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+        {/if}
+      </div>
+    </div>
   </div>
+{/snippet}
+
+<div class="flex items-center justify-between">
+  <p class="text-bold text-xl">Artists</p>
+  <p class="text-sm">{data.artists.length} artist(s)</p>
 </div>
+
+<div class="flex flex-col">
+  {#each data.artists as artist}
+    {@render artistItem(artist)}
+    <Separator />
+  {/each}
+</div>
+
+<div class="h-4"></div>
+
+{#if merge}
+  <div
+    class="sticky bottom-4 border border-border/40 bg-background bg-background/95 px-6 py-3 text-foreground backdrop-blur supports-[backdrop-filter]:bg-background/60"
+  >
+    <p class="text-center">{selected.length} artists selected</p>
+    <div class="h-2"></div>
+
+    <div class="flex flex-col justify-center gap-2 md:flex-row">
+      <div class="flex gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          onclick={() => {
+            selected = [];
+          }}
+        >
+          <X />
+        </Button>
+
+        <Button
+          class="flex-grow"
+          variant="outline"
+          onclick={async () => {
+            if (!merge) {
+              return;
+            }
+
+            const res = await apiClient.mergeArtists(merge, {
+              artists: selected,
+            });
+            if (!res.success) {
+              toast.error(
+                "Failed to merge artists: " + formatError(res.error),
+              );
+              console.error(formatError(res.error), res.error);
+              return;
+            }
+
+            merge = undefined;
+            selected = [];
+            toast.success("Merge artists");
+            await invalidateAll();
+          }}
+        >
+          <Merge />
+          Merge Artists
+        </Button>
+      </div>
+    </div>
+  </div>
+{/if}

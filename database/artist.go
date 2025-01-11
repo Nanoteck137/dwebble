@@ -217,6 +217,107 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 	return nil
 }
 
+func (db *Database) RemoveArtist(ctx context.Context, id string) error {
+	query := dialect.Delete("artists").
+		Prepared(true).
+		Where(goqu.I("artists.id").Eq(id))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) MergeArtist(ctx context.Context, targetId, artistId string) error {
+	// TODO(patrik): Changes
+	// - albums
+	// - albums_featuring_artists
+	// - tracks
+	// - tracks_featuring_artists
+	// - artists_tags (maybe)
+
+	albums, err := db.GetAlbumsByArtist(ctx, artistId)
+	if err != nil {
+		return err
+	}
+
+	for _, album := range albums {
+		err = db.UpdateAlbum(ctx, album.Id, AlbumChanges{
+			ArtistId: types.Change[string]{
+				Value:   targetId,
+				Changed: true,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		record := goqu.Record{
+			"artist_id": targetId,
+		}
+		query := goqu.Update("albums_featuring_artists").
+			Prepared(true).
+			Set(record).
+			Where(goqu.I("albums_featuring_artists.artist_id").Eq(artistId))
+
+		_, err = db.Exec(ctx, query)
+		if err != nil {
+			var sqlErr sqlite3.Error
+			if errors.As(err, &sqlErr) {
+				if sqlErr.ExtendedCode != sqlite3.ErrConstraintPrimaryKey {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+	}
+
+	{
+		record := goqu.Record{
+			"artist_id": targetId,
+			"updated":   time.Now().UnixMilli(),
+		}
+		query := goqu.Update("tracks").
+			Prepared(true).
+			Set(record).
+			Where(goqu.I("tracks.artist_id").Eq(artistId))
+
+		_, err = db.Exec(ctx, query)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		record := goqu.Record{
+			"artist_id": targetId,
+		}
+		query := goqu.Update("tracks_featuring_artists").
+			Prepared(true).
+			Set(record).
+			Where(goqu.I("tracks_featuring_artists.artist_id").Eq(artistId))
+
+		_, err = db.Exec(ctx, query)
+		if err != nil {
+			var sqlErr sqlite3.Error
+			if errors.As(err, &sqlErr) {
+				if sqlErr.ExtendedCode != sqlite3.ErrConstraintPrimaryKey {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 // TODO(patrik): Generalize
 // TODO(patrik): Rename to AddArtistTag, same with track
 func (db *Database) AddTagToArtist(ctx context.Context, tagSlug, artistId string) error {
@@ -224,7 +325,7 @@ func (db *Database) AddTagToArtist(ctx context.Context, tagSlug, artistId string
 		Prepared(true).
 		Rows(goqu.Record{
 			"artist_id": artistId,
-			"tag_slug": tagSlug,
+			"tag_slug":  tagSlug,
 		})
 
 	_, err := db.Exec(ctx, ds)

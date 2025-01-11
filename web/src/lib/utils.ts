@@ -1,7 +1,16 @@
-import type { Track } from "$lib/api/types";
+import type { Name, Track } from "$lib/api/types";
 import type { MusicTrack } from "$lib/music-manager";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+
+export function formatName(name: Name) {
+  let s = name.default;
+  if (name.other) {
+    s += ` - ${name.other}`;
+  }
+
+  return s;
+}
 
 type BareBoneError = {
   code: number;

@@ -65,6 +65,10 @@ type CreateArtistBody struct {
 	OtherName string `json:"otherName"`
 }
 
+type MergeArtistsBody struct {
+	Artists []string `json:"artists"`
+}
+
 type GetAlbums struct {
 	Albums []Album `json:"albums"`
 }

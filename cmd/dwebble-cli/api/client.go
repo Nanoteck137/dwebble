@@ -97,6 +97,22 @@ func (c *Client) CreateArtist(body CreateArtistBody, options Options) (*CreateAr
 	return Request[CreateArtist](data)
 }
 
+func (c *Client) MergeArtists(id string, body MergeArtistsBody, options Options) (*any, error) {
+	path := Sprintf("/api/v1/artists/%v/merge", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) GetAlbums(options Options) (*GetAlbums, error) {
 	path := "/api/v1/albums"
 	url, err := createUrl(c.addr, path, options.QueryParams)
