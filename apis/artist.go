@@ -9,9 +9,12 @@ import (
 	"os"
 	"path"
 	"strings"
+	"time"
 
+	"github.com/doug-martin/goqu/v9"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -457,7 +460,6 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 
 				pretty.Print(artist)
 
-
 				for _, srcId := range body.Artists {
 					err := db.MergeArtist(ctx, artist.Id, srcId)
 					if err != nil {
@@ -468,6 +470,98 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					if err != nil {
 						return nil, err
 					}
+				}
+
+				err = tx.Commit()
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:   "DeleteArtist",
+			Method: http.MethodDelete,
+			Path:   "/artists/:id",
+			Errors: []pyrin.ErrorType{ErrTypeArtistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				ctx := context.TODO()
+
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
+				artist, err := db.GetArtistById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, ArtistNotFound()
+					}
+
+					return nil, err
+				}
+
+				const UNKNOWN_ARTIST_ID = "unknown"
+				const UNKNOWN_ARTIST_NAME = "UNKNOWN"
+
+				// TODO(patrik): Move "UNKNOWN" to const var
+				unknownArtist, err := db.GetArtistById(ctx, UNKNOWN_ARTIST_ID)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						log.Info("Creating 'unknown' artist")
+						unknownArtist, err = helper.CreateArtist(ctx, db, app.WorkDir(), database.CreateArtistParams{
+							Id:   UNKNOWN_ARTIST_ID,
+							Name: UNKNOWN_ARTIST_NAME,
+						})
+					} else {
+						return nil, err
+					}
+				}
+
+				pretty.Println(unknownArtist)
+
+				{
+					// TODO(patrik): Move this code to database
+					record := goqu.Record{
+						"artist_id": UNKNOWN_ARTIST_ID,
+						"updated":   time.Now().UnixMilli(),
+					}
+					query := goqu.Update("tracks").
+						Prepared(true).
+						Set(record).
+						Where(goqu.I("tracks.artist_id").Eq(artist.Id))
+
+					_, err = db.Exec(ctx, query)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				{
+					// TODO(patrik): Move this code to database
+					record := goqu.Record{
+						"artist_id": UNKNOWN_ARTIST_ID,
+						"updated":   time.Now().UnixMilli(),
+					}
+					query := goqu.Update("albums").
+						Prepared(true).
+						Set(record).
+						Where(goqu.I("albums.artist_id").Eq(artist.Id))
+
+					_, err = db.Exec(ctx, query)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				err = db.RemoveArtist(ctx, artist.Id)
+				if err != nil {
+					return nil, err
 				}
 
 				err = tx.Commit()

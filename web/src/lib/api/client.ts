@@ -36,6 +36,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/artists/${id}/merge`, "POST", z.undefined(), z.any(), body, options)
   }
   
+  deleteArtist(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/artists/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
+  }
+  
   getAlbums(options?: ExtraOptions) {
     return this.request("/api/v1/albums", "GET", api.GetAlbums, z.any(), undefined, options)
   }

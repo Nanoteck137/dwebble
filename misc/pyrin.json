@@ -1192,6 +1192,13 @@
       "bodyType": "MergeArtistsBody"
     },
     {
+      "name": "DeleteArtist",
+      "method": "DELETE",
+      "path": "/api/v1/artists/:id",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "GetAlbums",
       "method": "GET",
       "path": "/api/v1/albums",

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { createApiClient, openConfirm } from "$lib";
-  import { cn } from "$lib/utils";
+  import { artistQuery, createApiClient, openConfirm } from "$lib";
+  import { cn, formatError } from "$lib/utils";
   import {
     Breadcrumb,
     buttonVariants,
@@ -15,6 +15,7 @@
     Trash,
     Wallpaper,
   } from "lucide-svelte";
+  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -75,6 +76,27 @@
             >
               <Wallpaper />
               Change Picture
+            </DropdownMenu.Item>
+
+            <DropdownMenu.Item
+              onSelect={async () => {
+                const res = await apiClient.deleteArtist(data.artist.id);
+                if (!res.success) {
+                  toast.error(
+                    "Failed to remove artist: " + formatError(res.error),
+                  );
+                  console.error(formatError(res.error), res.error);
+
+                  return;
+                }
+
+                toast.success("Deleted artist");
+                // TODO(patrik):
+                // goto()
+              }}
+            >
+              <Trash />
+              Delete Artist
             </DropdownMenu.Item>
           </DropdownMenu.Group>
         </DropdownMenu.Content>
