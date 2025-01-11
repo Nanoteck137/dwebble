@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -12,7 +13,6 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
@@ -458,8 +458,6 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				pretty.Print(artist)
-
 				for _, srcId := range body.Artists {
 					err := db.MergeArtist(ctx, artist.Id, srcId)
 					if err != nil {
@@ -475,6 +473,62 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				err = tx.Commit()
 				if err != nil {
 					return nil, err
+				}
+
+				{
+					db, tx, err := app.DB().Begin()
+					if err != nil {
+						return nil, err
+					}
+					defer tx.Rollback()
+
+					albums, err := db.GetAlbumsByArtist(ctx, artist.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					// TODO(patrik): Do the same for tracks
+					for _, album := range albums {
+						query := goqu.Delete("albums_featuring_artists").
+							Prepared(true).
+							Where(
+								goqu.And(
+									goqu.I("albums_featuring_artists.album_id").Eq(album.Id),
+									goqu.I("albums_featuring_artists.artist_id").Eq(album.ArtistId),
+								),
+							)
+
+						_, err := db.Exec(ctx, query)
+						if err != nil {
+							return nil, err
+						}
+					}
+
+					tracks, err := db.GetAllTracksByArtistId(ctx, artist.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					for _, track := range tracks {
+						query := goqu.Delete("tracks_featuring_artists").
+							Prepared(true).
+							Where(
+								goqu.And(
+									goqu.I("tracks_featuring_artists.track_id").Eq(track.Id),
+									goqu.I("tracks_featuring_artists.artist_id").Eq(track.ArtistId),
+								),
+							)
+
+						_, err := db.Exec(ctx, query)
+						if err != nil {
+							return nil, err
+						}
+					}
+
+					err = tx.Commit()
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				return nil, nil
@@ -509,12 +563,14 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				const UNKNOWN_ARTIST_ID = "unknown"
 				const UNKNOWN_ARTIST_NAME = "UNKNOWN"
 
+				// TODO(patrik): EnsureUnknownArtistExists()
+
 				// TODO(patrik): Move "UNKNOWN" to const var
-				unknownArtist, err := db.GetArtistById(ctx, UNKNOWN_ARTIST_ID)
+				_, err = db.GetArtistById(ctx, UNKNOWN_ARTIST_ID)
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
 						log.Info("Creating 'unknown' artist")
-						unknownArtist, err = helper.CreateArtist(ctx, db, app.WorkDir(), database.CreateArtistParams{
+						_, err = helper.CreateArtist(ctx, db, app.WorkDir(), database.CreateArtistParams{
 							Id:   UNKNOWN_ARTIST_ID,
 							Name: UNKNOWN_ARTIST_NAME,
 						})
@@ -522,8 +578,6 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 				}
-
-				pretty.Println(unknownArtist)
 
 				{
 					// TODO(patrik): Move this code to database
@@ -557,6 +611,16 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					if err != nil {
 						return nil, err
 					}
+				}
+
+				// TODO(patrik): Cleanup Code
+				dir := app.WorkDir().Artist(artist.Id)
+				targetName := fmt.Sprintf("artist-%s-%d", artist.Id, time.Now().UnixMilli())
+				target := path.Join(app.WorkDir().Trash(), targetName)
+
+				err = os.Rename(dir, target)
+				if err != nil && !os.IsNotExist(err) {
+					return nil, err
 				}
 
 				err = db.RemoveArtist(ctx, artist.Id)

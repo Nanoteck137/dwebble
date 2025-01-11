@@ -135,6 +135,19 @@ func TrackQuery() *goqu.SelectDataset {
 	return query
 }
 
+func (db *Database) GetAllTracksByArtistId(ctx context.Context, artistId string) ([]Track, error) {
+	query := TrackQuery().
+		Where(goqu.I("tracks.artist_id").Eq(artistId))
+
+	var items []Track
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 // TODO(patrik): Move
 type FetchOption struct {
 	Filter  string
