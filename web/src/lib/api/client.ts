@@ -92,6 +92,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/tracks/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
   }
   
+  getQueue(playerId: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${playerId}`, "GET", z.undefined(), z.any(), undefined, options)
+  }
+  
   signup(body: api.SignupBody, options?: ExtraOptions) {
     return this.request("/api/v1/auth/signup", "POST", api.Signup, z.any(), body, options)
   }

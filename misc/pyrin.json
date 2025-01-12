@@ -1295,6 +1295,13 @@
       "bodyType": ""
     },
     {
+      "name": "GetQueue",
+      "method": "GET",
+      "path": "/api/v1/queue/:playerId",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "Signup",
       "method": "POST",
       "path": "/api/v1/auth/signup",

@@ -1,62 +1,124 @@
 package apis
 
 import (
-	"github.com/labstack/echo/v4"
+	"context"
+	"errors"
+	"net/http"
+
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/core/log"
+	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/pyrin"
 )
 
-type queueApi struct {
-	app core.App
-}
-
-func (api *queueApi) HandlePostQueue(c echo.Context) error {
-	// TODO(patrik): Add back
-	return c.JSON(200, struct{}{})
-
-	// tracks, err := api.app.DB().GetAllTracks(c.Request().Context(), "", "")
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// res := types.PostQueue{
-	// 	Tracks: make([]types.Track, len(tracks)),
-	// }
-	//
-	// for i, track := range tracks {
-	// 	res.Tracks[i] = types.Track{
-	// 		Id:                track.Id,
-	// 		Number:            track.Number,
-	// 		Name:              track.Name,
-	// 		CoverArt:          utils.ConvertTrackCoverURL(c, track.CoverArt),
-	// 		Duration:          track.Duration,
-	// 		BestQualityFile:   utils.ConvertURL(c, "/tracks/original/"+track.BestQualityFile),
-	// 		MobileQualityFile: utils.ConvertURL(c, "/tracks/mobile/"+track.MobileQualityFile),
-	// 		AlbumId:           track.AlbumId,
-	// 		ArtistId:          track.ArtistId,
-	// 		AlbumName:         track.AlbumName,
-	// 		ArtistName:        track.ArtistName,
-	// 	}
-	// }
-	//
-	// return c.JSON(200, SuccessResponse(res))
-}
-
-// TODO(patrik): Add back
 func InstallQueueHandlers(app core.App, group pyrin.Group) {
-	// api := queueApi{app: app}
-	//
-	// requireSetup := RequireSetup(app)
-	//
-	// group.Register(
-	// 	Handler{
-	// 		Name:        "CreateQueue",
-	// 		Path:        "/queue",
-	// 		Method:      http.MethodPost,
-	// 		DataType:    types.PostQueue{},
-	// 		BodyType:    nil,
-	// 		HandlerFunc: api.HandlePostQueue,
-	// 		Middlewares: []echo.MiddlewareFunc{requireSetup},
-	// 	},
-	// )
+	// NOTE(patrik):
+	// 1. Multiple queues per user
+	//   - Default Queue for players
+	//   - Shared between players
+	// 2. One queue per player
+	//   - Players should be able to make an copy of the queue to their own queue
+	//   - Create playlists from queue? It can't retain the order but can store the tracks
+	//   - Not logged in queue
+
+	// TODO(patrik):
+	// - GetQueue
+	// - CreateQueueFromPlaylist
+	// - CreateQueueFromTaglist
+	// - CreateQueueFromIds
+	// - CreateQueueFromTracks
+	// - CreateQueueFromAlbum
+	// - CreateQueueFromArtist
+	// - AddFromPlaylist
+	//   - Clear Flag
+	// - AddFromTaglist
+	//   - Clear Flag
+	// - AddFromIds
+	//   - Clear Flag
+	// - AddFromTracks
+	//   - Clear Flag
+	// - AddFromAlbum
+	//   - Clear Flag
+	// - AddFromArtist
+	//   - Clear Flag
+	// - ClearQueue
+	// - AddToQueue
+	// - RemoveFromQueue
+	// - DeleteQueue
+
+	group.Register(
+		pyrin.ApiHandler{
+			Name:         "GetQueue",
+			Method:       http.MethodGet,
+			Path:         "/queue/:playerId",
+			ResponseType: nil,
+			BodyType:     nil,
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				playerId := c.Param("playerId")
+
+				ctx := context.TODO()
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				_, err = app.DB().GetPlayerById(ctx, playerId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						err := app.DB().CreatePlayer(ctx, database.CreatePlayerParams{
+							Id:      playerId,
+						})
+						if err != nil {
+							return nil, err
+						}
+					} else {
+						return nil, err
+					}
+				}
+
+				// TODO(patrik): Move
+				const DEFAULT_QUEUE_NAME = "Default Queue"
+
+				var queue database.Queue
+
+				defaultQueue, err := app.DB().GetDefaultQueue(ctx, playerId, user.Id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						log.Info("Default queue not found")
+						queue, err = app.DB().CreateQueue(ctx, database.CreateQueueParams{
+							PlayerId: playerId,
+							UserId:   user.Id,
+							Name:     DEFAULT_QUEUE_NAME,
+						})
+						if err != nil {
+							return nil, err
+						}
+
+						err = app.DB().CreateDefaultQueue(ctx, database.CreateDefaultQueueParams{
+							PlayerId: playerId,
+							UserId:   user.Id,
+							QueueId:  queue.Id,
+						})
+						if err != nil {
+							return nil, err
+						}
+					} else {
+						return nil, err
+					}
+				} else {
+					log.Info("Default queue found")
+					queue, err = app.DB().GetQueue(ctx, defaultQueue.QueueId)
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				pretty.Println(queue)
+
+				return nil, nil
+			},
+		},
+	)
 }
