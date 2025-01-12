@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import { artistQuery, createApiClient, openConfirm } from "$lib";
   import { cn, formatError } from "$lib/utils";
   import {
@@ -16,9 +16,17 @@
     Wallpaper,
   } from "lucide-svelte";
   import toast from "svelte-5-french-toast";
+  import EditArtistDetailsModal, {
+    type Props as EditArtistDetailsModalProps,
+  } from "./EditArtistDetailsModal.svelte";
+  import { modals } from "svelte-modals";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
+
+  function openEditDetailsModal(props: EditArtistDetailsModalProps) {
+    return modals.open(EditArtistDetailsModal, props);
+  }
 </script>
 
 <div class="py-2">
@@ -61,8 +69,28 @@
         <DropdownMenu.Content align="center">
           <DropdownMenu.Group>
             <DropdownMenu.Item
-              onSelect={() => {
-                goto(`/artists/${data.artist.id}/edit/details`);
+              onSelect={async () => {
+                const res = await openEditDetailsModal({
+                  artist: data.artist,
+                });
+                if (res) {
+                  const apiRes = await apiClient.editArtist(data.artist.id, {
+                    name: res.name,
+                    otherName: res.otherName,
+                    tags: res.tags.split(","),
+                  });
+                  if (!apiRes.success) {
+                    toast.error(
+                      "Failed to update artist details: " +
+                        formatError(apiRes.error),
+                    );
+                    console.error(formatError(apiRes.error), apiRes.error);
+                    return;
+                  }
+
+                  toast.success("Updated artist");
+                  await invalidateAll();
+                }
               }}
             >
               <Edit />
@@ -83,7 +111,7 @@
                 const res = await apiClient.deleteArtist(data.artist.id);
                 if (!res.success) {
                   toast.error(
-                    "Failed to remove artist: " + formatError(res.error),
+                    "Failed to delete artist: " + formatError(res.error),
                   );
                   console.error(formatError(res.error), res.error);
 
@@ -91,8 +119,7 @@
                 }
 
                 toast.success("Deleted artist");
-                // TODO(patrik):
-                // goto()
+                goto("/artists", { invalidateAll: true });
               }}
             >
               <Trash />

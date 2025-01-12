@@ -207,7 +207,12 @@
         {
           "name": "name",
           "type": "*string",
-          "omit": false
+          "omit": true
+        },
+        {
+          "name": "otherName",
+          "type": "*string",
+          "omit": true
         },
         {
           "name": "tags",

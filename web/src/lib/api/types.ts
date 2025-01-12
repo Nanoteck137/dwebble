@@ -60,7 +60,8 @@ export const GetArtistAlbumsById = z.object({
 export type GetArtistAlbumsById = z.infer<typeof GetArtistAlbumsById>;
 
 export const EditArtistBody = z.object({
-  name: z.string().nullable(),
+  name: z.string().nullable().optional(),
+  otherName: z.string().nullable().optional(),
   tags: z.array(z.string()).nullable().optional(),
 });
 export type EditArtistBody = z.infer<typeof EditArtistBody>;

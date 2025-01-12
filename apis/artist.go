@@ -83,12 +83,14 @@ type GetArtistAlbumsById struct {
 }
 
 type EditArtistBody struct {
-	Name *string   `json:"name"`
-	Tags *[]string `json:"tags,omitempty"`
+	Name      *string   `json:"name,omitempty"`
+	OtherName *string   `json:"otherName,omitempty"`
+	Tags      *[]string `json:"tags,omitempty"`
 }
 
 func (b *EditArtistBody) Transform() {
 	b.Name = transform.StringPtr(b.Name)
+	b.OtherName = transform.StringPtr(b.OtherName)
 	b.Tags = DiscardEntriesStringArrayPtr(b.Tags)
 }
 
@@ -274,7 +276,17 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				if body.Name != nil {
 					changes.Name = types.Change[string]{
 						Value:   *body.Name,
-						Changed: artist.Name != *body.Name,
+						Changed: *body.Name != artist.Name,
+					}
+				}
+
+				if body.OtherName != nil {
+					changes.OtherName = types.Change[sql.NullString]{
+						Value: sql.NullString{
+							String: *body.OtherName,
+							Valid:  *body.OtherName != "",
+						},
+						Changed: *body.OtherName != artist.OtherName.String,
 					}
 				}
 

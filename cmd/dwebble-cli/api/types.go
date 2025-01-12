@@ -53,6 +53,7 @@ type GetArtistAlbumsById struct {
 
 type EditArtistBody struct {
 	Name *string `json:"name,omitempty"`
+	OtherName *string `json:"otherName,omitempty"`
 	Tags *[]string `json:"tags,omitempty"`
 }
 
