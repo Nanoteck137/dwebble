@@ -25,6 +25,7 @@
   type Props = {
     apiClient: ApiClient;
     isAlbumShowcase?: boolean;
+    hideHeader?: boolean;
     totalTracks: number;
     tracks: Track[];
     userPlaylists?: Playlist[] | null;
@@ -35,6 +36,7 @@
   const {
     apiClient,
     isAlbumShowcase,
+    hideHeader,
     totalTracks,
     tracks,
     userPlaylists,
@@ -44,7 +46,7 @@
 </script>
 
 <div class="flex flex-col">
-  {#if !isAlbumShowcase}
+  {#if !isAlbumShowcase && !hideHeader}
     <div class="flex gap-2">
       <Button
         size="sm"
@@ -123,7 +125,11 @@
         </DropdownMenu.Trigger>
         <DropdownMenu.Content align="end">
           <DropdownMenu.Group>
-            <DropdownMenu.Item>
+            <DropdownMenu.Item
+              onSelect={() => {
+                goto(`/artists/${track.artistId}`);
+              }}
+            >
               <Users />
               Go to Artist
             </DropdownMenu.Item>

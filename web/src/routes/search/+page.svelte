@@ -1,13 +1,14 @@
 <script lang="ts">
   import { goto, invalidateAll, onNavigate } from "$app/navigation";
+  import { createApiClient } from "$lib";
   import AlbumListItem from "$lib/components/AlbumListItem.svelte";
   import ArtistListItem from "$lib/components/ArtistListItem.svelte";
-  import TrackListItem from "$lib/components/TrackListItem.svelte";
-  import { musicManager } from "$lib/music-manager";
-  import { trackToMusicTrack } from "$lib/utils";
+  import TrackList from "$lib/components/track-list/TrackList.svelte";
+  import { formatError } from "$lib/utils";
   import { Button, Input, Label } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
+  const apiClient = createApiClient(data);
 
   async function search(query: string) {
     await goto(`?query=${query}`, {
@@ -63,6 +64,26 @@
   </div>
 </form>
 
+<div class="h-4"></div>
+
+{#if data.artistError}
+  <p class="text-red-400">
+    Artist Query Error: {formatError(data.artistError)}
+  </p>
+{/if}
+
+{#if data.albumError}
+  <p class="text-red-400">
+    Album Query Error: {formatError(data.albumError)}
+  </p>
+{/if}
+
+{#if data.trackError}
+  <p class="text-red-400">
+    Track Query Error: {formatError(data.trackError)}
+  </p>
+{/if}
+
 {#if data.artists.length > 0}
   <div class="flex items-center justify-between">
     <p class="text-bold">Artists</p>
@@ -86,18 +107,16 @@
 {/if}
 
 {#if data.tracks.length > 0}
-  <div class="flex items-center justify-between">
-    <p class="text-bold">Tracks</p>
-    <p class="text-xs">{data.tracks.length} track(s)</p>
-  </div>
-
-  {#each data.tracks as track}
-    <TrackListItem
-      {track}
-      onPlayClicked={() => {
-        musicManager.clearQueue();
-        musicManager.addTrackToQueue(trackToMusicTrack(track));
-      }}
-    />
-  {/each}
+  <TrackList
+    {apiClient}
+    hideHeader={true}
+    totalTracks={data.tracks.length}
+    tracks={data.tracks}
+    userPlaylists={data.userPlaylists}
+    quickPlaylist={data.user?.quickPlaylist}
+    isInQuickPlaylist={(trackId) => {
+      if (!data.quickPlaylistIds) return false;
+      return !!data.quickPlaylistIds.find((v) => v === trackId);
+    }}
+  />
 {/if}

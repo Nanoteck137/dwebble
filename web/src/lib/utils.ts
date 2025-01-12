@@ -12,7 +12,7 @@ export function formatName(name: Name) {
   return s;
 }
 
-type BareBoneError = {
+export type BareBoneError = {
   code: number;
   message: string;
   type: string;
