@@ -487,7 +487,6 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 
-					// TODO(patrik): Do the same for tracks
 					for _, album := range albums {
 						query := goqu.Delete("albums_featuring_artists").
 							Prepared(true).
