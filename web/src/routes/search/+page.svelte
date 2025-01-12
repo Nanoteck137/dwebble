@@ -1,20 +1,11 @@
 <script lang="ts">
-  import { enhance } from "$app/forms";
   import { goto, invalidateAll, onNavigate } from "$app/navigation";
-  import { Artist } from "$lib/api/types";
   import AlbumListItem from "$lib/components/AlbumListItem.svelte";
   import ArtistListItem from "$lib/components/ArtistListItem.svelte";
   import TrackListItem from "$lib/components/TrackListItem.svelte";
   import { musicManager } from "$lib/music-manager";
-  import { cn, trackToMusicTrack } from "$lib/utils";
-  import {
-    Button,
-    buttonVariants,
-    DropdownMenu,
-    Input,
-    Label,
-  } from "@nanoteck137/nano-ui";
-  import { EllipsisVertical, Pencil, Play, Plus } from "lucide-svelte";
+  import { trackToMusicTrack } from "$lib/utils";
+  import { Button, Input, Label } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
 

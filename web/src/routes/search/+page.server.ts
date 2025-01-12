@@ -1,22 +1,33 @@
-import type { Search } from "$lib/types";
 import { error } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ request, fetch }) => {
+export const load: PageServerLoad = async ({ request, locals }) => {
   const url = new URL(request.url);
   const query = url.searchParams.get("query") ?? "";
 
-  const res = await fetch(`/server/search?query=${encodeURIComponent(query)}`);
-  const d = (await res.json()) as Search;
+  // TODO(patrik): Use Promise.all
+  const artists = await locals.apiClient.searchArtists({ query: { query } });
+  if (!artists.success) {
+    // TODO(patrik): Should we throw the error?
+    throw error(artists.error.code, { message: artists.error.message });
+  }
 
-  if (!d.success) {
-    throw error(res.status, { message: d.message });
+  const albums = await locals.apiClient.searchAlbums({ query: { query } });
+  if (!albums.success) {
+    // TODO(patrik): Should we throw the error?
+    throw error(albums.error.code, { message: albums.error.message });
+  }
+
+  const tracks = await locals.apiClient.searchTracks({ query: { query } });
+  if (!tracks.success) {
+    // TODO(patrik): Should we throw the error?
+    throw error(tracks.error.code, { message: tracks.error.message });
   }
 
   return {
     query,
-    artists: d.artists,
-    albums: d.albums,
-    tracks: d.tracks,
+    artists: artists.data.artists,
+    albums: albums.data.albums,
+    tracks: tracks.data.tracks,
   };
 };
