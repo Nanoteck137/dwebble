@@ -7,6 +7,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
     throw error(res.error.code, { message: res.error.message });
   }
 
+  // TODO(patrik): Use Promise.all
   const albums = await locals.apiClient.getAlbums({
     query: {
       filter: `artistId == "${params.id}" || hasFeaturingArtist("${params.id}")`,
