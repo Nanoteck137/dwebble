@@ -106,20 +106,28 @@
               Change Picture
             </DropdownMenu.Item>
 
+            <DropdownMenu.Separator />
+
             <DropdownMenu.Item
               onSelect={async () => {
-                const res = await apiClient.deleteArtist(data.artist.id);
-                if (!res.success) {
-                  toast.error(
-                    "Failed to delete artist: " + formatError(res.error),
-                  );
-                  console.error(formatError(res.error), res.error);
+                const confirmed = await openConfirm({
+                  title: "Are you sure?",
+                  description: "You are about to delete this artist",
+                });
+                if (confirmed) {
+                  const res = await apiClient.deleteArtist(data.artist.id);
+                  if (!res.success) {
+                    toast.error(
+                      "Failed to delete artist: " + formatError(res.error),
+                    );
+                    console.error(formatError(res.error), res.error);
 
-                  return;
+                    return;
+                  }
+
+                  toast.success("Deleted artist");
+                  goto("/artists", { invalidateAll: true });
                 }
-
-                toast.success("Deleted artist");
-                goto("/artists", { invalidateAll: true });
               }}
             >
               <Trash />

@@ -1,7 +1,15 @@
 <script lang="ts">
-  const { children } = $props();
+  import { cn } from "$lib/utils";
+  import type { Snippet } from "svelte";
+
+  export type Props = {
+    class?: string;
+    children?: Snippet;
+  };
+
+  const { class: className, children }: Props = $props();
 </script>
 
-<div class="flex flex-col gap-2">
-  {@render children()}
+<div class={cn("flex flex-col gap-2", className)}>
+  {@render children?.()}
 </div>

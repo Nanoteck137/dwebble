@@ -10,7 +10,7 @@
 
   export type Result = {
     name: string;
-    otherName: string;
+    otherName: string | null;
     tags: string;
   };
 
@@ -19,7 +19,7 @@
 
   let result = $state<Result>({
     name: artist.name.default,
-    otherName: artist.name.other ?? "",
+    otherName: artist.name.other,
     tags: artist.tags.join(","),
   });
 </script>

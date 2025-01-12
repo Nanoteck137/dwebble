@@ -40,6 +40,7 @@
       featuringArtists: featuringArtists.map((a) => a.id),
     });
     if (!res.success) {
+      // TODO(patrik): fix
       throw res.error.message;
     }
 
