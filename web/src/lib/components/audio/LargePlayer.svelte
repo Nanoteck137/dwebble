@@ -13,7 +13,7 @@
     VolumeX,
   } from "lucide-svelte";
   import type { MusicTrack } from "$lib/api/types";
-  import { getMusicManager } from "$lib/music-manager";
+  import { getMusicManager } from "$lib/music-manager.svelte";
 
   const musicManager = getMusicManager();
 
@@ -27,9 +27,7 @@
     volume: number;
     audioMuted: boolean;
 
-    trackName: string;
-    artistName: string;
-    coverArt: string;
+    track: MusicTrack | null;
 
     queue: MusicTrack[];
     currentQueueIndex: number;
@@ -52,9 +50,7 @@
     duration,
     volume,
     audioMuted,
-    trackName,
-    artistName,
-    coverArt,
+    track,
     onPlay,
     onPause,
     onNextTrack,
@@ -188,16 +184,16 @@
     <div class="flex items-center justify-center gap-2 align-middle">
       <img
         class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
-        src={coverArt}
+        src={track?.coverArt.small}
         alt="cover"
       />
       <div class="flex flex-col">
-        <p class="line-clamp-1 text-ellipsis text-sm" title={trackName}>
-          {trackName}
+        <p class="line-clamp-1 text-ellipsis text-sm" title={track?.name}>
+          {track?.name}
         </p>
 
         <p class="line-clamp-1 min-w-80 text-ellipsis text-xs">
-          {artistName}
+          {track?.artists[0].artistName}
         </p>
       </div>
     </div>

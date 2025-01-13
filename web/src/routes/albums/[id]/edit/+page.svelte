@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { musicManager } from "$lib/music-manager";
+  import { musicManager } from "$lib/music-manager.svelte.js";
   import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
   import {
     Edit,

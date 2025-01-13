@@ -12,6 +12,7 @@ CREATE TABLE queues (
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 
     name TEXT NOT NULL CHECK(name<>''),
+    item_index INT NOT NULL,
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL

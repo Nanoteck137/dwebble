@@ -13,6 +13,8 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/nanoteck137/validate"
 )
 
 type MusicTrackArtist struct {
@@ -27,6 +29,7 @@ type MusicTrackAlbum struct {
 }
 
 type MusicTrack struct {
+	Id   string `json:"id"`
 	Name string `json:"name"`
 
 	Artists []MusicTrackArtist `json:"artists"`
@@ -57,6 +60,21 @@ type Queue struct {
 type GetQueueItems struct {
 	Index int         `json:"index"`
 	Items []QueueItem `json:"items"`
+}
+
+type UpdateQueueBody struct {
+	Name      *string `json:"name,omitempty"`
+	ItemIndex *int    `json:"itemIndex,omitempty"`
+}
+
+func (b *UpdateQueueBody) Transform() {
+	b.Name = transform.StringPtr(b.Name)
+}
+
+func (b UpdateQueueBody) Validate() error {
+	return validate.ValidateStruct(&b,
+		validate.Field(&b.Name, validate.Required.When(b.Name != nil)),
+	)
 }
 
 func InstallQueueHandlers(app core.App, group pyrin.Group) {
@@ -196,6 +214,16 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				err = app.DB().UpdateQueue(ctx, queue.Id, database.QueueChanges{
+					ItemIndex: types.Change[int]{
+						Value:   0,
+						Changed: queue.ItemIndex != 0,
+					},
+				})
+				if err != nil {
+					return nil, err
+				}
+
 				return nil, nil
 			},
 		},
@@ -273,31 +301,13 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				pretty.Println(queue)
-
 				items, err := app.DB().GetQueueItemsForPlay(ctx, queue.Id)
 				if err != nil {
 					return nil, err
 				}
 
-				pretty.Println(items)
-
-				// items, err := app.DB().GetAllQueueItemIds(ctx, queue.Id)
-				// if err != nil {
-				// 	return nil, err
-				// }
-				//
-				// pretty.Println(items)
-				//
-				// tracks, err := app.DB().GetTracksByIds(ctx, items)
-				// if err != nil {
-				// 	return nil, err
-				// }
-				//
-				// pretty.Println(tracks)
-
 				res := GetQueueItems{
-					Index: 1,
+					Index: queue.ItemIndex,
 					Items: make([]QueueItem, len(items)),
 				}
 
@@ -320,14 +330,13 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 						return nil, errors.New("Contains bad media items")
 					}
 
-					pretty.Println(originalItem)
-
 					res.Items[i] = QueueItem{
 						Id:          item.Id,
 						QueueId:     item.QueueId,
 						OrderNumber: item.OrderNumber,
 						TrackId:     item.TrackId,
 						Track: MusicTrack{
+							Id:   item.TrackId,
 							Name: item.Name,
 							Artists: []MusicTrackArtist{
 								{
@@ -348,6 +357,56 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 				}
 
 				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "UpdateQueue",
+			Method:   http.MethodPatch,
+			Path:     "/queue/:id",
+			BodyType: UpdateQueueBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeQueueNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				body, err := pyrin.Body[UpdateQueueBody](c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				queue, err := app.DB().GetQueueById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, QueueNotFound()
+					}
+
+					return nil, err
+				}
+
+				changes := database.QueueChanges{}
+
+				if body.Name != nil {
+					changes.Name = types.Change[string]{
+						Value:   *body.Name,
+						Changed: *body.Name != queue.Name,
+					}
+				}
+
+				if body.ItemIndex != nil {
+					changes.ItemIndex = types.Change[int]{
+						Value:   *body.ItemIndex,
+						Changed: *body.ItemIndex != queue.ItemIndex,
+					}
+				}
+
+				err = app.DB().UpdateQueue(ctx, queue.Id, changes)
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
 			},
 		},
 	)

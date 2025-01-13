@@ -401,6 +401,22 @@ func (c *Client) GetQueueItems(id string, options Options) (*GetQueueItems, erro
 	return Request[GetQueueItems](data)
 }
 
+func (c *Client) UpdateQueue(id string, body UpdateQueueBody, options Options) (*any, error) {
+	path := Sprintf("/api/v1/queue/%v", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "PATCH",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) Signup(body SignupBody, options Options) (*Signup, error) {
 	path := "/api/v1/auth/signup"
 	url, err := createUrl(c.addr, path, options.QueryParams)

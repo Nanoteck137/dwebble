@@ -648,6 +648,11 @@
       "extend": "",
       "fields": [
         {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
           "name": "name",
           "type": "string",
           "omit": false
@@ -728,6 +733,22 @@
           "name": "items",
           "type": "[]QueueItem",
           "omit": false
+        }
+      ]
+    },
+    {
+      "name": "UpdateQueueBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "name",
+          "type": "*string",
+          "omit": true
+        },
+        {
+          "name": "itemIndex",
+          "type": "*int",
+          "omit": true
         }
       ]
     },
@@ -1458,6 +1479,13 @@
       "path": "/api/v1/queue/:id/items",
       "responseType": "GetQueueItems",
       "bodyType": ""
+    },
+    {
+      "name": "UpdateQueue",
+      "method": "PATCH",
+      "path": "/api/v1/queue/:id",
+      "responseType": "",
+      "bodyType": "UpdateQueueBody"
     },
     {
       "name": "Signup",

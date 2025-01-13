@@ -9,7 +9,7 @@
     Star,
     Users,
   } from "lucide-svelte";
-  import { musicManager } from "$lib/music-manager";
+  import { musicManager } from "$lib/music-manager.svelte.js";
   import { cn, formatError, shuffle, trackToMusicTrack } from "$lib/utils";
   import {
     DropdownMenu,

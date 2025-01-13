@@ -28,11 +28,23 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     }
   }
 
+  let queueId: string | null = null;
+
+  if (locals.user) {
+    const res = await locals.apiClient.getDefaultQueue("dwebble-web-app");
+    if (!res.success) {
+      throw error(res.error.code, { message: res.error.message });
+    }
+
+    queueId = res.data.id;
+  }
+
   return {
     apiAddress: locals.apiAddress,
     userToken: locals.token,
     user,
     quickPlaylistIds,
     userPlaylists: playlists,
+    queueId: queueId ?? "LOCAL",
   };
 };

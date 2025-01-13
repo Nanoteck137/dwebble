@@ -200,6 +200,7 @@ export const MusicTrackAlbum = z.object({
 export type MusicTrackAlbum = z.infer<typeof MusicTrackAlbum>;
 
 export const MusicTrack = z.object({
+  id: z.string(),
   name: z.string(),
   artists: z.array(MusicTrackArtist),
   album: MusicTrackAlbum,
@@ -224,6 +225,12 @@ export const GetQueueItems = z.object({
   items: z.array(QueueItem),
 });
 export type GetQueueItems = z.infer<typeof GetQueueItems>;
+
+export const UpdateQueueBody = z.object({
+  name: z.string().nullable().optional(),
+  itemIndex: z.number().nullable().optional(),
+});
+export type UpdateQueueBody = z.infer<typeof UpdateQueueBody>;
 
 export const Signup = z.object({
   id: z.string(),

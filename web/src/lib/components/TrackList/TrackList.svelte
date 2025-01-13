@@ -1,6 +1,6 @@
 <script lang="ts">
   import { type Track } from "$lib/api/types";
-  import { musicManager } from "$lib/music-manager";
+  import { musicManager } from "$lib/music-manager.svelte";
   import { formatTime, trackToMusicTrack } from "$lib/utils";
   import { EllipsisVertical, Play } from "lucide-svelte";
   import TrackListHeader from "./TrackListHeader.svelte";

@@ -173,6 +173,7 @@ type MusicTrackAlbum struct {
 }
 
 type MusicTrack struct {
+	Id string `json:"id"`
 	Name string `json:"name"`
 	Artists []MusicTrackArtist `json:"artists"`
 	Album MusicTrackAlbum `json:"album"`
@@ -193,6 +194,11 @@ type QueueItem struct {
 type GetQueueItems struct {
 	Index int `json:"index"`
 	Items []QueueItem `json:"items"`
+}
+
+type UpdateQueueBody struct {
+	Name *string `json:"name,omitempty"`
+	ItemIndex *int `json:"itemIndex,omitempty"`
 }
 
 type Signup struct {

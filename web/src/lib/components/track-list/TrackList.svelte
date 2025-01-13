@@ -6,7 +6,6 @@
     Separator,
   } from "@nanoteck137/nano-ui";
   import TrackListItem from "./TrackListItem.svelte";
-  import { musicManager } from "$lib/music-manager";
   import {
     DiscAlbum,
     EllipsisVertical,
@@ -21,6 +20,7 @@
   import type { ApiClient } from "$lib/api/client";
   import { openAddToPlaylist } from "$lib";
   import { goto, invalidateAll } from "$app/navigation";
+  import { getMusicManager } from "$lib/music-manager.svelte";
 
   type Props = {
     apiClient: ApiClient;

@@ -108,6 +108,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/queue/${id}/items`, "GET", api.GetQueueItems, z.any(), undefined, options)
   }
   
+  updateQueue(id: string, body: api.UpdateQueueBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}`, "PATCH", z.undefined(), z.any(), body, options)
+  }
+  
   signup(body: api.SignupBody, options?: ExtraOptions) {
     return this.request("/api/v1/auth/signup", "POST", api.Signup, z.any(), body, options)
   }

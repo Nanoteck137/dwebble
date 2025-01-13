@@ -5,7 +5,7 @@
   import { createApiClient, openConfirm } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import TrackListItem from "$lib/components/TrackListItem.svelte";
-  import { musicManager } from "$lib/music-manager.js";
+  import { musicManager } from "$lib/music-manager.svelte.js";
   import { cn, shuffle, trackToMusicTrack } from "$lib/utils.js";
   import {
     Breadcrumb,

@@ -3,7 +3,7 @@
   import LargePlayer from "$lib/components/audio/LargePlayer.svelte";
   import SmallPlayer from "$lib/components/audio/SmallPlayer.svelte";
   import type { MusicTrack } from "$lib/api/types";
-  import { getMusicManager } from "$lib/music-manager";
+  import { getMusicManager } from "$lib/music-manager.svelte";
 
   const musicManager = getMusicManager();
 
@@ -11,15 +11,14 @@
 
   let loading = $state(false);
   let playing = $state(false);
+
   let currentTime = $state(0);
   let duration = $state(0);
+
   let volume = $state(0);
-
-  let trackName = $state("");
-  let artistName = $state("");
-  let coverArt = $state("");
-
   let muted = $state(false);
+
+  let currentTrack = $state<MusicTrack | null>(null);
 
   let audio: HTMLAudioElement;
 
@@ -39,6 +38,21 @@
     }
 
     return false;
+  }
+
+  function updateTrack() {
+    const track = musicManager.getCurrentTrack();
+
+    if (track) {
+      if (currentTrack?.id === track.id) return;
+
+      currentTrack = track;
+      audio.src = track.mediaUrl;
+    } else {
+      currentTrack = null;
+      audio.removeAttribute("src");
+      audio.load();
+    }
   }
 
   onMount(() => {
@@ -91,25 +105,6 @@
       musicManager.requestPlay();
     });
 
-    musicManager.emitter.on("onTrackChanged", () => {
-      const track = musicManager.getCurrentTrack();
-      console.log(track);
-      if (track) {
-        trackName = track.name;
-        artistName = track.artists[0].artistName;
-        coverArt = track.coverArt.small;
-
-        audio.src = track.mediaUrl;
-      } else {
-        trackName = "";
-        artistName = "";
-        coverArt = "";
-
-        audio.removeAttribute("src");
-        audio.load();
-      }
-    });
-
     musicManager.emitter.on("requestPlay", () => {
       audio.play();
     });
@@ -144,8 +139,10 @@
   onMount(() => {
     let unsub = musicManager.emitter.on("onQueueUpdated", () => {
       showPlayer = !musicManager.isQueueEmpty();
-      queue = musicManager.queue.items;
-      currentQueueIndex = musicManager.queue.index;
+      queue = musicManager.queueItems;
+      currentQueueIndex = musicManager.queueIndex;
+
+      updateTrack();
     });
 
     return () => {
@@ -177,9 +174,7 @@
   <LargePlayer
     {playing}
     {loading}
-    {trackName}
-    {artistName}
-    {coverArt}
+    track={currentTrack}
     {currentTime}
     {duration}
     {volume}
@@ -197,7 +192,7 @@
       audio.play();
     }}
     onPrevTrack={() => {
-      musicManager.prevTrack();
+      musicManager.previousTrack();
       audio.play();
     }}
     onSeek={(e) => {
@@ -226,9 +221,9 @@
   <SmallPlayer
     {playing}
     {loading}
-    {trackName}
-    {artistName}
-    {coverArt}
+    trackName={"UNKNOWN"}
+    artistName={"UNKNOWN"}
+    coverArt={"UNKNOWN"}
     {currentTime}
     {duration}
     {volume}
@@ -246,7 +241,7 @@
       audio.play();
     }}
     onPrevTrack={() => {
-      musicManager.prevTrack();
+      musicManager.previousTrack();
       audio.play();
     }}
     onSeek={(e) => {

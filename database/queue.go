@@ -19,11 +19,11 @@ type ConvertibleBoolean bool
 func (bit *ConvertibleBoolean) UnmarshalJSON(data []byte) error {
 	asString := string(data)
 	if asString == "1" || asString == "true" {
-	    *bit = true
+		*bit = true
 	} else if asString == "0" || asString == "false" {
-	    *bit = false
+		*bit = false
 	} else {
-	    return errors.New(fmt.Sprintf("boolean unmarshal error: invalid input %s", asString))
+		return errors.New(fmt.Sprintf("boolean unmarshal error: invalid input %s", asString))
 	}
 
 	return nil
@@ -71,7 +71,8 @@ type Queue struct {
 	PlayerId string `db:"player_id"`
 	UserId   string `db:"user_id"`
 
-	Name string `db:"name"`
+	Name      string `db:"name"`
+	ItemIndex int    `db:"item_index"`
 
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
@@ -108,12 +109,12 @@ type QueueTrackItem struct {
 	OrderNumber int    `db:"order_number"`
 	TrackId     string `db:"track_id"`
 
-	Name       string `db:"name"`
+	Name string `db:"name"`
 
-	AlbumId string `db:"album_id"`
+	AlbumId   string `db:"album_id"`
 	AlbumName string `db:"album_name"`
 
-	ArtistId string `db:"artist_id"`
+	ArtistId   string `db:"artist_id"`
 	ArtistName string `db:"artist_name"`
 
 	CoverArt sql.NullString `db:"cover_art"`
@@ -145,6 +146,7 @@ func QueueQuery() *goqu.SelectDataset {
 			"queues.user_id",
 
 			"queues.name",
+			"queues.item_index",
 
 			"queues.created",
 			"queues.updated",
@@ -259,7 +261,8 @@ type CreateQueueParams struct {
 	PlayerId string
 	UserId   string
 
-	Name string
+	Name      string
+	ItemIndex int
 
 	Created int64
 	Updated int64
@@ -287,7 +290,8 @@ func (db *Database) CreateQueue(ctx context.Context, params CreateQueueParams) (
 			"player_id": params.PlayerId,
 			"user_id":   params.UserId,
 
-			"name": params.Name,
+			"name":       params.Name,
+			"item_index": params.ItemIndex,
 
 			"created": created,
 			"updated": updated,
@@ -298,6 +302,7 @@ func (db *Database) CreateQueue(ctx context.Context, params CreateQueueParams) (
 			"queues.user_id",
 
 			"queues.name",
+			"queues.item_index",
 
 			"queues.created",
 			"queues.updated",
@@ -310,6 +315,40 @@ func (db *Database) CreateQueue(ctx context.Context, params CreateQueueParams) (
 	}
 
 	return res, nil
+}
+
+type QueueChanges struct {
+	Name      types.Change[string]
+	ItemIndex types.Change[int]
+
+	Created types.Change[int64]
+}
+
+func (db *Database) UpdateQueue(ctx context.Context, id string, changes QueueChanges) error {
+	record := goqu.Record{}
+
+	addToRecord(record, "name", changes.Name)
+	addToRecord(record, "item_index", changes.ItemIndex)
+
+	addToRecord(record, "created", changes.Created)
+
+	if len(record) == 0 {
+		return nil
+	}
+
+	record["updated"] = time.Now().UnixMilli()
+
+	ds := dialect.Update("queues").
+		Set(record).
+		Where(goqu.I("queues.id").Eq(id)).
+		Prepared(true)
+
+	_, err := db.Exec(ctx, ds)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (db *Database) GetDefaultQueue(ctx context.Context, playerId, userId string) (DefaultQueue, error) {
@@ -395,7 +434,6 @@ func NewTrackQuery() *goqu.SelectDataset {
 
 			goqu.I("albums.cover_art").As("cover_art"),
 			goqu.I("albums.name").As("album_name"),
-
 		).
 		Prepared(true).
 		Join(

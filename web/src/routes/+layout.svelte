@@ -23,12 +23,15 @@
   import { Toaster } from "svelte-5-french-toast";
   import { navigating } from "$app/stores";
   import { createApiClient } from "$lib";
-  import { setMusicManager } from "$lib/music-manager";
+  import { setMusicManager } from "$lib/music-manager.svelte";
 
   let { children, data } = $props();
 
   const apiClient = createApiClient(data);
-  setMusicManager(apiClient);
+
+  if (browser) {
+    setMusicManager(apiClient, data.queueId);
+  }
 
   let showSideMenu = $state(false);
 

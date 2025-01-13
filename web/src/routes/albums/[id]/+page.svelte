@@ -4,19 +4,17 @@
     Button,
     buttonVariants,
     DropdownMenu,
-    Separator,
   } from "@nanoteck137/nano-ui";
-  import { musicManager } from "$lib/music-manager";
-  import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
-  import { EllipsisVertical, Pencil, Play } from "lucide-svelte";
+  import { EllipsisVertical, ListPlus, Pencil, Play } from "lucide-svelte";
   import ArtistList from "$lib/components/ArtistList.svelte";
-  import TrackListItem from "$lib/components/TrackListItem.svelte";
-  import QuickAddButton from "$lib/components/QuickAddButton.svelte";
   import { createApiClient } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
+  import { getMusicManager } from "$lib/music-manager.svelte.js";
+  import { goto } from "$app/navigation";
 
   let { data } = $props();
   const apiClient = createApiClient(data);
+  const musicManager = getMusicManager();
 </script>
 
 <div class="py-2">
@@ -62,14 +60,9 @@
     <div>
       <Button
         variant="outline"
-        onclick={() => {
-          musicManager.clearQueue();
-
-          for (const track of data.tracks) {
-            musicManager.addTrackToQueue(trackToMusicTrack(track), false);
-          }
-
-          musicManager.setQueueIndex(0);
+        onclick={async () => {
+          await musicManager.clearQueue();
+          await musicManager.addFromAlbum(data.album.id);
           musicManager.requestPlay();
         }}
       >
@@ -85,14 +78,22 @@
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
           <DropdownMenu.Group>
-            <DropdownMenu.Item>
-              <a
-                class="flex w-full items-center gap-2"
-                href="/albums/{data.album.id}/edit"
-              >
-                <Pencil size="16" />
-                Edit Album
-              </a>
+            <DropdownMenu.Item
+              onSelect={async () => {
+                await musicManager.addFromAlbum(data.album.id);
+                musicManager.requestPlay();
+              }}
+            >
+              <ListPlus />
+              Append to Queue
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              onSelect={() => {
+                goto(`/albums/${data.album.id}/edit`);
+              }}
+            >
+              <Pencil />
+              Edit Album
             </DropdownMenu.Item>
           </DropdownMenu.Group>
         </DropdownMenu.Content>

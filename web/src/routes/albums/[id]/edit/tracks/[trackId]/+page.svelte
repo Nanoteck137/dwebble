@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation";
   import { createApiClient } from "$lib";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
-  import { musicManager } from "$lib/music-manager";
+  import { musicManager } from "$lib/music-manager.svelte.js";
   import { type EditTrackData } from "$lib/types.js";
   import { formatError, trackToMusicTrack } from "$lib/utils";
   import { Button, Card } from "@nanoteck137/nano-ui";

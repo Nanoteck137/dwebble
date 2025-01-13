@@ -18,7 +18,7 @@
   import SeekSlider from "$lib/components/SeekSlider.svelte";
   import { fly } from "svelte/transition";
   import type { MusicTrack } from "$lib/api/types";
-  import { getMusicManager } from "$lib/music-manager";
+  import { getMusicManager } from "$lib/music-manager.svelte";
 
   const musicManager = getMusicManager();
 
