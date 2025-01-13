@@ -2,6 +2,16 @@ package types
 
 import "path"
 
+type MediaType string
+
+const (
+	MediaTypeFlac      MediaType = "flac"
+	MediaTypeOggOpus   MediaType = "ogg-opus"
+	MediaTypeOggVorbis MediaType = "ogg-vorbis"
+	MediaTypeMp3       MediaType = "mp3"
+	MediaTypeAcc       MediaType = "acc"
+)
+
 type Map map[string]any
 
 type WorkDir string
@@ -46,8 +56,22 @@ func (d WorkDir) Tracks() string {
 	return path.Join(d.String(), "tracks")
 }
 
-func (d WorkDir) Track(id string) string {
-	return path.Join(d.Tracks(), id)
+func (d WorkDir) Track(id string) TrackDir {
+	return TrackDir(path.Join(d.Tracks(), id))
+}
+
+type TrackDir string
+
+func (d TrackDir) String() string {
+	return string(d)
+}
+
+func (d TrackDir) Media() string {
+	return path.Join(d.String(), "media")
+}
+
+func (d TrackDir) MediaItem(id string) string {
+	return path.Join(d.Media(), id)
 }
 
 type Change[T any] struct {

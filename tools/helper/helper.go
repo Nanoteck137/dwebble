@@ -3,11 +3,14 @@ package helper
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"os"
 
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"gopkg.in/vansante/go-ffprobe.v2"
 )
 
 type ImportTrackData struct {
@@ -27,56 +30,68 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 	trackId := utils.CreateTrackId()
 
 	trackDir := workDir.Track(trackId)
-	err := os.Mkdir(trackDir, 0755)
+
+	dirs := []string{
+		trackDir.String(),
+		trackDir.Media(),
+	}
+
+	for _, dir := range dirs {
+		err := os.Mkdir(dir, 0755)
+		if err != nil && !os.IsExist(err) {
+			return "", err
+		}
+	}
+
+	// original, err := utils.ProcessOriginalVersion(data.InputFile, trackDir, "track.original")
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	// mobile, err := utils.ProcessMobileVersion(data.InputFile, trackDir, "track.mobile")
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	var mediaType types.MediaType
+
+	res, err := ffprobe.ProbeURL(ctx, data.InputFile)
 	if err != nil {
 		return "", err
 	}
+	_ = res
 
-	original, err := utils.ProcessOriginalVersion(data.InputFile, trackDir, "track.original")
-	if err != nil {
-		return "", err
+	// TODO(patrik): Check for nil
+	stream := res.FirstAudioStream()
+
+	// TODO(patrik): Move to helper
+	switch res.Format.FormatName {
+	case "flac":
+		mediaType = types.MediaTypeFlac
+	case "ogg":
+		switch stream.CodecName {
+		case "opus":
+			mediaType = types.MediaTypeOggOpus
+		case "vorbis":
+			mediaType = types.MediaTypeOggVorbis
+		}
 	}
 
-	mobile, err := utils.ProcessMobileVersion(data.InputFile, trackDir, "track.mobile")
-	if err != nil {
-		return "", err
+	if mediaType == "" {
+		return "", errors.New("unknown media type")
 	}
 
+	log.Info("Found media type", "type", mediaType)
+
+	// TODO(patrik): Replace this with ffprobe.v2 package
 	trackInfo, err := utils.GetTrackInfo(data.InputFile)
 	if err != nil {
 		return "", err
 	}
 
-	// TODO(patrik): Remove
-	// dateRegex := regexp.MustCompile(`^([12]\d\d\d)`)
-	// if tag, exists := trackInfo.Tags["title"]; exists {
-	// 	name = tag
-	// }
-	//
-	// var year sql.NullInt64
-	// if tag, exists := trackInfo.Tags["date"]; exists {
-	// 	match := dateRegex.FindStringSubmatch(tag)
-	// 	if len(match) > 0 {
-	// 		y, _ := strconv.Atoi(match[1])
-	//
-	// 		year.Int64 = int64(y)
-	// 		year.Valid = true
-	// 	}
-	// }
-	//
-	// var number int
-	// if tag, exists := trackInfo.Tags["track"]; exists {
-	// 	y, _ := strconv.Atoi(tag)
-	// 	number = y
-	// }
-	//
-	// if number == 0 || data.ForceExtractNumber {
-	// 	number = utils.ExtractNumber(originalName)
-	// }
-
 	trackId, err = db.CreateTrack(ctx, database.CreateTrackParams{
-		Id:       trackId,
-		Name:     data.Name,
+		Id:   trackId,
+		Name: data.Name,
 		OtherName: sql.NullString{
 			String: data.OtherName,
 			Valid:  data.OtherName != "",
@@ -92,8 +107,41 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 			Int64: data.Year,
 			Valid: data.Year != 0,
 		},
-		OriginalFilename: original,
-		MobileFilename:   mobile,
+		// OriginalFilename: original,
+		// MobileFilename:   mobile,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	// TODO(patrik): Replace with utils.CreateTrackMediaId()
+	mediaId := utils.CreateId()
+	mediaDir := trackDir.MediaItem(mediaId)
+
+	{
+		dirs := []string{
+			mediaDir,
+		}
+
+		for _, dir := range dirs {
+			err := os.Mkdir(dir, 0755)
+			if err != nil && !os.IsExist(err) {
+				return "", err
+			}
+		}
+	}
+
+	original, err := utils.ProcessOriginalVersion(data.InputFile, mediaDir, "track")
+	if err != nil {
+		return "", err
+	}
+
+	err = db.CreateTrackMedia(ctx, database.CreateTrackMediaParams{
+		Id:         mediaId,
+		TrackId:    trackId,
+		Filename:   original,
+		MediaType:  mediaType,
+		IsOriginal: true,
 	})
 	if err != nil {
 		return "", err

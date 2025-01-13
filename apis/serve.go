@@ -50,19 +50,20 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 				return pyrin.ServeFile(c, f, file)
 			},
 		},
-		pyrin.NormalHandler{
-			Method: http.MethodGet,
-			Path:   "/tracks/:trackId/:file",
-			HandlerFunc: func(c pyrin.Context) error {
-				trackId := c.Param("trackId")
-				file := c.Param("file")
-
-				p := app.WorkDir().Track(trackId)
-				f := os.DirFS(p)
-
-				return pyrin.ServeFile(c, f, file)
-			},
-		},
+		// TODO(patrik): Add back
+		// pyrin.NormalHandler{
+		// 	Method: http.MethodGet,
+		// 	Path:   "/tracks/:trackId/:file",
+		// 	HandlerFunc: func(c pyrin.Context) error {
+		// 		trackId := c.Param("trackId")
+		// 		file := c.Param("file")
+		//
+		// 		p := app.WorkDir().Track(trackId)
+		// 		f := os.DirFS(p)
+		//
+		// 		return pyrin.ServeFile(c, f, file)
+		// 	},
+		// },
 	)
 }
 

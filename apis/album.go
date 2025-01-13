@@ -439,22 +439,25 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				_ = tracks
+
 				// TODO(patrik): This is duplicated code from the tracks api move to helper
-				for _, track := range tracks {
-					dir := app.WorkDir().Track(track.Id)
-					targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
-					target := path.Join(app.WorkDir().Trash(), targetName)
-
-					err = os.Rename(dir, target)
-					if err != nil && !os.IsNotExist(err) {
-						return nil, err
-					}
-
-					err = db.RemoveTrack(ctx, track.Id)
-					if err != nil {
-						return nil, err
-					}
-				}
+				// TODO(patrik): Add back
+				// for _, track := range tracks {
+				// 	dir := app.WorkDir().Track(track.Id)
+				// 	targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
+				// 	target := path.Join(app.WorkDir().Trash(), targetName)
+				//
+				// 	err = os.Rename(dir, target)
+				// 	if err != nil && !os.IsNotExist(err) {
+				// 		return nil, err
+				// 	}
+				//
+				// 	err = db.RemoveTrack(ctx, track.Id)
+				// 	if err != nil {
+				// 		return nil, err
+				// 	}
+				// }
 
 				dir := app.WorkDir().Album(album.Id)
 				targetName := fmt.Sprintf("album-%s-%d", album.Id, time.Now().UnixMilli())

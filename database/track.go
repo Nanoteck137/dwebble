@@ -44,6 +44,15 @@ type Track struct {
 	FeaturingArtists FeaturingArtists `db:"featuring_artists"`
 }
 
+type TrackMedia struct {
+	Id      string `db:"id"`
+	TrackId string `db:"track_id"`
+
+	Filename   string `db:"filename"`
+	MediaType  string `db:"media_type"`
+	IsOriginal bool   `db:"is_original"`
+}
+
 // TODO(patrik): Move
 func FeaturingArtistsQuery(table, idColName string) *goqu.SelectDataset {
 	tbl := goqu.T(table)
@@ -97,8 +106,8 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.duration",
 			"tracks.year",
 
-			"tracks.original_filename",
-			"tracks.mobile_filename",
+			// "tracks.original_filename",
+			// "tracks.mobile_filename",
 
 			"tracks.created",
 			"tracks.updated",
@@ -344,8 +353,8 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"number":   params.Number,
 		"year":     params.Year,
 
-		"original_filename": params.OriginalFilename,
-		"mobile_filename":   params.MobileFilename,
+		// "original_filename": params.OriginalFilename,
+		// "mobile_filename":   params.MobileFilename,
 
 		"created": created,
 		"updated": updated,
@@ -398,8 +407,8 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	addToRecord(record, "number", changes.Number)
 	addToRecord(record, "year", changes.Year)
 
-	addToRecord(record, "original_filename", changes.OriginalFilename)
-	addToRecord(record, "mobile_filename", changes.MobileFilename)
+	// addToRecord(record, "original_filename", changes.OriginalFilename)
+	// addToRecord(record, "mobile_filename", changes.MobileFilename)
 
 	addToRecord(record, "created", changes.Created)
 
@@ -525,6 +534,35 @@ func (db *Database) AddFeaturingArtistToTrack(ctx context.Context, trackId, arti
 			}
 		}
 
+		return err
+	}
+
+	return nil
+}
+
+type CreateTrackMediaParams struct {
+	Id      string
+	TrackId string
+
+	Filename   string
+	MediaType  types.MediaType
+	IsOriginal bool
+}
+
+func (db *Database) CreateTrackMedia(ctx context.Context, params CreateTrackMediaParams) error {
+	query := dialect.Insert("tracks_media").
+		Rows(goqu.Record{
+			"id":       params.Id,
+			"track_id": params.TrackId,
+
+			"filename":    params.Filename,
+			"media_type":  params.MediaType,
+			"is_original": params.IsOriginal,
+		}).
+		Prepared(true)
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
 		return err
 	}
 
