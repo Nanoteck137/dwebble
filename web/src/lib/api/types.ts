@@ -181,6 +181,49 @@ export const UploadTrackBody = z.object({
 });
 export type UploadTrackBody = z.infer<typeof UploadTrackBody>;
 
+export const Queue = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+export type Queue = z.infer<typeof Queue>;
+
+export const MusicTrackArtist = z.object({
+  ArtistId: z.string(),
+  ArtistName: z.string(),
+});
+export type MusicTrackArtist = z.infer<typeof MusicTrackArtist>;
+
+export const MusicTrackAlbum = z.object({
+  AlbumId: z.string(),
+  AlbumName: z.string(),
+});
+export type MusicTrackAlbum = z.infer<typeof MusicTrackAlbum>;
+
+export const MusicTrack = z.object({
+  Name: z.string(),
+  Artists: z.array(MusicTrackArtist),
+  Album: MusicTrackAlbum,
+  CoverArtUrl: z.string(),
+  MediaUrl: z.string(),
+});
+export type MusicTrack = z.infer<typeof MusicTrack>;
+
+export const QueueItem = z.object({
+  Id: z.string(),
+  QueueId: z.string(),
+  OrderNumber: z.number(),
+  TrackId: z.string(),
+  Track: MusicTrack,
+  Created: z.number(),
+  Updated: z.number(),
+});
+export type QueueItem = z.infer<typeof QueueItem>;
+
+export const GetQueueItems = z.object({
+  items: z.array(QueueItem),
+});
+export type GetQueueItems = z.infer<typeof GetQueueItems>;
+
 export const Signup = z.object({
   id: z.string(),
   username: z.string(),

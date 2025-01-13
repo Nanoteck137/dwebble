@@ -13,6 +13,7 @@ const (
 	ErrTypeTrackNotFound    pyrin.ErrorType = "TRACK_NOT_FOUND"
 	ErrTypeTaglistNotFound  pyrin.ErrorType = "TAGLIST_NOT_FOUND"
 	ErrTypeApiTokenNotFound pyrin.ErrorType = "API_TOKEN_NOT_FOUND"
+	ErrTypeQueueNotFound    pyrin.ErrorType = "QUEUE_NOT_FOUND"
 
 	ErrTypeInvalidFilter     pyrin.ErrorType = "INVALID_FILTER"
 	ErrTypeInvalidSort       pyrin.ErrorType = "INVALID_SORT"
@@ -67,6 +68,14 @@ func ApiTokenNotFound() *pyrin.Error {
 		Code:    http.StatusNotFound,
 		Type:    ErrTypeApiTokenNotFound,
 		Message: "Api Token not found",
+	}
+}
+
+func QueueNotFound() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusNotFound,
+		Type:    ErrTypeQueueNotFound,
+		Message: "Queue not found",
 	}
 }
 

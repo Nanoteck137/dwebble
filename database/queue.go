@@ -34,6 +34,33 @@ type DefaultQueue struct {
 	QueueId  string `db:"queue_id"`
 }
 
+type QueueItem struct {
+	Id      string `db:"id"`
+	QueueId string `db:"queue_id"`
+
+	OrderNumber int    `db:"order_number"`
+	TrackId     string `db:"track_id"`
+
+	Created int64 `db:"created"`
+	Updated int64 `db:"updated"`
+}
+
+type QueueTrackItem struct {
+	Id      string `db:"id"`
+	QueueId string `db:"queue_id"`
+
+	OrderNumber int    `db:"order_number"`
+	TrackId     string `db:"track_id"`
+
+	Name       string `db:"name"`
+	ArtistName string `db:"artist_name"`
+
+	MediaFilename string `db:"media_filename"`
+
+	Created int64 `db:"created"`
+	Updated int64 `db:"updated"`
+}
+
 func PlayerQuery() *goqu.SelectDataset {
 	query := dialect.From("players").
 		Select(
@@ -70,6 +97,23 @@ func DefaultQueueQuery() *goqu.SelectDataset {
 			"default_queues.player_id",
 			"default_queues.user_id",
 			"default_queues.queue_id",
+		).
+		Prepared(true)
+
+	return query
+}
+
+func QueueItemQuery() *goqu.SelectDataset {
+	query := dialect.From("queue_items").
+		Select(
+			"queue_items.id",
+			"queue_items.queue_id",
+
+			"queue_items.order_number",
+			"queue_items.track_id",
+
+			"queue_items.created",
+			"queue_items.updated",
 		).
 		Prepared(true)
 
@@ -130,7 +174,7 @@ func (db *Database) CreatePlayer(ctx context.Context, params CreatePlayerParams)
 	return nil
 }
 
-func (db *Database) GetQueue(ctx context.Context, id string) (Queue, error) {
+func (db *Database) GetQueueById(ctx context.Context, id string) (Queue, error) {
 	query := QueueQuery().
 		Where(goqu.I("queues.id").Eq(id))
 
@@ -245,4 +289,157 @@ func (db *Database) CreateDefaultQueue(ctx context.Context, params CreateDefault
 	}
 
 	return nil
+}
+
+func NewTrackQuery() *goqu.SelectDataset {
+	query := dialect.From("tracks").
+		Select(
+			"tracks.id",
+			"tracks.name",
+
+			// "tracks.album_id",
+			// "tracks.artist_id",
+
+			goqu.I("tracks.original_filename").As("media_filename"),
+			goqu.I("artists.name").As("artist_name"),
+
+			// goqu.I("albums.cover_art").As("album_cover_art"),
+
+		).
+		Prepared(true).
+		// Join(
+		// 	goqu.I("albums"),
+		// 	goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id"))),
+		// ).
+		Join(
+			goqu.I("artists"),
+			goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))),
+		)
+
+		// LeftJoin(
+		// 	tags.As("tags"),
+		// 	goqu.On(goqu.I("tracks.id").Eq(goqu.I("tags.track_id"))),
+		// ).
+		// LeftJoin(
+		// 	FeaturingArtistsQuery("tracks_featuring_artists", "track_id").As("featuring_artists"),
+		// 	goqu.On(goqu.I("tracks.id").Eq(goqu.I("featuring_artists.id"))),
+		// )
+
+	return query
+
+}
+
+func (db *Database) GetQueueItemsForPlay(ctx context.Context, queueId string) ([]QueueTrackItem, error) {
+	trackQuery := NewTrackQuery().As("tracks")
+
+	query := dialect.From("queue_items").
+		Select(
+			"queue_items.id",
+			"queue_items.queue_id",
+
+			"queue_items.order_number",
+			"queue_items.track_id",
+
+			"queue_items.created",
+			"queue_items.updated",
+
+			"tracks.name",
+			"tracks.media_filename",
+			"tracks.artist_name",
+		).
+		Join(trackQuery, goqu.On(goqu.I("queue_items.track_id").Eq(goqu.I("tracks.id")))).
+		Where(goqu.I("queue_items.queue_id").Eq(queueId))
+
+	var items []QueueTrackItem
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+type CreateQueueItemParams struct {
+	Id      string
+	QueueId string
+
+	OrderNumber int
+	TrackId     string
+
+	Created int64
+	Updated int64
+}
+
+func (db *Database) CreateQueueItem(ctx context.Context, params CreateQueueItemParams) (QueueItem, error) {
+	t := time.Now().UnixMilli()
+	created := params.Created
+	updated := params.Updated
+
+	if created == 0 && updated == 0 {
+		created = t
+		updated = t
+	}
+
+	id := params.Id
+	if id == "" {
+		// TODO(patrik): create: utils.CreateQueueItemId()
+		id = utils.CreateId()
+	}
+
+	query := dialect.Insert("queue_items").
+		Rows(goqu.Record{
+			"id":       id,
+			"queue_id": params.QueueId,
+
+			"order_number": params.OrderNumber,
+			"track_id":     params.TrackId,
+
+			"created": created,
+			"updated": updated,
+		}).
+		Returning(
+			"queue_items.id",
+			"queue_items.queue_id",
+
+			"queue_items.order_number",
+			"queue_items.track_id",
+
+			"queue_items.created",
+			"queue_items.updated",
+		).
+		Prepared(true)
+
+	var item QueueItem
+	err := db.Get(&item, query)
+	if err != nil {
+		return QueueItem{}, err
+	}
+
+	return item, nil
+}
+
+func (db *Database) DeleteAllQueueItems(ctx context.Context, queueId string) error {
+	query := dialect.Delete("queue_items").
+		Where(goqu.I("queue_items.queue_id").Eq(queueId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) GetAllQueueItemIds(ctx context.Context, queueId string) ([]string, error) {
+	query := dialect.From("queue_items").
+		Select("queue_items.track_id").
+		Order(goqu.I("queue_items.order_number").Asc())
+
+	var items []string
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
 }

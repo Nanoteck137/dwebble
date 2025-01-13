@@ -10,7 +10,22 @@
 
 <Button
   onclick={async () => {
-    const res = await apiClient.getQueue("dwebble-web-app");
-    console.log(res);
+    const queue = await apiClient.getDefaultQueue("dwebble-web-app");
+    if (!queue.success) {
+      throw queue.error;
+    }
+
+    const queueId = queue.data.id;
+
+    console.log("Clear Queue", await apiClient.clearQueue(queueId));
+    console.log(
+      "Add album items",
+      await apiClient.addToQueueFromAlbum(queueId, "q183bonrr335lae4"),
+    );
+
+    console.log("Get queue items", await apiClient.getQueueItems(queueId));
+
+    // const res = await apiClient.getQueue();
+    // console.log(res);
   }}>Test</Button
 >

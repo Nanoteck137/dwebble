@@ -157,6 +157,43 @@ type UploadTrackBody struct {
 	FeaturingArtists []string `json:"featuringArtists"`
 }
 
+type Queue struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+}
+
+type MusicTrackArtist struct {
+	ArtistId string `json:"ArtistId"`
+	ArtistName string `json:"ArtistName"`
+}
+
+type MusicTrackAlbum struct {
+	AlbumId string `json:"AlbumId"`
+	AlbumName string `json:"AlbumName"`
+}
+
+type MusicTrack struct {
+	Name string `json:"Name"`
+	Artists []MusicTrackArtist `json:"Artists"`
+	Album MusicTrackAlbum `json:"Album"`
+	CoverArtUrl string `json:"CoverArtUrl"`
+	MediaUrl string `json:"MediaUrl"`
+}
+
+type QueueItem struct {
+	Id string `json:"Id"`
+	QueueId string `json:"QueueId"`
+	OrderNumber int `json:"OrderNumber"`
+	TrackId string `json:"TrackId"`
+	Track MusicTrack `json:"Track"`
+	Created int `json:"Created"`
+	Updated int `json:"Updated"`
+}
+
+type GetQueueItems struct {
+	Items []QueueItem `json:"items"`
+}
+
 type Signup struct {
 	Id string `json:"id"`
 	Username string `json:"username"`

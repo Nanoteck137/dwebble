@@ -3,14 +3,58 @@ package apis
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/pyrin"
 )
+
+type MusicTrackArtist struct {
+	ArtistId   string
+	ArtistName string
+}
+
+type MusicTrackAlbum struct {
+	AlbumId   string
+	AlbumName string
+}
+
+type MusicTrack struct {
+	Name string
+
+	Artists []MusicTrackArtist
+	Album   MusicTrackAlbum
+
+	CoverArtUrl string
+	MediaUrl    string
+}
+
+type QueueItem struct {
+	Id      string
+	QueueId string
+
+	OrderNumber int
+	TrackId     string
+
+	Track MusicTrack
+
+	Created int64
+	Updated int64
+}
+
+type Queue struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type GetQueueItems struct {
+	Items []QueueItem `json:"items"`
+}
 
 func InstallQueueHandlers(app core.App, group pyrin.Group) {
 	// NOTE(patrik):
@@ -49,11 +93,10 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 
 	group.Register(
 		pyrin.ApiHandler{
-			Name:         "GetQueue",
+			Name:         "GetDefaultQueue",
 			Method:       http.MethodGet,
-			Path:         "/queue/:playerId",
-			ResponseType: nil,
-			BodyType:     nil,
+			Path:         "/queue/default/:playerId",
+			ResponseType: Queue{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playerId := c.Param("playerId")
 
@@ -68,7 +111,7 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
 						err := app.DB().CreatePlayer(ctx, database.CreatePlayerParams{
-							Id:      playerId,
+							Id: playerId,
 						})
 						if err != nil {
 							return nil, err
@@ -109,7 +152,7 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 					}
 				} else {
 					log.Info("Default queue found")
-					queue, err = app.DB().GetQueue(ctx, defaultQueue.QueueId)
+					queue, err = app.DB().GetQueueById(ctx, defaultQueue.QueueId)
 					if err != nil {
 						return nil, err
 					}
@@ -117,7 +160,162 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 
 				pretty.Println(queue)
 
+				return Queue{
+					Id:   queue.Id,
+					Name: queue.Name,
+				}, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:   "ClearQueue",
+			Method: http.MethodPost,
+			Path:   "/queue/:id/clear",
+			Errors: []pyrin.ErrorType{ErrTypeQueueNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				ctx := context.TODO()
+
+				queue, err := app.DB().GetQueueById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, QueueNotFound()
+					}
+
+					return nil, err
+				}
+
+				pretty.Println(queue)
+
+				err = app.DB().DeleteAllQueueItems(ctx, queue.Id)
+				if err != nil {
+					return nil, err
+				}
+
 				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:   "AddToQueueFromAlbum",
+			Method: http.MethodPost,
+			Path:   "/queue/:id/add/album/:albumId",
+			Errors: []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypeAlbumNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+				albumId := c.Param("albumId")
+
+				ctx := context.TODO()
+
+				queue, err := app.DB().GetQueueById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, QueueNotFound()
+					}
+
+					return nil, err
+				}
+
+				album, err := app.DB().GetAlbumById(ctx, albumId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, AlbumNotFound()
+					}
+
+					return nil, err
+				}
+
+				pretty.Println(queue)
+				pretty.Println(album)
+
+				tracks, err := app.DB().GetTracksByAlbum(ctx, album.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				// TODO(patrik): Get the last item index from queue
+				for i, track := range tracks {
+					_, err := app.DB().CreateQueueItem(ctx, database.CreateQueueItemParams{
+						QueueId:     queue.Id,
+						OrderNumber: i,
+						TrackId:     track.Id,
+					})
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:         "GetQueueItems",
+			Method:       http.MethodGet,
+			Path:         "/queue/:id/items",
+			ResponseType: GetQueueItems{},
+			Errors:       []pyrin.ErrorType{ErrTypeQueueNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				ctx := context.TODO()
+
+				queue, err := app.DB().GetQueueById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, QueueNotFound()
+					}
+
+					return nil, err
+				}
+
+				pretty.Println(queue)
+
+				items, err := app.DB().GetQueueItemsForPlay(ctx, queue.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				pretty.Println(items)
+
+				// items, err := app.DB().GetAllQueueItemIds(ctx, queue.Id)
+				// if err != nil {
+				// 	return nil, err
+				// }
+				//
+				// pretty.Println(items)
+				//
+				// tracks, err := app.DB().GetTracksByIds(ctx, items)
+				// if err != nil {
+				// 	return nil, err
+				// }
+				//
+				// pretty.Println(tracks)
+
+				res := GetQueueItems{
+					Items: make([]QueueItem, len(items)),
+				}
+
+				for i, item := range items {
+					res.Items[i] = QueueItem{
+						Id:          item.Id,
+						QueueId:     item.QueueId,
+						OrderNumber: item.OrderNumber,
+						TrackId:     item.TrackId,
+						Track: MusicTrack{
+							Name:        item.Name,
+							Artists:     []MusicTrackArtist{},
+							Album:       MusicTrackAlbum{},
+							CoverArtUrl: "",
+							MediaUrl:    utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", item.TrackId, item.MediaFilename)),
+						},
+						Created: item.Created,
+						Updated: item.Updated,
+					}
+				}
+
+				return res, nil
 			},
 		},
 	)

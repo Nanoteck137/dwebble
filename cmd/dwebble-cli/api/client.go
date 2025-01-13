@@ -337,8 +337,8 @@ func (c *Client) DeleteTrack(id string, options Options) (*any, error) {
 	return Request[any](data)
 }
 
-func (c *Client) GetQueue(playerId string, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v", playerId)
+func (c *Client) GetDefaultQueue(playerId string, options Options) (*Queue, error) {
+	path := Sprintf("/api/v1/queue/default/%v", playerId)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err
@@ -350,7 +350,55 @@ func (c *Client) GetQueue(playerId string, options Options) (*any, error) {
 		Token: c.token,
 		Body: nil,
 	}
+	return Request[Queue](data)
+}
+
+func (c *Client) ClearQueue(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/queue/%v/clear", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: nil,
+	}
 	return Request[any](data)
+}
+
+func (c *Client) AddToQueueFromAlbum(id string, albumId string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/queue/%v/add/album/%v", id, albumId)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
+func (c *Client) GetQueueItems(id string, options Options) (*GetQueueItems, error) {
+	path := Sprintf("/api/v1/queue/%v/items", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetQueueItems](data)
 }
 
 func (c *Client) Signup(body SignupBody, options Options) (*Signup, error) {

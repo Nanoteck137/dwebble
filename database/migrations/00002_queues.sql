@@ -38,5 +38,6 @@ CREATE TABLE queue_items (
 
 -- +goose Down
 DROP TABLE queue_items;
+DROP TABLE default_queues;
 DROP TABLE queues;
 DROP TABLE players;

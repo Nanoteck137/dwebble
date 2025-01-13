@@ -148,6 +148,18 @@ func (db *Database) GetAllTracksByArtistId(ctx context.Context, artistId string)
 	return items, nil
 }
 
+func (db *Database) GetTracksByIds(ctx context.Context, ids []string) ([]Track, error) {
+	query := TrackQuery().Where(goqu.I("tracks.id").In(ids))
+
+	var items []Track
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 // TODO(patrik): Move
 type FetchOption struct {
 	Filter  string

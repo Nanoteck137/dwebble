@@ -92,8 +92,20 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/tracks/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
   }
   
-  getQueue(playerId: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${playerId}`, "GET", z.undefined(), z.any(), undefined, options)
+  getDefaultQueue(playerId: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/default/${playerId}`, "GET", api.Queue, z.any(), undefined, options)
+  }
+  
+  clearQueue(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}/clear`, "POST", z.undefined(), z.any(), undefined, options)
+  }
+  
+  addToQueueFromAlbum(id: string, albumId: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}/add/album/${albumId}`, "POST", z.undefined(), z.any(), undefined, options)
+  }
+  
+  getQueueItems(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}/items`, "GET", api.GetQueueItems, z.any(), undefined, options)
   }
   
   signup(body: api.SignupBody, options?: ExtraOptions) {
