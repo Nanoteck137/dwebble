@@ -11,40 +11,42 @@ import (
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
+	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 )
 
 type MusicTrackArtist struct {
-	ArtistId   string
-	ArtistName string
+	// TODO(patrik): Change ArtistId, ArtistName to Id, Name?
+	ArtistId   string `json:"artistId"`
+	ArtistName string `json:"artistName"`
 }
 
 type MusicTrackAlbum struct {
-	AlbumId   string
-	AlbumName string
+	AlbumId   string `json:"albumId"`
+	AlbumName string `json:"albumName"`
 }
 
 type MusicTrack struct {
-	Name string
+	Name string `json:"name"`
 
-	Artists []MusicTrackArtist
-	Album   MusicTrackAlbum
+	Artists []MusicTrackArtist `json:"artists"`
+	Album   MusicTrackAlbum    `json:"album"`
 
-	CoverArtUrl string
-	MediaUrl    string
+	CoverArt types.Images `json:"coverArt"`
+	MediaUrl string       `json:"mediaUrl"`
 }
 
 type QueueItem struct {
-	Id      string
-	QueueId string
+	Id      string `json:"id"`
+	QueueId string `json:"queueId"`
 
-	OrderNumber int
-	TrackId     string
+	OrderNumber int    `json:"orderNumber"`
+	TrackId     string `json:"trackId"`
 
-	Track MusicTrack
+	Track MusicTrack `json:"track"`
 
-	Created int64
-	Updated int64
+	Created int64 `json:"created"`
+	Updated int64 `json:"updated"`
 }
 
 type Queue struct {
@@ -53,6 +55,7 @@ type Queue struct {
 }
 
 type GetQueueItems struct {
+	Index int         `json:"index"`
 	Items []QueueItem `json:"items"`
 }
 
@@ -294,6 +297,7 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 				// pretty.Println(tracks)
 
 				res := GetQueueItems{
+					Index: 1,
 					Items: make([]QueueItem, len(items)),
 				}
 
@@ -324,11 +328,19 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 						OrderNumber: item.OrderNumber,
 						TrackId:     item.TrackId,
 						Track: MusicTrack{
-							Name:        item.Name,
-							Artists:     []MusicTrackArtist{},
-							Album:       MusicTrackAlbum{},
-							CoverArtUrl: "",
-							MediaUrl:    utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", item.TrackId, originalItem.Id, originalItem.Filename)),
+							Name: item.Name,
+							Artists: []MusicTrackArtist{
+								{
+									ArtistId:   item.ArtistId,
+									ArtistName: item.ArtistName,
+								},
+							},
+							Album: MusicTrackAlbum{
+								AlbumId:   item.AlbumId,
+								AlbumName: item.AlbumName,
+							},
+							CoverArt: utils.ConvertAlbumCoverURL(c, item.AlbumId, item.CoverArt),
+							MediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", item.TrackId, originalItem.Id, originalItem.Filename)),
 						},
 						Created: item.Created,
 						Updated: item.Updated,

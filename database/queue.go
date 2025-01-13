@@ -109,7 +109,14 @@ type QueueTrackItem struct {
 	TrackId     string `db:"track_id"`
 
 	Name       string `db:"name"`
+
+	AlbumId string `db:"album_id"`
+	AlbumName string `db:"album_name"`
+
+	ArtistId string `db:"artist_id"`
 	ArtistName string `db:"artist_name"`
+
+	CoverArt sql.NullString `db:"cover_art"`
 
 	MediaItems JsonColumn[[]QueueTrackItemMediaItem] `db:"media_items"`
 
@@ -378,22 +385,23 @@ func NewTrackQuery() *goqu.SelectDataset {
 			"tracks.id",
 			"tracks.name",
 
-			// "tracks.album_id",
-			// "tracks.artist_id",
+			"tracks.album_id",
+			"tracks.artist_id",
 
 			// goqu.I("tracks.original_filename").As("media_filename"),
 			goqu.I("artists.name").As("artist_name"),
 
 			goqu.I("tracks_media.media_items").As("media_items"),
 
-			// goqu.I("albums.cover_art").As("album_cover_art"),
+			goqu.I("albums.cover_art").As("cover_art"),
+			goqu.I("albums.name").As("album_name"),
 
 		).
 		Prepared(true).
-		// Join(
-		// 	goqu.I("albums"),
-		// 	goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id"))),
-		// ).
+		Join(
+			goqu.I("albums"),
+			goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id"))),
+		).
 		Join(
 			goqu.I("artists"),
 			goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))),
@@ -431,8 +439,14 @@ func (db *Database) GetQueueItemsForPlay(ctx context.Context, queueId string) ([
 			"queue_items.updated",
 
 			"tracks.name",
-			// "tracks.media_filename",
+			"tracks.album_id",
+			"tracks.album_name",
+
+			"tracks.artist_id",
 			"tracks.artist_name",
+
+			"tracks.cover_art",
+
 			"tracks.media_items",
 		).
 		Join(trackQuery, goqu.On(goqu.I("queue_items.track_id").Eq(goqu.I("tracks.id")))).

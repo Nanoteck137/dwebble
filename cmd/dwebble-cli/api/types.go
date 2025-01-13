@@ -163,34 +163,35 @@ type Queue struct {
 }
 
 type MusicTrackArtist struct {
-	ArtistId string `json:"ArtistId"`
-	ArtistName string `json:"ArtistName"`
+	ArtistId string `json:"artistId"`
+	ArtistName string `json:"artistName"`
 }
 
 type MusicTrackAlbum struct {
-	AlbumId string `json:"AlbumId"`
-	AlbumName string `json:"AlbumName"`
+	AlbumId string `json:"albumId"`
+	AlbumName string `json:"albumName"`
 }
 
 type MusicTrack struct {
-	Name string `json:"Name"`
-	Artists []MusicTrackArtist `json:"Artists"`
-	Album MusicTrackAlbum `json:"Album"`
-	CoverArtUrl string `json:"CoverArtUrl"`
-	MediaUrl string `json:"MediaUrl"`
+	Name string `json:"name"`
+	Artists []MusicTrackArtist `json:"artists"`
+	Album MusicTrackAlbum `json:"album"`
+	CoverArt Images `json:"coverArt"`
+	MediaUrl string `json:"mediaUrl"`
 }
 
 type QueueItem struct {
-	Id string `json:"Id"`
-	QueueId string `json:"QueueId"`
-	OrderNumber int `json:"OrderNumber"`
-	TrackId string `json:"TrackId"`
-	Track MusicTrack `json:"Track"`
-	Created int `json:"Created"`
-	Updated int `json:"Updated"`
+	Id string `json:"id"`
+	QueueId string `json:"queueId"`
+	OrderNumber int `json:"orderNumber"`
+	TrackId string `json:"trackId"`
+	Track MusicTrack `json:"track"`
+	Created int `json:"created"`
+	Updated int `json:"updated"`
 }
 
 type GetQueueItems struct {
+	Index int `json:"index"`
 	Items []QueueItem `json:"items"`
 }
 

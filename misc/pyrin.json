@@ -616,12 +616,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "ArtistId",
+          "name": "artistId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "ArtistName",
+          "name": "artistName",
           "type": "string",
           "omit": false
         }
@@ -632,12 +632,12 @@
       "extend": "",
       "fields": [
         {
-          "name": "AlbumId",
+          "name": "albumId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "AlbumName",
+          "name": "albumName",
           "type": "string",
           "omit": false
         }
@@ -648,27 +648,27 @@
       "extend": "",
       "fields": [
         {
-          "name": "Name",
+          "name": "name",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Artists",
+          "name": "artists",
           "type": "[]MusicTrackArtist",
           "omit": false
         },
         {
-          "name": "Album",
+          "name": "album",
           "type": "MusicTrackAlbum",
           "omit": false
         },
         {
-          "name": "CoverArtUrl",
-          "type": "string",
+          "name": "coverArt",
+          "type": "Images",
           "omit": false
         },
         {
-          "name": "MediaUrl",
+          "name": "mediaUrl",
           "type": "string",
           "omit": false
         }
@@ -679,37 +679,37 @@
       "extend": "",
       "fields": [
         {
-          "name": "Id",
+          "name": "id",
           "type": "string",
           "omit": false
         },
         {
-          "name": "QueueId",
+          "name": "queueId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "OrderNumber",
+          "name": "orderNumber",
           "type": "int",
           "omit": false
         },
         {
-          "name": "TrackId",
+          "name": "trackId",
           "type": "string",
           "omit": false
         },
         {
-          "name": "Track",
+          "name": "track",
           "type": "MusicTrack",
           "omit": false
         },
         {
-          "name": "Created",
+          "name": "created",
           "type": "int",
           "omit": false
         },
         {
-          "name": "Updated",
+          "name": "updated",
           "type": "int",
           "omit": false
         }
@@ -719,6 +719,11 @@
       "name": "GetQueueItems",
       "extend": "",
       "fields": [
+        {
+          "name": "index",
+          "type": "int",
+          "omit": false
+        },
         {
           "name": "items",
           "type": "[]QueueItem",
@@ -1693,7 +1698,7 @@
     {
       "name": "",
       "method": "GET",
-      "path": "/files/tracks/:trackId/:file"
+      "path": "/files/tracks/:trackId/media/:mediaId/:file"
     }
   ]
 }

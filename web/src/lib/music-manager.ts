@@ -1,11 +1,7 @@
+import type { ApiClient } from "$lib/api/client";
+import type { MusicTrack } from "$lib/api/types";
 import { type Emitter, createNanoEvents } from "nanoevents";
-
-export type MusicTrack = {
-  name: string;
-  artistName: string;
-  source: string;
-  coverArt: string;
-};
+import { getContext, setContext } from "svelte";
 
 export type Queue = {
   index: number;
@@ -13,10 +9,12 @@ export type Queue = {
 };
 
 export class MusicManager {
+  apiClient: ApiClient;
   queue: Queue = { index: 0, items: [] };
   emitter: Emitter;
 
-  constructor() {
+  constructor(apiClient: ApiClient) {
+    this.apiClient = apiClient;
     this.emitter = createNanoEvents();
   }
 
@@ -24,6 +22,14 @@ export class MusicManager {
     if (this.queue.items.length === 0) return null;
 
     return this.queue.items[this.queue.index];
+  }
+
+  setQueueItems(tracks: MusicTrack[], index?: number) {
+    this.queue.items = tracks;
+    this.queue.index = index ?? 0;
+
+    this.emitter.emit("onQueueUpdated");
+    this.emitter.emit("onTrackChanged");
   }
 
   addTrackToQueue(track: MusicTrack, requestPlay: boolean = true) {
@@ -94,5 +100,12 @@ export class MusicManager {
   }
 }
 
-const musicManager = new MusicManager();
-export { musicManager };
+const MUSIC_MANAGER_KEY = Symbol("MUSIC_MANAGER");
+
+export function setMusicManager(apiClient: ApiClient) {
+  return setContext(MUSIC_MANAGER_KEY, new MusicManager(apiClient));
+}
+
+export function getMusicManager() {
+  return getContext<ReturnType<typeof setMusicManager>>(MUSIC_MANAGER_KEY);
+}

@@ -16,8 +16,11 @@
     buttonVariants,
   } from "@nanoteck137/nano-ui";
   import SeekSlider from "$lib/components/SeekSlider.svelte";
-  import { musicManager, type MusicTrack } from "$lib/music-manager";
   import { fly } from "svelte/transition";
+  import type { MusicTrack } from "$lib/api/types";
+  import { getMusicManager } from "$lib/music-manager";
+
+  const musicManager = getMusicManager();
 
   interface Props {
     loading: boolean;
@@ -92,7 +95,7 @@
               <div class="group relative">
                 <img
                   class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
-                  src={track.coverArt}
+                  src={track.coverArt.small}
                   alt="cover"
                 />
                 {#if i == currentQueueIndex}
@@ -117,8 +120,11 @@
                 <p class="line-clamp-1 text-sm" title={track.name}>
                   {track.name}
                 </p>
-                <p class="line-clamp-1 text-xs" title={track.artistName}>
-                  {track.artistName}
+                <p
+                  class="line-clamp-1 text-xs"
+                  title={track.artists[0].artistName}
+                >
+                  {track.artists[0].artistName}
                 </p>
               </div>
             </div>

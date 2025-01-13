@@ -22,8 +22,13 @@
   import { modals, Modals } from "svelte-modals";
   import { Toaster } from "svelte-5-french-toast";
   import { navigating } from "$app/stores";
+  import { createApiClient } from "$lib";
+  import { setMusicManager } from "$lib/music-manager";
 
   let { children, data } = $props();
+
+  const apiClient = createApiClient(data);
+  setMusicManager(apiClient);
 
   let showSideMenu = $state(false);
 

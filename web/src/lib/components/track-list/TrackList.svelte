@@ -15,7 +15,7 @@
     Shuffle,
     Users,
   } from "lucide-svelte";
-  import { cn, shuffle, trackToMusicTrack } from "$lib/utils";
+  import { cn, shuffle } from "$lib/utils";
   import type { Playlist, Track } from "$lib/api/types";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
   import type { ApiClient } from "$lib/api/client";
@@ -52,10 +52,10 @@
         size="sm"
         variant="ghost"
         onclick={() => {
-          musicManager.clearQueue();
-          for (const track of tracks) {
-            musicManager.addTrackToQueue(trackToMusicTrack(track));
-          }
+          // musicManager.clearQueue();
+          // for (const track of tracks) {
+          //   musicManager.addTrackToQueue(trackToMusicTrack(track));
+          // }
         }}
       >
         <Play />
@@ -75,12 +75,11 @@
         size="sm"
         variant="ghost"
         onclick={() => {
-          const newTracks = shuffle([...tracks]);
-
-          musicManager.clearQueue();
-          for (const track of newTracks) {
-            musicManager.addTrackToQueue(trackToMusicTrack(track));
-          }
+          // const newTracks = shuffle([...tracks]);
+          // musicManager.clearQueue();
+          // for (const track of newTracks) {
+          //   musicManager.addTrackToQueue(trackToMusicTrack(track));
+          // }
         }}
       >
         <Shuffle />
@@ -99,12 +98,12 @@
       showNumber={isAlbumShowcase}
       {track}
       onPlayClicked={() => {
-        musicManager.clearQueue();
-        for (const track of tracks) {
-          musicManager.addTrackToQueue(trackToMusicTrack(track), false);
-        }
-        musicManager.setQueueIndex(i);
-        musicManager.requestPlay();
+        // musicManager.clearQueue();
+        // for (const track of tracks) {
+        //   musicManager.addTrackToQueue(trackToMusicTrack(track), false);
+        // }
+        // musicManager.setQueueIndex(i);
+        // musicManager.requestPlay();
       }}
     >
       <QuickAddButton

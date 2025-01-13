@@ -1,5 +1,4 @@
-import type { Name, Track } from "$lib/api/types";
-import type { MusicTrack } from "$lib/music-manager";
+import type { Name } from "$lib/api/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -29,14 +28,14 @@ export function formatTime(s: number) {
   return `${min}:${sec.toString().padStart(2, "0")}`;
 }
 
-export function trackToMusicTrack(track: Track): MusicTrack {
-  return {
-    name: track.name.default,
-    artistName: track.artistName.default,
-    source: track.mobileMediaUrl,
-    coverArt: track.coverArt.small,
-  };
-}
+// export function trackToMusicTrack(track: Track): MusicTrack {
+//   return {
+//     name: track.name.default,
+//     artistName: track.artistName.default,
+//     source: track.mobileMediaUrl,
+//     coverArt: track.coverArt.small,
+//   };
+// }
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

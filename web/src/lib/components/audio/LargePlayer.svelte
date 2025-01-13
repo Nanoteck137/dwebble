@@ -1,7 +1,6 @@
 <script lang="ts">
   import Slider from "$lib/components/SeekSlider.svelte";
   import { Button, ScrollArea, Separator, Sheet } from "@nanoteck137/nano-ui";
-  import { musicManager, type MusicTrack } from "$lib/music-manager";
   import { formatTime } from "$lib/utils";
   import {
     ListX,
@@ -13,6 +12,10 @@
     Volume2,
     VolumeX,
   } from "lucide-svelte";
+  import type { MusicTrack } from "$lib/api/types";
+  import { getMusicManager } from "$lib/music-manager";
+
+  const musicManager = getMusicManager();
 
   interface Props {
     loading: boolean;
@@ -91,7 +94,7 @@
               <div class="group relative">
                 <img
                   class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
-                  src={track.coverArt}
+                  src={track.coverArt.small}
                   alt="cover"
                 />
                 {#if i == currentQueueIndex}
@@ -118,9 +121,9 @@
                 </p>
                 <p
                   class="line-clamp-1 text-xs font-light"
-                  title={track.artistName}
+                  title={track.artists[0].artistName}
                 >
-                  {track.artistName}
+                  {track.artists[0].artistName}
                 </p>
               </div>
             </div>

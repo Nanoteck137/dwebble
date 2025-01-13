@@ -1,8 +1,11 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { musicManager, type MusicTrack } from "$lib/music-manager";
   import LargePlayer from "$lib/components/audio/LargePlayer.svelte";
   import SmallPlayer from "$lib/components/audio/SmallPlayer.svelte";
+  import type { MusicTrack } from "$lib/api/types";
+  import { getMusicManager } from "$lib/music-manager";
+
+  const musicManager = getMusicManager();
 
   let showPlayer = $state(false);
 
@@ -93,10 +96,10 @@
       console.log(track);
       if (track) {
         trackName = track.name;
-        artistName = track.artistName;
-        coverArt = track.coverArt;
+        artistName = track.artists[0].artistName;
+        coverArt = track.coverArt.small;
 
-        audio.src = track.source;
+        audio.src = track.mediaUrl;
       } else {
         trackName = "";
         artistName = "";
