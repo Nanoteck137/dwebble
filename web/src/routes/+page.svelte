@@ -20,7 +20,7 @@
     console.log("Clear Queue", await apiClient.clearQueue(queueId));
     console.log(
       "Add album items",
-      await apiClient.addToQueueFromAlbum(queueId, "q183bonrr335lae4"),
+      await apiClient.addToQueueFromAlbum(queueId, "njovbcxihdejop5q"),
     );
 
     console.log("Get queue items", await apiClient.getQueueItems(queueId));

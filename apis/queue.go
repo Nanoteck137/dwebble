@@ -298,6 +298,26 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 				}
 
 				for i, item := range items {
+					mediaItems := *item.MediaItems.Get()
+
+					// TODO(patrik): Better selection algo
+					found := false
+					var originalItem database.QueueTrackItemMediaItem
+					for _, item := range mediaItems {
+						if item.IsOriginal {
+							originalItem = item
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						// TODO(patrik): Better error handling
+						return nil, errors.New("Contains bad media items")
+					}
+
+					pretty.Println(originalItem)
+
 					res.Items[i] = QueueItem{
 						Id:          item.Id,
 						QueueId:     item.QueueId,
@@ -308,7 +328,7 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 							Artists:     []MusicTrackArtist{},
 							Album:       MusicTrackAlbum{},
 							CoverArtUrl: "",
-							MediaUrl:    utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", item.TrackId, item.MediaFilename)),
+							MediaUrl:    utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", item.TrackId, originalItem.Id, originalItem.Filename)),
 						},
 						Created: item.Created,
 						Updated: item.Updated,

@@ -3,12 +3,61 @@ package database
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
+	"github.com/nanoteck137/dwebble/types"
 )
+
+type ConvertibleBoolean bool
+
+func (bit *ConvertibleBoolean) UnmarshalJSON(data []byte) error {
+	asString := string(data)
+	if asString == "1" || asString == "true" {
+	    *bit = true
+	} else if asString == "0" || asString == "false" {
+	    *bit = false
+	} else {
+	    return errors.New(fmt.Sprintf("boolean unmarshal error: invalid input %s", asString))
+	}
+
+	return nil
+}
+
+type JsonColumn[T any] struct {
+	v *T
+}
+
+func (j *JsonColumn[T]) Scan(src any) error {
+	if src == nil {
+		j.v = nil
+		return nil
+	}
+	j.v = new(T)
+
+	switch value := src.(type) {
+	case string:
+		return json.Unmarshal([]byte(value), j.v)
+	case []byte:
+		return json.Unmarshal(value, j.v)
+	default:
+		return fmt.Errorf("unsupported type %T", src)
+	}
+}
+
+func (j *JsonColumn[T]) Value() (driver.Value, error) {
+	raw, err := json.Marshal(j.v)
+	return raw, err
+}
+
+func (j *JsonColumn[T]) Get() *T {
+	return j.v
+}
 
 type Player struct {
 	Id string `db:"id"`
@@ -45,6 +94,13 @@ type QueueItem struct {
 	Updated int64 `db:"updated"`
 }
 
+type QueueTrackItemMediaItem struct {
+	Id         string             `json:"id"`
+	Filename   string             `json:"filename"`
+	MediaType  types.MediaType    `json:"media_type"`
+	IsOriginal ConvertibleBoolean `json:"is_original"`
+}
+
 type QueueTrackItem struct {
 	Id      string `db:"id"`
 	QueueId string `db:"queue_id"`
@@ -55,7 +111,7 @@ type QueueTrackItem struct {
 	Name       string `db:"name"`
 	ArtistName string `db:"artist_name"`
 
-	MediaFilename string `db:"media_filename"`
+	MediaItems JsonColumn[[]QueueTrackItemMediaItem] `db:"media_items"`
 
 	Created int64 `db:"created"`
 	Updated int64 `db:"updated"`
@@ -292,6 +348,31 @@ func (db *Database) CreateDefaultQueue(ctx context.Context, params CreateDefault
 }
 
 func NewTrackQuery() *goqu.SelectDataset {
+	trackMediaQuery := dialect.From("tracks_media").
+		Select(
+			goqu.I("tracks_media.track_id").As("id"),
+
+			goqu.Func(
+				"json_group_array",
+				goqu.Func(
+					"json_object",
+
+					"id",
+					goqu.I("tracks_media.id"),
+
+					"filename",
+					goqu.I("tracks_media.filename"),
+
+					"media_type",
+					goqu.I("tracks_media.media_type"),
+
+					"is_original",
+					goqu.I("tracks_media.is_original"),
+				),
+			).As("media_items"),
+		).
+		GroupBy(goqu.I("tracks_media.track_id"))
+
 	query := dialect.From("tracks").
 		Select(
 			"tracks.id",
@@ -300,8 +381,10 @@ func NewTrackQuery() *goqu.SelectDataset {
 			// "tracks.album_id",
 			// "tracks.artist_id",
 
-			goqu.I("tracks.original_filename").As("media_filename"),
+			// goqu.I("tracks.original_filename").As("media_filename"),
 			goqu.I("artists.name").As("artist_name"),
+
+			goqu.I("tracks_media.media_items").As("media_items"),
 
 			// goqu.I("albums.cover_art").As("album_cover_art"),
 
@@ -314,6 +397,10 @@ func NewTrackQuery() *goqu.SelectDataset {
 		Join(
 			goqu.I("artists"),
 			goqu.On(goqu.I("tracks.artist_id").Eq(goqu.I("artists.id"))),
+		).
+		LeftJoin(
+			trackMediaQuery.As("tracks_media"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("tracks_media.id"))),
 		)
 
 		// LeftJoin(
@@ -344,8 +431,9 @@ func (db *Database) GetQueueItemsForPlay(ctx context.Context, queueId string) ([
 			"queue_items.updated",
 
 			"tracks.name",
-			"tracks.media_filename",
+			// "tracks.media_filename",
 			"tracks.artist_name",
+			"tracks.media_items",
 		).
 		Join(trackQuery, goqu.On(goqu.I("queue_items.track_id").Eq(goqu.I("tracks.id")))).
 		Where(goqu.I("queue_items.queue_id").Eq(queueId))
