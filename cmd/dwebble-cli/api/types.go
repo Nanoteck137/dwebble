@@ -185,6 +185,11 @@ type Queue struct {
 	Name string `json:"name"`
 }
 
+type AddToQueue struct {
+	Shuffle bool `json:"shuffle"`
+	AddToFront bool `json:"addToFront"`
+}
+
 type QueueItem struct {
 	Id string `json:"id"`
 	QueueId string `json:"queueId"`

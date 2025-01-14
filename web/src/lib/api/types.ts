@@ -214,6 +214,12 @@ export const Queue = z.object({
 });
 export type Queue = z.infer<typeof Queue>;
 
+export const AddToQueue = z.object({
+  shuffle: z.boolean().optional(),
+  addToFront: z.boolean().optional(),
+});
+export type AddToQueue = z.infer<typeof AddToQueue>;
+
 export const QueueItem = z.object({
   id: z.string(),
   queueId: z.string(),

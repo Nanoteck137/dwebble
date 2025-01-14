@@ -43,6 +43,9 @@ export abstract class Queue {
 
   // eslint-disable-next-line no-unused-vars
   abstract addFromAlbum(albumId: string): Promise<void>;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract addFromPlaylist(playlistId: string): Promise<void>;
 }
 
 export class BackendQueue extends Queue {
@@ -92,6 +95,17 @@ export class BackendQueue extends Queue {
     }
   }
 
+  async addFromPlaylist(playlistId: string) {
+    const res = await this.apiClient.addToQueueFromPlaylist(
+      this.queueId,
+      playlistId,
+      {},
+    );
+    if (res.success) {
+      await this.refetchQueue();
+    }
+  }
+
   async setQueueIndex(index: number) {
     super.setQueueIndex(index);
 
@@ -124,6 +138,10 @@ export class LocalQueue extends Queue {
       });
     }
   }
+
+  async addFromPlaylist(playlistId: string) {
+    throw new Error("Method not implemented.");
+  }
 }
 
 export class MusicManager {
@@ -149,6 +167,11 @@ export class MusicManager {
 
   async addFromAlbum(albumId: string) {
     await this.queue.addFromAlbum(albumId);
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  async addFromPlaylist(playlistId: string) {
+    await this.queue.addFromPlaylist(playlistId);
     this.emitter.emit("onQueueUpdated");
   }
 

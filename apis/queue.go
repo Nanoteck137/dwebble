@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 
 	"github.com/kr/pretty"
@@ -75,6 +76,11 @@ func (b UpdateQueueBody) Validate() error {
 	return validate.ValidateStruct(&b,
 		validate.Field(&b.Name, validate.Required.When(b.Name != nil)),
 	)
+}
+
+type AddToQueue struct {
+	Shuffle    bool `json:"shuffle,omitempty"`
+	AddToFront bool `json:"addToFront,omitempty"`
 }
 
 func InstallQueueHandlers(app core.App, group pyrin.Group) {
@@ -271,6 +277,68 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 						QueueId:     queue.Id,
 						OrderNumber: i,
 						TrackId:     track.Id,
+					})
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "AddToQueueFromPlaylist",
+			Method:   http.MethodPost,
+			Path:     "/queue/:id/add/playlist/:playlistId",
+			BodyType: AddToQueue{},
+			Errors:   []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypePlaylistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+				playlistId := c.Param("playlistId")
+
+				body, err := pyrin.Body[AddToQueue](c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				queue, err := app.DB().GetQueueById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, QueueNotFound()
+					}
+
+					return nil, err
+				}
+
+				playlist, err := app.DB().GetPlaylistById(ctx, playlistId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, PlaylistNotFound()
+					}
+
+					return nil, err
+				}
+
+				items, err := app.DB().GetPlaylistTracks(ctx, playlist.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				if body.Shuffle {
+					rand.Shuffle(len(items), func(i, j int) {
+						items[i], items[j] = items[j], items[i]
+					})
+				}
+
+				// TODO(patrik): Get the last item index from queue
+				for i, item := range items {
+					_, err := app.DB().CreateQueueItem(ctx, database.CreateQueueItemParams{
+						QueueId:     queue.Id,
+						OrderNumber: i,
+						TrackId:     item.Id,
 					})
 					if err != nil {
 						return nil, err

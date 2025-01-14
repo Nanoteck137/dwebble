@@ -108,6 +108,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/queue/${id}/add/album/${albumId}`, "POST", z.undefined(), z.any(), undefined, options)
   }
   
+  addToQueueFromPlaylist(id: string, playlistId: string, body: api.AddToQueue, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}/add/playlist/${playlistId}`, "POST", z.undefined(), z.any(), body, options)
+  }
+  
   getQueueItems(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/queue/${id}/items`, "GET", api.GetQueueItems, z.any(), undefined, options)
   }

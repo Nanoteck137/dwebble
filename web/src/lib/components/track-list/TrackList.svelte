@@ -57,6 +57,7 @@
         size="sm"
         variant="ghost"
         onclick={() => {
+          onPlay();
           // musicManager.clearQueue();
           // for (const track of tracks) {
           //   musicManager.addTrackToQueue(trackToMusicTrack(track));

@@ -691,6 +691,22 @@
       ]
     },
     {
+      "name": "AddToQueue",
+      "extend": "",
+      "fields": [
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "addToFront",
+          "type": "bool",
+          "omit": true
+        }
+      ]
+    },
+    {
       "name": "QueueItem",
       "extend": "",
       "fields": [
@@ -1490,6 +1506,13 @@
       "path": "/api/v1/queue/:id/add/album/:albumId",
       "responseType": "",
       "bodyType": ""
+    },
+    {
+      "name": "AddToQueueFromPlaylist",
+      "method": "POST",
+      "path": "/api/v1/queue/:id/add/playlist/:playlistId",
+      "responseType": "",
+      "bodyType": "AddToQueue"
     },
     {
       "name": "GetQueueItems",

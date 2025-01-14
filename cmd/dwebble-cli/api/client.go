@@ -401,6 +401,22 @@ func (c *Client) AddToQueueFromAlbum(id string, albumId string, options Options)
 	return Request[any](data)
 }
 
+func (c *Client) AddToQueueFromPlaylist(id string, playlistId string, body AddToQueue, options Options) (*any, error) {
+	path := Sprintf("/api/v1/queue/%v/add/playlist/%v", id, playlistId)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) GetQueueItems(id string, options Options) (*GetQueueItems, error) {
 	path := Sprintf("/api/v1/queue/%v/items", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
