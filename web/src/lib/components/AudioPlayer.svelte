@@ -41,7 +41,7 @@
   }
 
   function updateTrack() {
-    const track = musicManager.getCurrentTrack();
+    const track = musicManager.queue.getCurrentTrack();
 
     if (track) {
       if (currentTrack?.id === track.id) return;
@@ -59,23 +59,23 @@
     audio = new Audio();
 
     audio.addEventListener("canplay", () => {
-      console.log("canplay");
+      // console.log("canplay");
       loading = false;
     });
 
     audio.addEventListener("loadstart", () => {
-      console.log("loadstart");
+      // console.log("loadstart");
       loading = true;
     });
 
     audio.addEventListener("loadedmetadata", () => {
-      console.log("loadedmetadata");
+      // console.log("loadedmetadata");
       currentTime = audio.currentTime;
       duration = audio.duration;
     });
 
     audio.addEventListener("progress", () => {
-      console.log("progress");
+      // console.log("progress");
     });
 
     audio.addEventListener("timeupdate", () => {
@@ -83,21 +83,21 @@
     });
 
     audio.addEventListener("loadeddata", () => {
-      console.log("loadeddata");
+      // console.log("loadeddata");
     });
 
     audio.addEventListener("playing", () => {
-      console.log("playing");
+      // console.log("playing");
       playing = true;
     });
 
     audio.addEventListener("pause", () => {
-      console.log("pause");
+      // console.log("pause");
       playing = false;
     });
 
     audio.addEventListener("load", () => {
-      console.log("load");
+      // console.log("load");
     });
 
     audio.addEventListener("ended", () => {
@@ -138,9 +138,9 @@
 
   onMount(() => {
     let unsub = musicManager.emitter.on("onQueueUpdated", () => {
-      showPlayer = !musicManager.isQueueEmpty();
-      queue = musicManager.queueItems;
-      currentQueueIndex = musicManager.queueIndex;
+      showPlayer = !musicManager.queue.isQueueEmpty();
+      queue = musicManager.queue.items;
+      currentQueueIndex = musicManager.queue.index;
 
       updateTrack();
     });

@@ -102,8 +102,8 @@
                 {:else}
                   <button
                     class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center rounded border bg-muted/80 group-hover:flex`}
-                    onclick={() => {
-                      musicManager.setQueueIndex(i);
+                    onclick={async () => {
+                      await musicManager.setQueueIndex(i);
                       musicManager.requestPlay();
                     }}
                   >

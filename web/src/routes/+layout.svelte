@@ -23,15 +23,43 @@
   import { Toaster } from "svelte-5-french-toast";
   import { navigating } from "$app/stores";
   import { createApiClient } from "$lib";
-  import { setMusicManager } from "$lib/music-manager.svelte";
+  import {
+    BackendQueue,
+    LocalQueue,
+    MusicManager,
+    setMusicManager,
+  } from "$lib/music-manager.svelte";
+  import { onMount } from "svelte";
 
   let { children, data } = $props();
 
   const apiClient = createApiClient(data);
 
+  let musicManager: MusicManager;
   if (browser) {
-    setMusicManager(apiClient, data.queueId);
+    if (data.user) {
+      console.log("Backend");
+      musicManager = setMusicManager(
+        apiClient,
+        new BackendQueue(apiClient, data.queueId),
+      );
+    } else {
+      console.log("Local");
+      musicManager = setMusicManager(apiClient, new LocalQueue(apiClient));
+    }
   }
+
+  $effect(() => {
+    if (!browser) return;
+
+    if (data.user) {
+      console.log("Backend");
+      musicManager.setQueue(new BackendQueue(apiClient, data.queueId));
+    } else {
+      console.log("Local");
+      musicManager.setQueue(new LocalQueue(apiClient));
+    }
+  });
 
   let showSideMenu = $state(false);
 

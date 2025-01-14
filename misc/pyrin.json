@@ -379,6 +379,85 @@
       ]
     },
     {
+      "name": "MusicTrackArtist",
+      "extend": "",
+      "fields": [
+        {
+          "name": "artistId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artistName",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "MusicTrackAlbum",
+      "extend": "",
+      "fields": [
+        {
+          "name": "albumId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "albumName",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "MusicTrack",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artists",
+          "type": "[]MusicTrackArtist",
+          "omit": false
+        },
+        {
+          "name": "album",
+          "type": "MusicTrackAlbum",
+          "omit": false
+        },
+        {
+          "name": "coverArt",
+          "type": "Images",
+          "omit": false
+        },
+        {
+          "name": "mediaUrl",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetAlbumTracksForPlay",
+      "extend": "",
+      "fields": [
+        {
+          "name": "tracks",
+          "type": "[]MusicTrack",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "EditAlbumBody",
       "extend": "",
       "fields": [
@@ -606,74 +685,6 @@
         },
         {
           "name": "name",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "MusicTrackArtist",
-      "extend": "",
-      "fields": [
-        {
-          "name": "artistId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artistName",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "MusicTrackAlbum",
-      "extend": "",
-      "fields": [
-        {
-          "name": "albumId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "albumName",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "MusicTrack",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artists",
-          "type": "[]MusicTrackArtist",
-          "omit": false
-        },
-        {
-          "name": "album",
-          "type": "MusicTrackAlbum",
-          "omit": false
-        },
-        {
-          "name": "coverArt",
-          "type": "Images",
-          "omit": false
-        },
-        {
-          "name": "mediaUrl",
           "type": "string",
           "omit": false
         }
@@ -1387,6 +1398,13 @@
       "method": "GET",
       "path": "/api/v1/albums/:id/tracks",
       "responseType": "GetAlbumTracks",
+      "bodyType": ""
+    },
+    {
+      "name": "GetAlbumTracksForPlay",
+      "method": "GET",
+      "path": "/api/v1/albums/:id/tracks/play",
+      "responseType": "GetAlbumTracksForPlay",
       "bodyType": ""
     },
     {

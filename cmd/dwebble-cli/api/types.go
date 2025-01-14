@@ -100,6 +100,29 @@ type GetAlbumTracks struct {
 	Tracks []Track `json:"tracks"`
 }
 
+type MusicTrackArtist struct {
+	ArtistId string `json:"artistId"`
+	ArtistName string `json:"artistName"`
+}
+
+type MusicTrackAlbum struct {
+	AlbumId string `json:"albumId"`
+	AlbumName string `json:"albumName"`
+}
+
+type MusicTrack struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	Artists []MusicTrackArtist `json:"artists"`
+	Album MusicTrackAlbum `json:"album"`
+	CoverArt Images `json:"coverArt"`
+	MediaUrl string `json:"mediaUrl"`
+}
+
+type GetAlbumTracksForPlay struct {
+	Tracks []MusicTrack `json:"tracks"`
+}
+
 type EditAlbumBody struct {
 	Name *string `json:"name,omitempty"`
 	OtherName *string `json:"otherName,omitempty"`
@@ -160,25 +183,6 @@ type UploadTrackBody struct {
 type Queue struct {
 	Id string `json:"id"`
 	Name string `json:"name"`
-}
-
-type MusicTrackArtist struct {
-	ArtistId string `json:"artistId"`
-	ArtistName string `json:"artistName"`
-}
-
-type MusicTrackAlbum struct {
-	AlbumId string `json:"albumId"`
-	AlbumName string `json:"albumName"`
-}
-
-type MusicTrack struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Artists []MusicTrackArtist `json:"artists"`
-	Album MusicTrackAlbum `json:"album"`
-	CoverArt Images `json:"coverArt"`
-	MediaUrl string `json:"mediaUrl"`
 }
 
 type QueueItem struct {

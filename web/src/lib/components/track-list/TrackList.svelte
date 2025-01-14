@@ -20,7 +20,7 @@
   import type { ApiClient } from "$lib/api/client";
   import { openAddToPlaylist } from "$lib";
   import { goto, invalidateAll } from "$app/navigation";
-  import { getMusicManager } from "$lib/music-manager.svelte";
+  import { getMusicManager, MusicManager } from "$lib/music-manager.svelte";
 
   type Props = {
     apiClient: ApiClient;
@@ -31,6 +31,9 @@
     userPlaylists?: Playlist[] | null;
     quickPlaylist?: string | null;
     isInQuickPlaylist: (trackId: string) => boolean;
+
+    onPlay: () => void;
+    onTrackPlay: (trackId: string) => void;
   };
 
   const {
@@ -42,6 +45,8 @@
     userPlaylists,
     quickPlaylist,
     isInQuickPlaylist,
+    onPlay,
+    onTrackPlay,
   }: Props = $props();
 </script>
 
@@ -98,12 +103,7 @@
       showNumber={isAlbumShowcase}
       {track}
       onPlayClicked={() => {
-        // musicManager.clearQueue();
-        // for (const track of tracks) {
-        //   musicManager.addTrackToQueue(trackToMusicTrack(track), false);
-        // }
-        // musicManager.setQueueIndex(i);
-        // musicManager.requestPlay();
+        onTrackPlay(track.id);
       }}
     >
       <QuickAddButton

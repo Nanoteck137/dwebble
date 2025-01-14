@@ -3,33 +3,68 @@ import type { MusicTrack } from "$lib/api/types";
 import { type Emitter, createNanoEvents } from "nanoevents";
 import { getContext, setContext } from "svelte";
 
-export type Queue = {
-  index: number;
-  items: MusicTrack[];
-};
+export abstract class Queue {
+  items: MusicTrack[] = [];
+  index: number = 0;
 
-export class MusicManager {
+  async initialize() {}
+
+  setQueueItems(tracks: MusicTrack[], index?: number) {
+    this.items = tracks;
+    this.index = index ?? 0;
+  }
+
+  getCurrentTrack() {
+    if (this.items.length === 0) return null;
+    return this.items[this.index];
+  }
+
+  isEndOfQueue() {
+    return this.index >= this.items.length - 1;
+  }
+
+  isQueueEmpty() {
+    return this.items.length === 0;
+  }
+
+  async setQueueIndex(index: number) {
+    if (index >= this.items.length) {
+      return;
+    }
+
+    if (index < 0) {
+      return;
+    }
+
+    this.index = index;
+  }
+
+  abstract clearQueue(): Promise<void>;
+
+  // eslint-disable-next-line no-unused-vars
+  abstract addFromAlbum(albumId: string): Promise<void>;
+}
+
+export class BackendQueue extends Queue {
   apiClient: ApiClient;
-
   queueId: string;
-  queueItems: MusicTrack[] = [];
-  queueIndex: number = 0;
-
-  emitter: Emitter;
 
   constructor(apiClient: ApiClient, queueId: string) {
+    super();
+
     this.apiClient = apiClient;
     this.queueId = queueId;
-    this.emitter = createNanoEvents();
 
     this.refetchQueue();
+  }
+
+  async initialize() {
+    await this.refetchQueue();
   }
 
   async refetchQueue() {
     // TODO(patrik): Handle errors
     const queueItems = await this.apiClient.getQueueItems(this.queueId);
-    console.log("Get queue items", queueItems);
-
     if (queueItems.success) {
       this.setQueueItems(
         queueItems.data.items.map((i) => i.track),
@@ -57,69 +92,83 @@ export class MusicManager {
     }
   }
 
-  getCurrentTrack() {
-    if (this.queueItems.length === 0) return null;
-    return this.queueItems[this.queueIndex];
-  }
-
-  setQueueItems(tracks: MusicTrack[], index?: number) {
-    this.queueItems = tracks;
-    this.queueIndex = index ?? 0;
-    this.emitter.emit("onQueueUpdated");
-  }
-
-  addTrackToQueue(track: MusicTrack, requestPlay: boolean = true) {
-    throw "remove this function";
-    // const play = this.queueItems.length === 0;
-
-    // this.queue.items.push(track);
-    // this.emitter.emit("onQueueUpdated");
-
-    // if (play && requestPlay) {
-    //   this.emitter.emit("onTrackChanged");
-    //   this.requestPlay();
-    // }
-  }
-
-  isEndOfQueue() {
-    return this.queueIndex >= this.queueItems.length - 1;
-  }
-
-  isQueueEmpty() {
-    return this.queueItems.length === 0;
-  }
-
-  // clearQueue() {
-  //   this.queueIndex = 0;
-  //   this.queueItems = [];
-
-  //   this.emitter.emit("onQueueUpdated");
-  // }
-
   async setQueueIndex(index: number) {
-    if (index >= this.queueItems.length) {
-      return;
-    }
-
-    if (index < 0) {
-      return;
-    }
-
-    this.queueIndex = index;
-
-    this.emitter.emit("onQueueUpdated");
+    super.setQueueIndex(index);
 
     await this.apiClient.updateQueue(this.queueId, {
-      itemIndex: this.queueIndex,
+      itemIndex: this.index,
+    });
+  }
+}
+
+export class LocalQueue extends Queue {
+  apiClient: ApiClient;
+
+  constructor(apiClient: ApiClient) {
+    super();
+
+    this.apiClient = apiClient;
+  }
+
+  async clearQueue() {
+    this.items = [];
+    this.index = 0;
+  }
+
+  async addFromAlbum(albumId: string) {
+    // TODO(patrik): Handle error
+    const res = await this.apiClient.getAlbumTracksForPlay(albumId);
+    if (res.success) {
+      res.data.tracks.forEach((track) => {
+        this.items.push(track);
+      });
+    }
+  }
+}
+
+export class MusicManager {
+  apiClient: ApiClient;
+  queue: Queue;
+
+  emitter: Emitter;
+
+  constructor(apiClient: ApiClient, queue: Queue) {
+    this.apiClient = apiClient;
+    this.queue = queue;
+    this.emitter = createNanoEvents();
+
+    this.queue.initialize().then(() => {
+      this.emitter.emit("onQueueUpdated");
     });
   }
 
+  async clearQueue() {
+    await this.queue.clearQueue();
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  async addFromAlbum(albumId: string) {
+    await this.queue.addFromAlbum(albumId);
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  async setQueueIndex(index: number) {
+    await this.queue.setQueueIndex(index);
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  emitQueueUpdate() {
+    this.emitter.emit("onQueueUpdated");
+  }
+
   async nextTrack() {
-    await this.setQueueIndex(this.queueIndex + 1);
+    await this.setQueueIndex(this.queue.index + 1);
+    this.requestPlay();
   }
 
   async previousTrack() {
-    await this.setQueueIndex(this.queueIndex - 1);
+    await this.setQueueIndex(this.queue.index - 1);
+    this.requestPlay();
   }
 
   requestPlay() {
@@ -134,15 +183,20 @@ export class MusicManager {
     this.emitter.emit("requestPlayPause");
   }
 
-  markAsListened() {
-    console.log("Update server");
+  setQueue(queue: Queue) {
+    this.queue = queue;
+    this.emitter.emit("onQueueUpdated");
+
+    this.queue.initialize().then(() => {
+      this.emitter.emit("onQueueUpdated");
+    });
   }
 }
 
 const MUSIC_MANAGER_KEY = Symbol("MUSIC_MANAGER");
 
-export function setMusicManager(apiClient: ApiClient, queueId: string) {
-  return setContext(MUSIC_MANAGER_KEY, new MusicManager(apiClient, queueId));
+export function setMusicManager(apiClient: ApiClient, queue: Queue) {
+  return setContext(MUSIC_MANAGER_KEY, new MusicManager(apiClient, queue));
 }
 
 export function getMusicManager() {

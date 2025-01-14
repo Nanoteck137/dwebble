@@ -393,6 +393,21 @@ func (db *Database) CreateDefaultQueue(ctx context.Context, params CreateDefault
 	return nil
 }
 
+type NewTrackQueryItem struct {
+	Id string `db:"id"`
+	Name string `db:"name"`
+
+	AlbumId string `db:"album_id"`
+	ArtistId string `db:"artist_id"`
+	
+	ArtistName string `db:"artist_name"`
+	AlbumName string `db:"album_name"`
+
+	CoverArt sql.NullString `db:"cover_art"`
+
+	MediaItems JsonColumn[[]QueueTrackItemMediaItem] `db:"media_items"`
+}
+
 func NewTrackQuery() *goqu.SelectDataset {
 	trackMediaQuery := dialect.From("tracks_media").
 		Select(

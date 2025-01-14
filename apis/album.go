@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/helper"
@@ -149,6 +150,10 @@ func (b CreateAlbumBody) Validate() error {
 	)
 }
 
+type GetAlbumTracksForPlay struct {
+	Tracks []MusicTrack `json:"tracks"`
+}
+
 func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
@@ -268,6 +273,79 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				for i, track := range tracks {
 					res.Tracks[i] = ConvertDBTrack(c, track)
+				}
+
+				return res, nil
+			},
+		},
+
+		// TODO(patrik): Better name
+		pyrin.ApiHandler{
+			Name:         "GetAlbumTracksForPlay",
+			Method:       http.MethodGet,
+			Path:         "/albums/:id/tracks/play",
+			ResponseType: GetAlbumTracksForPlay{},
+			Errors:       []pyrin.ErrorType{ErrTypeAlbumNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				ctx := context.TODO()
+
+				album, err := app.DB().GetAlbumById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, AlbumNotFound()
+					}
+
+					return nil, err
+				}
+
+				tracks, err := app.DB().GetTracksByAlbumForPlay(ctx, album.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				pretty.Println(tracks)
+
+				res := GetAlbumTracksForPlay{
+					Tracks: make([]MusicTrack, len(tracks)),
+				}
+
+				for i, track := range tracks {
+					mediaItems := *track.MediaItems.Get()
+
+					// TODO(patrik): Better selection algo
+					found := false
+					var originalItem database.QueueTrackItemMediaItem
+					for _, item := range mediaItems {
+						if item.IsOriginal {
+							originalItem = item
+							found = true
+							break
+						}
+					}
+
+					if !found {
+						// TODO(patrik): Better error handling
+						return nil, errors.New("Contains bad media items")
+					}
+
+					res.Tracks[i] = MusicTrack{
+							Id:   track.Id,
+							Name: track.Name,
+							Artists: []MusicTrackArtist{
+								{
+									ArtistId:   track.ArtistId,
+									ArtistName: track.ArtistName,
+								},
+							},
+							Album: MusicTrackAlbum{
+								AlbumId:   track.AlbumId,
+								AlbumName: track.AlbumName,
+							},
+							CoverArt: utils.ConvertAlbumCoverURL(c, track.AlbumId, track.CoverArt),
+							MediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
+						}
 				}
 
 				return res, nil

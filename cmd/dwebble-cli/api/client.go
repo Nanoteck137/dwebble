@@ -193,6 +193,22 @@ func (c *Client) GetAlbumTracks(id string, options Options) (*GetAlbumTracks, er
 	return Request[GetAlbumTracks](data)
 }
 
+func (c *Client) GetAlbumTracksForPlay(id string, options Options) (*GetAlbumTracksForPlay, error) {
+	path := Sprintf("/api/v1/albums/%v/tracks/play", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetAlbumTracksForPlay](data)
+}
+
 func (c *Client) EditAlbum(id string, body EditAlbumBody, options Options) (*any, error) {
 	path := Sprintf("/api/v1/albums/%v", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)

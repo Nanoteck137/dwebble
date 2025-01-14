@@ -56,6 +56,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracks, z.any(), undefined, options)
   }
   
+  getAlbumTracksForPlay(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/albums/${id}/tracks/play`, "GET", api.GetAlbumTracksForPlay, z.any(), undefined, options)
+  }
+  
   editAlbum(id: string, body: api.EditAlbumBody, options?: ExtraOptions) {
     return this.request(`/api/v1/albums/${id}`, "PATCH", z.undefined(), z.any(), body, options)
   }

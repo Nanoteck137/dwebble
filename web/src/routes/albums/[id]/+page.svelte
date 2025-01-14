@@ -115,4 +115,17 @@
     if (!data.quickPlaylistIds) return false;
     return !!data.quickPlaylistIds.find((v) => v === trackId);
   }}
+  onPlay={async () => {
+    await musicManager.clearQueue();
+    await musicManager.addFromAlbum(data.album.id);
+    musicManager.requestPlay();
+  }}
+  onTrackPlay={async (trackId) => {
+    await musicManager.clearQueue();
+    await musicManager.addFromAlbum(data.album.id);
+    await musicManager.setQueueIndex(
+      musicManager.queue.items.findIndex((t) => t.id === trackId),
+    );
+    musicManager.requestPlay();
+  }}
 />

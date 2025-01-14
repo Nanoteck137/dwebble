@@ -169,6 +169,21 @@ func (db *Database) GetTracksByIds(ctx context.Context, ids []string) ([]Track, 
 	return items, nil
 }
 
+
+func (db *Database) GetTracksByAlbumForPlay(ctx context.Context, albumId string) ([]NewTrackQueryItem, error) {
+	query := NewTrackQuery().
+		Where(goqu.I("tracks.album_id").Eq(albumId)).
+		As("tracks")
+
+	var items []NewTrackQueryItem
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 // TODO(patrik): Move
 type FetchOption struct {
 	Filter  string

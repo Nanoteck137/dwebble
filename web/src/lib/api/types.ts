@@ -116,6 +116,33 @@ export const GetAlbumTracks = z.object({
 });
 export type GetAlbumTracks = z.infer<typeof GetAlbumTracks>;
 
+export const MusicTrackArtist = z.object({
+  artistId: z.string(),
+  artistName: z.string(),
+});
+export type MusicTrackArtist = z.infer<typeof MusicTrackArtist>;
+
+export const MusicTrackAlbum = z.object({
+  albumId: z.string(),
+  albumName: z.string(),
+});
+export type MusicTrackAlbum = z.infer<typeof MusicTrackAlbum>;
+
+export const MusicTrack = z.object({
+  id: z.string(),
+  name: z.string(),
+  artists: z.array(MusicTrackArtist),
+  album: MusicTrackAlbum,
+  coverArt: Images,
+  mediaUrl: z.string(),
+});
+export type MusicTrack = z.infer<typeof MusicTrack>;
+
+export const GetAlbumTracksForPlay = z.object({
+  tracks: z.array(MusicTrack),
+});
+export type GetAlbumTracksForPlay = z.infer<typeof GetAlbumTracksForPlay>;
+
 export const EditAlbumBody = z.object({
   name: z.string().nullable().optional(),
   otherName: z.string().nullable().optional(),
@@ -186,28 +213,6 @@ export const Queue = z.object({
   name: z.string(),
 });
 export type Queue = z.infer<typeof Queue>;
-
-export const MusicTrackArtist = z.object({
-  artistId: z.string(),
-  artistName: z.string(),
-});
-export type MusicTrackArtist = z.infer<typeof MusicTrackArtist>;
-
-export const MusicTrackAlbum = z.object({
-  albumId: z.string(),
-  albumName: z.string(),
-});
-export type MusicTrackAlbum = z.infer<typeof MusicTrackAlbum>;
-
-export const MusicTrack = z.object({
-  id: z.string(),
-  name: z.string(),
-  artists: z.array(MusicTrackArtist),
-  album: MusicTrackAlbum,
-  coverArt: Images,
-  mediaUrl: z.string(),
-});
-export type MusicTrack = z.infer<typeof MusicTrack>;
 
 export const QueueItem = z.object({
   id: z.string(),
