@@ -10,6 +10,7 @@ import (
 )
 
 type Config struct {
+	RunMigrations   bool   `mapstructure:"run_migrations"`
 	ListenAddr      string `mapstructure:"listen_addr"`
 	DataDir         string `mapstructure:"data_dir"`
 	LibraryDir      string `mapstructure:"library_dir"`
@@ -23,6 +24,7 @@ func (c *Config) WorkDir() types.WorkDir {
 }
 
 func setDefaults() {
+	viper.SetDefault("run_migrations", "true")
 	viper.SetDefault("listen_addr", ":3000")
 	viper.BindEnv("data_dir")
 	viper.BindEnv("library_dir")
@@ -42,6 +44,7 @@ func validateConfig(config *Config) {
 	}
 
 	// NOTE(patrik): Has default value, here for completeness
+	// validate(config.RunMigrations == "", "run_migrations needs to be set")
 	validate(config.ListenAddr == "", "listen_addr needs to be set")
 	validate(config.DataDir == "", "data_dir needs to be set")
 	validate(config.LibraryDir == "", "library_dir needs to be set")

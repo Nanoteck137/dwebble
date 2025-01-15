@@ -149,27 +149,70 @@ CREATE TABLE api_tokens (
     updated INTEGER NOT NULL
 );
 
+CREATE TABLE players (
+    id TEXT PRIMARY KEY,
+
+    created INTEGER NOT NULL,
+    updated INTEGER NOT NULL
+);
+
+CREATE TABLE queues (
+    id TEXT PRIMARY KEY,
+    player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    name TEXT NOT NULL CHECK(name<>''),
+    item_index INT NOT NULL,
+
+    created INTEGER NOT NULL,
+    updated INTEGER NOT NULL
+);
+
+CREATE TABLE default_queues (
+    player_id TEXT NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    queue_id TEXT NOT NULL REFERENCES queues(id) ON DELETE CASCADE,
+
+    PRIMARY KEY(player_id, user_id)
+);
+
+CREATE TABLE queue_items (
+    id TEXT PRIMARY KEY,
+    queue_id TEXT NOT NULL REFERENCES queues(id) ON DELETE CASCADE,
+
+    order_number INT NOT NULL,
+    track_id TEXT NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+
+    created INTEGER NOT NULL,
+    updated INTEGER NOT NULL
+);
+
 -- +goose Down
-DROP TABLE api_tokens;
+DROP TABLE queue_items;
+DROP TABLE default_queues;
+DROP TABLE queues; 
+DROP TABLE players; 
 
-DROP TABLE taglists;
+DROP TABLE api_tokens; 
 
-DROP TABLE playlist_items;
-DROP TABLE playlists;
+DROP TABLE taglists; 
+DROP TABLE playlist_items; 
+DROP TABLE playlists; 
 
-DROP TABLE users_settings;
-DROP TABLE users;
+DROP TABLE users_settings; 
+DROP TABLE users; 
 
-DROP TABLE tracks_tags;
-DROP TABLE albums_tags;
-DROP TABLE artists_tags;
-DROP TABLE tags;
+DROP TABLE tracks_tags; 
+DROP TABLE albums_tags ; 
+DROP TABLE artists_tags ; 
+DROP TABLE tags; 
 
-DROP TABLE tracks_featuring_artists;
-DROP TABLE tracks_media;
-DROP TABLE tracks;
+DROP TABLE tracks_featuring_artists; 
+DROP TABLE tracks_media; 
+DROP TABLE tracks; 
 
-DROP TABLE albums_featuring_artists;
-DROP TABLE albums;
+DROP TABLE albums_featuring_artists; 
+DROP TABLE albums; 
 
-DROP TABLE artists;
+DROP TABLE artists; 
+

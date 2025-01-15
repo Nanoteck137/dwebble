@@ -15,7 +15,9 @@ var migrateCmd = &cobra.Command{
 var upCmd = &cobra.Command{
 	Use: "up",
 	Run: func(cmd *cobra.Command, args []string) {
-		app := core.NewBaseApp(&config.LoadedConfig)
+		conf := config.LoadedConfig
+		conf.RunMigrations = false
+		app := core.NewBaseApp(&conf)
 
 		err := app.Bootstrap()
 		if err != nil {
@@ -32,9 +34,10 @@ var upCmd = &cobra.Command{
 var downCmd = &cobra.Command{
 	Use: "down",
 	Run: func(cmd *cobra.Command, args []string) {
-		app := core.NewBaseApp(&config.LoadedConfig)
+		conf := config.LoadedConfig
+		conf.RunMigrations = false
+		app := core.NewBaseApp(&conf)
 
-		// TODO(patrik): Remove migrate up from bootstrap
 		err := app.Bootstrap()
 		if err != nil {
 			log.Fatal("Failed to bootstrap app", "err", err)

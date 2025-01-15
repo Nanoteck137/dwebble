@@ -1,3 +1,4 @@
+# run_migrations = true
 listen_addr = ":3000"
 data_dir = "/Some/Dir"
 library_dir = "/Some/Dir/With/Music" # Example: /home/USER/Music

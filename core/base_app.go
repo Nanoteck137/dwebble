@@ -54,9 +54,11 @@ func (app *BaseApp) Bootstrap() error {
 		return err
 	}
 
-	err = database.RunMigrateUp(app.db)
-	if err != nil {
-		return err
+	if app.config.RunMigrations {
+		err = database.RunMigrateUp(app.db)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = app.db.RefillSearchTables(context.TODO())
