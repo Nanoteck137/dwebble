@@ -44,6 +44,7 @@ func UserQuery() *goqu.SelectDataset {
 		Select(
 			"users.id",
 			"users.username",
+			// TODO(patrik): Maybe don't include the password?
 			"users.password",
 			"users.role",
 
@@ -69,9 +70,6 @@ func UserSettingsQuery() *goqu.SelectDataset {
 			"users_settings.display_name",
 
 			"users_settings.quick_playlist",
-
-			"users_settings.created",
-			"users_settings.updated",
 		).
 		Prepared(true)
 
