@@ -65,7 +65,7 @@ func (app *BaseApp) Bootstrap() error {
 	}
 
 	_, err = os.Stat(workDir.SetupFile())
-	if errors.Is(err, os.ErrNotExist) {
+	if errors.Is(err, os.ErrNotExist) && app.config.Username != "" {
 		log.Info("Server not setup, creating the initial user")
 
 		ctx := context.Background()
