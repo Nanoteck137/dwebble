@@ -18,8 +18,8 @@ type Playlist struct {
 
 	OwnerId string `db:"owner_id"`
 
-	Created string `db:"created"`
-	Updated string `db:"updated"`
+	Created int64 `db:"created"`
+	Updated int64 `db:"updated"`
 }
 
 type PlaylistItem struct {
