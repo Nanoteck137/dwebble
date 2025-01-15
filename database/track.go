@@ -173,6 +173,7 @@ func (db *Database) GetTracksByIds(ctx context.Context, ids []string) ([]Track, 
 func (db *Database) GetTracksByAlbumForPlay(ctx context.Context, albumId string) ([]NewTrackQueryItem, error) {
 	query := NewTrackQuery().
 		Where(goqu.I("tracks.album_id").Eq(albumId)).
+		Order(goqu.I("tracks.number").Asc().NullsLast(), goqu.I("tracks.name").Asc()).
 		As("tracks")
 
 	var items []NewTrackQueryItem
@@ -334,8 +335,8 @@ type CreateTrackParams struct {
 	Number   sql.NullInt64
 	Year     sql.NullInt64
 
-	OriginalFilename string
-	MobileFilename   string
+	// OriginalFilename string
+	// MobileFilename   string
 
 	Created int64
 	Updated int64
