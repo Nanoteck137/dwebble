@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"path"
 
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
@@ -70,6 +69,7 @@ var migrateCmd = &cobra.Command{
 	Use: "migrate",
 	Run: func(cmd *cobra.Command, args []string) {
 		app := core.NewBaseApp(&config.Config{
+			RunMigrations: true,
 			DataDir: "./work",
 		})
 
@@ -92,8 +92,6 @@ var migrateCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal("Failed to get artists", "err", err)
 			}
-
-			pretty.Println(artists)
 
 			for _, artist := range artists {
 				src := oldWorkDir.Artist(artist.Id)
@@ -138,8 +136,6 @@ var migrateCmd = &cobra.Command{
 			if err != nil {
 				log.Fatal("Failed to get albums", "err", err)
 			}
-
-			pretty.Println(albums)
 
 			for _, album := range albums {
 				src := oldWorkDir.Album(album.Id)
@@ -194,17 +190,7 @@ var migrateCmd = &cobra.Command{
 				log.Fatal("Failed to get tracks", "err", err)
 			}
 
-			pretty.Println(tracks)
-
 			for _, track := range tracks {
-				// src := oldWorkDir.Album(album.Id)
-				// dst := app.WorkDir().Album(album.Id)
-				// cmd := exec.Command("cp", "-r", src, dst)
-				// err := cmd.Run()
-				// if err != nil {
-				// 	log.Fatal("Failed to copy album dir", "err", err)
-				// }
-
 				trackDir := app.WorkDir().Track(track.Id)
 
 				dirs := []string{
@@ -318,6 +304,104 @@ var migrateCmd = &cobra.Command{
 				})
 				if err != nil {
 					log.Fatal("Failed to create track media", "err", err, "track", track, "path", p)
+				}
+			}
+
+			{
+				users, err := olddb.GetAllUsers(ctx)
+				if err != nil {
+					log.Fatal("Failed to get users", "err", err)
+				}
+
+				for _, user := range users {
+					newUser, err := app.DB().CreateUser(ctx, database.CreateUserParams{
+						Id:       user.Id,
+						Username: user.Username,
+						Password: user.Password,
+						Role:     user.Role,
+						Created:  user.Created,
+						Updated:  user.Updated,
+					})
+					if err != nil {
+						log.Fatal("Failed to create user", "err", err, "user", user)
+					}
+
+					playlists, err := olddb.GetPlaylistsByUser(ctx, user.Id)
+					if err != nil {
+						log.Fatal("Failed to get user playlists", "err", err, "user", user)
+					}
+
+					for _, playlist := range playlists {
+						_, err := app.DB().CreatePlaylist(ctx, database.CreatePlaylistParams{
+							Id:      playlist.Id,
+							Name:    playlist.Name,
+							Picture: playlist.Picture,
+							OwnerId: playlist.OwnerId,
+							Created: playlist.Created,
+							Updated: playlist.Updated,
+						})
+						if err != nil {
+							log.Fatal("Failed to create user playlist", "err", err, "user", user, "playlist", playlist)
+						}
+
+						items, err := olddb.GetPlaylistItems(ctx, playlist.Id)
+						if err != nil {
+							log.Fatal("Failed to get playlist items", "err", err, "user", user, "playlist", playlist)
+						}
+
+						for _, item := range items {
+							err = app.DB().AddItemToPlaylist(ctx, playlist.Id, item.TrackId)
+							if err != nil {
+								log.Fatal("Failed to add item to playlist", "err", err, "user", user, "playlist", playlist, "item", item)
+							}
+						}
+					}
+
+					taglists, err := olddb.GetTaglistByUser(ctx, user.Id)
+					if err != nil {
+						log.Fatal("Failed to get user taglists", "err", err, "user", user)
+					}
+
+					for _, taglist := range taglists {
+						_, err := app.DB().CreateTaglist(ctx, database.CreateTaglistParams{
+							Name:    taglist.Name,
+							Filter:  taglist.Filter,
+							OwnerId: taglist.OwnerId,
+							Created: taglist.Created,
+							Updated: taglist.Updated,
+						})
+						if err != nil {
+							log.Fatal("Failed to create user taglist", "err", err, "user", user, "taglist", taglist)
+						}
+					}
+
+					apiTokens, err := olddb.GetAllApiTokensForUser(ctx, user.Id)
+					if err != nil {
+						log.Fatal("Failed to get user api tokens", "err", err, "user", user)
+					}
+
+					for _, token := range apiTokens {
+						_, err := app.DB().CreateApiToken(ctx, database.CreateApiTokenParams{
+							Id:      token.Id,
+							UserId:  token.UserId,
+							Name:    token.Name,
+							Created: token.Created,
+							Updated: token.Updated,
+						})
+						if err != nil {
+							log.Fatal("Failed to create api token", "err", err, "user", user, "token", token)
+						}
+					}
+
+					// NOTE(patrik): This needs to happen after playlists
+					err = app.DB().UpdateUserSettings(ctx, database.UserSettings{
+						Id:            newUser.Id,
+						DisplayName:   user.DisplayName,
+						QuickPlaylist: user.QuickPlaylist,
+					})
+					if err != nil {
+						log.Fatal("Failed to update user settings", "err", err, "user", user)
+					}
 				}
 			}
 		}
