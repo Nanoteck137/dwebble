@@ -405,19 +405,19 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				dst.Close()
 
 				i := path.Join(artistDir, "picture-128.png")
-				err = utils.CreateResizedImage(dstName, i, 128)
+				err = utils.CreateResizedImage(dstName, i, 128, 128)
 				if err != nil {
 					return nil, err
 				}
 
 				i = path.Join(artistDir, "picture-256.png")
-				err = utils.CreateResizedImage(dstName, i, 256)
+				err = utils.CreateResizedImage(dstName, i, 256, 256)
 				if err != nil {
 					return nil, err
 				}
 
 				i = path.Join(artistDir, "picture-512.png")
-				err = utils.CreateResizedImage(dstName, i, 512)
+				err = utils.CreateResizedImage(dstName, i, 512, 512)
 				if err != nil {
 					return nil, err
 				}

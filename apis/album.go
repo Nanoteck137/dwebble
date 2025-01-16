@@ -718,19 +718,19 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				}
 
 				i := path.Join(albumDir, "cover-128.png")
-				err = utils.CreateResizedImage(dst, i, 128)
+				err = utils.CreateResizedImage(dst, i, 128, 128)
 				if err != nil {
 					return nil, err
 				}
 
 				i = path.Join(albumDir, "cover-256.png")
-				err = utils.CreateResizedImage(dst, i, 256)
+				err = utils.CreateResizedImage(dst, i, 256, 256)
 				if err != nil {
 					return nil, err
 				}
 
 				i = path.Join(albumDir, "cover-512.png")
-				err = utils.CreateResizedImage(dst, i, 512)
+				err = utils.CreateResizedImage(dst, i, 512, 512)
 				if err != nil {
 					return nil, err
 				}

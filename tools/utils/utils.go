@@ -45,14 +45,13 @@ func ParseAuthHeader(authHeader string) string {
 	return splits[1]
 }
 
-// TODO(patrik): Update to the new from sewaddle
-func CreateResizedImage(src string, dest string, dim int) error {
+func CreateResizedImage(src string, dest string, width, height int) error {
 	args := []string{
 		"convert",
 		src,
+		"-resize", fmt.Sprintf("%dx%d^", width, height),
 		"-gravity", "Center",
-		"-extent", "1:1",
-		"-resize", fmt.Sprintf("%dx%d", dim, dim),
+		"-extent", fmt.Sprintf("%dx%d", width, height),
 		dest,
 	}
 
