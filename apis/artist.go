@@ -61,7 +61,7 @@ func ConvertDBArtist(c pyrin.Context, artist database.Artist) Artist {
 			Default: artist.Name,
 			Other:   ConvertSqlNullString(artist.OtherName),
 		},
-		Picture: utils.ConvertArtistPicture(c, artist.Id, artist.Picture),
+		Picture: ConvertArtistPicture(c, artist.Id, artist.Picture),
 		Tags:    utils.SplitString(artist.Tags.String),
 		Created: artist.Created,
 		Updated: artist.Updated,

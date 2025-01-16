@@ -65,7 +65,7 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 			Other:   ConvertSqlNullString(album.OtherName),
 		},
 		Year:     ConvertSqlNullInt64(album.Year),
-		CoverArt: utils.ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
+		CoverArt: ConvertAlbumCoverURL(c, album.Id, album.CoverArt),
 		ArtistId: album.ArtistId,
 		ArtistName: Name{
 			Default: album.ArtistName,
@@ -331,21 +331,21 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					}
 
 					res.Tracks[i] = MusicTrack{
-							Id:   track.Id,
-							Name: track.Name,
-							Artists: []MusicTrackArtist{
-								{
-									ArtistId:   track.ArtistId,
-									ArtistName: track.ArtistName,
-								},
+						Id:   track.Id,
+						Name: track.Name,
+						Artists: []MusicTrackArtist{
+							{
+								ArtistId:   track.ArtistId,
+								ArtistName: track.ArtistName,
 							},
-							Album: MusicTrackAlbum{
-								AlbumId:   track.AlbumId,
-								AlbumName: track.AlbumName,
-							},
-							CoverArt: utils.ConvertAlbumCoverURL(c, track.AlbumId, track.CoverArt),
-							MediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
-						}
+						},
+						Album: MusicTrackAlbum{
+							AlbumId:   track.AlbumId,
+							AlbumName: track.AlbumName,
+						},
+						CoverArt: ConvertAlbumCoverURL(c, track.AlbumId, track.CoverArt),
+						MediaUrl: ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
+					}
 				}
 
 				return res, nil
@@ -403,7 +403,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 						Value:   *body.ArtistId,
 						Changed: *body.ArtistId != album.ArtistId,
 					}
-				} 
+				}
 
 				if body.Year != nil {
 					changes.Year = types.Change[sql.NullInt64]{

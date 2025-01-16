@@ -106,7 +106,7 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 		Year:     ConvertSqlNullInt64(track.Year),
 		// OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.OriginalFilename)),
 		// MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.MobileFilename)),
-		CoverArt: utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+		CoverArt: ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		AlbumId:  track.AlbumId,
 		AlbumName: Name{
 			Default: track.AlbumName,
@@ -158,7 +158,7 @@ func ConvertDBTrackToDetails(c pyrin.Context, track database.Track) TrackDetails
 		Duration: track.Duration,
 		Number:   ConvertSqlNullInt64(track.Number),
 		Year:     ConvertSqlNullInt64(track.Year),
-		CoverArt: utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+		CoverArt: ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		AlbumId:  track.AlbumId,
 		AlbumName: Name{
 			Default: track.AlbumName,

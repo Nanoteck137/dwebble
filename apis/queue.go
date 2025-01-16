@@ -11,7 +11,6 @@ import (
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 	"github.com/nanoteck137/pyrin/tools/transform"
@@ -416,8 +415,8 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 								AlbumId:   item.AlbumId,
 								AlbumName: item.AlbumName,
 							},
-							CoverArt: utils.ConvertAlbumCoverURL(c, item.AlbumId, item.CoverArt),
-							MediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", item.TrackId, originalItem.Id, originalItem.Filename)),
+							CoverArt: ConvertAlbumCoverURL(c, item.AlbumId, item.CoverArt),
+							MediaUrl: ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", item.TrackId, originalItem.Id, originalItem.Filename)),
 						},
 						Created: item.Created,
 						Updated: item.Updated,
