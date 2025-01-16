@@ -83,11 +83,14 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 
 	log.Info("Found media type", "type", mediaType)
 
-	// TODO(patrik): Replace this with ffprobe.v2 package
-	trackInfo, err := utils.GetTrackInfo(data.InputFile)
-	if err != nil {
-		return "", err
-	}
+	// // TODO(patrik): Replace this with ffprobe.v2 package
+	// trackInfo, err := utils.GetTrackInfo(data.InputFile)
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	// TODO(patrik): Get from the probe
+	var duration int64 = 0
 
 	trackId, err = db.CreateTrack(ctx, database.CreateTrackParams{
 		Id:   trackId,
@@ -98,7 +101,7 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		},
 		AlbumId:  data.AlbumId,
 		ArtistId: data.ArtistId,
-		Duration: int64(trackInfo.Duration),
+		Duration: duration,
 		Number: sql.NullInt64{
 			Int64: data.Number,
 			Valid: data.Number != 0,
@@ -107,8 +110,6 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 			Int64: data.Year,
 			Valid: data.Year != 0,
 		},
-		// OriginalFilename: original,
-		// MobileFilename:   mobile,
 	})
 	if err != nil {
 		return "", err
