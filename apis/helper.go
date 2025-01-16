@@ -8,8 +8,11 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
+	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 )
 
@@ -86,6 +89,31 @@ func ConvertSqlNullString(value sql.NullString) *string {
 func ConvertSqlNullInt64(value sql.NullInt64) *int64 {
 	if value.Valid {
 		return &value.Int64
+	}
+
+	return nil
+}
+
+const (
+	UNKNOWN_ARTIST_ID = "unknown"
+	UNKNOWN_ARTIST_NAME = "UNKNOWN"
+)
+
+func EnsureUnknownArtistExists(ctx context.Context, db *database.Database, workDir types.WorkDir) error {
+	_, err := db.GetArtistById(ctx, UNKNOWN_ARTIST_ID)
+	if err != nil {
+		if errors.Is(err, database.ErrItemNotFound) {
+			log.Info("Creating 'unknown' artist")
+			_, err = helper.CreateArtist(ctx, db, workDir, database.CreateArtistParams{
+				Id:   UNKNOWN_ARTIST_ID,
+				Name: UNKNOWN_ARTIST_NAME,
+			})
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
 	}
 
 	return nil

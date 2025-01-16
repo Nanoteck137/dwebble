@@ -282,6 +282,24 @@ func (db *Database) UpdateAlbum(ctx context.Context, id string, changes AlbumCha
 	return nil
 }
 
+func (db *Database) ChangeAllAlbumArtist(ctx context.Context, artistId, newArtistId string) error {
+	record := goqu.Record{
+		"artist_id": newArtistId,
+		"updated":   time.Now().UnixMilli(),
+	}
+	query := goqu.Update("albums").
+		Prepared(true).
+		Set(record).
+		Where(goqu.I("albums.artist_id").Eq(artistId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // TODO(patrik): Generalize
 // TODO(patrik): Rename to AddAlbumTag, same with track
 func (db *Database) AddTagToAlbum(ctx context.Context, tagSlug, albumId string) error {

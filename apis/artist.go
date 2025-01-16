@@ -12,9 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -487,7 +485,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				// This will cleanup featuring artists tables so that we 
+				// This will cleanup featuring artists tables so that we
 				// don't have primary artist inside
 				{
 					db, tx, err := app.DB().Begin()
@@ -555,57 +553,19 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				const UNKNOWN_ARTIST_ID = "unknown"
-				const UNKNOWN_ARTIST_NAME = "UNKNOWN"
-
-				// TODO(patrik): EnsureUnknownArtistExists()
-
-				// TODO(patrik): Move "UNKNOWN" to const var
-				_, err = db.GetArtistById(ctx, UNKNOWN_ARTIST_ID)
+				err = EnsureUnknownArtistExists(ctx, db, app.WorkDir())
 				if err != nil {
-					if errors.Is(err, database.ErrItemNotFound) {
-						log.Info("Creating 'unknown' artist")
-						_, err = helper.CreateArtist(ctx, db, app.WorkDir(), database.CreateArtistParams{
-							Id:   UNKNOWN_ARTIST_ID,
-							Name: UNKNOWN_ARTIST_NAME,
-						})
-					} else {
-						return nil, err
-					}
+					return nil, err
 				}
 
-				{
-					// TODO(patrik): Move this code to database
-					record := goqu.Record{
-						"artist_id": UNKNOWN_ARTIST_ID,
-						"updated":   time.Now().UnixMilli(),
-					}
-					query := goqu.Update("tracks").
-						Prepared(true).
-						Set(record).
-						Where(goqu.I("tracks.artist_id").Eq(artist.Id))
-
-					_, err = db.Exec(ctx, query)
-					if err != nil {
-						return nil, err
-					}
+				err = db.ChangeAllTrackArtist(ctx, artist.Id, UNKNOWN_ARTIST_ID)
+				if err != nil {
+					return nil, err
 				}
 
-				{
-					// TODO(patrik): Move this code to database
-					record := goqu.Record{
-						"artist_id": UNKNOWN_ARTIST_ID,
-						"updated":   time.Now().UnixMilli(),
-					}
-					query := goqu.Update("albums").
-						Prepared(true).
-						Set(record).
-						Where(goqu.I("albums.artist_id").Eq(artist.Id))
-
-					_, err = db.Exec(ctx, query)
-					if err != nil {
-						return nil, err
-					}
+				err = db.ChangeAllAlbumArtist(ctx, artist.Id, UNKNOWN_ARTIST_ID)
+				if err != nil {
+					return nil, err
 				}
 
 				// TODO(patrik): Cleanup Code
