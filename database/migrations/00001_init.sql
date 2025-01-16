@@ -53,8 +53,7 @@ CREATE TABLE tracks_media (
 
     filename TEXT NOT NULL,
     media_type TEXT NOT NULL,
-    -- TODO(patrik): Maybe
-    -- rank INT NOT NULL,
+    rank INT NOT NULL,
     is_original BOOL NOT NULL,
 
     UNIQUE(track_id, is_original)

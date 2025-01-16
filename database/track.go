@@ -496,9 +496,9 @@ func (db *Database) ChangeAllTrackArtist(ctx context.Context, artistId, newArtis
 		"updated":   time.Now().UnixMilli(),
 	}
 	query := goqu.Update("tracks").
-	Prepared(true).
-	Set(record).
-	Where(goqu.I("tracks.artist_id").Eq(artistId))
+		Prepared(true).
+		Set(record).
+		Where(goqu.I("tracks.artist_id").Eq(artistId))
 
 	_, err := db.Exec(ctx, query)
 	if err != nil {
@@ -628,6 +628,7 @@ type CreateTrackMediaParams struct {
 
 	Filename   string
 	MediaType  types.MediaType
+	Rank       int
 	IsOriginal bool
 }
 
@@ -639,6 +640,7 @@ func (db *Database) CreateTrackMedia(ctx context.Context, params CreateTrackMedi
 
 			"filename":    params.Filename,
 			"media_type":  params.MediaType,
+			"rank":  params.Rank,
 			"is_original": params.IsOriginal,
 		}).
 		Prepared(true)
