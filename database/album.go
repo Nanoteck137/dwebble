@@ -359,3 +359,21 @@ func (db *Database) AddFeaturingArtistToAlbum(ctx context.Context, albumId, arti
 
 	return nil
 }
+
+func (db *Database) RemoveFeaturingArtistFromAlbum(ctx context.Context, albumId, artistId string) error {
+	query := goqu.Delete("albums_featuring_artists").
+		Prepared(true).
+		Where(
+			goqu.And(
+				goqu.I("albums_featuring_artists.album_id").Eq(albumId),
+				goqu.I("albums_featuring_artists.artist_id").Eq(artistId),
+			),
+		)
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

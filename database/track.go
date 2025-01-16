@@ -586,6 +586,24 @@ func (db *Database) AddFeaturingArtistToTrack(ctx context.Context, trackId, arti
 	return nil
 }
 
+func (db *Database) RemoveFeaturingArtistFromTrack(ctx context.Context, trackId, artistId string) error {
+	query := goqu.Delete("tracks_featuring_artists").
+		Prepared(true).
+		Where(
+			goqu.And(
+				goqu.I("tracks_featuring_artists.track_id").Eq(trackId),
+				goqu.I("tracks_featuring_artists.artist_id").Eq(artistId),
+			),
+		)
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 type CreateTrackMediaParams struct {
 	Id      string
 	TrackId string

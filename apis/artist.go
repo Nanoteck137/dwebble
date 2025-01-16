@@ -487,6 +487,8 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				// This will cleanup featuring artists tables so that we 
+				// don't have primary artist inside
 				{
 					db, tx, err := app.DB().Begin()
 					if err != nil {
@@ -500,16 +502,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					}
 
 					for _, album := range albums {
-						query := goqu.Delete("albums_featuring_artists").
-							Prepared(true).
-							Where(
-								goqu.And(
-									goqu.I("albums_featuring_artists.album_id").Eq(album.Id),
-									goqu.I("albums_featuring_artists.artist_id").Eq(album.ArtistId),
-								),
-							)
-
-						_, err := db.Exec(ctx, query)
+						err := db.RemoveFeaturingArtistFromAlbum(ctx, album.Id, album.ArtistId)
 						if err != nil {
 							return nil, err
 						}
@@ -521,16 +514,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					}
 
 					for _, track := range tracks {
-						query := goqu.Delete("tracks_featuring_artists").
-							Prepared(true).
-							Where(
-								goqu.And(
-									goqu.I("tracks_featuring_artists.track_id").Eq(track.Id),
-									goqu.I("tracks_featuring_artists.artist_id").Eq(track.ArtistId),
-								),
-							)
-
-						_, err := db.Exec(ctx, query)
+						err := db.RemoveFeaturingArtistFromTrack(ctx, track.Id, track.ArtistId)
 						if err != nil {
 							return nil, err
 						}
