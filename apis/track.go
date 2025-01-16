@@ -191,6 +191,10 @@ type GetTrackById struct {
 	Track
 }
 
+type GetDetailedTrackById struct {
+	TrackDetails
+}
+
 type EditTrackBody struct {
 	Name             *string   `json:"name,omitempty"`
 	OtherName        *string   `json:"otherName,omitempty"`
@@ -480,10 +484,32 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				pretty.Println(track)
-
 				return GetTrackById{
 					Track: ConvertDBTrack(c, track),
+				}, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:         "GetDetailedTrackById",
+			Method:       http.MethodGet,
+			Path:         "/tracks/:id/detailed",
+			ResponseType: GetDetailedTrackById{},
+			Errors:       []pyrin.ErrorType{ErrTypeTrackNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				track, err := app.DB().GetTrackById(c.Request().Context(), id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TrackNotFound()
+					}
+
+					return nil, err
+				}
+
+				return GetDetailedTrackById{
+					TrackDetails: ConvertDBTrackToDetails(c, track),
 				}, nil
 			},
 		},

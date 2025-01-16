@@ -36,7 +36,7 @@ func (a *TrackResolverAdapter) ResolveVariableName(name string) (filter.Name, bo
 	case "number":
 		return filter.Name{
 			Kind:     filter.NameKindNumber,
-			Name:     "tracks.track_number",
+			Name:     "tracks.number",
 			Nullable: true,
 		}, true
 	case "duration":

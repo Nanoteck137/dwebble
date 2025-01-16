@@ -64,7 +64,7 @@
       </p>
     </div>
 
-    <ArtistList class="text-muted-foreground" artists={track.allArtists} />
+    <ArtistList class="text-muted-foreground" artists={track.artists} />
 
     <p class="line-clamp-1 text-xs text-muted-foreground">
       {#if track.tags.length > 0}

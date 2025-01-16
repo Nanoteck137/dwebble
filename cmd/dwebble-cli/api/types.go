@@ -82,16 +82,11 @@ type Track struct {
 	Duration int `json:"duration"`
 	Number *int `json:"number,omitempty"`
 	Year *int `json:"year,omitempty"`
-	OriginalMediaUrl string `json:"originalMediaUrl"`
-	MobileMediaUrl string `json:"mobileMediaUrl"`
 	CoverArt Images `json:"coverArt"`
 	AlbumId string `json:"albumId"`
-	ArtistId string `json:"artistId"`
 	AlbumName Name `json:"albumName"`
-	ArtistName Name `json:"artistName"`
+	Artists []ArtistInfo `json:"artists"`
 	Tags []string `json:"tags"`
-	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
-	AllArtists []ArtistInfo `json:"allArtists"`
 	Created int `json:"created"`
 	Updated int `json:"updated"`
 }
@@ -157,7 +152,38 @@ type GetTracks struct {
 	Tracks []Track `json:"tracks"`
 }
 
+type TrackFormat struct {
+	Id string `json:"id"`
+	MediaType string `json:"mediaType"`
+	IsOriginal bool `json:"isOriginal"`
+}
+
+type TrackDetails struct {
+	Id string `json:"id"`
+	Name Name `json:"name"`
+	Duration int `json:"duration"`
+	Number *int `json:"number,omitempty"`
+	Year *int `json:"year,omitempty"`
+	CoverArt Images `json:"coverArt"`
+	AlbumId string `json:"albumId"`
+	AlbumName Name `json:"albumName"`
+	ArtistId string `json:"artistId"`
+	ArtistName Name `json:"artistName"`
+	Tags []string `json:"tags"`
+	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
+	Formats []TrackFormat `json:"formats"`
+	Created int `json:"created"`
+	Updated int `json:"updated"`
+}
+
+type GetDetailedTracks struct {
+	Page Page `json:"page"`
+	Tracks []TrackDetails `json:"tracks"`
+}
+
 type GetTrackById Track
+
+type GetDetailedTrackById TrackDetails
 
 type EditTrackBody struct {
 	Name *string `json:"name,omitempty"`

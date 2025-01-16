@@ -96,16 +96,11 @@ export const Track = z.object({
   duration: z.number(),
   number: z.number().nullable(),
   year: z.number().nullable(),
-  originalMediaUrl: z.string(),
-  mobileMediaUrl: z.string(),
   coverArt: Images,
   albumId: z.string(),
-  artistId: z.string(),
   albumName: Name,
-  artistName: Name,
+  artists: z.array(ArtistInfo),
   tags: z.array(z.string()),
-  featuringArtists: z.array(ArtistInfo),
-  allArtists: z.array(ArtistInfo),
   created: z.number(),
   updated: z.number(),
 });
@@ -182,8 +177,43 @@ export const GetTracks = z.object({
 });
 export type GetTracks = z.infer<typeof GetTracks>;
 
+export const TrackFormat = z.object({
+  id: z.string(),
+  mediaType: z.string(),
+  isOriginal: z.boolean(),
+});
+export type TrackFormat = z.infer<typeof TrackFormat>;
+
+export const TrackDetails = z.object({
+  id: z.string(),
+  name: Name,
+  duration: z.number(),
+  number: z.number().nullable(),
+  year: z.number().nullable(),
+  coverArt: Images,
+  albumId: z.string(),
+  albumName: Name,
+  artistId: z.string(),
+  artistName: Name,
+  tags: z.array(z.string()),
+  featuringArtists: z.array(ArtistInfo),
+  formats: z.array(TrackFormat),
+  created: z.number(),
+  updated: z.number(),
+});
+export type TrackDetails = z.infer<typeof TrackDetails>;
+
+export const GetDetailedTracks = z.object({
+  page: Page,
+  tracks: z.array(TrackDetails),
+});
+export type GetDetailedTracks = z.infer<typeof GetDetailedTracks>;
+
 export const GetTrackById = Track;
 export type GetTrackById = z.infer<typeof GetTrackById>;
+
+export const GetDetailedTrackById = TrackDetails;
+export type GetDetailedTrackById = z.infer<typeof GetDetailedTrackById>;
 
 export const EditTrackBody = z.object({
   name: z.string().nullable().optional(),

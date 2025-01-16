@@ -14,13 +14,12 @@
     Shuffle,
     Users,
   } from "lucide-svelte";
-  import { cn, shuffle } from "$lib/utils";
+  import { cn } from "$lib/utils";
   import type { Playlist, Track } from "$lib/api/types";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
   import type { ApiClient } from "$lib/api/client";
   import { openAddToPlaylist } from "$lib";
   import { goto, invalidateAll } from "$app/navigation";
-  import { getMusicManager, MusicManager } from "$lib/music-manager.svelte";
 
   type Props = {
     apiClient: ApiClient;
@@ -127,7 +126,7 @@
           <DropdownMenu.Group>
             <DropdownMenu.Item
               onSelect={() => {
-                goto(`/artists/${track.artistId}`);
+                goto(`/artists/${track.artists[0].id}`);
               }}
             >
               <Users />

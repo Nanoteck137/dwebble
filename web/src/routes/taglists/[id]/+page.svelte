@@ -1,29 +1,10 @@
 <script lang="ts">
-  import { enhance } from "$app/forms";
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import { createApiClient, openConfirm } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
-  import TrackListItem from "$lib/components/TrackListItem.svelte";
-  import { musicManager } from "$lib/music-manager.svelte.js";
-  import { cn, shuffle, trackToMusicTrack } from "$lib/utils.js";
-  import {
-    Breadcrumb,
-    Button,
-    buttonVariants,
-    DropdownMenu,
-    Input,
-    Pagination,
-  } from "@nanoteck137/nano-ui";
-  import {
-    EllipsisVertical,
-    Filter,
-    ListPlus,
-    Pencil,
-    Play,
-    Plus,
-    Shuffle,
-  } from "lucide-svelte";
+  import { Breadcrumb, Button, Input, Pagination } from "@nanoteck137/nano-ui";
+  import { Filter } from "lucide-svelte";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -105,6 +86,8 @@
     if (!data.quickPlaylistIds) return false;
     return !!data.quickPlaylistIds.find((v) => v === trackId);
   }}
+  onPlay={() => {}}
+  onTrackPlay={(trackId) => {}}
 />
 
 <Pagination.Root

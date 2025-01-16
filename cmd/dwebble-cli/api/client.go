@@ -273,6 +273,22 @@ func (c *Client) GetTracks(options Options) (*GetTracks, error) {
 	return Request[GetTracks](data)
 }
 
+func (c *Client) GetDetailedTracks(options Options) (*GetDetailedTracks, error) {
+	path := "/api/v1/tracks/detailed"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetDetailedTracks](data)
+}
+
 func (c *Client) SearchTracks(options Options) (*GetTracks, error) {
 	path := "/api/v1/tracks/search"
 	url, err := createUrl(c.addr, path, options.QueryParams)
@@ -303,6 +319,22 @@ func (c *Client) GetTrackById(id string, options Options) (*GetTrackById, error)
 		Body: nil,
 	}
 	return Request[GetTrackById](data)
+}
+
+func (c *Client) GetDetailedTrackById(id string, options Options) (*GetDetailedTrackById, error) {
+	path := Sprintf("/api/v1/tracks/%v/detailed", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetDetailedTrackById](data)
 }
 
 func (c *Client) RemoveTrack(id string, options Options) (*any, error) {

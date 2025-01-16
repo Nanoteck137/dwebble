@@ -306,16 +306,6 @@
           "omit": false
         },
         {
-          "name": "originalMediaUrl",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "mobileMediaUrl",
-          "type": "string",
-          "omit": false
-        },
-        {
           "name": "coverArt",
           "type": "Images",
           "omit": false
@@ -326,33 +316,18 @@
           "omit": false
         },
         {
-          "name": "artistId",
-          "type": "string",
-          "omit": false
-        },
-        {
           "name": "albumName",
           "type": "Name",
           "omit": false
         },
         {
-          "name": "artistName",
-          "type": "Name",
+          "name": "artists",
+          "type": "[]ArtistInfo",
           "omit": false
         },
         {
           "name": "tags",
           "type": "[]string",
-          "omit": false
-        },
-        {
-          "name": "featuringArtists",
-          "type": "[]ArtistInfo",
-          "omit": false
-        },
-        {
-          "name": "allArtists",
-          "type": "[]ArtistInfo",
           "omit": false
         },
         {
@@ -583,8 +558,131 @@
       ]
     },
     {
+      "name": "TrackFormat",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "mediaType",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "isOriginal",
+          "type": "bool",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "TrackDetails",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "Name",
+          "omit": false
+        },
+        {
+          "name": "duration",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "number",
+          "type": "*int",
+          "omit": false
+        },
+        {
+          "name": "year",
+          "type": "*int",
+          "omit": false
+        },
+        {
+          "name": "coverArt",
+          "type": "Images",
+          "omit": false
+        },
+        {
+          "name": "albumId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "albumName",
+          "type": "Name",
+          "omit": false
+        },
+        {
+          "name": "artistId",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "artistName",
+          "type": "Name",
+          "omit": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omit": false
+        },
+        {
+          "name": "featuringArtists",
+          "type": "[]ArtistInfo",
+          "omit": false
+        },
+        {
+          "name": "formats",
+          "type": "[]TrackFormat",
+          "omit": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetDetailedTracks",
+      "extend": "",
+      "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omit": false
+        },
+        {
+          "name": "tracks",
+          "type": "[]TrackDetails",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "GetTrackById",
       "extend": "Track",
+      "fields": null
+    },
+    {
+      "name": "GetDetailedTrackById",
+      "extend": "TrackDetails",
       "fields": null
     },
     {
@@ -1452,6 +1550,13 @@
       "bodyType": ""
     },
     {
+      "name": "GetDetailedTracks",
+      "method": "GET",
+      "path": "/api/v1/tracks/detailed",
+      "responseType": "GetDetailedTracks",
+      "bodyType": ""
+    },
+    {
       "name": "SearchTracks",
       "method": "GET",
       "path": "/api/v1/tracks/search",
@@ -1463,6 +1568,13 @@
       "method": "GET",
       "path": "/api/v1/tracks/:id",
       "responseType": "GetTrackById",
+      "bodyType": ""
+    },
+    {
+      "name": "GetDetailedTrackById",
+      "method": "GET",
+      "path": "/api/v1/tracks/:id/detailed",
+      "responseType": "GetDetailedTrackById",
       "bodyType": ""
     },
     {

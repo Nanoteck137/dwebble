@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { musicManager } from "$lib/music-manager.svelte.js";
-  import { cn, formatTime, trackToMusicTrack } from "$lib/utils";
+  import { cn, formatTime } from "$lib/utils";
   import {
     Edit,
     EllipsisVertical,
@@ -19,11 +18,9 @@
     Separator,
   } from "@nanoteck137/nano-ui";
   import { goto, invalidateAll } from "$app/navigation";
-  import { ApiClient } from "$lib/api/client.js";
   import { modals } from "svelte-modals";
   import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
   import { createApiClient } from "$lib";
-  import QuickAddButton from "$lib/components/QuickAddButton.svelte";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
@@ -70,15 +67,15 @@
           <DropdownMenu.Group>
             <DropdownMenu.Item
               onSelect={() => {
-                musicManager.clearQueue();
-                for (const track of data.tracks) {
-                  musicManager.addTrackToQueue(
-                    trackToMusicTrack(track),
-                    false,
-                  );
-                }
-                musicManager.setQueueIndex(0);
-                musicManager.requestPlay();
+                // musicManager.clearQueue();
+                // for (const track of data.tracks) {
+                //   musicManager.addTrackToQueue(
+                //     trackToMusicTrack(track),
+                //     false,
+                //   );
+                // }
+                // musicManager.setQueueIndex(0);
+                // musicManager.requestPlay();
               }}
             >
               <Play />
@@ -220,7 +217,7 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <QuickAddButton
+        <!-- <QuickAddButton
           show={!!(data.user && data.user.quickPlaylist)}
           {track}
           {apiClient}
@@ -228,15 +225,15 @@
             if (!data.quickPlaylistIds) return false;
             return !!data.quickPlaylistIds.find((v) => v === trackId);
           }}
-        />
+        /> -->
 
         <Button
           class="rounded-full"
           variant="ghost"
           size="icon"
           onclick={() => {
-            musicManager.clearQueue();
-            musicManager.addTrackToQueue(trackToMusicTrack(track), true);
+            // musicManager.clearQueue();
+            // musicManager.addTrackToQueue(trackToMusicTrack(track), true);
           }}
         >
           <Play />
@@ -266,11 +263,11 @@
                 <button
                   class="flex w-full items-center gap-2"
                   onclick={() => {
-                    musicManager.clearQueue();
-                    musicManager.addTrackToQueue(
-                      trackToMusicTrack(track),
-                      true,
-                    );
+                    // musicManager.clearQueue();
+                    // musicManager.addTrackToQueue(
+                    //   trackToMusicTrack(track),
+                    //   true,
+                    // );
                   }}
                 >
                   <Play size="16" />

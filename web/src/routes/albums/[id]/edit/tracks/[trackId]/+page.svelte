@@ -2,9 +2,8 @@
   import { goto } from "$app/navigation";
   import { createApiClient } from "$lib";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
-  import { musicManager } from "$lib/music-manager.svelte.js";
   import { type EditTrackData } from "$lib/types.js";
-  import { formatError, trackToMusicTrack } from "$lib/utils";
+  import { formatError } from "$lib/utils";
   import { Button, Card } from "@nanoteck137/nano-ui";
   import { Play } from "lucide-svelte";
   import toast from "svelte-5-french-toast";
@@ -64,8 +63,9 @@
           <button
             type="button"
             onclick={() => {
-              musicManager.clearQueue();
-              musicManager.addTrackToQueue(trackToMusicTrack(data.track));
+              // TODO(patrik): Add back
+              // musicManager.clearQueue();
+              // musicManager.addTrackToQueue(trackToMusicTrack(data.track));
             }}
           >
             <Play size="18" />
