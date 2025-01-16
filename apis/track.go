@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -29,6 +28,36 @@ type Name struct {
 	Other   *string `json:"other"`
 }
 
+type TrackFormat struct {
+	Id         string          `json:"id"`
+	MediaType  types.MediaType `json:"mediaType"`
+	IsOriginal bool            `json:"isOriginal"`
+}
+
+type TrackDetails struct {
+	Id   string `json:"id"`
+	Name Name   `json:"name"`
+
+	Duration int64  `json:"duration"`
+	Number   *int64 `json:"number"`
+	Year     *int64 `json:"year"`
+
+	CoverArt types.Images `json:"coverArt"`
+
+	AlbumId   string `json:"albumId"`
+	AlbumName Name   `json:"albumName"`
+
+	ArtistId   string `json:"artistId"`
+	ArtistName Name   `json:"artistName"`
+
+	Tags             []string      `json:"tags"`
+	FeaturingArtists []ArtistInfo  `json:"featuringArtists"`
+	Formats          []TrackFormat `json:"formats"`
+
+	Created int64 `json:"created"`
+	Updated int64 `json:"updated"`
+}
+
 type Track struct {
 	Id   string `json:"id"`
 	Name Name   `json:"name"`
@@ -37,28 +66,23 @@ type Track struct {
 	Number   *int64 `json:"number"`
 	Year     *int64 `json:"year"`
 
-	OriginalMediaUrl string       `json:"originalMediaUrl"`
-	MobileMediaUrl   string       `json:"mobileMediaUrl"`
-	CoverArt         types.Images `json:"coverArt"`
+	CoverArt types.Images `json:"coverArt"`
 
-	AlbumId  string `json:"albumId"`
-	ArtistId string `json:"artistId"`
+	AlbumId   string `json:"albumId"`
+	AlbumName Name   `json:"albumName"`
 
-	AlbumName  Name `json:"albumName"`
-	ArtistName Name `json:"artistName"`
+	Artists []ArtistInfo `json:"artists"`
 
-	Tags             []string     `json:"tags"`
-	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
-	AllArtists       []ArtistInfo `json:"allArtists"`
+	Tags []string `json:"tags"`
 
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
 }
 
 func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
-	allArtists := make([]ArtistInfo, len(track.FeaturingArtists)+1)
+	artists := make([]ArtistInfo, len(track.FeaturingArtists)+1)
 
-	allArtists[0] = ArtistInfo{
+	artists[0] = ArtistInfo{
 		Id: track.ArtistId,
 		Name: Name{
 			Default: track.ArtistName,
@@ -68,7 +92,7 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 
 	featuringArtists := ConvertDBFeaturingArtists(track.FeaturingArtists)
 	for i, v := range featuringArtists {
-		allArtists[i+1] = v
+		artists[i+1] = v
 	}
 
 	return Track{
@@ -77,25 +101,77 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 			Default: track.Name,
 			Other:   ConvertSqlNullString(track.OtherName),
 		},
-		Duration:         track.Duration,
-		Number:           ConvertSqlNullInt64(track.Number),
-		Year:             ConvertSqlNullInt64(track.Year),
-		OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.OriginalFilename)),
-		MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.MobileFilename)),
-		CoverArt:         utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-		AlbumId:          track.AlbumId,
-		ArtistId:         track.ArtistId,
+		Duration: track.Duration,
+		Number:   ConvertSqlNullInt64(track.Number),
+		Year:     ConvertSqlNullInt64(track.Year),
+		// OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.OriginalFilename)),
+		// MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.MobileFilename)),
+		CoverArt: utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+		AlbumId:  track.AlbumId,
 		AlbumName: Name{
 			Default: track.AlbumName,
 			Other:   ConvertSqlNullString(track.AlbumOtherName),
 		},
+		// ArtistId:         track.ArtistId,
+		// ArtistName: Name{
+		// 	Default: track.ArtistName,
+		// 	Other:   ConvertSqlNullString(track.ArtistOtherName),
+		// },
+		Artists: artists,
+		Tags:    utils.SplitString(track.Tags.String),
+		// FeaturingArtists: featuringArtists,
+		Created: track.Created,
+		Updated: track.Updated,
+	}
+}
+
+func ConvertDBTrackToDetails(c pyrin.Context, track database.Track) TrackDetails {
+	artists := make([]ArtistInfo, len(track.FeaturingArtists))
+
+	featuringArtists := ConvertDBFeaturingArtists(track.FeaturingArtists)
+	for i, v := range featuringArtists {
+		artists[i] = v
+	}
+
+	formats := []TrackFormat{}
+
+	formatsPtr := track.Formats.Get()
+	if formatsPtr != nil {
+		f := *formatsPtr
+		formats = make([]TrackFormat, len(f))
+
+		for i, format := range f {
+			formats[i] = TrackFormat{
+				Id:         format.Id,
+				MediaType:  types.MediaType(format.MediaType),
+				IsOriginal: format.IsOriginal == 1,
+			}
+		}
+	}
+
+	return TrackDetails{
+		Id: track.Id,
+		Name: Name{
+			Default: track.Name,
+			Other:   ConvertSqlNullString(track.OtherName),
+		},
+		Duration: track.Duration,
+		Number:   ConvertSqlNullInt64(track.Number),
+		Year:     ConvertSqlNullInt64(track.Year),
+		CoverArt: utils.ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+		AlbumId:  track.AlbumId,
+		AlbumName: Name{
+			Default: track.AlbumName,
+			Other:   ConvertSqlNullString(track.AlbumOtherName),
+		},
+		ArtistId: track.ArtistId,
 		ArtistName: Name{
 			Default: track.ArtistName,
 			Other:   ConvertSqlNullString(track.ArtistOtherName),
 		},
 		Tags:             utils.SplitString(track.Tags.String),
 		FeaturingArtists: featuringArtists,
-		AllArtists:       allArtists,
+		Formats:          formats,
 		Created:          track.Created,
 		Updated:          track.Updated,
 	}
@@ -104,6 +180,11 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 type GetTracks struct {
 	Page   types.Page `json:"page"`
 	Tracks []Track    `json:"tracks"`
+}
+
+type GetDetailedTracks struct {
+	Page   types.Page     `json:"page"`
+	Tracks []TrackDetails `json:"tracks"`
 }
 
 type GetTrackById struct {
@@ -283,6 +364,70 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 
 				for i, track := range tracks {
 					res.Tracks[i] = ConvertDBTrack(c, track)
+				}
+
+				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:         "GetDetailedTracks",
+			Method:       http.MethodGet,
+			Path:         "/tracks/detailed",
+			ResponseType: GetDetailedTracks{},
+			Errors:       []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				q := c.Request().URL.Query()
+
+				perPage := 100
+				page := 0
+
+				// TODO(patrik): Move to util
+				if s := q.Get("perPage"); s != "" {
+					i, err := strconv.Atoi(s)
+					if err != nil {
+						return nil, err
+					}
+
+					perPage = i
+				}
+
+				if s := q.Get("page"); s != "" {
+					i, err := strconv.Atoi(s)
+					if err != nil {
+						return nil, err
+					}
+
+					page = i
+				}
+
+				opts := database.FetchOption{
+					Filter:  q.Get("filter"),
+					Sort:    q.Get("sort"),
+					PerPage: perPage,
+					Page:    page,
+				}
+
+				tracks, p, err := app.DB().GetPagedTracks(c.Request().Context(), opts)
+				if err != nil {
+					if errors.Is(err, database.ErrInvalidFilter) {
+						return nil, InvalidFilter(err)
+					}
+
+					if errors.Is(err, database.ErrInvalidSort) {
+						return nil, InvalidSort(err)
+					}
+
+					return nil, err
+				}
+
+				res := GetDetailedTracks{
+					Page:   p,
+					Tracks: make([]TrackDetails, len(tracks)),
+				}
+
+				for i, track := range tracks {
+					res.Tracks[i] = ConvertDBTrackToDetails(c, track)
 				}
 
 				return res, nil

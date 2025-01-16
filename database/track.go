@@ -41,7 +41,17 @@ type Track struct {
 
 	Tags sql.NullString `db:"tags"`
 
-	FeaturingArtists FeaturingArtists `db:"featuring_artists"`
+	FeaturingArtists FeaturingArtists          `db:"featuring_artists"`
+	Formats          JsonColumn[[]TrackFormat] `db:"formats"`
+}
+
+type TrackFormat struct {
+	Id      string `json:"id"`
+	TrackId string `json:"track_id"`
+
+	Filename   string `json:"filename"`
+	MediaType  string `json:"media_type"`
+	IsOriginal int    `json:"is_original"`
 }
 
 type TrackMedia struct {
@@ -93,6 +103,34 @@ func TrackQuery() *goqu.SelectDataset {
 		).
 		GroupBy(goqu.I("tracks_tags.track_id"))
 
+	formats := dialect.From("tracks_media").
+		Select(
+			goqu.I("tracks_media.track_id").As("track_id"),
+
+			goqu.Func(
+				"json_group_array",
+				goqu.Func(
+					"json_object",
+
+					"id",
+					goqu.I("tracks_media.id"),
+
+					"track_id",
+					goqu.I("tracks_media.track_id"),
+
+					"filename",
+					goqu.I("tracks_media.filename"),
+
+					"media_type",
+					goqu.I("tracks_media.media_type"),
+
+					"is_original",
+					goqu.I("tracks_media.is_original"),
+				),
+			).As("formats"),
+		).
+		GroupBy(goqu.I("tracks_media.track_id"))
+
 	query := dialect.From("tracks").
 		Select(
 			"tracks.id",
@@ -122,6 +160,8 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.I("tags.tags").As("tags"),
 
 			goqu.I("featuring_artists.artists").As("featuring_artists"),
+
+			goqu.I("formats.formats").As("formats"),
 		).
 		Prepared(true).
 		Join(
@@ -139,6 +179,10 @@ func TrackQuery() *goqu.SelectDataset {
 		LeftJoin(
 			FeaturingArtistsQuery("tracks_featuring_artists", "track_id").As("featuring_artists"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("featuring_artists.id"))),
+		).
+		LeftJoin(
+			formats.As("formats"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("formats.track_id"))),
 		)
 
 	return query
@@ -168,7 +212,6 @@ func (db *Database) GetTracksByIds(ctx context.Context, ids []string) ([]Track, 
 
 	return items, nil
 }
-
 
 func (db *Database) GetTracksByAlbumForPlay(ctx context.Context, albumId string) ([]NewTrackQueryItem, error) {
 	query := NewTrackQuery().

@@ -1,13 +1,12 @@
 package utils
 
 import (
-	"os"
 	"os/exec"
 	"path"
 )
 
 // TODO(patrik): Move this
-func ProcessMobileVersion(input string, outputDir, name string) (string, error) {
+func ProcessLossyVersion(input string, outputDir, name string) (string, error) {
 	inputExt := path.Ext(input)
 	isLossyInput := inputExt == ".opus" || inputExt == ".mp3"
 
@@ -19,6 +18,7 @@ func ProcessMobileVersion(input string, outputDir, name string) (string, error) 
 	filename := name + outputExt
 
 	var args []string
+	// TODO(patrik): Set bitrate
 	args = append(args, "-y", "-i", input, "-map_metadata", "-1", "-b:a", "128K")
 
 	if outputExt == inputExt {
@@ -28,8 +28,8 @@ func ProcessMobileVersion(input string, outputDir, name string) (string, error) 
 	args = append(args, path.Join(outputDir, filename))
 
 	cmd := exec.Command("ffmpeg", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 	if err != nil {
@@ -67,8 +67,8 @@ func ProcessOriginalVersion(input string, outputDir, name string) (string, error
 	args = append(args, out)
 
 	cmd := exec.Command("ffmpeg", args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	// cmd.Stdout = os.Stdout
+	// cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 	if err != nil {

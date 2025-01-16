@@ -14,6 +14,7 @@ const (
 	DefaultTrackCoverArtName = "default/default_album.png"
 )
 
+// TODO(patrik): Move to apis/helper.go
 func ConvertURL(c pyrin.Context, path string) string {
 	host := c.Request().Host
 

@@ -114,8 +114,7 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		return "", err
 	}
 
-	// TODO(patrik): Replace with utils.CreateTrackMediaId()
-	mediaId := utils.CreateId()
+	mediaId := utils.CreateTrackMediaId()
 	mediaDir := trackDir.MediaItem(mediaId)
 
 	{

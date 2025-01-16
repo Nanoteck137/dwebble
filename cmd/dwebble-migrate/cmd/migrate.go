@@ -70,7 +70,7 @@ var migrateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		app := core.NewBaseApp(&config.Config{
 			RunMigrations: true,
-			DataDir: "./work",
+			DataDir:       "./work",
 		})
 
 		err := app.Bootstrap()
@@ -243,8 +243,7 @@ var migrateCmd = &cobra.Command{
 					}
 				}
 
-				// TODO(patrik): Replace with utils.CreateTrackMediaId()
-				mediaId := utils.CreateId()
+				mediaId := utils.CreateTrackMediaId()
 				mediaDir := trackDir.MediaItem(mediaId)
 
 				{
@@ -300,10 +299,71 @@ var migrateCmd = &cobra.Command{
 					TrackId:    track.Id,
 					Filename:   original,
 					MediaType:  mediaType,
-					IsOriginal: true,
+						IsOriginal: true,
 				})
 				if err != nil {
 					log.Fatal("Failed to create track media", "err", err, "track", track, "path", p)
+				}
+
+				switch mediaType {
+				case types.MediaTypeFlac:
+					mediaId := utils.CreateTrackMediaId()
+					mediaDir := trackDir.MediaItem(mediaId)
+
+					{
+						dirs := []string{
+							mediaDir,
+						}
+
+						for _, dir := range dirs {
+							err := os.Mkdir(dir, 0755)
+							if err != nil && !os.IsExist(err) {
+								log.Fatal("Failed to create track media directory", "err", err, "dir", mediaDir, "track", track)
+							}
+						}
+					}
+
+					p := path.Join(oldWorkDir.Track(track.Id), track.MobileFilename)
+					original, err := utils.ProcessLossyVersion(p, mediaDir, "track")
+					if err != nil {
+						log.Fatal("Failed to process media", "err", err, "track", track)
+					}
+
+					var mediaType types.MediaType
+					res, err := ffprobe.ProbeURL(ctx, p)
+					if err != nil {
+						log.Fatal("Failed to probe media", "err", err, "path", p)
+					}
+
+					// TODO(patrik): Check for nil
+					stream := res.FirstAudioStream()
+
+					// TODO(patrik): Move to helper
+					switch res.Format.FormatName {
+					case "flac":
+						mediaType = types.MediaTypeFlac
+					case "ogg":
+						switch stream.CodecName {
+						case "opus":
+							mediaType = types.MediaTypeOggOpus
+						case "vorbis":
+							mediaType = types.MediaTypeOggVorbis
+						}
+					default:
+						log.Fatal("Unknown media type", "format", res.Format)
+					}
+
+					log.Info("Found lossy media type", "type", mediaType)
+
+					err = app.DB().CreateTrackMedia(ctx, database.CreateTrackMediaParams{
+						Id:         mediaId,
+						TrackId:    track.Id,
+						Filename:   original,
+						MediaType:  mediaType,
+					})
+					if err != nil {
+						log.Fatal("Failed to create track media", "err", err, "track", track, "path", p)
+					}
 				}
 			}
 
@@ -404,6 +464,13 @@ var migrateCmd = &cobra.Command{
 					}
 				}
 			}
+
+
+			f, err := os.Create(app.WorkDir().SetupFile())
+			if err != nil {
+				log.Fatal("Failed to create setup file", "err", err)
+			}
+			f.Close()
 		}
 	},
 }

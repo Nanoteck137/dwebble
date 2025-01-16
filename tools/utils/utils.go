@@ -54,6 +54,7 @@ var CreateSmallId = createIdGenerator(8)
 var CreateArtistId = createIdGenerator(10)
 var CreateAlbumId = createIdGenerator(16)
 var CreateTrackId = createIdGenerator(32)
+var CreateTrackMediaId = createIdGenerator(32)
 
 var CreateApiTokenId = createIdGenerator(32)
 
