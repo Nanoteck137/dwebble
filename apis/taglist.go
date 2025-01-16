@@ -321,7 +321,7 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 
 				ctx := context.TODO()
 
-				err = app.DB().RemoveTaglist(ctx, taglist.Id)
+				err = app.DB().DeleteTaglist(ctx, taglist.Id)
 				if err != nil {
 					return nil, err
 				}

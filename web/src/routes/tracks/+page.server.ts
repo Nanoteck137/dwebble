@@ -1,6 +1,6 @@
 import type { Page, Track } from "$lib/api/types";
-import { error, redirect } from "@sveltejs/kit";
-import type { Actions, PageServerLoad } from "./$types";
+import { error } from "@sveltejs/kit";
+import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   const query: Record<string, string> = {};
@@ -53,63 +53,4 @@ export const load: PageServerLoad = async ({ locals, url }) => {
     filter,
     sort,
   };
-};
-
-export const actions: Actions = {
-  addToQuickPlaylist: async ({ request, locals }) => {
-    const formData = await request.formData();
-
-    const trackId = formData.get("trackId");
-    if (!trackId) {
-      throw error(400, "No track id set");
-    }
-
-    const res = await locals.apiClient.addToUserQuickPlaylist({
-      trackId: trackId.toString(),
-    });
-    if (!res.success) {
-      throw error(res.error.code, res.error.message);
-    }
-  },
-  removeQuickPlaylistItem: async ({ request, locals }) => {
-    const formData = await request.formData();
-
-    const trackId = formData.get("trackId");
-    if (!trackId) {
-      throw error(400, "No track id set");
-    }
-
-    const res = await locals.apiClient.removeItemFromUserQuickPlaylist({
-      trackId: trackId.toString(),
-    });
-    if (!res.success) {
-      throw error(res.error.code, res.error.message);
-    }
-  },
-  newPlaylist: async ({ locals, request }) => {
-    const formData = await request.formData();
-
-    const filter = formData.get("filter");
-    if (filter === null) {
-      throw error(500, "'filter' not set");
-    }
-    console.log("Filter", filter);
-
-    const sort = formData.get("sort");
-    if (sort === null) {
-      throw error(500, "'sort' not set");
-    }
-
-    console.log("Sort", sort);
-
-    const res = await locals.apiClient.createPlaylistFromFilter({
-      name: "Generated Playlist",
-      filter: filter.toString(),
-    });
-    if (!res.success) {
-      throw error(res.error.code, { message: res.error.message });
-    }
-
-    throw redirect(302, `/playlists/${res.data.id}`);
-  },
 };

@@ -490,20 +490,7 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	return nil
 }
 
-func (db *Database) RemoveAlbumTracks(ctx context.Context, albumId string) error {
-	query := dialect.Delete("tracks").
-		Prepared(true).
-		Where(goqu.I("tracks.album_id").Eq(albumId))
-
-	_, err := db.Exec(ctx, query)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (db *Database) RemoveTrack(ctx context.Context, id string) error {
+func (db *Database) DeleteTrack(ctx context.Context, id string) error {
 	query := dialect.Delete("tracks").
 		Prepared(true).
 		Where(goqu.I("tracks.id").Eq(id))

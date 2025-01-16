@@ -117,7 +117,7 @@
               }}
             >
               <Trash />
-              Remove
+              Delete Album
             </DropdownMenu.Item>
           </DropdownMenu.Group>
         </DropdownMenu.Content>
@@ -306,7 +306,7 @@
                 }}
               >
                 <Trash />
-                Remove
+                Delete Track
               </DropdownMenu.Item>
             </DropdownMenu.Group>
           </DropdownMenu.Content>

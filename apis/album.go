@@ -495,6 +495,8 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
+				panic("Fix this code")
+
 				ctx := context.TODO()
 
 				album, err := app.DB().GetAlbumById(ctx, id)
@@ -546,7 +548,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				err = db.RemoveAlbum(c.Request().Context(), id)
+				err = db.DeleteAlbum(ctx, id)
 				if err != nil {
 					return nil, err
 				}

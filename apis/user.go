@@ -291,7 +291,7 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:   "RemoveApiToken",
+			Name:   "DeleteApiToken",
 			Method: http.MethodDelete,
 			Path:   "/user/apitoken/:id",
 			Errors: []pyrin.ErrorType{ErrTypeApiTokenNotFound},
@@ -318,7 +318,7 @@ func InstallUserHandlers(app core.App, group pyrin.Group) {
 					return nil, ApiTokenNotFound()
 				}
 
-				err = app.DB().RemoveApiToken(ctx, tokenId)
+				err = app.DB().DeleteApiToken(ctx, tokenId)
 				if err != nil {
 					return nil, err
 				}

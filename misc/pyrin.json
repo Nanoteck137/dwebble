@@ -1578,13 +1578,6 @@
       "bodyType": ""
     },
     {
-      "name": "RemoveTrack",
-      "method": "DELETE",
-      "path": "/api/v1/tracks/:id",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
       "name": "EditTrack",
       "method": "PATCH",
       "path": "/api/v1/tracks/:id",
@@ -1830,7 +1823,7 @@
       "bodyType": ""
     },
     {
-      "name": "RemoveApiToken",
+      "name": "DeleteApiToken",
       "method": "DELETE",
       "path": "/api/v1/user/apitoken/:id",
       "responseType": "",

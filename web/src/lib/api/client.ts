@@ -92,10 +92,6 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/tracks/${id}/detailed`, "GET", api.GetDetailedTrackById, z.any(), undefined, options)
   }
   
-  removeTrack(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/tracks/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
-  }
-  
   editTrack(id: string, body: api.EditTrackBody, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}`, "PATCH", z.undefined(), z.any(), body, options)
   }
@@ -236,7 +232,7 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/user/apitoken", "GET", api.GetAllApiTokens, z.any(), undefined, options)
   }
   
-  removeApiToken(id: string, options?: ExtraOptions) {
+  deleteApiToken(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/user/apitoken/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
   }
   

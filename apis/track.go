@@ -515,34 +515,6 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:   "RemoveTrack",
-			Method: http.MethodDelete,
-			Path:   "/tracks/:id",
-			HandlerFunc: func(c pyrin.Context) (any, error) {
-				// TODO(patrik): Move the track file to a trash can system
-				id := c.Param("id")
-
-				db, tx, err := app.DB().Begin()
-				if err != nil {
-					return nil, err
-				}
-				defer tx.Rollback()
-
-				err = db.RemoveTrack(c.Request().Context(), id)
-				if err != nil {
-					return nil, err
-				}
-
-				err = tx.Commit()
-				if err != nil {
-					return nil, err
-				}
-
-				return nil, nil
-			},
-		},
-
-		pyrin.ApiHandler{
 			Name:     "EditTrack",
 			Method:   http.MethodPatch,
 			Path:     "/tracks/:id",
@@ -716,7 +688,6 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 
 				// TODO(patrik): Add back
-
 				// dir := app.WorkDir().Track(track.Id)
 				// targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
 				// target := path.Join(app.WorkDir().Trash(), targetName)
@@ -726,7 +697,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				// 	return nil, err
 				// }
 
-				err = app.DB().RemoveTrack(ctx, track.Id)
+				err = app.DB().DeleteTrack(ctx, track.Id)
 				if err != nil {
 					return nil, err
 				}
