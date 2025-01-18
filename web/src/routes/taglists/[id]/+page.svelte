@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import { getApiClient, openConfirm } from "$lib";
+  import { getApiClient, handleApiError, openConfirm } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { Breadcrumb, Button, Input, Pagination } from "@nanoteck137/nano-ui";
@@ -39,8 +39,8 @@
     if (confirmed) {
       const res = await apiClient.deleteTaglist(data.taglist.id);
       if (!res.success) {
-        // TODO(patrik): Toast
-        throw res.error.message;
+        handleApiError(res.error);
+        return;
       }
 
       goto("/taglists");

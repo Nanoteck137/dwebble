@@ -1,9 +1,8 @@
 <script lang="ts">
   import { PUBLIC_COMMIT, PUBLIC_VERSION } from "$env/static/public";
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
   import { Button } from "@nanoteck137/nano-ui";
 
-  const { data } = $props();
   const apiClient = getApiClient();
 
   let refillSearch = $state(false);
@@ -19,7 +18,7 @@
     refillSearch = true;
     const res = await apiClient.refillSearch();
     if (!res.success) {
-      throw res.error.message;
+      handleApiError(res.error);
     }
     refillSearch = false;
   }}

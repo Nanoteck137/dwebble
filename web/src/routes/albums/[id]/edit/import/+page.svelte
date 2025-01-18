@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
   import type { UploadTrackBody } from "$lib/api/types.js";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import type { EditTrackData, UIArtist } from "$lib/types.js";
@@ -52,9 +52,8 @@
 
       const res = await apiClient.uploadTrack(trackData);
       if (!res.success) {
-        // TODO(patrik): Should the toast include the error message?
-        toast.error("Unknown error");
-        throw formatError(res.error);
+        handleApiError(res.error);
+        return;
       }
       uploadState.currentTrack += 1;
     }

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { getApiClient, openArtistQuery } from "$lib";
+  import { getApiClient, handleApiError, openArtistQuery } from "$lib";
   import type { UIArtist } from "$lib/types.js";
   import {
     Breadcrumb,
@@ -39,8 +39,8 @@
       featuringArtists: featuringArtists.map((a) => a.id),
     });
     if (!res.success) {
-      // TODO(patrik): fix
-      throw res.error.message;
+      handleApiError(res.error);
+      return;
     }
 
     goto(`/albums/${data.album.id}/edit`, { invalidateAll: true });

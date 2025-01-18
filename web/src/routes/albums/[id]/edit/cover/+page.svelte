@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
   import { formatError } from "$lib/utils.js";
   import {
     Breadcrumb,
@@ -16,9 +16,8 @@
   async function submit(formData: FormData) {
     const res = await apiClient.changeAlbumCover(data.album.id, formData);
     if (!res.success) {
-      // TODO(patrik): Should the toast include the error message?
-      toast.error("Unknown error");
-      throw formatError(res.error);
+      handleApiError(res.error);
+      return;
     }
 
     // TODO(patrik): Not the best solution, but i need the browser to

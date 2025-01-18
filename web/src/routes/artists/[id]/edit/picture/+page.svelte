@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
   import { formatError } from "$lib/utils.js";
   import { Breadcrumb, Button, Card, Label } from "@nanoteck137/nano-ui";
   import toast from "svelte-5-french-toast";
@@ -22,8 +22,8 @@
         formData,
       );
       if (!res.success) {
-        toast.error("Unknown error");
-        throw formatError(res.error);
+        handleApiError(res.error);
+        return;
       }
       // TODO(patrik): Not the best solution, but i need the browser to
       // refresh for the new image to show

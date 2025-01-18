@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import { type EditTrackData } from "$lib/types.js";
   import { formatError } from "$lib/utils";
@@ -38,8 +38,8 @@
       featuringArtists: track.featuringArtists.map((a) => a.id),
     });
     if (!res.success) {
-      toast.error("Unknown error");
-      throw formatError(res.error);
+      handleApiError(res.error);
+      return;
     }
 
     goto(`/albums/${data.album.id}/edit`, { invalidateAll: true });

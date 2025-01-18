@@ -15,8 +15,18 @@ import QueryArtistModal, {
 } from "$lib/components/modals/QueryArtistModal.svelte";
 import type { UIArtist } from "$lib/types";
 import { getContext, setContext } from "svelte";
+import toast from "svelte-5-french-toast";
 import { modals } from "svelte-modals";
 import { writable, type Writable } from "svelte/store";
+
+export function handleApiError(err: {
+  code: number;
+  type: string;
+  message: string;
+}) {
+  toast.error(`API Error: ${err.type} (${err.code}): ${err.message}`);
+  console.error("API Error", err);
+}
 
 const API_CLIENT_KEY = Symbol("API_CLIENT");
 
@@ -95,6 +105,9 @@ export function artistQuery(getApiClient: GetApiClient) {
             name: artist.name.default,
           })),
         );
+      } else {
+        handleApiError(res.error);
+        return;
       }
     }, 500);
   }

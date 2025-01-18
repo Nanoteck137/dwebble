@@ -9,7 +9,7 @@
   import { cn, formatError } from "$lib/utils";
   import toast from "svelte-5-french-toast";
   import { invalidateAll } from "$app/navigation";
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
 
   let { data } = $props();
   const apiClient = getApiClient();
@@ -54,8 +54,8 @@
                         quickPlaylist: playlist.id,
                       });
                       if (!res.success) {
-                        toast.error("Unknown error");
-                        throw formatError(res.error);
+                        handleApiError(res.error);
+                        return;
                       }
 
                       await invalidateAll();

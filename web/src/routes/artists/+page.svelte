@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
   import { Artist } from "$lib/api/types";
   import { cn, formatError, formatName } from "$lib/utils";
   import {
@@ -161,10 +161,7 @@
               artists: selected,
             });
             if (!res.success) {
-              toast.error(
-                "Failed to merge artists: " + formatError(res.error),
-              );
-              console.error(formatError(res.error), res.error);
+              handleApiError(res.error);
               return;
             }
 

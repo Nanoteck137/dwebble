@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
-  import { getApiClient, openConfirm } from "$lib";
+  import { getApiClient, handleApiError, openConfirm } from "$lib";
   import { cn, formatError } from "$lib/utils";
   import {
     Breadcrumb,
@@ -73,11 +73,7 @@
                     tags: res.tags.split(","),
                   });
                   if (!apiRes.success) {
-                    toast.error(
-                      "Failed to update artist details: " +
-                        formatError(apiRes.error),
-                    );
-                    console.error(formatError(apiRes.error), apiRes.error);
+                    handleApiError(apiRes.error);
                     return;
                   }
 

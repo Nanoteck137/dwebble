@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { openArtistQuery } from "$lib";
+  import { getApiClient, openArtistQuery } from "$lib";
   import Errors from "$lib/components/Errors.svelte";
   import type { UIArtist } from "$lib/types.js";
   import {

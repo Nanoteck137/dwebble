@@ -20,7 +20,7 @@
   import { goto, invalidateAll } from "$app/navigation";
   import { modals } from "svelte-modals";
   import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -298,7 +298,8 @@
                   if (confirmed) {
                     const res = await apiClient.deleteTrack(track.id);
                     if (!res.success) {
-                      throw res.error.message;
+                      handleApiError(res.error);
+                      return;
                     }
 
                     await invalidateAll();

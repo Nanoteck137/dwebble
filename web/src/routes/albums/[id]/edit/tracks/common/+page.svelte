@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { getApiClient, openArtistQuery } from "$lib";
+  import { getApiClient, handleApiError, openArtistQuery } from "$lib";
   import type { UIArtist } from "$lib/types.js";
   import { formatError } from "$lib/utils";
   import {
@@ -40,8 +40,8 @@
       });
 
       if (!res.success) {
-        toast.error("Failed to set album values");
-        console.error(formatError(res.error));
+        handleApiError(res.error);
+        return;
       }
     }
 
@@ -52,8 +52,7 @@
         year: useYear ? yearNum : undefined,
       });
       if (!res.success) {
-        toast.error("Failed to set track values");
-        console.error(formatError(res.error));
+        handleApiError(res.error);
       }
     }
 

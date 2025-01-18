@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { getApiClient } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
   import { formatError } from "$lib/utils.js";
   import { Breadcrumb, Button, Card } from "@nanoteck137/nano-ui";
   import toast from "svelte-5-french-toast";
@@ -49,9 +49,8 @@
       onclick={async () => {
         const res = await apiClient.deleteAlbum(data.album.id);
         if (!res.success) {
-          // TODO(patrik): Should the toast include the error message?
-          toast.error("Unknown error");
-          throw formatError(res.error);
+          handleApiError(res.error);
+          return;
         }
 
         goto("/albums", { invalidateAll: true });
