@@ -44,47 +44,11 @@
     userPlaylists,
     quickPlaylist,
     isInQuickPlaylist,
-    onPlay,
     onTrackPlay,
   }: Props = $props();
 </script>
 
 <div class="flex flex-col">
-  {#if !isAlbumShowcase && !hideHeader}
-    <div class="flex gap-2">
-      <Button
-        size="sm"
-        variant="ghost"
-        onclick={() => {
-          onPlay(false);
-        }}
-      >
-        <Play />
-        Play
-      </Button>
-
-      <!-- <form action="?/newPlaylist" method="post">
-      <input name="filter" value={data.filter} type="hidden" />
-      <input name="sort" value={data.sort} type="hidden" />
-      <Button type="submit" size="sm" variant="ghost">
-        <ListPlus />
-        Create Playlist
-      </Button>
-    </form> -->
-
-      <Button
-        size="sm"
-        variant="ghost"
-        onclick={() => {
-          onPlay(true);
-        }}
-      >
-        <Shuffle />
-        Shuffle Play
-      </Button>
-    </div>
-  {/if}
-
   <div class="flex items-center justify-between">
     <p class="text-bold text-xl">Tracks</p>
     <p class="text-sm">{totalTracks} track(s)</p>
