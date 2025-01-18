@@ -176,6 +176,37 @@ export class LocalQueue extends Queue {
   }
 }
 
+export class DummyQueue extends Queue {
+  constructor() {
+    super();
+    console.log("Dummy Queue: Constructor");
+  }
+
+  async initialize() {
+    console.log("Dummy Queue: initialize");
+  }
+
+  async clearQueue() {
+    console.log("Dummy Queue: clearQueue");
+  }
+
+  async addFromAlbum() {
+    console.log("Dummy Queue: addFromAlbum");
+  }
+
+  async addFromPlaylist() {
+    console.log("Dummy Queue: addFromPlaylist");
+  }
+
+  async addFromTaglist() {
+    console.log("Dummy Queue: addFromTaglist");
+  }
+
+  async setQueueIndex() {
+    console.log("Dummy Queue: setQueueIndex");
+  }
+}
+
 export class MusicManager {
   apiClient: ApiClient;
   queue: Queue;

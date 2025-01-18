@@ -25,29 +25,18 @@
   import { createApiClient } from "$lib";
   import {
     BackendQueue,
+    DummyQueue,
     LocalQueue,
     MusicManager,
     setMusicManager,
   } from "$lib/music-manager.svelte";
-  import { onMount } from "svelte";
+  import { enhance } from "$app/forms";
 
   let { children, data } = $props();
 
   let apiClient = createApiClient(data);
 
-  let musicManager: MusicManager;
-  if (browser) {
-    if (data.user) {
-      console.log("Backend");
-      musicManager = setMusicManager(
-        apiClient,
-        new BackendQueue(apiClient, data.queueId),
-      );
-    } else {
-      console.log("Local");
-      musicManager = setMusicManager(apiClient, new LocalQueue(apiClient));
-    }
-  }
+  let musicManager = setMusicManager(apiClient, new DummyQueue());
 
   $effect(() => {
     if (!browser) return;
