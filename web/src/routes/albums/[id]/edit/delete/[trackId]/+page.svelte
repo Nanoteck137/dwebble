@@ -1,10 +1,10 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { createApiClient } from "$lib";
+  import { getApiClient } from "$lib";
   import { Breadcrumb, Button, Card } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 </script>
 
 <div class="py-2">

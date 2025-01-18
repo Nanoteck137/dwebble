@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { createApiClient } from "$lib";
+  import { getApiClient } from "$lib";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import { type EditTrackData } from "$lib/types.js";
   import { formatError } from "$lib/utils";
@@ -9,7 +9,7 @@
   import toast from "svelte-5-french-toast";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   let track = $state<EditTrackData>({
     name: data.track.name.default,

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { createApiClient } from "$lib";
+  import { getApiClient } from "$lib";
   import type { UploadTrackBody } from "$lib/api/types.js";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import type { EditTrackData, UIArtist } from "$lib/types.js";
@@ -9,7 +9,7 @@
   import toast from "svelte-5-french-toast";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   const albumArtist = $state<UIArtist>({
     name: data.album.artistName.default,

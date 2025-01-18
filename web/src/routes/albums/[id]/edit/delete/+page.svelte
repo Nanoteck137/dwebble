@@ -1,12 +1,12 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { createApiClient } from "$lib";
+  import { getApiClient } from "$lib";
   import { formatError } from "$lib/utils.js";
   import { Breadcrumb, Button, Card } from "@nanoteck137/nano-ui";
   import toast from "svelte-5-french-toast";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 </script>
 
 <div class="py-2">

@@ -1,14 +1,14 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import { createApiClient, openConfirm } from "$lib";
+  import { getApiClient, openConfirm } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { Breadcrumb, Button, Input, Pagination } from "@nanoteck137/nano-ui";
   import { Filter } from "lucide-svelte";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
   const musicManager = getMusicManager();
 </script>
 
@@ -45,8 +45,10 @@
 
       goto("/taglists");
     }
-  }}>Delete Taglist</Button
+  }}
 >
+  Delete Taglist
+</Button>
 
 <form
   method="GET"
@@ -79,7 +81,6 @@
 <div class="h-2"></div>
 
 <TrackList
-  {apiClient}
   totalTracks={data.page.totalItems}
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}

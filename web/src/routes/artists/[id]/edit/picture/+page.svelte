@@ -1,17 +1,11 @@
 <script lang="ts">
-  import { createApiClient } from "$lib";
+  import { getApiClient } from "$lib";
   import { formatError } from "$lib/utils.js";
-  import {
-    Breadcrumb,
-    Button,
-    Card,
-    Input,
-    Label,
-  } from "@nanoteck137/nano-ui";
+  import { Breadcrumb, Button, Card, Label } from "@nanoteck137/nano-ui";
   import toast from "svelte-5-french-toast";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   let fileSelector = $state<HTMLInputElement>();
   let files = $state<FileList>();

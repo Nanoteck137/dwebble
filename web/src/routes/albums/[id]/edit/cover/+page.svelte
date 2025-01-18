@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { createApiClient } from "$lib";
-  import { ApiClient } from "$lib/api/client";
+  import { getApiClient } from "$lib";
   import { formatError } from "$lib/utils.js";
   import {
     Breadcrumb,
@@ -12,7 +11,7 @@
   import toast from "svelte-5-french-toast";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   async function submit(formData: FormData) {
     const res = await apiClient.changeAlbumCover(data.album.id, formData);

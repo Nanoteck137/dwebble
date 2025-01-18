@@ -1,20 +1,13 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
-  import { artistQuery, createApiClient, openConfirm } from "$lib";
+  import { getApiClient, openConfirm } from "$lib";
   import { cn, formatError } from "$lib/utils";
   import {
     Breadcrumb,
     buttonVariants,
     DropdownMenu,
   } from "@nanoteck137/nano-ui";
-  import {
-    Edit,
-    EllipsisVertical,
-    Import,
-    Play,
-    Trash,
-    Wallpaper,
-  } from "lucide-svelte";
+  import { Edit, EllipsisVertical, Trash, Wallpaper } from "lucide-svelte";
   import toast from "svelte-5-french-toast";
   import EditArtistDetailsModal, {
     type Props as EditArtistDetailsModalProps,
@@ -22,7 +15,7 @@
   import { modals } from "svelte-modals";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   function openEditDetailsModal(props: EditArtistDetailsModalProps) {
     return modals.open(EditArtistDetailsModal, props);

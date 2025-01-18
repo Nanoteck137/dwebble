@@ -1,10 +1,10 @@
 <script lang="ts">
   import { PUBLIC_COMMIT, PUBLIC_VERSION } from "$env/static/public";
-  import { createApiClient } from "$lib";
+  import { getApiClient } from "$lib";
   import { Button } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   let refillSearch = $state(false);
 </script>

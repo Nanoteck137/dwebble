@@ -1,7 +1,6 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
-  import { createApiClient } from "$lib";
-  import { ApiClient } from "$lib/api/client.js";
+  import { getApiClient } from "$lib";
   import { Artist } from "$lib/api/types";
   import { cn, formatError, formatName } from "$lib/utils";
   import {
@@ -15,7 +14,7 @@
   import toast from "svelte-5-french-toast";
 
   let { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   let merge = $state<string>();
   let selected = $state<string[]>([]);

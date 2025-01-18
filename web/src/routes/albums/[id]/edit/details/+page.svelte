@@ -1,6 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { createApiClient, openArtistQuery } from "$lib";
+  import { getApiClient, openArtistQuery } from "$lib";
   import type { UIArtist } from "$lib/types.js";
   import {
     Breadcrumb,
@@ -10,10 +10,9 @@
     Label,
   } from "@nanoteck137/nano-ui";
   import { Plus, X } from "lucide-svelte";
-  import { preventDefault } from "svelte/legacy";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   let name = $state(data.album.name.default);
   let otherName = $state(data.album.name.other);

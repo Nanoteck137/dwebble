@@ -5,24 +5,14 @@
     DropdownMenu,
     Separator,
   } from "@nanoteck137/nano-ui";
-  import type { PageData } from "./$types";
-  import {
-    Check,
-    DiscAlbum,
-    EllipsisVertical,
-    FileHeart,
-    Star,
-    User,
-  } from "lucide-svelte";
+  import { Check, EllipsisVertical, FileHeart } from "lucide-svelte";
   import { cn, formatError } from "$lib/utils";
-  import { ApiClient } from "$lib/api/client";
-  import { createApiClient } from "$lib";
-  import { UpdateUserSettingsBody } from "$lib/api/types";
   import toast from "svelte-5-french-toast";
   import { invalidateAll } from "$app/navigation";
+  import { getApiClient } from "$lib";
 
   let { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 </script>
 
 <div class="flex flex-col gap-4">

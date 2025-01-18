@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { createApiClient } from "$lib";
   import Spacer from "$lib/components/Spacer.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
@@ -8,7 +7,6 @@
   import { Pencil } from "lucide-svelte";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
   const musicManager = getMusicManager();
 </script>
 
@@ -47,7 +45,6 @@
 <Spacer size="md" />
 
 <TrackList
-  {apiClient}
   totalTracks={data.items.length}
   tracks={data.items}
   userPlaylists={data.userPlaylists}

@@ -18,13 +18,11 @@
   import type { Playlist, Track } from "$lib/api/types";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
   import type { ApiClient } from "$lib/api/client";
-  import { openAddToPlaylist } from "$lib";
+  import { getApiClient, openAddToPlaylist } from "$lib";
   import { goto, invalidateAll } from "$app/navigation";
 
   type Props = {
-    apiClient: ApiClient;
     isAlbumShowcase?: boolean;
-    hideHeader?: boolean;
     totalTracks: number;
     tracks: Track[];
     userPlaylists?: Playlist[] | null;
@@ -36,9 +34,7 @@
   };
 
   const {
-    apiClient,
     isAlbumShowcase,
-    hideHeader,
     totalTracks,
     tracks,
     userPlaylists,
@@ -46,6 +42,8 @@
     isInQuickPlaylist,
     onTrackPlay,
   }: Props = $props();
+
+  const apiClient = getApiClient();
 </script>
 
 <div class="flex flex-col">

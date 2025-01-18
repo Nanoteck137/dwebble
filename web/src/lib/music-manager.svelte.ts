@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-unused-vars */
 import type { ApiClient } from "$lib/api/client";
 import type { MusicTrack } from "$lib/api/types";
 import { type Emitter, createNanoEvents } from "nanoevents";
@@ -46,23 +48,17 @@ export abstract class Queue {
   abstract clearQueue(): Promise<void>;
 
   abstract addFromPlaylist(
-    // eslint-disable-next-line no-unused-vars
     playlistId: string,
-    // eslint-disable-next-line no-unused-vars
     settings?: AddToQueueSettings,
   ): Promise<void>;
 
   abstract addFromTaglist(
-    // eslint-disable-next-line no-unused-vars
     taglistId: string,
-    // eslint-disable-next-line no-unused-vars
     settings?: AddToQueueSettings,
   ): Promise<void>;
 
   abstract addFromAlbum(
-    // eslint-disable-next-line no-unused-vars
     albumId: string,
-    // eslint-disable-next-line no-unused-vars
     settings?: AddToQueueSettings,
   ): Promise<void>;
 }

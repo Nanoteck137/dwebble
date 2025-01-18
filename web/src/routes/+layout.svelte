@@ -22,33 +22,37 @@
   import { modals, Modals } from "svelte-modals";
   import { Toaster } from "svelte-5-french-toast";
   import { navigating } from "$app/stores";
-  import { createApiClient } from "$lib";
+  import { setApiClient } from "$lib";
   import {
     BackendQueue,
     DummyQueue,
     LocalQueue,
-    MusicManager,
     setMusicManager,
   } from "$lib/music-manager.svelte";
-  import { enhance } from "$app/forms";
 
   let { children, data } = $props();
 
-  let apiClient = createApiClient(data);
-
+  let apiClient = setApiClient(data.apiAddress, data.userToken);
   let musicManager = setMusicManager(apiClient, new DummyQueue());
 
   $effect(() => {
     if (!browser) return;
+    apiClient.setToken(data.userToken);
+  });
 
-    apiClient = createApiClient(data);
+  $effect(() => {
+    if (!browser) return;
 
     if (data.user) {
-      console.log("Backend");
-      musicManager.setQueue(new BackendQueue(apiClient, data.queueId));
+      if (!(musicManager.queue instanceof BackendQueue)) {
+        console.log("Backend");
+        musicManager.setQueue(new BackendQueue(apiClient, data.queueId));
+      }
     } else {
-      console.log("Local");
-      musicManager.setQueue(new LocalQueue(apiClient));
+      if (!(musicManager.queue instanceof LocalQueue)) {
+        console.log("Local");
+        musicManager.setQueue(new LocalQueue(apiClient));
+      }
     }
   });
 

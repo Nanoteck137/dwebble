@@ -7,14 +7,12 @@
   } from "@nanoteck137/nano-ui";
   import { EllipsisVertical, ListPlus, Pencil, Play } from "lucide-svelte";
   import ArtistList from "$lib/components/ArtistList.svelte";
-  import { createApiClient } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { goto } from "$app/navigation";
   import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
 
   let { data } = $props();
-  const apiClient = createApiClient(data);
   const musicManager = getMusicManager();
 
   function getName() {
@@ -127,7 +125,6 @@
 <div class="h-4"></div>
 
 <TrackList
-  {apiClient}
   isAlbumShowcase={true}
   totalTracks={0}
   tracks={data.tracks}

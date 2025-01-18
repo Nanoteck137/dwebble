@@ -1,6 +1,5 @@
 <script lang="ts">
   import { goto, invalidateAll, onNavigate } from "$app/navigation";
-  import { createApiClient } from "$lib";
   import AlbumListItem from "$lib/components/AlbumListItem.svelte";
   import ArtistListItem from "$lib/components/ArtistListItem.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
@@ -8,7 +7,6 @@
   import { Button, Input, Label } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
 
   async function search(query: string) {
     await goto(`?query=${query}`, {
@@ -108,8 +106,6 @@
 
 {#if data.tracks.length > 0}
   <TrackList
-    {apiClient}
-    hideHeader={true}
     totalTracks={data.tracks.length}
     tracks={data.tracks}
     userPlaylists={data.userPlaylists}
@@ -118,5 +114,7 @@
       if (!data.quickPlaylistIds) return false;
       return !!data.quickPlaylistIds.find((v) => v === trackId);
     }}
+    onPlay={() => {}}
+    onTrackPlay={() => {}}
   />
 {/if}

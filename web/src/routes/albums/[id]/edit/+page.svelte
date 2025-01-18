@@ -20,10 +20,10 @@
   import { goto, invalidateAll } from "$app/navigation";
   import { modals } from "svelte-modals";
   import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
-  import { createApiClient } from "$lib";
+  import { getApiClient } from "$lib";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 </script>
 
 <div class="py-2">

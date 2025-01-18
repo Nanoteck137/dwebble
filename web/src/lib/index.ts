@@ -14,8 +14,21 @@ import QueryArtistModal, {
   type Props as QueryArtistModalProps,
 } from "$lib/components/modals/QueryArtistModal.svelte";
 import type { UIArtist } from "$lib/types";
+import { getContext, setContext } from "svelte";
 import { modals } from "svelte-modals";
 import { writable, type Writable } from "svelte/store";
+
+const API_CLIENT_KEY = Symbol("API_CLIENT");
+
+export function setApiClient(baseUrl: string, token?: string) {
+  const apiClient = new ApiClient(baseUrl);
+  apiClient.setToken(token);
+  return setContext(API_CLIENT_KEY, apiClient);
+}
+
+export function getApiClient() {
+  return getContext<ReturnType<typeof setApiClient>>(API_CLIENT_KEY);
+}
 
 export function openAddToPlaylist(props: AddToPlaylistModalProps) {
   return modals.open(AddToPlaylistModal, props);
@@ -31,15 +44,6 @@ export function openArtistQuery(props: QueryArtistModalProps) {
 
 export function openInput(props: InputModalProps) {
   return modals.open(InputModal, props);
-}
-
-export function createApiClient(data: {
-  apiAddress: string;
-  userToken?: string;
-}) {
-  const apiClient = new ApiClient(data.apiAddress);
-  apiClient.setToken(data.userToken);
-  return apiClient;
 }
 
 export function isInQuickPlaylist(

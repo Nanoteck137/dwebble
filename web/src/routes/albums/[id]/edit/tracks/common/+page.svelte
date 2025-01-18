@@ -1,8 +1,6 @@
 <script lang="ts">
   import { goto } from "$app/navigation";
-  import { artistQuery, createApiClient, openArtistQuery } from "$lib";
-  import { ApiClient } from "$lib/api/client.js";
-  import ArtistQuery from "$lib/components/ArtistQuery.svelte";
+  import { getApiClient, openArtistQuery } from "$lib";
   import type { UIArtist } from "$lib/types.js";
   import { formatError } from "$lib/utils";
   import {
@@ -17,7 +15,7 @@
   import toast from "svelte-5-french-toast";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   let useYear = $state(false);
   let year = $state("");

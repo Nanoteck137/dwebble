@@ -1,7 +1,5 @@
 <script lang="ts">
-  import { artistQuery, createApiClient, openArtistQuery } from "$lib";
-  import { ApiClient } from "$lib/api/client.js";
-  import ArtistQuery from "$lib/components/ArtistQuery.svelte";
+  import { openArtistQuery } from "$lib";
   import Errors from "$lib/components/Errors.svelte";
   import type { UIArtist } from "$lib/types.js";
   import {
@@ -14,7 +12,7 @@
   import SuperDebug, { superForm } from "sveltekit-superforms";
 
   const { data } = $props();
-  const apiClient = createApiClient(data);
+  const apiClient = getApiClient();
 
   const { form, errors, enhance } = superForm(data.form, { onError: "apply" });
 

@@ -3,11 +3,10 @@
   import { Button, Input, Pagination } from "@nanoteck137/nano-ui";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
-  import { createApiClient, isInQuickPlaylist } from "$lib";
+  import { isInQuickPlaylist } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
 
   let { data } = $props();
-  const apiClient = createApiClient(data);
 </script>
 
 <form method="GET">
@@ -43,7 +42,6 @@
 <div class="h-2"></div>
 
 <TrackList
-  {apiClient}
   totalTracks={data.page.totalItems}
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}
