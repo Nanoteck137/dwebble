@@ -598,3 +598,25 @@ func (db *Database) GetAllQueueItemIds(ctx context.Context, queueId string) ([]s
 
 	return items, nil
 }
+
+func (db *Database) GetLastQueueItemIndex(ctx context.Context, queueId string) (int, bool, error) {
+	query := dialect.From("queue_items").
+		Select(
+			"queue_items.order_number",
+		).
+		Where(goqu.I("queue_items.queue_id").Eq(queueId)).
+		Order(goqu.I("queue_items.order_number").Desc()).
+		Limit(1)
+
+	var index int
+	err := db.Get(&index, query)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, false, nil
+		}
+
+		return 0, false, err
+	}
+
+	return index, true, nil
+}

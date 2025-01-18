@@ -17,6 +17,8 @@ import (
 	"github.com/nanoteck137/validate"
 )
 
+const DEFAULT_QUEUE_NAME = "Default Queue"
+
 type MusicTrackArtist struct {
 	// TODO(patrik): Change ArtistId, ArtistName to Id, Name?
 	ArtistId   string `json:"artistId"`
@@ -82,6 +84,37 @@ type AddToQueue struct {
 	AddToFront bool `json:"addToFront,omitempty"`
 }
 
+type AddToQueuePlaylistBody struct {
+	AddToQueue
+
+	PlaylistId string `json:"playlistId"`
+}
+
+type AddToQueueTaglistBody struct {
+	AddToQueue
+
+	TaglistId string `json:"taglistId"`
+}
+
+type AddToQueueAlbumBody struct {
+	AddToQueue
+
+	AlbumId string `json:"albumId"`
+}
+
+func getNextIndex(ctx context.Context, db *database.Database, queueId string) (int, error) {
+	index, hasIndex, err := db.GetLastQueueItemIndex(ctx, queueId)
+	if err != nil {
+		return 0, err
+	}
+
+	if hasIndex {
+		return index + 1, nil
+	}
+
+	return 0, nil
+}
+
 func InstallQueueHandlers(app core.App, group pyrin.Group) {
 	// NOTE(patrik):
 	// 1. Multiple queues per user
@@ -93,29 +126,19 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 	//   - Not logged in queue
 
 	// TODO(patrik):
-	// - GetQueue
-	// - CreateQueueFromPlaylist
-	// - CreateQueueFromTaglist
-	// - CreateQueueFromIds
-	// - CreateQueueFromTracks
-	// - CreateQueueFromAlbum
-	// - CreateQueueFromArtist
-	// - AddFromPlaylist
-	//   - Clear Flag
-	// - AddFromTaglist
-	//   - Clear Flag
-	// - AddFromIds
-	//   - Clear Flag
-	// - AddFromTracks
-	//   - Clear Flag
-	// - AddFromAlbum
-	//   - Clear Flag
-	// - AddFromArtist
-	//   - Clear Flag
+	// - GetDefaultQueue
 	// - ClearQueue
-	// - AddToQueue
+	// - GetQueueItems
 	// - RemoveFromQueue
-	// - DeleteQueue
+	// - ShuffleQueue
+	//
+	// # Clear Flag for these
+	// - AddFromPlaylist
+	// - AddFromTaglist
+	// - AddFromIds
+	// - AddFromTracks
+	// - AddFromAlbum
+	// - AddFromArtist
 
 	group.Register(
 		pyrin.ApiHandler{
@@ -146,9 +169,6 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 				}
-
-				// TODO(patrik): Move
-				const DEFAULT_QUEUE_NAME = "Default Queue"
 
 				var queue database.Queue
 
@@ -183,8 +203,6 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 				}
-
-				pretty.Println(queue)
 
 				return Queue{
 					Id:   queue.Id,
@@ -234,69 +252,15 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:   "AddToQueueFromAlbum",
-			Method: http.MethodPost,
-			Path:   "/queue/:id/add/album/:albumId",
-			Errors: []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypeAlbumNotFound},
+			Name:     "UpdateQueue",
+			Method:   http.MethodPatch,
+			Path:     "/queue/:id",
+			BodyType: UpdateQueueBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeQueueNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
-				albumId := c.Param("albumId")
 
-				ctx := context.TODO()
-
-				queue, err := app.DB().GetQueueById(ctx, id)
-				if err != nil {
-					if errors.Is(err, database.ErrItemNotFound) {
-						return nil, QueueNotFound()
-					}
-
-					return nil, err
-				}
-
-				album, err := app.DB().GetAlbumById(ctx, albumId)
-				if err != nil {
-					if errors.Is(err, database.ErrItemNotFound) {
-						return nil, AlbumNotFound()
-					}
-
-					return nil, err
-				}
-
-				pretty.Println(queue)
-				pretty.Println(album)
-
-				tracks, err := app.DB().GetTracksByAlbum(ctx, album.Id)
-				if err != nil {
-					return nil, err
-				}
-
-				// TODO(patrik): Get the last item index from queue
-				for i, track := range tracks {
-					_, err := app.DB().CreateQueueItem(ctx, database.CreateQueueItemParams{
-						QueueId:     queue.Id,
-						OrderNumber: i,
-						TrackId:     track.Id,
-					})
-					if err != nil {
-						return nil, err
-					}
-				}
-
-				return nil, nil
-			},
-		},
-
-		pyrin.ApiHandler{
-			Name:     "AddToQueueFromPlaylist",
-			Method:   http.MethodPost,
-			Path:     "/queue/:id/add/playlist/:playlistId",
-			BodyType: AddToQueue{},
-			Errors:   []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypePlaylistNotFound},
-			HandlerFunc: func(c pyrin.Context) (any, error) {
-				id := c.Param("id")
-				playlistId := c.Param("playlistId")
-
-				body, err := pyrin.Body[AddToQueue](c)
+				body, err := pyrin.Body[UpdateQueueBody](c)
 				if err != nil {
 					return nil, err
 				}
@@ -312,36 +276,25 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				playlist, err := app.DB().GetPlaylistById(ctx, playlistId)
-				if err != nil {
-					if errors.Is(err, database.ErrItemNotFound) {
-						return nil, PlaylistNotFound()
+				changes := database.QueueChanges{}
+
+				if body.Name != nil {
+					changes.Name = types.Change[string]{
+						Value:   *body.Name,
+						Changed: *body.Name != queue.Name,
 					}
-
-					return nil, err
 				}
 
-				items, err := app.DB().GetPlaylistTracks(ctx, playlist.Id)
+				if body.ItemIndex != nil {
+					changes.ItemIndex = types.Change[int]{
+						Value:   *body.ItemIndex,
+						Changed: *body.ItemIndex != queue.ItemIndex,
+					}
+				}
+
+				err = app.DB().UpdateQueue(ctx, queue.Id, changes)
 				if err != nil {
 					return nil, err
-				}
-
-				if body.Shuffle {
-					rand.Shuffle(len(items), func(i, j int) {
-						items[i], items[j] = items[j], items[i]
-					})
-				}
-
-				// TODO(patrik): Get the last item index from queue
-				for i, item := range items {
-					_, err := app.DB().CreateQueueItem(ctx, database.CreateQueueItemParams{
-						QueueId:     queue.Id,
-						OrderNumber: i,
-						TrackId:     item.Id,
-					})
-					if err != nil {
-						return nil, err
-					}
 				}
 
 				return nil, nil
@@ -428,20 +381,25 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:     "UpdateQueue",
-			Method:   http.MethodPatch,
-			Path:     "/queue/:id",
-			BodyType: UpdateQueueBody{},
-			Errors:   []pyrin.ErrorType{ErrTypeQueueNotFound},
+			Name:     "AddToQueueFromPlaylist",
+			Method:   http.MethodPost,
+			Path:     "/queue/:id/add/playlist",
+			BodyType: AddToQueuePlaylistBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypePlaylistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
-				body, err := pyrin.Body[UpdateQueueBody](c)
+				body, err := pyrin.Body[AddToQueuePlaylistBody](c)
 				if err != nil {
 					return nil, err
 				}
 
 				ctx := context.TODO()
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
 
 				queue, err := app.DB().GetQueueById(ctx, id)
 				if err != nil {
@@ -452,29 +410,194 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				changes := database.QueueChanges{}
-
-				if body.Name != nil {
-					changes.Name = types.Change[string]{
-						Value:   *body.Name,
-						Changed: *body.Name != queue.Name,
-					}
+				if queue.UserId != user.Id {
+					return nil, QueueNotFound()
 				}
 
-				if body.ItemIndex != nil {
-					changes.ItemIndex = types.Change[int]{
-						Value:   *body.ItemIndex,
-						Changed: *body.ItemIndex != queue.ItemIndex,
+				playlist, err := app.DB().GetPlaylistById(ctx, body.PlaylistId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, PlaylistNotFound()
 					}
+
+					return nil, err
 				}
 
-				err = app.DB().UpdateQueue(ctx, queue.Id, changes)
+				items, err := app.DB().GetPlaylistTracks(ctx, playlist.Id)
 				if err != nil {
 					return nil, err
+				}
+
+				if body.Shuffle {
+					rand.Shuffle(len(items), func(i, j int) {
+						items[i], items[j] = items[j], items[i]
+					})
+				}
+
+				nextIndex, err := getNextIndex(ctx, app.DB(), queue.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				for i, item := range items {
+					_, err := app.DB().CreateQueueItem(ctx, database.CreateQueueItemParams{
+						QueueId:     queue.Id,
+						OrderNumber: nextIndex + i,
+						TrackId:     item.Id,
+					})
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				return nil, nil
 			},
 		},
+
+		pyrin.ApiHandler{
+			Name:     "AddToQueueFromTaglist",
+			Method:   http.MethodPost,
+			Path:     "/queue/:id/add/taglist",
+			BodyType: AddToQueueTaglistBody{},
+			Errors:   []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypeTaglistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				body, err := pyrin.Body[AddToQueueTaglistBody](c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				queue, err := app.DB().GetQueueById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, QueueNotFound()
+					}
+
+					return nil, err
+				}
+
+				if queue.UserId != user.Id {
+					return nil, QueueNotFound()
+				}
+
+				taglist, err := app.DB().GetTaglistById(ctx, body.TaglistId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TaglistNotFound()
+					}
+
+					return nil, err
+				}
+
+				if taglist.OwnerId != user.Id {
+					return nil, TaglistNotFound()
+				}
+
+				items, err := app.DB().GetAllTracks(ctx, taglist.Filter, "")
+				if err != nil {
+					return nil, err
+				}
+
+				if body.Shuffle {
+					rand.Shuffle(len(items), func(i, j int) {
+						items[i], items[j] = items[j], items[i]
+					})
+				}
+
+				nextIndex, err := getNextIndex(ctx, app.DB(), queue.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				for i, item := range items {
+					_, err := app.DB().CreateQueueItem(ctx, database.CreateQueueItemParams{
+						QueueId:     queue.Id,
+						OrderNumber: nextIndex + i,
+						TrackId:     item.Id,
+					})
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:   "AddToQueueFromAlbum",
+			Method: http.MethodPost,
+			Path:   "/queue/:id/add/album",
+			BodyType: AddToQueueAlbumBody{},
+			Errors: []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypeAlbumNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				body, err := pyrin.Body[AddToQueueAlbumBody](c)
+				if err != nil {
+					return nil, err
+				}
+
+				ctx := context.TODO()
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				queue, err := app.DB().GetQueueById(ctx, id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, QueueNotFound()
+					}
+
+					return nil, err
+				}
+
+				if queue.UserId != user.Id {
+					return nil, QueueNotFound()
+				}
+
+				album, err := app.DB().GetAlbumById(ctx, body.AlbumId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, AlbumNotFound()
+					}
+
+					return nil, err
+				}
+
+				tracks, err := app.DB().GetTracksByAlbum(ctx, album.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				nextIndex, err := getNextIndex(ctx, app.DB(), queue.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				for i, track := range tracks {
+					_, err := app.DB().CreateQueueItem(ctx, database.CreateQueueItemParams{
+						QueueId:     queue.Id,
+						OrderNumber: nextIndex + i,
+						TrackId:     track.Id,
+					})
+					if err != nil {
+						return nil, err
+					}
+				}
+
+				return nil, nil
+			},
+		},	
 	)
 }

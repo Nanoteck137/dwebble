@@ -211,9 +211,9 @@ type Queue struct {
 	Name string `json:"name"`
 }
 
-type AddToQueue struct {
-	Shuffle bool `json:"shuffle"`
-	AddToFront bool `json:"addToFront"`
+type UpdateQueueBody struct {
+	Name *string `json:"name,omitempty"`
+	ItemIndex *int `json:"itemIndex,omitempty"`
 }
 
 type QueueItem struct {
@@ -231,9 +231,27 @@ type GetQueueItems struct {
 	Items []QueueItem `json:"items"`
 }
 
-type UpdateQueueBody struct {
-	Name *string `json:"name,omitempty"`
-	ItemIndex *int `json:"itemIndex,omitempty"`
+type AddToQueue struct {
+	Shuffle bool `json:"shuffle"`
+	AddToFront bool `json:"addToFront"`
+}
+
+type AddToQueuePlaylistBody struct {
+	Shuffle bool `json:"shuffle"`
+	AddToFront bool `json:"addToFront"`
+	PlaylistId string `json:"playlistId"`
+}
+
+type AddToQueueTaglistBody struct {
+	Shuffle bool `json:"shuffle"`
+	AddToFront bool `json:"addToFront"`
+	TaglistId string `json:"taglistId"`
+}
+
+type AddToQueueAlbumBody struct {
+	Shuffle bool `json:"shuffle"`
+	AddToFront bool `json:"addToFront"`
+	AlbumId string `json:"albumId"`
 }
 
 type Signup struct {

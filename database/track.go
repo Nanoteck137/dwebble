@@ -249,7 +249,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr, sortStr string)
 		return nil, err
 	}
 
-	query, err = applySort(query, resolver, filterStr)
+	query, err = applySort(query, resolver, sortStr)
 	if err != nil {
 		return nil, err
 	}
@@ -640,7 +640,7 @@ func (db *Database) CreateTrackMedia(ctx context.Context, params CreateTrackMedi
 
 			"filename":    params.Filename,
 			"media_type":  params.MediaType,
-			"rank":  params.Rank,
+			"rank":        params.Rank,
 			"is_original": params.IsOriginal,
 		}).
 		Prepared(true)

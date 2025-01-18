@@ -789,17 +789,17 @@
       ]
     },
     {
-      "name": "AddToQueue",
+      "name": "UpdateQueueBody",
       "extend": "",
       "fields": [
         {
-          "name": "shuffle",
-          "type": "bool",
+          "name": "name",
+          "type": "*string",
           "omit": true
         },
         {
-          "name": "addToFront",
-          "type": "bool",
+          "name": "itemIndex",
+          "type": "*int",
           "omit": true
         }
       ]
@@ -862,18 +862,81 @@
       ]
     },
     {
-      "name": "UpdateQueueBody",
+      "name": "AddToQueue",
       "extend": "",
       "fields": [
         {
-          "name": "name",
-          "type": "*string",
+          "name": "shuffle",
+          "type": "bool",
           "omit": true
         },
         {
-          "name": "itemIndex",
-          "type": "*int",
+          "name": "addToFront",
+          "type": "bool",
           "omit": true
+        }
+      ]
+    },
+    {
+      "name": "AddToQueuePlaylistBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "addToFront",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "playlistId",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "AddToQueueTaglistBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "addToFront",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "taglistId",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "AddToQueueAlbumBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "addToFront",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "albumId",
+          "type": "string",
+          "omit": false
         }
       ]
     },
@@ -1606,18 +1669,11 @@
       "bodyType": ""
     },
     {
-      "name": "AddToQueueFromAlbum",
-      "method": "POST",
-      "path": "/api/v1/queue/:id/add/album/:albumId",
+      "name": "UpdateQueue",
+      "method": "PATCH",
+      "path": "/api/v1/queue/:id",
       "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "AddToQueueFromPlaylist",
-      "method": "POST",
-      "path": "/api/v1/queue/:id/add/playlist/:playlistId",
-      "responseType": "",
-      "bodyType": "AddToQueue"
+      "bodyType": "UpdateQueueBody"
     },
     {
       "name": "GetQueueItems",
@@ -1627,11 +1683,25 @@
       "bodyType": ""
     },
     {
-      "name": "UpdateQueue",
-      "method": "PATCH",
-      "path": "/api/v1/queue/:id",
+      "name": "AddToQueueFromPlaylist",
+      "method": "POST",
+      "path": "/api/v1/queue/:id/add/playlist",
       "responseType": "",
-      "bodyType": "UpdateQueueBody"
+      "bodyType": "AddToQueuePlaylistBody"
+    },
+    {
+      "name": "AddToQueueFromTaglist",
+      "method": "POST",
+      "path": "/api/v1/queue/:id/add/taglist",
+      "responseType": "",
+      "bodyType": "AddToQueueTaglistBody"
+    },
+    {
+      "name": "AddToQueueFromAlbum",
+      "method": "POST",
+      "path": "/api/v1/queue/:id/add/album",
+      "responseType": "",
+      "bodyType": "AddToQueueAlbumBody"
     },
     {
       "name": "Signup",

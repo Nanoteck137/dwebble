@@ -401,8 +401,8 @@ func (c *Client) ClearQueue(id string, options Options) (*any, error) {
 	return Request[any](data)
 }
 
-func (c *Client) AddToQueueFromAlbum(id string, albumId string, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v/add/album/%v", id, albumId)
+func (c *Client) UpdateQueue(id string, body UpdateQueueBody, options Options) (*any, error) {
+	path := Sprintf("/api/v1/queue/%v", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err
@@ -410,23 +410,7 @@ func (c *Client) AddToQueueFromAlbum(id string, albumId string, options Options)
 
 	data := RequestData{
 		Url: url,
-		Method: "POST",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[any](data)
-}
-
-func (c *Client) AddToQueueFromPlaylist(id string, playlistId string, body AddToQueue, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v/add/playlist/%v", id, playlistId)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
+		Method: "PATCH",
 		Token: c.token,
 		Body: body,
 	}
@@ -449,8 +433,8 @@ func (c *Client) GetQueueItems(id string, options Options) (*GetQueueItems, erro
 	return Request[GetQueueItems](data)
 }
 
-func (c *Client) UpdateQueue(id string, body UpdateQueueBody, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v", id)
+func (c *Client) AddToQueueFromPlaylist(id string, body AddToQueuePlaylistBody, options Options) (*any, error) {
+	path := Sprintf("/api/v1/queue/%v/add/playlist", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err
@@ -458,7 +442,39 @@ func (c *Client) UpdateQueue(id string, body UpdateQueueBody, options Options) (
 
 	data := RequestData{
 		Url: url,
-		Method: "PATCH",
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
+func (c *Client) AddToQueueFromTaglist(id string, body AddToQueueTaglistBody, options Options) (*any, error) {
+	path := Sprintf("/api/v1/queue/%v/add/taglist", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[any](data)
+}
+
+func (c *Client) AddToQueueFromAlbum(id string, body AddToQueueAlbumBody, options Options) (*any, error) {
+	path := Sprintf("/api/v1/queue/%v/add/album", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
 		Token: c.token,
 		Body: body,
 	}
