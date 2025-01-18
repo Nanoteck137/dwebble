@@ -57,14 +57,10 @@
         <ListPlus />
         Append to Queue
       </DropdownMenu.Item>
-      <DropdownMenu.Item
-        onSelect={() => {
-          goto(`/albums/${data.album.id}/edit`);
-        }}
-      >
+      <DropdownMenu.Link href="/albums/{data.album.id}/edit">
         <Pencil />
         Edit Album
-      </DropdownMenu.Item>
+      </DropdownMenu.Link>
     </DropdownMenu.Group>
   {/snippet}
 </TrackListHeader>
