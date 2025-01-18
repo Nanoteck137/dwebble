@@ -70,7 +70,7 @@
           </button>
           <p>{data.track.name.default}</p>
         </div>
-        <EditTrackItem {apiClient} bind:track />
+        <EditTrackItem bind:track />
       </div>
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">
