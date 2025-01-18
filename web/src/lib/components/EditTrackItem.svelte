@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { openArtistQuery } from "$lib";
-  import type { ApiClient } from "$lib/api/client";
+  import { getApiClient, openArtistQuery } from "$lib";
   import type { EditTrackData } from "$lib/types";
   import { Button, Input, Label } from "@nanoteck137/nano-ui";
   import { Plus, X } from "lucide-svelte";
 
   type Props = {
-    apiClient: ApiClient;
     track: EditTrackData;
   };
 
-  const { apiClient, track = $bindable() }: Props = $props();
+  const { track = $bindable() }: Props = $props();
+  const apiClient = getApiClient();
 </script>
 
 <div class="flex flex-col gap-2">
@@ -64,7 +63,7 @@
       class="justify-start"
       variant="ghost"
       onclick={async () => {
-        const res = await openArtistQuery({ apiClient });
+        const res = await openArtistQuery({});
         if (res) {
           track.artist = res;
         }
@@ -82,7 +81,7 @@
       class="hover:cursor-pointer"
       tabindex={7}
       onclick={async () => {
-        const res = await openArtistQuery({ apiClient });
+        const res = await openArtistQuery({});
         if (res) {
           const index = track.featuringArtists.findIndex(
             (a) => a.id === res.id,

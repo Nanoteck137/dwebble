@@ -2,7 +2,6 @@
   import { goto } from "$app/navigation";
   import { getApiClient, handleApiError, openArtistQuery } from "$lib";
   import type { UIArtist } from "$lib/types.js";
-  import { formatError } from "$lib/utils";
   import {
     Breadcrumb,
     Button,
@@ -12,7 +11,6 @@
     Label,
     Switch,
   } from "@nanoteck137/nano-ui";
-  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -147,7 +145,7 @@
       <Button
         variant="outline"
         onclick={async () => {
-          const res = await openArtistQuery({ apiClient });
+          const res = await openArtistQuery({});
           if (res) {
             artist = res;
           }

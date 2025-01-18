@@ -1,19 +1,18 @@
 <script lang="ts">
+  import { getApiClient, handleApiError } from "$lib";
   import type { ApiClient } from "$lib/api/client";
   import type { Playlist, Track } from "$lib/api/types";
-  import { formatError } from "$lib/utils";
   import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
   import toast from "svelte-5-french-toast";
   import type { ModalProps } from "svelte-modals";
 
   export type Props = {
-    apiClient: ApiClient;
     track: Track;
     playlists: Playlist[];
   };
 
-  const { apiClient, track, playlists, isOpen, close }: Props & ModalProps =
-    $props();
+  const { track, playlists, isOpen, close }: Props & ModalProps = $props();
+  const apiClient = getApiClient();
 </script>
 
 <Dialog.Root
@@ -43,11 +42,11 @@
               if (!res.success) {
                 if (res.error.type === "PLAYLIST_ALREADY_HAS_TRACK") {
                   toast.error("Track already in playlist");
-                  return;
                 } else {
-                  toast.error("Unknown error");
-                  throw formatError(res.error);
+                  handleApiError(res.error);
                 }
+
+                return;
               }
 
               toast.success("Track added to playlist");

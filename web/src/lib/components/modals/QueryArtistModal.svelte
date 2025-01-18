@@ -1,24 +1,19 @@
 <script lang="ts">
-  import { openInput } from "$lib";
+  import { getApiClient, handleApiError, openInput } from "$lib";
   import type { ApiClient } from "$lib/api/client";
-  import { GetArtistById } from "$lib/api/types";
   import type { QueryArtist, UIArtist } from "$lib/types";
-  import { formatError } from "$lib/utils";
   import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
   import toast from "svelte-5-french-toast";
   import type { ModalProps } from "svelte-modals";
 
   export type Props = {
     title?: string;
-    apiClient: ApiClient;
   };
 
-  const {
-    title,
-    apiClient,
-    isOpen,
-    close,
-  }: Props & ModalProps<UIArtist | null> = $props();
+  const { title, isOpen, close }: Props & ModalProps<UIArtist | null> =
+    $props();
+
+  const apiClient = getApiClient();
 
   let currentQuery = $state("");
   let queryResults = $state<QueryArtist[]>([]);
@@ -76,12 +71,11 @@
           const artist = await apiClient.getArtistById(res);
           if (!artist.success) {
             if (artist.error.type === "ARTIST_NOT_FOUND") {
-              toast.error("Failed to find an artist with that id");
+              toast.error("No artist with id");
             } else {
-              toast.error("Unknown error");
+              handleApiError(artist.error);
             }
 
-            console.error(formatError(artist.error));
             return;
           }
 
@@ -106,16 +100,14 @@
             otherName: "",
           });
           if (!res.success) {
-            // TODO(patrik): Should the toast include the error message?
-            toast.error("Unknown error");
-            throw formatError(res.error);
+            handleApiError(res.error);
+            return;
           }
 
           const artist = await apiClient.getArtistById(res.data.id);
           if (!artist.success) {
-            // TODO(patrik): Should the toast include the error message?
-            toast.error("Unknown error");
-            throw formatError(artist.error);
+            handleApiError(artist.error);
+            return;
           }
 
           close({ id: artist.data.id, name: artist.data.name.default });
@@ -134,7 +126,6 @@
             title={result.id}
             onclick={() => {
               close(result);
-              // data.onArtistSelected(result);
             }}
           >
             {result.name}

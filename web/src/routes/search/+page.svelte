@@ -3,7 +3,6 @@
   import AlbumListItem from "$lib/components/AlbumListItem.svelte";
   import ArtistListItem from "$lib/components/ArtistListItem.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
-  import { formatError } from "$lib/utils";
   import { Button, Input, Label } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
@@ -36,6 +35,11 @@
       invalidateAll();
     }
   });
+
+  function formatError(err: { type: string; code: number; message: string }) {
+    // TODO(patrik): Better error
+    return err.message;
+  }
 </script>
 
 <form

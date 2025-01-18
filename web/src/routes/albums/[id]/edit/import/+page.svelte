@@ -4,9 +4,7 @@
   import type { UploadTrackBody } from "$lib/api/types.js";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import type { EditTrackData, UIArtist } from "$lib/types.js";
-  import { formatError } from "$lib/utils.js";
   import { Breadcrumb, Button, Card, Separator } from "@nanoteck137/nano-ui";
-  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -103,7 +101,7 @@
     <Card.Content class="flex flex-col gap-4">
       {#each tracks as track, i}
         <p>{track.file.name}</p>
-        <EditTrackItem {apiClient} bind:track={tracks[i]} />
+        <EditTrackItem bind:track={tracks[i]} />
         <Separator />
       {/each}
 

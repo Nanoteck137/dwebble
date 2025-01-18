@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { getApiClient, handleApiError, openConfirm } from "$lib";
-  import { cn, formatError } from "$lib/utils";
+  import { cn } from "$lib/utils";
   import {
     Breadcrumb,
     buttonVariants,
@@ -106,11 +106,7 @@
                 if (confirmed) {
                   const res = await apiClient.deleteArtist(data.artist.id);
                   if (!res.success) {
-                    toast.error(
-                      "Failed to delete artist: " + formatError(res.error),
-                    );
-                    console.error(formatError(res.error), res.error);
-
+                    handleApiError(res.error);
                     return;
                   }
 

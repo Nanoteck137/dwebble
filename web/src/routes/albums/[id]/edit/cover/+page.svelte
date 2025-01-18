@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getApiClient, handleApiError } from "$lib";
-  import { formatError } from "$lib/utils.js";
   import {
     Breadcrumb,
     Button,
@@ -8,7 +7,6 @@
     Input,
     Label,
   } from "@nanoteck137/nano-ui";
-  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = getApiClient();

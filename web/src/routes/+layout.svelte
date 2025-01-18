@@ -14,7 +14,7 @@
     Users,
   } from "lucide-svelte";
   import "../app.css";
-  import AudioPlayer from "$lib/components/AudioPlayer.svelte";
+  import AudioPlayer from "$lib/components/audio/AudioPlayer.svelte";
   import Link from "$lib/components/Link.svelte";
   import { browser } from "$app/environment";
   import { fade, fly } from "svelte/transition";

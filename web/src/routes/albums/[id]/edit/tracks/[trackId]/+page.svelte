@@ -3,10 +3,8 @@
   import { getApiClient, handleApiError } from "$lib";
   import EditTrackItem from "$lib/components/EditTrackItem.svelte";
   import { type EditTrackData } from "$lib/types.js";
-  import { formatError } from "$lib/utils";
   import { Button, Card } from "@nanoteck137/nano-ui";
   import { Play } from "lucide-svelte";
-  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const apiClient = getApiClient();

@@ -6,8 +6,7 @@
     Separator,
   } from "@nanoteck137/nano-ui";
   import { Check, EllipsisVertical, FileHeart } from "lucide-svelte";
-  import { cn, formatError } from "$lib/utils";
-  import toast from "svelte-5-french-toast";
+  import { cn } from "$lib/utils";
   import { invalidateAll } from "$app/navigation";
   import { getApiClient, handleApiError } from "$lib";
 

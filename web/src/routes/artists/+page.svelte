@@ -2,7 +2,7 @@
   import { goto, invalidateAll } from "$app/navigation";
   import { getApiClient, handleApiError } from "$lib";
   import { Artist } from "$lib/api/types";
-  import { cn, formatError, formatName } from "$lib/utils";
+  import { cn, formatName } from "$lib/utils";
   import {
     Button,
     buttonVariants,
