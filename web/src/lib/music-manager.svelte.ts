@@ -3,6 +3,10 @@ import type { MusicTrack } from "$lib/api/types";
 import { type Emitter, createNanoEvents } from "nanoevents";
 import { getContext, setContext } from "svelte";
 
+type AddToQueueSettings = {
+  shuffle?: boolean;
+};
+
 export abstract class Queue {
   items: MusicTrack[] = [];
   index: number = 0;
@@ -41,11 +45,26 @@ export abstract class Queue {
 
   abstract clearQueue(): Promise<void>;
 
-  // eslint-disable-next-line no-unused-vars
-  abstract addFromAlbum(albumId: string): Promise<void>;
+  abstract addFromPlaylist(
+    // eslint-disable-next-line no-unused-vars
+    playlistId: string,
+    // eslint-disable-next-line no-unused-vars
+    settings?: AddToQueueSettings,
+  ): Promise<void>;
 
-  // eslint-disable-next-line no-unused-vars
-  abstract addFromPlaylist(playlistId: string): Promise<void>;
+  abstract addFromTaglist(
+    // eslint-disable-next-line no-unused-vars
+    taglistId: string,
+    // eslint-disable-next-line no-unused-vars
+    settings?: AddToQueueSettings,
+  ): Promise<void>;
+
+  abstract addFromAlbum(
+    // eslint-disable-next-line no-unused-vars
+    albumId: string,
+    // eslint-disable-next-line no-unused-vars
+    settings?: AddToQueueSettings,
+  ): Promise<void>;
 }
 
 export class BackendQueue extends Queue {
@@ -84,23 +103,32 @@ export class BackendQueue extends Queue {
     }
   }
 
-  async addFromAlbum(albumId: string) {
+  async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle errors
-    const res = await this.apiClient.addToQueueFromAlbum(
-      this.queueId,
+    const res = await this.apiClient.addToQueueFromAlbum(this.queueId, {
       albumId,
-    );
+      shuffle: settings?.shuffle,
+    });
     if (res.success) {
       await this.refetchQueue();
     }
   }
 
-  async addFromPlaylist(playlistId: string) {
-    const res = await this.apiClient.addToQueueFromPlaylist(
-      this.queueId,
+  async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
+    const res = await this.apiClient.addToQueueFromPlaylist(this.queueId, {
       playlistId,
-      {},
-    );
+      shuffle: settings?.shuffle,
+    });
+    if (res.success) {
+      await this.refetchQueue();
+    }
+  }
+
+  async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
+    const res = await this.apiClient.addToQueueFromTaglist(this.queueId, {
+      taglistId,
+      shuffle: settings?.shuffle,
+    });
     if (res.success) {
       await this.refetchQueue();
     }
@@ -129,7 +157,7 @@ export class LocalQueue extends Queue {
     this.index = 0;
   }
 
-  async addFromAlbum(albumId: string) {
+  async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
     const res = await this.apiClient.getAlbumTracksForPlay(albumId);
     if (res.success) {
@@ -139,7 +167,11 @@ export class LocalQueue extends Queue {
     }
   }
 
-  async addFromPlaylist(playlistId: string) {
+  async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
+    throw new Error("Method not implemented.");
+  }
+
+  async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
     throw new Error("Method not implemented.");
   }
 }
@@ -165,13 +197,18 @@ export class MusicManager {
     this.emitter.emit("onQueueUpdated");
   }
 
-  async addFromAlbum(albumId: string) {
-    await this.queue.addFromAlbum(albumId);
+  async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
+    await this.queue.addFromAlbum(albumId, settings);
     this.emitter.emit("onQueueUpdated");
   }
 
-  async addFromPlaylist(playlistId: string) {
-    await this.queue.addFromPlaylist(playlistId);
+  async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
+    await this.queue.addFromPlaylist(playlistId, settings);
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
+    await this.queue.addFromTaglist(taglistId, settings);
     this.emitter.emit("onQueueUpdated");
   }
 

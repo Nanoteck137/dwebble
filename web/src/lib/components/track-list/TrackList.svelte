@@ -31,7 +31,7 @@
     quickPlaylist?: string | null;
     isInQuickPlaylist: (trackId: string) => boolean;
 
-    onPlay: () => void;
+    onPlay: (shuffle: boolean) => void;
     onTrackPlay: (trackId: string) => void;
   };
 
@@ -56,11 +56,7 @@
         size="sm"
         variant="ghost"
         onclick={() => {
-          onPlay();
-          // musicManager.clearQueue();
-          // for (const track of tracks) {
-          //   musicManager.addTrackToQueue(trackToMusicTrack(track));
-          // }
+          onPlay(false);
         }}
       >
         <Play />
@@ -80,11 +76,7 @@
         size="sm"
         variant="ghost"
         onclick={() => {
-          // const newTracks = shuffle([...tracks]);
-          // musicManager.clearQueue();
-          // for (const track of newTracks) {
-          //   musicManager.addTrackToQueue(trackToMusicTrack(track));
-          // }
+          onPlay(true);
         }}
       >
         <Shuffle />

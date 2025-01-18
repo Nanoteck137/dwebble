@@ -33,7 +33,7 @@
 
   let { children, data } = $props();
 
-  const apiClient = createApiClient(data);
+  let apiClient = createApiClient(data);
 
   let musicManager: MusicManager;
   if (browser) {
@@ -51,6 +51,8 @@
 
   $effect(() => {
     if (!browser) return;
+
+    apiClient = createApiClient(data);
 
     if (data.user) {
       console.log("Backend");

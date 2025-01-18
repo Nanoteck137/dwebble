@@ -42,6 +42,14 @@ export function createApiClient(data: {
   return apiClient;
 }
 
+export function isInQuickPlaylist(
+  data: { quickPlaylistIds: string[] },
+  trackId: string,
+) {
+  if (!data.quickPlaylistIds) return false;
+  return !!data.quickPlaylistIds.find((v) => v === trackId);
+}
+
 type GetApiClient = () => ApiClient;
 
 export function artistQuery(getApiClient: GetApiClient) {

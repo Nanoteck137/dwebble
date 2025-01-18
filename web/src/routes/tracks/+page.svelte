@@ -3,7 +3,7 @@
   import { Button, Input, Pagination } from "@nanoteck137/nano-ui";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
-  import { createApiClient } from "$lib";
+  import { createApiClient, isInQuickPlaylist } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
 
   let { data } = $props();
@@ -48,10 +48,7 @@
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}
   quickPlaylist={data.user?.quickPlaylist}
-  isInQuickPlaylist={(trackId) => {
-    if (!data.quickPlaylistIds) return false;
-    return !!data.quickPlaylistIds.find((v) => v === trackId);
-  }}
+  isInQuickPlaylist={(trackId) => isInQuickPlaylist(data, trackId)}
   onPlay={() => {}}
   onTrackPlay={(trackId) => {}}
 />

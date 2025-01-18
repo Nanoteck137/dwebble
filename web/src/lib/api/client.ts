@@ -108,20 +108,24 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/queue/${id}/clear`, "POST", z.undefined(), z.any(), undefined, options)
   }
   
-  addToQueueFromAlbum(id: string, albumId: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}/add/album/${albumId}`, "POST", z.undefined(), z.any(), undefined, options)
-  }
-  
-  addToQueueFromPlaylist(id: string, playlistId: string, body: api.AddToQueue, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}/add/playlist/${playlistId}`, "POST", z.undefined(), z.any(), body, options)
+  updateQueue(id: string, body: api.UpdateQueueBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}`, "PATCH", z.undefined(), z.any(), body, options)
   }
   
   getQueueItems(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/queue/${id}/items`, "GET", api.GetQueueItems, z.any(), undefined, options)
   }
   
-  updateQueue(id: string, body: api.UpdateQueueBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}`, "PATCH", z.undefined(), z.any(), body, options)
+  addToQueueFromPlaylist(id: string, body: api.AddToQueuePlaylistBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}/add/playlist`, "POST", z.undefined(), z.any(), body, options)
+  }
+  
+  addToQueueFromTaglist(id: string, body: api.AddToQueueTaglistBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}/add/taglist`, "POST", z.undefined(), z.any(), body, options)
+  }
+  
+  addToQueueFromAlbum(id: string, body: api.AddToQueueAlbumBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/queue/${id}/add/album`, "POST", z.undefined(), z.any(), body, options)
   }
   
   signup(body: api.SignupBody, options?: ExtraOptions) {

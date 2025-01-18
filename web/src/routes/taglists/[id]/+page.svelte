@@ -3,11 +3,13 @@
   import { page } from "$app/stores";
   import { createApiClient, openConfirm } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
+  import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { Breadcrumb, Button, Input, Pagination } from "@nanoteck137/nano-ui";
   import { Filter } from "lucide-svelte";
 
   const { data } = $props();
   const apiClient = createApiClient(data);
+  const musicManager = getMusicManager();
 </script>
 
 <div class="py-2">
@@ -86,7 +88,11 @@
     if (!data.quickPlaylistIds) return false;
     return !!data.quickPlaylistIds.find((v) => v === trackId);
   }}
-  onPlay={() => {}}
+  onPlay={async (shuffle) => {
+    await musicManager.clearQueue();
+    await musicManager.addFromTaglist(data.taglist.id, { shuffle });
+    musicManager.requestPlay();
+  }}
   onTrackPlay={(trackId) => {}}
 />
 

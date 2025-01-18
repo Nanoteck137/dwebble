@@ -244,11 +244,11 @@ export const Queue = z.object({
 });
 export type Queue = z.infer<typeof Queue>;
 
-export const AddToQueue = z.object({
-  shuffle: z.boolean().optional(),
-  addToFront: z.boolean().optional(),
+export const UpdateQueueBody = z.object({
+  name: z.string().nullable().optional(),
+  itemIndex: z.number().nullable().optional(),
 });
-export type AddToQueue = z.infer<typeof AddToQueue>;
+export type UpdateQueueBody = z.infer<typeof UpdateQueueBody>;
 
 export const QueueItem = z.object({
   id: z.string(),
@@ -267,11 +267,32 @@ export const GetQueueItems = z.object({
 });
 export type GetQueueItems = z.infer<typeof GetQueueItems>;
 
-export const UpdateQueueBody = z.object({
-  name: z.string().nullable().optional(),
-  itemIndex: z.number().nullable().optional(),
+export const AddToQueue = z.object({
+  shuffle: z.boolean().optional(),
+  addToFront: z.boolean().optional(),
 });
-export type UpdateQueueBody = z.infer<typeof UpdateQueueBody>;
+export type AddToQueue = z.infer<typeof AddToQueue>;
+
+export const AddToQueuePlaylistBody = z.object({
+  shuffle: z.boolean().optional(),
+  addToFront: z.boolean().optional(),
+  playlistId: z.string(),
+});
+export type AddToQueuePlaylistBody = z.infer<typeof AddToQueuePlaylistBody>;
+
+export const AddToQueueTaglistBody = z.object({
+  shuffle: z.boolean().optional(),
+  addToFront: z.boolean().optional(),
+  taglistId: z.string(),
+});
+export type AddToQueueTaglistBody = z.infer<typeof AddToQueueTaglistBody>;
+
+export const AddToQueueAlbumBody = z.object({
+  shuffle: z.boolean().optional(),
+  addToFront: z.boolean().optional(),
+  albumId: z.string(),
+});
+export type AddToQueueAlbumBody = z.infer<typeof AddToQueueAlbumBody>;
 
 export const Signup = z.object({
   id: z.string(),
