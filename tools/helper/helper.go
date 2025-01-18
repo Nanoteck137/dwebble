@@ -83,14 +83,10 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 
 	log.Info("Found media type", "type", mediaType)
 
-	// // TODO(patrik): Replace this with ffprobe.v2 package
-	// trackInfo, err := utils.GetTrackInfo(data.InputFile)
-	// if err != nil {
-	// 	return "", err
-	// }
-
-	// TODO(patrik): Get from the probe
-	var duration int64 = 0
+	probe, err := utils.ProbeTrack(data.InputFile)
+	if err != nil {
+		return "", err
+	}
 
 	trackId, err = db.CreateTrack(ctx, database.CreateTrackParams{
 		Id:   trackId,
@@ -101,7 +97,7 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		},
 		AlbumId:  data.AlbumId,
 		ArtistId: data.ArtistId,
-		Duration: duration,
+		Duration: int64(probe.Duration),
 		Number: sql.NullInt64{
 			Int64: data.Number,
 			Valid: data.Number != 0,
@@ -115,36 +111,73 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		return "", err
 	}
 
-	mediaId := utils.CreateTrackMediaId()
-	mediaDir := trackDir.MediaItem(mediaId)
-
+	// Process the original version of the media
 	{
-		dirs := []string{
-			mediaDir,
-		}
+		mediaId := utils.CreateTrackMediaId()
+		mediaDir := trackDir.MediaItem(mediaId)
 
-		for _, dir := range dirs {
-			err := os.Mkdir(dir, 0755)
-			if err != nil && !os.IsExist(err) {
-				return "", err
+		{
+			dirs := []string{
+				mediaDir,
+			}
+
+			for _, dir := range dirs {
+				err := os.Mkdir(dir, 0755)
+				if err != nil && !os.IsExist(err) {
+					return "", err
+				}
 			}
 		}
+
+		original, err := utils.ProcessOriginalVersion(data.InputFile, mediaDir, "track")
+		if err != nil {
+			return "", err
+		}
+
+		err = db.CreateTrackMedia(ctx, database.CreateTrackMediaParams{
+			Id:         mediaId,
+			TrackId:    trackId,
+			Filename:   original,
+			MediaType:  mediaType,
+			IsOriginal: true,
+		})
+		if err != nil {
+			return "", err
+		}
 	}
 
-	original, err := utils.ProcessOriginalVersion(data.InputFile, mediaDir, "track")
-	if err != nil {
-		return "", err
-	}
+	// Process the original version of the media
+	{
+		mediaId := utils.CreateTrackMediaId()
+		mediaDir := trackDir.MediaItem(mediaId)
 
-	err = db.CreateTrackMedia(ctx, database.CreateTrackMediaParams{
-		Id:         mediaId,
-		TrackId:    trackId,
-		Filename:   original,
-		MediaType:  mediaType,
-		IsOriginal: true,
-	})
-	if err != nil {
-		return "", err
+		{
+			dirs := []string{
+				mediaDir,
+			}
+
+			for _, dir := range dirs {
+				err := os.Mkdir(dir, 0755)
+				if err != nil && !os.IsExist(err) {
+					return "", err
+				}
+			}
+		}
+
+		original, err := utils.ProcessLossyVersion(data.InputFile, mediaDir, "track")
+		if err != nil {
+			return "", err
+		}
+
+		err = db.CreateTrackMedia(ctx, database.CreateTrackMediaParams{
+			Id:         mediaId,
+			TrackId:    trackId,
+			Filename:   original,
+			MediaType:  mediaType,
+		})
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return trackId, nil

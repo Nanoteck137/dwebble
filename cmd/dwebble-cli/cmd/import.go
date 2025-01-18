@@ -265,7 +265,6 @@ func parseArtist(s string) []string {
 }
 
 func getTrackInfo(p string) (TrackInfo, error) {
-
 	probe, err := utils.ProbeTrack(p)
 	if err != nil {
 		return TrackInfo{}, err
@@ -273,23 +272,18 @@ func getTrackInfo(p string) (TrackInfo, error) {
 
 	var res TrackInfo
 
-	if tag, exists := probe.Tags["title"]; exists {
-		res.Name = tag
-	}
+	res.Name, _ = probe.Tags.GetString("title")
+	res.Artist, _ = probe.Tags.GetString("artist")
 
-	if tag, exists := probe.Tags["artist"]; exists {
-		res.Artist = tag
-	}
-
-	if tag, exists := probe.Tags["date"]; exists {
+	if tag, err := probe.Tags.GetString("date"); err == nil {
 		match := dateRegex.FindStringSubmatch(tag)
 		if len(match) > 0 {
 			res.Year, _ = strconv.Atoi(match[1])
 		}
-	}
+	} 
 
-	if tag, exists := probe.Tags["track"]; exists {
-		res.Number, _ = strconv.Atoi(tag)
+	if tag, err := probe.Tags.GetInt("track"); err == nil {
+		res.Number = int(tag)
 	}
 
 	return res, nil
@@ -358,32 +352,28 @@ var importCmd = &cobra.Command{
 		isSingle := len(tracks) == 1
 
 		if !isSingle {
-			if tag, exists := probe.Tags["album"]; exists {
-				name = tag
-			}
+			name, _ = probe.Tags.GetString("album")
 		} else {
 			// NOTE(patrik): If we only have one track then we make the
 			// album name the same as the track name
-			if tag, exists := probe.Tags["title"]; exists {
-				name = tag
-			}
+			name, _ = probe.Tags.GetString("title")
 		}
 
 		if !isSingle {
-			if tag, exists := probe.Tags["album_artist"]; exists {
+			if tag, err := probe.Tags.GetString("album_artist"); err == nil {
 				artists = parseArtist(tag)
 			} else {
-				if tag, exists := probe.Tags["artist"]; exists {
+				if tag, err := probe.Tags.GetString("artist"); err == nil {
 					artists = parseArtist(tag)
 				}
 			}
 		} else {
-			if tag, exists := probe.Tags["artist"]; exists {
+			if tag, err := probe.Tags.GetString("artist"); err == nil {
 				artists = parseArtist(tag)
 			}
 		}
 
-		if tag, exists := probe.Tags["date"]; exists {
+		if tag, err := probe.Tags.GetString("date"); err == nil {
 			match := dateRegex.FindStringSubmatch(tag)
 			if len(match) > 0 {
 				year, _ = strconv.Atoi(match[1])
@@ -391,7 +381,7 @@ var importCmd = &cobra.Command{
 		}
 
 		// NOTE(patrik): Try to extract the real year if yt-dlp has been used
-		if tag, exists := probe.Tags["synopsis"]; exists {
+		if tag, err := probe.Tags.GetString("synopsis"); err == nil {
 			fmt.Printf("tag: %v\n", tag)
 
 			lines := strings.Split(tag, "\n")

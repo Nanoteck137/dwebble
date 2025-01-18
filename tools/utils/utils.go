@@ -102,3 +102,36 @@ func ExtractNumber(s string) int {
 
 	return int(i)
 }
+
+var validImageExts = []string{
+	".png",
+	".jpg",
+	".jpeg",
+}
+
+func IsValidImageExt(ext string) bool {
+	for _, e := range validImageExts {
+		if ext == e {
+			return true
+		}
+	}
+
+	return false
+}
+
+// TODO(patrik): Update this
+var validExts []string = []string{
+	".wav",
+	".flac",
+	".opus",
+}
+
+func IsValidTrackExt(ext string) bool {
+	for _, valid := range validExts {
+		if valid == ext {
+			return true
+		}
+	}
+
+	return false
+}
