@@ -68,17 +68,25 @@ func (d OldWorkDir) Track(id string) string {
 var migrateCmd = &cobra.Command{
 	Use: "migrate",
 	Run: func(cmd *cobra.Command, args []string) {
+		input, _ := cmd.Flags().GetString("input")
+		output, _ := cmd.Flags().GetString("output")
+
+		err := os.MkdirAll(output, 0755)
+		if err != nil {
+			log.Fatal("Failed to create output", "err", err, "output", output)
+		}
+
 		app := core.NewBaseApp(&config.Config{
 			RunMigrations: true,
-			DataDir:       "./work",
+			DataDir:       output,
 		})
 
-		err := app.Bootstrap()
+		err = app.Bootstrap()
 		if err != nil {
 			log.Fatal("Failed to bootstrap app", "err", err)
 		}
 
-		oldWorkDir := OldWorkDir("../dwebble_data_work")
+		oldWorkDir := OldWorkDir(input)
 
 		olddb, err := olddb.Open(oldWorkDir.DatabaseFile())
 		if err != nil {
@@ -299,7 +307,7 @@ var migrateCmd = &cobra.Command{
 					TrackId:    track.Id,
 					Filename:   original,
 					MediaType:  mediaType,
-						IsOriginal: true,
+					IsOriginal: true,
 				})
 				if err != nil {
 					log.Fatal("Failed to create track media", "err", err, "track", track, "path", p)
@@ -356,10 +364,10 @@ var migrateCmd = &cobra.Command{
 					log.Info("Found lossy media type", "type", mediaType)
 
 					err = app.DB().CreateTrackMedia(ctx, database.CreateTrackMediaParams{
-						Id:         mediaId,
-						TrackId:    track.Id,
-						Filename:   original,
-						MediaType:  mediaType,
+						Id:        mediaId,
+						TrackId:   track.Id,
+						Filename:  original,
+						MediaType: mediaType,
 					})
 					if err != nil {
 						log.Fatal("Failed to create track media", "err", err, "track", track, "path", p)
@@ -465,7 +473,6 @@ var migrateCmd = &cobra.Command{
 				}
 			}
 
-
 			f, err := os.Create(app.WorkDir().SetupFile())
 			if err != nil {
 				log.Fatal("Failed to create setup file", "err", err)
@@ -476,5 +483,13 @@ var migrateCmd = &cobra.Command{
 }
 
 func init() {
+	migrateCmd.Flags().String("input", "", "Input Directory")
+	migrateCmd.MarkFlagRequired("input")
+	migrateCmd.MarkFlagDirname("input")
+
+	migrateCmd.Flags().String("output", "", "Output Directory")
+	migrateCmd.MarkFlagRequired("output")
+	migrateCmd.MarkFlagDirname("output")
+
 	rootCmd.AddCommand(migrateCmd)
 }
