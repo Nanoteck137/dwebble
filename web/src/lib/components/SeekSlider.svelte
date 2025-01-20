@@ -45,7 +45,6 @@
         const rect = sliderDiv!.getBoundingClientRect();
         const x = e.clientX - rect.x;
         let percent = x / rect.width;
-        console.log(percent);
 
         if (percent > 1.0) percent = 1.0;
         if (percent < 0.0) percent = 0.0;
@@ -83,7 +82,6 @@
         const rect = sliderDiv!.getBoundingClientRect();
         const x = e.touches[0].clientX - rect.x;
         let percent = x / rect.width;
-        console.log(percent);
 
         if (percent > 1.0) percent = 1.0;
         if (percent < 0.0) percent = 0.0;
