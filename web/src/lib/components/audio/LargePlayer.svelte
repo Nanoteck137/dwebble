@@ -14,6 +14,7 @@
   } from "lucide-svelte";
   import type { MusicTrack } from "$lib/api/types";
   import { getMusicManager } from "$lib/music-manager.svelte";
+  import Spinner from "$lib/components/Spinner.svelte";
 
   const musicManager = getMusicManager();
 
@@ -82,7 +83,7 @@
       </div>
 
       <ScrollArea class="h-full pb-6">
-        <div class="flex flex-col gap-2">
+        <div class="mr-3 flex flex-col gap-2">
           {#each queue as track, i}
             <div
               class={`flex items-center gap-2 rounded p-1 ${currentQueueIndex === i ? "bg-accent text-accent-foreground" : ""}`}
@@ -144,25 +145,25 @@
   </div>
 
   <div class="grid h-full grid-cols-footer">
-    <div class="flex items-center">
-      <div class="flex items-center">
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2">
         <button
           onclick={() => {
             onPrevTrack();
           }}
         >
-          <SkipBack size="30" />
+          <SkipBack size={32} />
         </button>
 
         {#if loading}
-          <p>Loading...</p>
+          <Spinner class="h-8 w-8" />
         {:else if playing}
           <button onclick={onPause}>
-            <Pause size={38} />
+            <Pause size={32} />
           </button>
         {:else}
           <button onclick={onPlay}>
-            <Play size={38} />
+            <Play size={32} />
           </button>
         {/if}
 
@@ -171,7 +172,7 @@
             onNextTrack();
           }}
         >
-          <SkipForward size="30" />
+          <SkipForward size={32} />
         </button>
       </div>
 
@@ -179,24 +180,25 @@
         {formatTime(currentTime)} /{" "}
         {formatTime(Number.isNaN(duration) ? 0 : duration)}
       </p>
-    </div>
 
-    <div class="flex items-center justify-center gap-2 align-middle">
-      <img
-        class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
-        src={track?.coverArt.small}
-        alt="cover"
-      />
-      <div class="flex flex-col">
-        <p class="line-clamp-1 text-ellipsis text-sm" title={track?.name}>
-          {track?.name}
-        </p>
+      <div class="flex items-center justify-center gap-2 align-middle">
+        <img
+          class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
+          src={track?.coverArt.small}
+          alt="cover"
+        />
+        <div class="flex flex-col">
+          <p class="line-clamp-1 text-ellipsis text-sm" title={track?.name}>
+            {track?.name}
+          </p>
 
-        <p class="line-clamp-1 min-w-80 text-ellipsis text-xs">
-          {track?.artists[0].artistName}
-        </p>
+          <p class="line-clamp-1 min-w-80 text-ellipsis text-xs">
+            {track?.artists[0].artistName}
+          </p>
+        </div>
       </div>
     </div>
+
     <div class="flex items-center justify-evenly">
       <div class="flex w-full items-center gap-4 p-4">
         <Slider
@@ -218,9 +220,6 @@
         </button>
 
         {@render queueSheet()}
-        <!-- <button onclick={() => {}}>
-          
-        </button> -->
       </div>
     </div>
   </div>

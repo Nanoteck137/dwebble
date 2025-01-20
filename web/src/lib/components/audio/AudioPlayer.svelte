@@ -4,6 +4,7 @@
   import SmallPlayer from "$lib/components/audio/SmallPlayer.svelte";
   import type { MusicTrack } from "$lib/api/types";
   import { getMusicManager } from "$lib/music-manager.svelte";
+  import { browser } from "$app/environment";
 
   const musicManager = getMusicManager();
 
@@ -15,7 +16,7 @@
   let currentTime = $state(0);
   let duration = $state(0);
 
-  let volume = $state(0);
+  let volume = $state(getVolume());
   let muted = $state(false);
 
   let currentTrack = $state<MusicTrack | null>(null);
@@ -23,6 +24,8 @@
   let audio: HTMLAudioElement;
 
   function getVolume(): number {
+    if (!browser) return 1.0;
+
     const volume = localStorage.getItem("player-volume");
     if (volume) {
       return parseFloat(volume);

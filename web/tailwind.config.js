@@ -19,7 +19,7 @@ const config = {
     },
     extend: {
       gridTemplateColumns: {
-        footer: "min-content minmax(400px, 3fr) 1fr",
+        footer: "2fr 230px",
       },
       colors: {
         border: "hsl(var(--border) / <alpha-value>)",
