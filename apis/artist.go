@@ -170,7 +170,9 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				q := c.Request().URL.Query()
 
 				query := strings.TrimSpace(q.Get("query"))
-				artists, err := app.DB().SearchArtists(query)
+				artists, err := app.DB().SearchArtists(query, database.SearchOptions{
+					NumItems: 10,
+				})
 				if err != nil {
 					return nil, err
 				}

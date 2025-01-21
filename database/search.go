@@ -2,135 +2,206 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/core/log"
 )
 
-type ArtistSearch struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
-type TrackSearch struct {
-	Id     string `json:"id"`
-	Name   string `json:"name"`
-	Artist string `json:"artist"`
-	Album  string `json:"album"`
-	Tags   string `json:"tags"`
+type SearchOptions struct {
+	NumItems uint
 }
 
 var replacer = strings.NewReplacer(
 	`"`, "",
 )
 
-func (db *Database) SearchArtists(searchQuery string) ([]Artist, error) {
+func encodeSearchQuery(searchQuery string) (string, bool) {
 	searchQuery = replacer.Replace(searchQuery)
 
 	if searchQuery == "" {
-		return nil, nil
+		return "", false
 	}
 
 	searchQuery = "\"" + searchQuery + "\""
 
-	query := dialect.From("artists_search").
-		Select(
-			"artists.id",
-			"artists.name",
-			"artists.picture",
-		).
-		Prepared(true).
-		Join(
-			ArtistQuery().As("artists"),
-			goqu.On(goqu.I("artists_search.id").Eq(goqu.I("artists.id"))),
-		).
-		Where(
-			goqu.L("? MATCH ?", goqu.T("artists_search"), searchQuery),
-		).
-		Order(goqu.I("rank").Asc()).
-		Limit(10)
+	return searchQuery, true
+}
 
-	var res []Artist
-	err := db.Select(&res, query)
-	if err != nil {
-		return nil, err
+type SearchFunc[T any] func(db *Database, searchQuery string, options SearchOptions) ([]T, error)
+
+type SearchFuncParams struct {
+	Table     string
+	ItemTable string
+
+	ItemQuery *goqu.SelectDataset
+}
+
+func createSearchFunc[T any](params SearchFuncParams) SearchFunc[T] {
+	return func(db *Database, searchQuery string, options SearchOptions) ([]T, error) {
+		searchQuery, ok := encodeSearchQuery(searchQuery)
+		if !ok {
+			return nil, nil
+		}
+
+		tbl := goqu.T(params.Table)
+		targetTbl := goqu.T(params.ItemTable)
+
+		itemQuery := params.ItemQuery
+
+		query := dialect.From(tbl).
+			Select(
+				targetTbl.Col("*"),
+			).
+			Prepared(true).
+			Join(
+				itemQuery.As(targetTbl.GetTable()),
+				goqu.On(
+					tbl.Col("id").Eq(targetTbl.Col("id")),
+				),
+			).
+			Where(
+				goqu.L("? MATCH ?", tbl, searchQuery),
+			).
+			Order(goqu.I("rank").Asc()).
+			Limit(options.NumItems)
+
+		sql, params, _ := query.ToSQL()
+		fmt.Printf("sql: %v\n", sql)
+		fmt.Printf("params: %v\n", params)
+
+		var res []T
+		err := db.Select(&res, query)
+		if err != nil {
+			return nil, err
+		}
+
+		return res, nil
 	}
+}
 
-	return res, nil
+var TestSearchArtist = createSearchFunc[Artist](SearchFuncParams{
+	Table:     "artists_search",
+	ItemTable: "artists",
+	ItemQuery: ArtistQuery(),
+})
+
+var TestSearchAlbums = createSearchFunc[Album](SearchFuncParams{
+	Table:     "albums_search",
+	ItemTable: "albums",
+	ItemQuery: AlbumQuery(),
+})
+
+var TestSearchTracks = createSearchFunc[Track](SearchFuncParams{
+	Table:     "tracks_search",
+	ItemTable: "tracks",
+	ItemQuery: TrackQuery(),
+})
+
+func (db *Database) SearchArtists(searchQuery string, options SearchOptions) ([]Artist, error) {
+	// searchQuery, ok := encodeSearchQuery(searchQuery)
+	// if !ok {
+	// 	return nil, nil
+	// }
+	//
+	// tbl := goqu.T("artists_search")
+	// targetTbl := goqu.T("artists")
+	//
+	// query := dialect.From(tbl).
+	// 	Select(
+	// 		targetTbl.Col("*"),
+	// 	).
+	// 	Prepared(true).
+	// 	Join(
+	// 		ArtistQuery().As(targetTbl.GetTable()),
+	// 		goqu.On(
+	// 			tbl.Col("id").Eq(targetTbl.Col("id")),
+	// 		),
+	// 	).
+	// 	Where(
+	// 		goqu.L("? MATCH ?", tbl, searchQuery),
+	// 	).
+	// 	Order(goqu.I("rank").Asc()).
+	// 	Limit(options.NumItems)
+	//
+	// sql, params, _ := query.ToSQL()
+	// fmt.Printf("sql: %v\n", sql)
+	// fmt.Printf("params: %v\n", params)
+	//
+	// var res []Artist
+	// err := db.Select(&res, query)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// return res, nil
+
+	return TestSearchArtist(db, searchQuery, options)
 }
 
 func (db *Database) SearchAlbums(searchQuery string) ([]Album, error) {
-	searchQuery = replacer.Replace(searchQuery)
+	// searchQuery, ok := encodeSearchQuery(searchQuery)
+	// if !ok {
+	// 	return nil, nil
+	// }
+	//
+	// query := dialect.From("albums_search").
+	// 	Select("albums.*").
+	// 	Prepared(true).
+	// 	Join(
+	// 		AlbumQuery().As("albums"),
+	// 		goqu.On(goqu.I("albums_search.id").Eq(goqu.I("albums.id"))),
+	// 	).
+	// 	Where(
+	// 		goqu.L("? MATCH ?", goqu.T("albums_search"), searchQuery),
+	// 	).
+	// 	Order(goqu.I("rank").Asc()).
+	// 	Limit(10)
+	//
+	// var res []Album
+	// err := db.Select(&res, query)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// return res, nil
 
-	if searchQuery == "" {
-		return nil, nil
-	}
-
-	searchQuery = "\"" + searchQuery + "\""
-
-	query := dialect.From("albums_search").Select(
-		"albums.id",
-		"albums.name",
-		"albums.artist_id",
-
-		"albums.cover_art",
-		"albums.year",
-
-		"albums.created",
-		"albums.updated",
-
-		"artist_name",
-	).
-		Prepared(true).
-		Join(
-			AlbumQuery().As("albums"),
-			goqu.On(goqu.I("albums_search.id").Eq(goqu.I("albums.id"))),
-		).
-		Where(
-			goqu.L("? MATCH ?", goqu.T("albums_search"), searchQuery),
-		).
-		Order(goqu.I("rank").Asc()).
-		Limit(10)
-
-	var res []Album
-	err := db.Select(&res, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return TestSearchAlbums(db, searchQuery, SearchOptions{
+		NumItems: 10,
+	})
 }
 
 func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
-	searchQuery = replacer.Replace(searchQuery)
+	// searchQuery, ok := encodeSearchQuery(searchQuery)
+	// if !ok {
+	// 	return nil, nil
+	// }
+	//
+	// query := dialect.From("tracks_search").
+	// 	Select("tracks.*").
+	// 	Prepared(true).
+	// 	Join(
+	// 		TrackQuery().As("tracks"),
+	// 		goqu.On(goqu.I("tracks_search.id").Eq(goqu.I("tracks.id"))),
+	// 	).
+	// 	Where(
+	// 		goqu.L("? MATCH ?", goqu.T("tracks_search"), searchQuery),
+	// 	).
+	// 	Order(goqu.I("rank").Asc()).
+	// 	Limit(10)
+	//
+	// var res []Track
+	// err := db.Select(&res, query)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// return res, nil
 
-	if searchQuery == "" {
-		return nil, nil
-	}
-
-	searchQuery = "\"" + searchQuery + "\""
-
-	query := dialect.From("tracks_search").
-		Select("tracks.*").
-		Prepared(true).
-		Join(
-			TrackQuery().As("tracks"),
-			goqu.On(goqu.I("tracks_search.id").Eq(goqu.I("tracks.id"))),
-		).
-		Where(
-			goqu.L("? MATCH ?", goqu.T("tracks_search"), searchQuery),
-		).
-		Order(goqu.I("rank").Asc()).
-		Limit(10)
-
-	var res []Track
-	err := db.Select(&res, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return TestSearchTracks(db, searchQuery, SearchOptions{
+		NumItems: 5,
+	})
 }
 
 func (db *Database) InitializeSearch() error {
