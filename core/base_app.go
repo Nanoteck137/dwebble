@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/nanoteck137/dwebble/config"
@@ -62,6 +63,7 @@ func (app *BaseApp) Bootstrap() error {
 	}
 
 	err = app.db.RefillSearchTables(context.TODO())
+	fmt.Printf("err: %v\n", err)
 	if err != nil {
 		return err
 	}

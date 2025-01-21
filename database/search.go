@@ -2,10 +2,10 @@ package database
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/dwebble/core/log"
 )
 
 type ArtistSearch struct {
@@ -34,25 +34,22 @@ func (db *Database) SearchArtists(searchQuery string) ([]Artist, error) {
 
 	searchQuery = "\"" + searchQuery + "\""
 
-	query := dialect.From("artists_search").Select(
-		"artists.id",
-		"artists.name",
-		"artists.picture",
-	).
+	query := dialect.From("artists_search").
+		Select(
+			"artists.id",
+			"artists.name",
+			"artists.picture",
+		).
 		Prepared(true).
 		Join(
 			ArtistQuery().As("artists"),
 			goqu.On(goqu.I("artists_search.id").Eq(goqu.I("artists.id"))),
 		).
 		Where(
-			goqu.L("? = ?", goqu.T("artists_search"), searchQuery),
+			goqu.L("? MATCH ?", goqu.T("artists_search"), searchQuery),
 		).
 		Order(goqu.I("rank").Asc()).
 		Limit(10)
-
-	s, params, _ := query.ToSQL()
-	fmt.Printf("s: %v\n", s)
-	fmt.Printf("params: %v\n", params)
 
 	var res []Artist
 	err := db.Select(&res, query)
@@ -105,7 +102,6 @@ func (db *Database) SearchAlbums(searchQuery string) ([]Album, error) {
 	return res, nil
 }
 
-
 func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 	searchQuery = replacer.Replace(searchQuery)
 
@@ -139,10 +135,63 @@ func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 
 func (db *Database) InitializeSearch() error {
 	_, err := db.Conn.Exec(`
-		CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(id UNINDEXED, name, tokenize="trigram");
-		CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(id UNINDEXED, name, artist, tokenize=porter);
-		CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(id UNINDEXED, name, artist, album, tags, tokenize=porter);
+		CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(
+			id UNINDEXED, 
+			name, 
+			tokenize=porter
+		);
+
+		CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(
+			id UNINDEXED, 
+			name, 
+			artist, 
+			tokenize=porter
+		);
+
+		CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(
+			id UNINDEXED, 
+			name, 
+			artist, 
+			album, 
+			tags, 
+			tokenize=porter
+		);
 	`)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) InsertArtistToSearch(ctx context.Context, data Artist) error {
+	log.Debug("Inserting artist to search", "artist", data)
+
+	query := dialect.Insert("artists_search").Rows(goqu.Record{
+		"rowid": data.RowId,
+		"id":    data.Id,
+		"name":  data.Name,
+	})
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) UpdateSearchArtist(ctx context.Context, data Artist) error {
+	log.Debug("Updating artist search", "artist", data)
+
+	query := dialect.Update("artists_search").
+		Set(goqu.Record{
+			"id":   data.Id,
+			"name": data.Name,
+		}).
+		Where(goqu.I("artists_search.rowid").Eq(data.RowId))
+
+	_, err := db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -171,12 +220,7 @@ func (db *Database) RefillSearchTables(ctx context.Context) error {
 	}
 
 	for _, artist := range artists {
-		query := dialect.Insert("artists_search").Rows(goqu.Record{
-			"id":   artist.Id,
-			"name": artist.Name,
-		})
-
-		_, err = db.Exec(ctx, query)
+		err := db.InsertArtistToSearch(ctx, artist)
 		if err != nil {
 			return err
 		}

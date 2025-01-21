@@ -317,6 +317,18 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
+				{
+					artist, err = app.DB().GetArtistById(ctx, artist.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					err = app.DB().UpdateSearchArtist(ctx, artist)
+					if err != nil {
+						return nil, err
+					}
+				}
+
 				return nil, nil
 			},
 		},
@@ -344,6 +356,18 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				})
 				if err != nil {
 					return nil, err
+				}
+
+				{
+					artist, err = app.DB().GetArtistById(ctx, artist.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					err = app.DB().InsertArtistToSearch(ctx, artist)
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				return CreateArtist{
@@ -433,6 +457,18 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				})
 				if err != nil {
 					return nil, err
+				}
+
+				{
+					artist, err = app.DB().GetArtistById(ctx, artist.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					err = app.DB().UpdateSearchArtist(ctx, artist)
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				return nil, nil
