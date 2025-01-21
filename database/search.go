@@ -138,23 +138,40 @@ func (db *Database) InitializeSearch() error {
 		CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(
 			id UNINDEXED, 
 			name, 
-			tokenize=porter
+			other_name,
+			tags,
+			tokenize=trigram
 		);
 
 		CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(
 			id UNINDEXED, 
+
 			name, 
+			other_name,
+
 			artist, 
-			tokenize=porter
+			artist_other_name,
+
+			tags,
+
+			tokenize=trigram
 		);
 
 		CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(
 			id UNINDEXED, 
+
 			name, 
+			other_name,
+
 			artist, 
+			artist_other_name,
+
 			album, 
+			album_other_name,
+
 			tags, 
-			tokenize=porter
+
+			tokenize=trigram
 		);
 	`)
 	if err != nil {
@@ -165,12 +182,15 @@ func (db *Database) InitializeSearch() error {
 }
 
 func (db *Database) InsertArtistToSearch(ctx context.Context, data Artist) error {
-	log.Debug("Inserting artist to search", "artist", data)
-
 	query := dialect.Insert("artists_search").Rows(goqu.Record{
 		"rowid": data.RowId,
-		"id":    data.Id,
-		"name":  data.Name,
+
+		"id": data.Id,
+
+		"name":       data.Name,
+		"other_name": data.OtherName,
+
+		"tags": data.Tags.String,
 	})
 
 	_, err := db.Exec(ctx, query)
@@ -182,14 +202,116 @@ func (db *Database) InsertArtistToSearch(ctx context.Context, data Artist) error
 }
 
 func (db *Database) UpdateSearchArtist(ctx context.Context, data Artist) error {
-	log.Debug("Updating artist search", "artist", data)
-
 	query := dialect.Update("artists_search").
 		Set(goqu.Record{
-			"id":   data.Id,
-			"name": data.Name,
+			"id": data.Id,
+
+			"name":       data.Name,
+			"other_name": data.OtherName,
+
+			"tags": data.Tags.String,
 		}).
 		Where(goqu.I("artists_search.rowid").Eq(data.RowId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) InsertAlbumToSearch(ctx context.Context, data Album) error {
+	query := dialect.Insert("albums_search").Rows(goqu.Record{
+		"rowid": data.RowId,
+
+		"id": data.Id,
+
+		"name":       data.Name,
+		"other_name": data.OtherName,
+
+		"artist":            data.ArtistName,
+		"artist_other_name": data.ArtistOtherName,
+
+		"tags": data.Tags.String,
+	})
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) UpdateSearchAlbum(ctx context.Context, data Album) error {
+	query := dialect.Update("albums_search").
+		Set(goqu.Record{
+			"id": data.Id,
+
+			"name":       data.Name,
+			"other_name": data.OtherName,
+
+			"artist":            data.ArtistName,
+			"artist_other_name": data.ArtistOtherName,
+
+			"tags": data.Tags.String,
+		}).
+		Where(goqu.I("albums_search.rowid").Eq(data.RowId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) InsertTrackToSearch(ctx context.Context, data Track) error {
+	query := dialect.Insert("tracks_search").Rows(goqu.Record{
+		"rowid": data.RowId,
+
+		"id": data.Id,
+
+		"name":       data.Name,
+		"other_name": data.OtherName,
+
+		"artist":            data.ArtistName,
+		"artist_other_name": data.ArtistOtherName,
+
+		"album":            data.AlbumName,
+		"album_other_name": data.AlbumOtherName,
+
+		"tags": data.Tags.String,
+	})
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) UpdateSearchTrack(ctx context.Context, data Track) error {
+	log.Debug("Updating track search", "track", data)
+
+	query := dialect.Update("tracks_search").
+		Set(goqu.Record{
+			"id": data.Id,
+
+			"name":       data.Name,
+			"other_name": data.OtherName,
+
+			"artist":            data.ArtistName,
+			"artist_other_name": data.ArtistOtherName,
+
+			"album":            data.AlbumName,
+			"album_other_name": data.AlbumOtherName,
+
+			"tags": data.Tags.String,
+		}).
+		Where(goqu.I("tracks_search.rowid").Eq(data.RowId))
 
 	_, err := db.Exec(ctx, query)
 	if err != nil {
@@ -232,13 +354,7 @@ func (db *Database) RefillSearchTables(ctx context.Context) error {
 	}
 
 	for _, album := range albums {
-		query := dialect.Insert("albums_search").Rows(goqu.Record{
-			"id":     album.Id,
-			"name":   album.Name,
-			"artist": album.ArtistName,
-		})
-
-		_, err = db.Exec(ctx, query)
+		err := db.InsertAlbumToSearch(ctx, album)
 		if err != nil {
 			return err
 		}
@@ -250,15 +366,7 @@ func (db *Database) RefillSearchTables(ctx context.Context) error {
 	}
 
 	for _, track := range tracks {
-		query := dialect.Insert("tracks_search").Rows(goqu.Record{
-			"id":     track.Id,
-			"name":   track.Name,
-			"artist": track.ArtistName,
-			"album":  track.AlbumName,
-			"tags":   track.Tags.String,
-		})
-
-		_, err = db.Exec(ctx, query)
+		err := db.InsertTrackToSearch(ctx, track)
 		if err != nil {
 			return err
 		}

@@ -15,6 +15,8 @@ import (
 )
 
 type Track struct {
+	RowId int `db:"rowid"`
+
 	Id        string         `db:"id"`
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
@@ -133,6 +135,8 @@ func TrackQuery() *goqu.SelectDataset {
 
 	query := dialect.From("tracks").
 		Select(
+			"tracks.rowid",
+
 			"tracks.id",
 			"tracks.name",
 			"tracks.other_name",

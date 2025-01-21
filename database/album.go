@@ -15,6 +15,8 @@ import (
 )
 
 type Album struct {
+	RowId int `db:"rowid"`
+
 	Id        string         `db:"id"`
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
@@ -49,6 +51,8 @@ func AlbumQuery() *goqu.SelectDataset {
 
 	query := dialect.From("albums").
 		Select(
+			"albums.rowid",
+
 			"albums.id",
 			"albums.name",
 			"albums.other_name",
