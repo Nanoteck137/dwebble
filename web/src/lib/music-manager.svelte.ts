@@ -177,6 +177,8 @@ export class LocalQueue extends Queue {
   async clearQueue() {
     this.items = [];
     this.index = 0;
+
+    this.saveQueue();
   }
 
   saveQueue() {
