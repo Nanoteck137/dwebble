@@ -52,7 +52,7 @@ type TrackFormat struct {
 	TrackId string `json:"track_id"`
 
 	Filename   string `json:"filename"`
-	MediaType  string `json:"media_type"`
+	MediaType  types.MediaType `json:"media_type"`
 	IsOriginal int    `json:"is_original"`
 }
 
@@ -319,8 +319,42 @@ func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOption) ([]Tra
 
 func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
 	query := TrackQuery().
-		Where(goqu.I("tracks.album_id").Eq(albumId)).
-		Order(goqu.I("tracks.number").Asc().NullsLast(), goqu.I("tracks.name").Asc())
+		Where(
+			goqu.I("tracks.id").In(
+				goqu.From("tracks").
+					Select("tracks.id").
+					Where(goqu.I("tracks.album_id").Eq(albumId)),
+			),
+		).
+		Order(
+			goqu.I("tracks.number").Asc().NullsLast(),
+			goqu.I("tracks.name").Asc(),
+		)
+
+	var items []Track
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func AlbumTrackSubquery(albumId string) *goqu.SelectDataset {
+	return goqu.From("tracks").
+		Select("tracks.id").
+		Where(goqu.I("tracks.album_id").Eq(albumId))
+}
+
+func (db *Database) GetTracksIn(ctx context.Context, in any) ([]Track, error) {
+	query := TrackQuery().
+		Where(
+			goqu.I("tracks.id").In(in),
+		).
+		Order(
+			goqu.I("tracks.number").Asc().NullsLast(),
+			goqu.I("tracks.name").Asc(),
+		)
 
 	var items []Track
 	err := db.Select(&items, query)

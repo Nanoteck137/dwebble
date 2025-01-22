@@ -16,4 +16,5 @@ func InstallHandlers(app core.App, g pyrin.Group) {
 	InstallSystemHandlers(app, g)
 	InstallTaglistHandlers(app, g)
 	InstallUserHandlers(app, g)
+	InstallMediaHandlers(app, g)
 }
