@@ -444,8 +444,8 @@ export const GetMediaCommonBody = z.object({
 });
 export type GetMediaCommonBody = z.infer<typeof GetMediaCommonBody>;
 
-export const GetMediaFromAlbumBody = GetMediaCommonBody;
-export type GetMediaFromAlbumBody = z.infer<typeof GetMediaFromAlbumBody>;
+export const GetMediaFromPlaylistBody = GetMediaCommonBody;
+export type GetMediaFromPlaylistBody = z.infer<typeof GetMediaFromPlaylistBody>;
 
 export const GetMediaFromTaglistBody = GetMediaCommonBody;
 export type GetMediaFromTaglistBody = z.infer<typeof GetMediaFromTaglistBody>;
@@ -460,6 +460,12 @@ export const GetMediaFromFilterBody = z.object({
 });
 export type GetMediaFromFilterBody = z.infer<typeof GetMediaFromFilterBody>;
 
+export const GetMediaFromArtistBody = GetMediaCommonBody;
+export type GetMediaFromArtistBody = z.infer<typeof GetMediaFromArtistBody>;
+
+export const GetMediaFromAlbumBody = GetMediaCommonBody;
+export type GetMediaFromAlbumBody = z.infer<typeof GetMediaFromAlbumBody>;
+
 export const GetMediaFromIdsBody = z.object({
   type: z.string().optional(),
   shuffle: z.boolean().optional(),
@@ -467,6 +473,7 @@ export const GetMediaFromIdsBody = z.object({
   limit: z.number().optional(),
   offset: z.number().optional(),
   trackIds: z.array(z.string()),
+  keepOrder: z.boolean().optional(),
 });
 export type GetMediaFromIdsBody = z.infer<typeof GetMediaFromIdsBody>;
 

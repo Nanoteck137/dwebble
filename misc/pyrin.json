@@ -1338,7 +1338,7 @@
       ]
     },
     {
-      "name": "GetMediaFromAlbumBody",
+      "name": "GetMediaFromPlaylistBody",
       "extend": "GetMediaCommonBody",
       "fields": null
     },
@@ -1384,6 +1384,16 @@
       ]
     },
     {
+      "name": "GetMediaFromArtistBody",
+      "extend": "GetMediaCommonBody",
+      "fields": null
+    },
+    {
+      "name": "GetMediaFromAlbumBody",
+      "extend": "GetMediaCommonBody",
+      "fields": null
+    },
+    {
       "name": "GetMediaFromIdsBody",
       "extend": "",
       "fields": [
@@ -1416,6 +1426,11 @@
           "name": "trackIds",
           "type": "[]string",
           "omit": false
+        },
+        {
+          "name": "keepOrder",
+          "type": "bool",
+          "omit": true
         }
       ]
     }
@@ -1776,7 +1791,7 @@
       "method": "POST",
       "path": "/api/v1/media/playlist/:playlistId",
       "responseType": "GetMedia",
-      "bodyType": "GetMediaFromAlbumBody"
+      "bodyType": "GetMediaFromPlaylistBody"
     },
     {
       "name": "GetMediaFromTaglist",
@@ -1797,7 +1812,7 @@
       "method": "POST",
       "path": "/api/v1/media/artist/:artistId",
       "responseType": "GetMedia",
-      "bodyType": "GetMediaFromAlbumBody"
+      "bodyType": "GetMediaFromArtistBody"
     },
     {
       "name": "GetMediaFromAlbum",

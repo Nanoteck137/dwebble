@@ -801,7 +801,7 @@ func (c *Client) DeleteApiToken(id string, options Options) (*any, error) {
 	return Request[any](data)
 }
 
-func (c *Client) GetMediaFromPlaylist(playlistId string, body GetMediaFromAlbumBody, options Options) (*GetMedia, error) {
+func (c *Client) GetMediaFromPlaylist(playlistId string, body GetMediaFromPlaylistBody, options Options) (*GetMedia, error) {
 	path := Sprintf("/api/v1/media/playlist/%v", playlistId)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -849,7 +849,7 @@ func (c *Client) GetMediaFromFilter(body GetMediaFromFilterBody, options Options
 	return Request[GetMedia](data)
 }
 
-func (c *Client) GetMediaFromArtist(artistId string, body GetMediaFromAlbumBody, options Options) (*GetMedia, error) {
+func (c *Client) GetMediaFromArtist(artistId string, body GetMediaFromArtistBody, options Options) (*GetMedia, error) {
 	path := Sprintf("/api/v1/media/artist/%v", artistId)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {

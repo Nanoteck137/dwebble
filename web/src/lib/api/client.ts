@@ -208,7 +208,7 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/user/apitoken/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
   }
   
-  getMediaFromPlaylist(playlistId: string, body: api.GetMediaFromAlbumBody, options?: ExtraOptions) {
+  getMediaFromPlaylist(playlistId: string, body: api.GetMediaFromPlaylistBody, options?: ExtraOptions) {
     return this.request(`/api/v1/media/playlist/${playlistId}`, "POST", api.GetMedia, z.any(), body, options)
   }
   
@@ -220,7 +220,7 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/media/filter", "POST", api.GetMedia, z.any(), body, options)
   }
   
-  getMediaFromArtist(artistId: string, body: api.GetMediaFromAlbumBody, options?: ExtraOptions) {
+  getMediaFromArtist(artistId: string, body: api.GetMediaFromArtistBody, options?: ExtraOptions) {
     return this.request(`/api/v1/media/artist/${artistId}`, "POST", api.GetMedia, z.any(), body, options)
   }
   

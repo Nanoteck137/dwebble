@@ -68,7 +68,8 @@ type GetMediaFromAlbumBody struct {
 type GetMediaFromIdsBody struct {
 	GetMediaCommonBody
 
-	TrackIds []string `json:"trackIds"`
+	TrackIds  []string `json:"trackIds"`
+	KeepOrder bool     `json:"keepOrder,omitempty"`
 }
 
 func InstallMediaHandlers(app core.App, group pyrin.Group) {
@@ -80,14 +81,13 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 	// - [x] Album
 	// - [x] Ids
 
-
 	group.Register(
 		pyrin.ApiHandler{
 			Name:         "GetMediaFromPlaylist",
 			Method:       http.MethodPost,
 			Path:         "/media/playlist/:playlistId",
 			ResponseType: GetMedia{},
-			BodyType:     GetMediaFromAlbumBody{},
+			BodyType:     GetMediaFromPlaylistBody{},
 			Errors:       []pyrin.ErrorType{ErrTypePlaylistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				playlistId := c.Param("playlistId")
@@ -113,7 +113,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 				}
 
 				subquery := database.PlaylistTrackSubquery(playlist.Id)
-				tracks, err := app.DB().GetTracksIn(ctx, subquery)
+				tracks, err := app.DB().GetTracksIn(ctx, subquery, "")
 				if err != nil {
 					return nil, err
 				}
@@ -349,7 +349,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 			Method:       http.MethodPost,
 			Path:         "/media/artist/:artistId",
 			ResponseType: GetMedia{},
-			BodyType:     GetMediaFromAlbumBody{},
+			BodyType:     GetMediaFromArtistBody{},
 			Errors:       []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				artistId := c.Param("artistId")
@@ -366,7 +366,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 				}
 
 				subquery := database.ArtistTrackSubquery(artist.Id)
-				tracks, err := app.DB().GetTracksIn(ctx, subquery)
+				tracks, err := app.DB().GetTracksIn(ctx, subquery, "")
 				if err != nil {
 					return nil, err
 				}
@@ -440,6 +440,11 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 
 				ctx := context.TODO()
 
+				body, err := pyrin.Body[GetMediaFromAlbumBody](c)
+				if err != nil {
+					return nil, err
+				}
+
 				album, err := app.DB().GetAlbumById(ctx, albumId)
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
@@ -449,8 +454,13 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				sort := body.Sort
+				if sort == "" {
+					sort = "sort=number,name"
+				}
+
 				subquery := database.AlbumTrackSubquery(album.Id)
-				tracks, err := app.DB().GetTracksIn(ctx, subquery)
+				tracks, err := app.DB().GetTracksIn(ctx, subquery, sort)
 				if err != nil {
 					return nil, err
 				}
@@ -527,9 +537,26 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				tracks, err := app.DB().GetTracksIn(ctx, body.TrackIds)
+				tracks, err := app.DB().GetTracksIn(ctx, body.TrackIds, "")
 				if err != nil {
 					return nil, err
+				}
+
+				if body.KeepOrder {
+					trackMap := make(map[string]database.Track)
+					for _, t := range tracks {
+						trackMap[t.Id] = t
+					}
+
+					tracks = make([]database.Track, 0, len(body.TrackIds))
+					for _, v := range body.TrackIds {
+						track, exists := trackMap[v]
+						if !exists {
+							continue
+						}
+
+						tracks = append(tracks, track)
+					}
 				}
 
 				res := GetMedia{

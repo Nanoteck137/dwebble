@@ -185,6 +185,8 @@ export class LocalQueue extends Queue {
       index: this.index,
     };
 
+    console.log(q.items);
+
     localStorage.setItem("queue", JSON.stringify(q));
   }
 
@@ -192,8 +194,18 @@ export class LocalQueue extends Queue {
     const s = localStorage.getItem("queue");
     if (s) {
       const q: SavedQueue = JSON.parse(s);
-      await this.addFromIds(q.items);
+      await this.loadIds(q.items);
       this.index = q.index;
+    }
+  }
+
+  async loadIds(trackIds: string[]) {
+    const res = await this.apiClient.getMediaFromIds({
+      trackIds,
+      keepOrder: true,
+    });
+    if (res.success) {
+      this.items = res.data.items;
     }
   }
 

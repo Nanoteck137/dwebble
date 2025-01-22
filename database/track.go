@@ -376,18 +376,22 @@ func PlaylistTrackSubquery(playlistId string) *goqu.SelectDataset {
 		)
 }
 
-func (db *Database) GetTracksIn(ctx context.Context, in any) ([]Track, error) {
+func (db *Database) GetTracksIn(ctx context.Context, in any, sort string) ([]Track, error) {
 	query := TrackQuery().
 		Where(
 			goqu.I("tracks.id").In(in),
-		).
-		Order(
-			// goqu.I("tracks.number").Asc().NullsLast(),
-			goqu.I("tracks.name").Asc(),
 		)
 
+	a := adapter.TrackResolverAdapter{}
+	resolver := filter.New(&a)
+
+	query, err := applySort(query, resolver, sort)
+	if err != nil {
+		return nil, err
+	}
+
 	var items []Track
-	err := db.Select(&items, query)
+	err = db.Select(&items, query)
 	if err != nil {
 		return nil, err
 	}

@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// TODO(patrik): Rename to SortOrder
 type SortType int
 
 const (

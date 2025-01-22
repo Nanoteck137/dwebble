@@ -149,9 +149,9 @@ func generateSort(e filter.SortExpr) ([]exp.OrderedExpression, error) {
 		for _, item := range e.Items {
 			switch item.Type {
 			case filter.SortTypeAsc:
-				items = append(items, goqu.I(item.Name).Asc())
+				items = append(items, goqu.I(item.Name).Asc().NullsLast())
 			case filter.SortTypeDesc:
-				items = append(items, goqu.I(item.Name).Desc())
+				items = append(items, goqu.I(item.Name).Desc().NullsFirst())
 			default:
 				return nil, fmt.Errorf("Unknown SortItemType: %d", item.Type)
 			}
