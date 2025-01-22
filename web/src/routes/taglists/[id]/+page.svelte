@@ -2,7 +2,9 @@
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
   import { getApiClient, handleApiError, openConfirm } from "$lib";
+  import Spacer from "$lib/components/Spacer.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
+  import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
   import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { Breadcrumb, Button, Input, Pagination } from "@nanoteck137/nano-ui";
   import { Filter } from "lucide-svelte";
@@ -80,6 +82,17 @@
 
 <div class="h-2"></div>
 
+<TrackListHeader
+  name={data.taglist.name}
+  onPlay={async () => {
+    await musicManager.clearQueue();
+    await musicManager.addFromTaglist(data.taglist.id, {});
+    musicManager.requestPlay();
+  }}
+/>
+
+<Spacer size="md" />
+
 <TrackList
   totalTracks={data.page.totalItems}
   tracks={data.tracks}
@@ -94,7 +107,12 @@
     await musicManager.addFromTaglist(data.taglist.id, { shuffle });
     musicManager.requestPlay();
   }}
-  onTrackPlay={(trackId) => {}}
+  onTrackPlay={async (trackId) => {
+    // TODO(patrik): Replace with addFromTaglist and find the trackId
+    await musicManager.clearQueue();
+    await musicManager.addFromIds([trackId], {});
+    musicManager.requestPlay();
+  }}
 />
 
 <Pagination.Root

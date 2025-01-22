@@ -57,8 +57,23 @@ export abstract class Queue {
     settings?: AddToQueueSettings,
   ): Promise<void>;
 
+  abstract addFromFilter(
+    filter: string,
+    settings?: AddToQueueSettings,
+  ): Promise<void>;
+
+  abstract addFromArtist(
+    artistId: string,
+    settings?: AddToQueueSettings,
+  ): Promise<void>;
+
   abstract addFromAlbum(
     albumId: string,
+    settings?: AddToQueueSettings,
+  ): Promise<void>;
+
+  abstract addFromIds(
+    trackIds: string[],
     settings?: AddToQueueSettings,
   ): Promise<void>;
 }
@@ -155,6 +170,38 @@ export class LocalQueue extends Queue {
     this.index = 0;
   }
 
+  async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
+    // TODO(patrik): Handle error
+    const res = await this.apiClient.getMediaFromPlaylist(playlistId, {});
+    if (res.success) {
+      this.items = [...this.items, ...res.data.items];
+    }
+  }
+
+  async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
+    // TODO(patrik): Handle error
+    const res = await this.apiClient.getMediaFromTaglist(taglistId, {});
+    if (res.success) {
+      this.items = [...this.items, ...res.data.items];
+    }
+  }
+
+  async addFromFilter(filter: string, settings?: AddToQueueSettings) {
+    // TODO(patrik): Handle error
+    const res = await this.apiClient.getMediaFromFilter({ filter });
+    if (res.success) {
+      this.items = [...this.items, ...res.data.items];
+    }
+  }
+
+  async addFromArtist(artistId: string, settings?: AddToQueueSettings) {
+    // TODO(patrik): Handle error
+    const res = await this.apiClient.getMediaFromArtist(artistId, {});
+    if (res.success) {
+      this.items = [...this.items, ...res.data.items];
+    }
+  }
+
   async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
     const res = await this.apiClient.getMediaFromAlbum(albumId, {});
@@ -167,44 +214,32 @@ export class LocalQueue extends Queue {
     }
   }
 
-  async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
-    throw new Error("Method not implemented.");
-  }
-
-  async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
-    throw new Error("Method not implemented.");
+  async addFromIds(trackIds: string[], settings?: AddToQueueSettings) {
+    // TODO(patrik): Handle error
+    const res = await this.apiClient.getMediaFromIds({ trackIds });
+    if (res.success) {
+      this.items = [...this.items, ...res.data.items];
+    }
   }
 }
 
 export class DummyQueue extends Queue {
   constructor() {
     super();
-    console.log("Dummy Queue: Constructor");
   }
 
-  async initialize() {
-    console.log("Dummy Queue: initialize");
-  }
+  async initialize() {}
 
-  async clearQueue() {
-    console.log("Dummy Queue: clearQueue");
-  }
+  async clearQueue() {}
 
-  async addFromAlbum() {
-    console.log("Dummy Queue: addFromAlbum");
-  }
+  async addFromPlaylist() {}
+  async addFromTaglist() {}
+  async addFromFilter() {}
+  async addFromArtist() {}
+  async addFromAlbum() {}
+  async addFromIds() {}
 
-  async addFromPlaylist() {
-    console.log("Dummy Queue: addFromPlaylist");
-  }
-
-  async addFromTaglist() {
-    console.log("Dummy Queue: addFromTaglist");
-  }
-
-  async setQueueIndex() {
-    console.log("Dummy Queue: setQueueIndex");
-  }
+  async setQueueIndex() {}
 }
 
 export class MusicManager {
@@ -228,11 +263,6 @@ export class MusicManager {
     this.emitter.emit("onQueueUpdated");
   }
 
-  async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
-    await this.queue.addFromAlbum(albumId, settings);
-    this.emitter.emit("onQueueUpdated");
-  }
-
   async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
     await this.queue.addFromPlaylist(playlistId, settings);
     this.emitter.emit("onQueueUpdated");
@@ -240,6 +270,26 @@ export class MusicManager {
 
   async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
     await this.queue.addFromTaglist(taglistId, settings);
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  async addFromFilter(filter: string, settings?: AddToQueueSettings) {
+    await this.queue.addFromFilter(filter, settings);
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  async addFromArtist(artistId: string, settings?: AddToQueueSettings) {
+    await this.queue.addFromArtist(artistId, settings);
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
+    await this.queue.addFromAlbum(albumId, settings);
+    this.emitter.emit("onQueueUpdated");
+  }
+
+  async addFromIds(trackIds: string[], settings?: AddToQueueSettings) {
+    await this.queue.addFromIds(trackIds, settings);
     this.emitter.emit("onQueueUpdated");
   }
 

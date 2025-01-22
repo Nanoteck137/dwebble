@@ -801,8 +801,56 @@ func (c *Client) DeleteApiToken(id string, options Options) (*any, error) {
 	return Request[any](data)
 }
 
-func (c *Client) GetMediaFromPlaylist(playlistId string, body GetMediaFromPlaylistBody, options Options) (*GetMedia, error) {
+func (c *Client) GetMediaFromPlaylist(playlistId string, body GetMediaFromAlbumBody, options Options) (*GetMedia, error) {
 	path := Sprintf("/api/v1/media/playlist/%v", playlistId)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[GetMedia](data)
+}
+
+func (c *Client) GetMediaFromTaglist(taglistId string, body GetMediaFromTaglistBody, options Options) (*GetMedia, error) {
+	path := Sprintf("/api/v1/media/taglist/%v", taglistId)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[GetMedia](data)
+}
+
+func (c *Client) GetMediaFromFilter(body GetMediaFromFilterBody, options Options) (*GetMedia, error) {
+	path := "/api/v1/media/filter"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[GetMedia](data)
+}
+
+func (c *Client) GetMediaFromArtist(artistId string, body GetMediaFromAlbumBody, options Options) (*GetMedia, error) {
+	path := Sprintf("/api/v1/media/artist/%v", artistId)
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err
@@ -819,6 +867,22 @@ func (c *Client) GetMediaFromPlaylist(playlistId string, body GetMediaFromPlayli
 
 func (c *Client) GetMediaFromAlbum(albumId string, body GetMediaFromAlbumBody, options Options) (*GetMedia, error) {
 	path := Sprintf("/api/v1/media/album/%v", albumId)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[GetMedia](data)
+}
+
+func (c *Client) GetMediaFromIds(body GetMediaFromIdsBody, options Options) (*GetMedia, error) {
+	path := "/api/v1/media/ids"
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
 		return nil, err

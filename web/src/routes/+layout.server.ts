@@ -28,6 +28,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     }
   }
 
+  /*
   let queueId: string | null = null;
 
   if (locals.user) {
@@ -38,6 +39,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
     queueId = res.data.id;
   }
+    */
 
   return {
     apiAddress: locals.apiAddress,
@@ -45,6 +47,6 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     user,
     quickPlaylistIds,
     userPlaylists: playlists,
-    queueId: queueId ?? "LOCAL",
+    // queueId: queueId ?? "LOCAL",
   };
 };

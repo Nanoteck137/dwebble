@@ -1338,14 +1338,86 @@
       ]
     },
     {
-      "name": "GetMediaFromPlaylistBody",
+      "name": "GetMediaFromAlbumBody",
       "extend": "GetMediaCommonBody",
       "fields": null
     },
     {
-      "name": "GetMediaFromAlbumBody",
+      "name": "GetMediaFromTaglistBody",
       "extend": "GetMediaCommonBody",
       "fields": null
+    },
+    {
+      "name": "GetMediaFromFilterBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "type",
+          "type": "string",
+          "omit": true
+        },
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "omit": true
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "omit": true
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "omit": true
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetMediaFromIdsBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "type",
+          "type": "string",
+          "omit": true
+        },
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "omit": true
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "omit": true
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "omit": true
+        },
+        {
+          "name": "trackIds",
+          "type": "[]string",
+          "omit": false
+        }
+      ]
     }
   ],
   "apiEndpoints": [
@@ -1704,7 +1776,28 @@
       "method": "POST",
       "path": "/api/v1/media/playlist/:playlistId",
       "responseType": "GetMedia",
-      "bodyType": "GetMediaFromPlaylistBody"
+      "bodyType": "GetMediaFromAlbumBody"
+    },
+    {
+      "name": "GetMediaFromTaglist",
+      "method": "POST",
+      "path": "/api/v1/media/taglist/:taglistId",
+      "responseType": "GetMedia",
+      "bodyType": "GetMediaFromTaglistBody"
+    },
+    {
+      "name": "GetMediaFromFilter",
+      "method": "POST",
+      "path": "/api/v1/media/filter",
+      "responseType": "GetMedia",
+      "bodyType": "GetMediaFromFilterBody"
+    },
+    {
+      "name": "GetMediaFromArtist",
+      "method": "POST",
+      "path": "/api/v1/media/artist/:artistId",
+      "responseType": "GetMedia",
+      "bodyType": "GetMediaFromAlbumBody"
     },
     {
       "name": "GetMediaFromAlbum",
@@ -1712,6 +1805,13 @@
       "path": "/api/v1/media/album/:albumId",
       "responseType": "GetMedia",
       "bodyType": "GetMediaFromAlbumBody"
+    },
+    {
+      "name": "GetMediaFromIds",
+      "method": "POST",
+      "path": "/api/v1/media/ids",
+      "responseType": "GetMedia",
+      "bodyType": "GetMediaFromIdsBody"
     }
   ],
   "formApiEndpoints": [

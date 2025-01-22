@@ -350,13 +350,39 @@ func AlbumTrackSubquery(albumId string) *goqu.SelectDataset {
 		Where(goqu.I("tracks.album_id").Eq(albumId))
 }
 
+func ArtistTrackSubquery(artistId string) *goqu.SelectDataset {
+	tbl := goqu.T("tracks_featuring_artists")
+	return goqu.From("tracks").
+		Select("tracks.id").
+		FullOuterJoin(
+			tbl,
+			goqu.On(
+				goqu.I("tracks.id").Eq(tbl.Col("track_id")),
+			),
+		).
+		Where(
+			goqu.Or(
+				goqu.I("tracks.artist_id").Eq(artistId),
+				tbl.Col("artist_id").Eq(artistId),
+			),
+		)
+}
+
+func PlaylistTrackSubquery(playlistId string) *goqu.SelectDataset {
+	return goqu.From("playlist_items").
+		Select("playlist_items.track_id").
+		Where(
+			goqu.I("playlist_items.playlist_id").Eq(playlistId),
+		)
+}
+
 func (db *Database) GetTracksIn(ctx context.Context, in any) ([]Track, error) {
 	query := TrackQuery().
 		Where(
 			goqu.I("tracks.id").In(in),
 		).
 		Order(
-			goqu.I("tracks.number").Asc().NullsLast(),
+			// goqu.I("tracks.number").Asc().NullsLast(),
 			goqu.I("tracks.name").Asc(),
 		)
 

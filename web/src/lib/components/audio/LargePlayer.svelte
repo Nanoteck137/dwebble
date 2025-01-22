@@ -84,14 +84,14 @@
 
       <ScrollArea class="h-full pb-6">
         <div class="mr-3 flex flex-col gap-2">
-          {#each queue as track, i}
+          {#each queue as mediaItem, i}
             <div
               class={`flex items-center gap-2 rounded p-1 ${currentQueueIndex === i ? "bg-accent text-accent-foreground" : ""}`}
             >
               <div class="group relative">
                 <img
                   class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
-                  src={track.coverArt.small}
+                  src={mediaItem?.coverArt.small}
                   alt="cover"
                 />
                 {#if i == currentQueueIndex}

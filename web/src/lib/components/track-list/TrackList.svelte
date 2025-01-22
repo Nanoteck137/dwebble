@@ -1,23 +1,14 @@
 <script lang="ts">
   import {
-    Button,
     buttonVariants,
     DropdownMenu,
     Separator,
   } from "@nanoteck137/nano-ui";
   import TrackListItem from "./TrackListItem.svelte";
-  import {
-    DiscAlbum,
-    EllipsisVertical,
-    ListPlus,
-    Play,
-    Shuffle,
-    Users,
-  } from "lucide-svelte";
+  import { DiscAlbum, EllipsisVertical, ListPlus, Users } from "lucide-svelte";
   import { cn } from "$lib/utils";
   import type { Playlist, Track } from "$lib/api/types";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
-  import type { ApiClient } from "$lib/api/client";
   import { getApiClient, openAddToPlaylist } from "$lib";
   import { goto, invalidateAll } from "$app/navigation";
 
@@ -60,12 +51,7 @@
         onTrackPlay(track.id);
       }}
     >
-      <QuickAddButton
-        show={!!quickPlaylist}
-        {track}
-        {apiClient}
-        {isInQuickPlaylist}
-      />
+      <QuickAddButton show={!!quickPlaylist} {track} {isInQuickPlaylist} />
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
@@ -101,7 +87,6 @@
                 if (!userPlaylists) return;
 
                 await openAddToPlaylist({
-                  apiClient,
                   playlists: userPlaylists,
                   track,
                 });

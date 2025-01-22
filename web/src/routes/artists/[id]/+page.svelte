@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { Breadcrumb, Button, Separator } from "@nanoteck137/nano-ui";
 
   const { data } = $props();
+  const musicManager = getMusicManager();
 </script>
 
 <div class="py-2">
@@ -19,6 +21,15 @@
 </div>
 
 <Button href="/artists/{data.artist.id}/edit">Edit</Button>
+
+<Button
+  onclick={async () => {
+    await musicManager.clearQueue();
+    await musicManager.addFromArtist(data.artist.id);
+    musicManager.requestPlay();
+  }}>Play</Button
+>
+
 <p>Artist: {data.artist.name.default}</p>
 
 <p>Num Albums: {data.albums.length}</p>

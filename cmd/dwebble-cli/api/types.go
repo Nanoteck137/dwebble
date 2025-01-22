@@ -378,7 +378,25 @@ type GetMediaCommonBody struct {
 	Offset int `json:"offset"`
 }
 
-type GetMediaFromPlaylistBody GetMediaCommonBody
-
 type GetMediaFromAlbumBody GetMediaCommonBody
+
+type GetMediaFromTaglistBody GetMediaCommonBody
+
+type GetMediaFromFilterBody struct {
+	Type string `json:"type"`
+	Shuffle bool `json:"shuffle"`
+	Sort string `json:"sort"`
+	Limit int `json:"limit"`
+	Offset int `json:"offset"`
+	Filter string `json:"filter"`
+}
+
+type GetMediaFromIdsBody struct {
+	Type string `json:"type"`
+	Shuffle bool `json:"shuffle"`
+	Sort string `json:"sort"`
+	Limit int `json:"limit"`
+	Offset int `json:"offset"`
+	TrackIds []string `json:"trackIds"`
+}
 
