@@ -35,6 +35,7 @@ export abstract class Queue {
 
   async setQueueIndex(index: number) {
     if (index >= this.items.length) {
+      this.index = 0;
       return;
     }
 
@@ -186,8 +187,6 @@ export class LocalQueue extends Queue {
       items: this.items.map((i) => i.track.id),
       index: this.index,
     };
-
-    console.log(q.items);
 
     localStorage.setItem("queue", JSON.stringify(q));
   }
