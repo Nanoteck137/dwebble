@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
+	"path"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nanoteck137/dwebble/core"
@@ -95,7 +98,7 @@ func ConvertSqlNullInt64(value sql.NullInt64) *int64 {
 }
 
 const (
-	UNKNOWN_ARTIST_ID = "unknown"
+	UNKNOWN_ARTIST_ID   = "unknown"
 	UNKNOWN_ARTIST_NAME = "UNKNOWN"
 )
 
@@ -186,4 +189,73 @@ func ConvertAlbumCoverURL(c pyrin.Context, albumId string, val sql.NullString) t
 		Medium:   url,
 		Large:    url,
 	}
+}
+
+func DeleteArtist(ctx context.Context, db *database.Database, workDir types.WorkDir, artist database.Artist) error {
+	dir := workDir.Artist(artist.Id)
+	targetName := fmt.Sprintf("artist-%s-%d", artist.Id, time.Now().UnixMilli())
+	target := path.Join(workDir.Trash(), targetName)
+
+	err := os.Rename(dir, target)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	err = db.DeleteArtistFromSearch(ctx, artist)
+	if err != nil {
+		return err
+	}
+
+	err = db.DeleteArtist(ctx, artist.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteAlbum(ctx context.Context, db *database.Database, workDir types.WorkDir, album database.Album) error {
+	dir := workDir.Album(album.Id)
+	targetName := fmt.Sprintf("album-%s-%d", album.Id, time.Now().UnixMilli())
+	target := path.Join(workDir.Trash(), targetName)
+
+	err := os.Rename(dir, target)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	err = db.DeleteAlbumFromSearch(ctx, album)
+	if err != nil {
+		return err
+	}
+
+	err = db.DeleteAlbum(ctx, album.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteTrack(ctx context.Context, db *database.Database, workDir types.WorkDir, track database.Track) error {
+	dir := workDir.Track(track.Id)
+	targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
+	target := path.Join(workDir.Trash(), targetName)
+
+	err := os.Rename(dir.String(), target)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	err = db.DeleteTrackFromSearch(ctx, track)
+	if err != nil {
+		return err
+	}
+
+	err = db.DeleteTrack(ctx, track.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

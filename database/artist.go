@@ -220,7 +220,7 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 	return nil
 }
 
-func (db *Database) RemoveArtist(ctx context.Context, id string) error {
+func (db *Database) DeleteArtist(ctx context.Context, id string) error {
 	query := dialect.Delete("artists").
 		Prepared(true).
 		Where(goqu.I("artists.id").Eq(id))

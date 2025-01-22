@@ -705,22 +705,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				}
 				defer tx.Rollback()
 
-				// TODO(patrik): Add back
-				// dir := app.WorkDir().Track(track.Id)
-				// targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
-				// target := path.Join(app.WorkDir().Trash(), targetName)
-				//
-				// err = os.Rename(dir, target)
-				// if err != nil && !os.IsNotExist(err) {
-				// 	return nil, err
-				// }
-
-				err = db.DeleteTrackFromSearch(ctx, track)
-				if err != nil {
-					return nil, err
-				}
-
-				err = db.DeleteTrack(ctx, track.Id)
+				err = DeleteTrack(ctx, db, app.WorkDir(), track)
 				if err != nil {
 					return nil, err
 				}

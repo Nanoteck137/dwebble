@@ -4,13 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
@@ -522,7 +520,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 
-					err = db.RemoveArtist(ctx, srcId)
+					err = db.DeleteArtist(ctx, srcId)
 					if err != nil {
 						return nil, err
 					}
@@ -616,22 +614,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				// TODO(patrik): Cleanup Code
-				dir := app.WorkDir().Artist(artist.Id)
-				targetName := fmt.Sprintf("artist-%s-%d", artist.Id, time.Now().UnixMilli())
-				target := path.Join(app.WorkDir().Trash(), targetName)
-
-				err = os.Rename(dir, target)
-				if err != nil && !os.IsNotExist(err) {
-					return nil, err
-				}
-
-				err = db.DeleteArtistFromSearch(ctx, artist)
-				if err != nil {
-					return nil, err
-				}
-
-				err = db.RemoveArtist(ctx, artist.Id)
+				err = DeleteArtist(ctx, db, app.WorkDir(), artist)
 				if err != nil {
 					return nil, err
 				}

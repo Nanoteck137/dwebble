@@ -4,13 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
@@ -433,8 +431,6 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
-				panic("Fix this code")
-
 				ctx := context.TODO()
 
 				album, err := app.DB().GetAlbumById(ctx, id)
@@ -457,44 +453,14 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				_ = tracks
-
-				// TODO(patrik): This is duplicated code from the tracks api move to helper
-				// TODO(patrik): Add back
-				// for _, track := range tracks {
-				// 	dir := app.WorkDir().Track(track.Id)
-				// 	targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
-				// 	target := path.Join(app.WorkDir().Trash(), targetName)
-				//
-				// 	err = os.Rename(dir, target)
-				// 	if err != nil && !os.IsNotExist(err) {
-				// 		return nil, err
-				// 	}
-				//
-				// 	err = db.RemoveTrack(ctx, track.Id)
-				// 	if err != nil {
-				// 		return nil, err
-				// 	}
-				// }
-
-				dir := app.WorkDir().Album(album.Id)
-				targetName := fmt.Sprintf("album-%s-%d", album.Id, time.Now().UnixMilli())
-				target := path.Join(app.WorkDir().Trash(), targetName)
-
-				err = os.Rename(dir, target)
-				if err != nil && !os.IsNotExist(err) {
-					return nil, err
+				for _, track := range tracks {
+					err = DeleteTrack(ctx, db, app.WorkDir(), track)
+					if err != nil {
+						return nil, err
+					}
 				}
 
-				err = db.DeleteAlbumFromSearch(ctx, album)
-				if err != nil {
-					return nil, err
-				}
-
-				err = db.DeleteAlbum(ctx, id)
-				if err != nil {
-					return nil, err
-				}
+				DeleteAlbum(ctx, db, app.WorkDir(), album)
 
 				err = tx.Commit()
 				if err != nil {
