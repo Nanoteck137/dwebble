@@ -272,6 +272,19 @@ func (db *Database) InsertArtistToSearch(ctx context.Context, data Artist) error
 	return nil
 }
 
+func (db *Database) DeleteArtistFromSearch(ctx context.Context, data Artist) error {
+	query := dialect.Delete("artists_search").Where(
+		goqu.I("artists_search.rowid").Eq(data.RowId),
+	)
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *Database) UpdateSearchArtist(ctx context.Context, data Artist) error {
 	query := dialect.Update("artists_search").
 		Set(goqu.Record{
@@ -306,6 +319,19 @@ func (db *Database) InsertAlbumToSearch(ctx context.Context, data Album) error {
 
 		"tags": data.Tags.String,
 	})
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) DeleteAlbumFromSearch(ctx context.Context, data Album) error {
+	query := dialect.Delete("albums_search").Where(
+		goqu.I("albums_search.rowid").Eq(data.RowId),
+	)
 
 	_, err := db.Exec(ctx, query)
 	if err != nil {
@@ -355,6 +381,19 @@ func (db *Database) InsertTrackToSearch(ctx context.Context, data Track) error {
 
 		"tags": data.Tags.String,
 	})
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) DeleteTrackFromSearch(ctx context.Context, data Track) error {
+	query := dialect.Delete("tracks_search").Where(
+		goqu.I("tracks_search.rowid").Eq(data.RowId),
+	)
 
 	_, err := db.Exec(ctx, query)
 	if err != nil {

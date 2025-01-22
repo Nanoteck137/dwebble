@@ -664,6 +664,18 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				{
+					track, err := app.DB().GetTrackById(ctx, track.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					err = app.DB().UpdateSearchTrack(ctx, track)
+					if err != nil {
+						return nil, err
+					}
+				}
+
 				return nil, nil
 			},
 		},
@@ -687,6 +699,12 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				db, tx, err := app.DB().Begin()
+				if err != nil {
+					return nil, err
+				}
+				defer tx.Rollback()
+
 				// TODO(patrik): Add back
 				// dir := app.WorkDir().Track(track.Id)
 				// targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
@@ -697,7 +715,17 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				// 	return nil, err
 				// }
 
-				err = app.DB().DeleteTrack(ctx, track.Id)
+				err = db.DeleteTrackFromSearch(ctx, track)
+				if err != nil {
+					return nil, err
+				}
+
+				err = db.DeleteTrack(ctx, track.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				err = tx.Commit()
 				if err != nil {
 					return nil, err
 				}
@@ -845,6 +873,18 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				err = tx.Commit()
 				if err != nil {
 					return nil, err
+				}
+
+				{
+					track, err := app.DB().GetTrackById(ctx, trackId)
+					if err != nil {
+						return nil, err
+					}
+
+					err = app.DB().InsertTrackToSearch(ctx, track)
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				return nil, nil

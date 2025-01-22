@@ -512,6 +512,16 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 
+					srcArtist, err := db.GetArtistById(ctx, srcId)
+					if err != nil {
+						return nil, err
+					}
+
+					err = db.DeleteArtistFromSearch(ctx, srcArtist)
+					if err != nil {
+						return nil, err
+					}
+
 					err = db.RemoveArtist(ctx, srcId)
 					if err != nil {
 						return nil, err
@@ -613,6 +623,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 
 				err = os.Rename(dir, target)
 				if err != nil && !os.IsNotExist(err) {
+					return nil, err
+				}
+
+				err = db.DeleteArtistFromSearch(ctx, artist)
+				if err != nil {
 					return nil, err
 				}
 

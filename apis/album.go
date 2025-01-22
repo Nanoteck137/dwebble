@@ -409,6 +409,18 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
+				{
+					album, err := app.DB().GetAlbumById(ctx, album.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					err = app.DB().UpdateSearchAlbum(ctx, album)
+					if err != nil {
+						return nil, err
+					}
+				}
+
 				return nil, nil
 			},
 		},
@@ -471,6 +483,11 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				err = os.Rename(dir, target)
 				if err != nil && !os.IsNotExist(err) {
+					return nil, err
+				}
+
+				err = db.DeleteAlbumFromSearch(ctx, album)
+				if err != nil {
 					return nil, err
 				}
 
@@ -572,6 +589,18 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				err = tx.Commit()
 				if err != nil {
 					return nil, err
+				}
+
+				{
+					album, err := app.DB().GetAlbumById(ctx, album.Id)
+					if err != nil {
+						return nil, err
+					}
+
+					err = app.DB().InsertAlbumToSearch(ctx, album)
+					if err != nil {
+						return nil, err
+					}
 				}
 
 				return CreateAlbum{
