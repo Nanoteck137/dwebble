@@ -16,7 +16,7 @@
   let { data } = $props();
   const apiClient = getApiClient();
 
-  let merge = $state<string>();
+  let merge = $state<string | null>();
   let selected = $state<string[]>([]);
 
   function isSelected(id: string) {
@@ -132,7 +132,7 @@
 
 {#if merge}
   <div
-    class="sticky bottom-4 border border-border/40 bg-background bg-background/95 px-6 py-3 text-foreground backdrop-blur supports-[backdrop-filter]:bg-background/60"
+    class="bottom-popup sticky border border-border/40 bg-background/95 px-6 py-3 text-foreground backdrop-blur supports-[backdrop-filter]:bg-background/60"
   >
     <p class="text-center">{selected.length} artists selected</p>
     <div class="h-2"></div>
@@ -143,6 +143,7 @@
           variant="outline"
           size="icon"
           onclick={() => {
+            merge = null;
             selected = [];
           }}
         >
@@ -165,7 +166,7 @@
               return;
             }
 
-            merge = undefined;
+            merge = null;
             selected = [];
             toast.success("Merge artists");
             await invalidateAll();

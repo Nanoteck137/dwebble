@@ -77,6 +77,14 @@
     padding-bottom: 5.5rem;
   }
 
+  .bottom-popup {
+    bottom: 0.5rem;
+  }
+
+  body[data-player="true"] .bottom-popup {
+    bottom: calc(64px + 1rem);
+  }
+
   body.modal-open {
     overflow: hidden !important;
   }
