@@ -27,19 +27,21 @@
     await musicManager.clearQueue();
     await musicManager.addFromArtist(data.artist.id);
     musicManager.requestPlay();
-  }}>Play</Button
+  }}
 >
+  Play
+</Button>
 
 <p>Artist: {data.artist.name.default}</p>
 
 <p>Num Albums: {data.albums.length}</p>
 {#each data.albums as album}
-  <p>{album.name.default}</p>
+  <a href="/albums/{album.id}">{album.name.default}</a>
 {/each}
 
 <Separator />
 
 <p>Num Tracks: {data.trackPage.totalItems}</p>
 {#each data.tracks as track}
-  <p>{track.name.default}</p>
+  <a href="/albums/{track.albumId}">{track.name.default}</a>
 {/each}
