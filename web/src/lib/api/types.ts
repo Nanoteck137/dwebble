@@ -111,33 +111,6 @@ export const GetAlbumTracks = z.object({
 });
 export type GetAlbumTracks = z.infer<typeof GetAlbumTracks>;
 
-export const MusicTrackArtist = z.object({
-  artistId: z.string(),
-  artistName: z.string(),
-});
-export type MusicTrackArtist = z.infer<typeof MusicTrackArtist>;
-
-export const MusicTrackAlbum = z.object({
-  albumId: z.string(),
-  albumName: z.string(),
-});
-export type MusicTrackAlbum = z.infer<typeof MusicTrackAlbum>;
-
-export const MusicTrack = z.object({
-  id: z.string(),
-  name: z.string(),
-  artists: z.array(MusicTrackArtist),
-  album: MusicTrackAlbum,
-  coverArt: Images,
-  mediaUrl: z.string(),
-});
-export type MusicTrack = z.infer<typeof MusicTrack>;
-
-export const GetAlbumTracksForPlay = z.object({
-  tracks: z.array(MusicTrack),
-});
-export type GetAlbumTracksForPlay = z.infer<typeof GetAlbumTracksForPlay>;
-
 export const EditAlbumBody = z.object({
   name: z.string().nullable().optional(),
   otherName: z.string().nullable().optional(),
@@ -237,62 +210,6 @@ export const UploadTrackBody = z.object({
   featuringArtists: z.array(z.string()),
 });
 export type UploadTrackBody = z.infer<typeof UploadTrackBody>;
-
-export const Queue = z.object({
-  id: z.string(),
-  name: z.string(),
-});
-export type Queue = z.infer<typeof Queue>;
-
-export const UpdateQueueBody = z.object({
-  name: z.string().nullable().optional(),
-  itemIndex: z.number().nullable().optional(),
-});
-export type UpdateQueueBody = z.infer<typeof UpdateQueueBody>;
-
-export const QueueItem = z.object({
-  id: z.string(),
-  queueId: z.string(),
-  orderNumber: z.number(),
-  trackId: z.string(),
-  track: MusicTrack,
-  created: z.number(),
-  updated: z.number(),
-});
-export type QueueItem = z.infer<typeof QueueItem>;
-
-export const GetQueueItems = z.object({
-  index: z.number(),
-  items: z.array(QueueItem),
-});
-export type GetQueueItems = z.infer<typeof GetQueueItems>;
-
-export const AddToQueue = z.object({
-  shuffle: z.boolean().optional(),
-  addToFront: z.boolean().optional(),
-});
-export type AddToQueue = z.infer<typeof AddToQueue>;
-
-export const AddToQueuePlaylistBody = z.object({
-  shuffle: z.boolean().optional(),
-  addToFront: z.boolean().optional(),
-  playlistId: z.string(),
-});
-export type AddToQueuePlaylistBody = z.infer<typeof AddToQueuePlaylistBody>;
-
-export const AddToQueueTaglistBody = z.object({
-  shuffle: z.boolean().optional(),
-  addToFront: z.boolean().optional(),
-  taglistId: z.string(),
-});
-export type AddToQueueTaglistBody = z.infer<typeof AddToQueueTaglistBody>;
-
-export const AddToQueueAlbumBody = z.object({
-  shuffle: z.boolean().optional(),
-  addToFront: z.boolean().optional(),
-  albumId: z.string(),
-});
-export type AddToQueueAlbumBody = z.infer<typeof AddToQueueAlbumBody>;
 
 export const Signup = z.object({
   id: z.string(),
@@ -496,4 +413,40 @@ export const GetAllApiTokens = z.object({
   tokens: z.array(ApiToken),
 });
 export type GetAllApiTokens = z.infer<typeof GetAllApiTokens>;
+
+export const MediaResource = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+export type MediaResource = z.infer<typeof MediaResource>;
+
+export const MediaItem = z.object({
+  track: MediaResource,
+  artists: z.array(MediaResource),
+  album: MediaResource,
+  coverArt: Images,
+  mediaType: z.string(),
+  mediaUrl: z.string(),
+});
+export type MediaItem = z.infer<typeof MediaItem>;
+
+export const GetMedia = z.object({
+  items: z.array(MediaItem),
+});
+export type GetMedia = z.infer<typeof GetMedia>;
+
+export const GetMediaCommonBody = z.object({
+  type: z.string().optional(),
+  shuffle: z.boolean().optional(),
+  sort: z.string().optional(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
+});
+export type GetMediaCommonBody = z.infer<typeof GetMediaCommonBody>;
+
+export const GetMediaFromPlaylistBody = GetMediaCommonBody;
+export type GetMediaFromPlaylistBody = z.infer<typeof GetMediaFromPlaylistBody>;
+
+export const GetMediaFromAlbumBody = GetMediaCommonBody;
+export type GetMediaFromAlbumBody = z.infer<typeof GetMediaFromAlbumBody>;
 

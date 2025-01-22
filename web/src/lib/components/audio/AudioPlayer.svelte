@@ -2,9 +2,9 @@
   import { onMount } from "svelte";
   import LargePlayer from "$lib/components/audio/LargePlayer.svelte";
   import SmallPlayer from "$lib/components/audio/SmallPlayer.svelte";
-  import type { MusicTrack } from "$lib/api/types";
   import { getMusicManager } from "$lib/music-manager.svelte";
   import { browser } from "$app/environment";
+  import type { MediaItem } from "$lib/api/types";
 
   const musicManager = getMusicManager();
 
@@ -19,7 +19,7 @@
   let volume = $state(getVolume());
   let muted = $state(false);
 
-  let currentTrack = $state<MusicTrack | null>(null);
+  let currentMediaItem = $state<MediaItem | null>(null);
 
   let audio: HTMLAudioElement;
 
@@ -44,15 +44,15 @@
   }
 
   function updateTrack() {
-    const track = musicManager.queue.getCurrentTrack();
+    const mediaItem = musicManager.queue.getCurrentMediaItem();
 
-    if (track) {
-      if (currentTrack?.id === track.id) return;
+    if (mediaItem) {
+      if (currentMediaItem?.track.id === mediaItem.track.id) return;
 
-      currentTrack = track;
-      audio.src = track.mediaUrl;
+      currentMediaItem = mediaItem;
+      audio.src = mediaItem.mediaUrl;
     } else {
-      currentTrack = null;
+      currentMediaItem = null;
       audio.removeAttribute("src");
       audio.load();
     }
@@ -136,7 +136,7 @@
     }
   });
 
-  let queue: MusicTrack[] = $state([]);
+  let queue: MediaItem[] = $state([]);
   let currentQueueIndex = $state(0);
 
   onMount(() => {
@@ -177,7 +177,7 @@
   <LargePlayer
     {playing}
     {loading}
-    track={currentTrack}
+    mediaItem={currentMediaItem}
     {currentTime}
     {duration}
     {volume}

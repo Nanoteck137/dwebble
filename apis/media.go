@@ -34,13 +34,13 @@ type GetMedia struct {
 }
 
 type GetMediaCommonBody struct {
-	MediaType types.MediaType `json:"type"`
+	MediaType types.MediaType `json:"type,omitempty"`
 
-	Shuffle bool   `json:"shuffle"`
-	Sort    string `json:"sort"`
+	Shuffle bool   `json:"shuffle,omitempty"`
+	Sort    string `json:"sort,omitempty"`
 
-	Limit  int `json:"limit"`
-	Offset int `json:"offset"`
+	Limit  int `json:"limit,omitempty"`
+	Offset int `json:"offset,omitempty"`
 }
 
 type GetMediaFromPlaylistBody struct {

@@ -56,10 +56,6 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracks, z.any(), undefined, options)
   }
   
-  getAlbumTracksForPlay(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/albums/${id}/tracks/play`, "GET", api.GetAlbumTracksForPlay, z.any(), undefined, options)
-  }
-  
   editAlbum(id: string, body: api.EditAlbumBody, options?: ExtraOptions) {
     return this.request(`/api/v1/albums/${id}`, "PATCH", z.undefined(), z.any(), body, options)
   }
@@ -98,34 +94,6 @@ export class ApiClient extends BaseApiClient {
   
   deleteTrack(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
-  }
-  
-  getDefaultQueue(playerId: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/default/${playerId}`, "GET", api.Queue, z.any(), undefined, options)
-  }
-  
-  clearQueue(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}/clear`, "POST", z.undefined(), z.any(), undefined, options)
-  }
-  
-  updateQueue(id: string, body: api.UpdateQueueBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}`, "PATCH", z.undefined(), z.any(), body, options)
-  }
-  
-  getQueueItems(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}/items`, "GET", api.GetQueueItems, z.any(), undefined, options)
-  }
-  
-  addToQueueFromPlaylist(id: string, body: api.AddToQueuePlaylistBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}/add/playlist`, "POST", z.undefined(), z.any(), body, options)
-  }
-  
-  addToQueueFromTaglist(id: string, body: api.AddToQueueTaglistBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}/add/taglist`, "POST", z.undefined(), z.any(), body, options)
-  }
-  
-  addToQueueFromAlbum(id: string, body: api.AddToQueueAlbumBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/queue/${id}/add/album`, "POST", z.undefined(), z.any(), body, options)
   }
   
   signup(body: api.SignupBody, options?: ExtraOptions) {
@@ -238,6 +206,14 @@ export class ApiClient extends BaseApiClient {
   
   deleteApiToken(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/user/apitoken/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
+  }
+  
+  getMediaFromPlaylist(playlistId: string, body: api.GetMediaFromPlaylistBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/media/playlist/${playlistId}`, "POST", api.GetMedia, z.any(), body, options)
+  }
+  
+  getMediaFromAlbum(albumId: string, body: api.GetMediaFromAlbumBody, options?: ExtraOptions) {
+    return this.request(`/api/v1/media/album/${albumId}`, "POST", api.GetMedia, z.any(), body, options)
   }
   
   changeArtistPicture(id: string, formData: FormData, options?: ExtraOptions) {

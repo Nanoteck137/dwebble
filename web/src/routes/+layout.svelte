@@ -24,7 +24,6 @@
   import { navigating } from "$app/stores";
   import { setApiClient } from "$lib";
   import {
-    BackendQueue,
     DummyQueue,
     LocalQueue,
     setMusicManager,
@@ -43,17 +42,18 @@
   $effect(() => {
     if (!browser) return;
 
-    if (data.user) {
-      if (!(musicManager.queue instanceof BackendQueue)) {
-        console.log("Backend");
-        musicManager.setQueue(new BackendQueue(apiClient, data.queueId));
-      }
-    } else {
-      if (!(musicManager.queue instanceof LocalQueue)) {
-        console.log("Local");
-        musicManager.setQueue(new LocalQueue(apiClient));
-      }
+    if (!(musicManager.queue instanceof LocalQueue)) {
+      console.log("Local");
+      musicManager.setQueue(new LocalQueue(apiClient));
     }
+
+    // if (data.user) {
+    //   if (!(musicManager.queue instanceof BackendQueue)) {
+    //     console.log("Backend");
+    //     musicManager.setQueue(new BackendQueue(apiClient, data.queueId));
+    //   }
+    // } else {
+    // }
   });
 
   let showSideMenu = $state(false);

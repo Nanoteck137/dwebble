@@ -12,9 +12,9 @@
     Volume2,
     VolumeX,
   } from "lucide-svelte";
-  import type { MusicTrack } from "$lib/api/types";
   import { getMusicManager } from "$lib/music-manager.svelte";
   import Spinner from "$lib/components/Spinner.svelte";
+  import type { MediaItem } from "$lib/api/types";
 
   const musicManager = getMusicManager();
 
@@ -28,9 +28,9 @@
     volume: number;
     audioMuted: boolean;
 
-    track: MusicTrack | null;
+    mediaItem: MediaItem | null;
 
-    queue: MusicTrack[];
+    queue: MediaItem[];
     currentQueueIndex: number;
 
     onPlay: () => void;
@@ -51,7 +51,7 @@
     duration,
     volume,
     audioMuted,
-    track,
+    mediaItem,
     onPlay,
     onPause,
     onNextTrack,
@@ -113,14 +113,14 @@
                 {/if}
               </div>
               <div class="flex flex-col">
-                <p class="line-clamp-1 text-sm" title={track.name}>
-                  {track.name}
+                <p class="line-clamp-1 text-sm" title={mediaItem?.track.name}>
+                  {mediaItem?.track.name}
                 </p>
                 <p
                   class="line-clamp-1 text-xs font-light"
-                  title={track.artists[0].artistName}
+                  title={mediaItem?.artists[0].name}
                 >
-                  {track.artists[0].artistName}
+                  {mediaItem?.artists[0].name}
                 </p>
               </div>
             </div>
@@ -184,16 +184,19 @@
       <div class="flex items-center justify-center gap-2 align-middle">
         <img
           class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
-          src={track?.coverArt.small}
+          src={mediaItem?.coverArt.small}
           alt="cover"
         />
         <div class="flex flex-col">
-          <p class="line-clamp-1 text-ellipsis text-sm" title={track?.name}>
-            {track?.name}
+          <p
+            class="line-clamp-1 text-ellipsis text-sm"
+            title={mediaItem?.track.name}
+          >
+            {mediaItem?.track.name}
           </p>
 
           <p class="line-clamp-1 min-w-80 text-ellipsis text-xs">
-            {track?.artists[0].artistName}
+            {mediaItem?.artists[0].name}
           </p>
         </div>
       </div>

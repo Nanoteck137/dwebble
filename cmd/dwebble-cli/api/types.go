@@ -95,29 +95,6 @@ type GetAlbumTracks struct {
 	Tracks []Track `json:"tracks"`
 }
 
-type MusicTrackArtist struct {
-	ArtistId string `json:"artistId"`
-	ArtistName string `json:"artistName"`
-}
-
-type MusicTrackAlbum struct {
-	AlbumId string `json:"albumId"`
-	AlbumName string `json:"albumName"`
-}
-
-type MusicTrack struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Artists []MusicTrackArtist `json:"artists"`
-	Album MusicTrackAlbum `json:"album"`
-	CoverArt Images `json:"coverArt"`
-	MediaUrl string `json:"mediaUrl"`
-}
-
-type GetAlbumTracksForPlay struct {
-	Tracks []MusicTrack `json:"tracks"`
-}
-
 type EditAlbumBody struct {
 	Name *string `json:"name,omitempty"`
 	OtherName *string `json:"otherName,omitempty"`
@@ -204,54 +181,6 @@ type UploadTrackBody struct {
 	ArtistId string `json:"artistId"`
 	Tags []string `json:"tags"`
 	FeaturingArtists []string `json:"featuringArtists"`
-}
-
-type Queue struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-}
-
-type UpdateQueueBody struct {
-	Name *string `json:"name,omitempty"`
-	ItemIndex *int `json:"itemIndex,omitempty"`
-}
-
-type QueueItem struct {
-	Id string `json:"id"`
-	QueueId string `json:"queueId"`
-	OrderNumber int `json:"orderNumber"`
-	TrackId string `json:"trackId"`
-	Track MusicTrack `json:"track"`
-	Created int `json:"created"`
-	Updated int `json:"updated"`
-}
-
-type GetQueueItems struct {
-	Index int `json:"index"`
-	Items []QueueItem `json:"items"`
-}
-
-type AddToQueue struct {
-	Shuffle bool `json:"shuffle"`
-	AddToFront bool `json:"addToFront"`
-}
-
-type AddToQueuePlaylistBody struct {
-	Shuffle bool `json:"shuffle"`
-	AddToFront bool `json:"addToFront"`
-	PlaylistId string `json:"playlistId"`
-}
-
-type AddToQueueTaglistBody struct {
-	Shuffle bool `json:"shuffle"`
-	AddToFront bool `json:"addToFront"`
-	TaglistId string `json:"taglistId"`
-}
-
-type AddToQueueAlbumBody struct {
-	Shuffle bool `json:"shuffle"`
-	AddToFront bool `json:"addToFront"`
-	AlbumId string `json:"albumId"`
 }
 
 type Signup struct {
@@ -422,4 +351,34 @@ type ApiToken struct {
 type GetAllApiTokens struct {
 	Tokens []ApiToken `json:"tokens"`
 }
+
+type MediaResource struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+}
+
+type MediaItem struct {
+	Track MediaResource `json:"track"`
+	Artists []MediaResource `json:"artists"`
+	Album MediaResource `json:"album"`
+	CoverArt Images `json:"coverArt"`
+	MediaType string `json:"mediaType"`
+	MediaUrl string `json:"mediaUrl"`
+}
+
+type GetMedia struct {
+	Items []MediaItem `json:"items"`
+}
+
+type GetMediaCommonBody struct {
+	Type string `json:"type"`
+	Shuffle bool `json:"shuffle"`
+	Sort string `json:"sort"`
+	Limit int `json:"limit"`
+	Offset int `json:"offset"`
+}
+
+type GetMediaFromPlaylistBody GetMediaCommonBody
+
+type GetMediaFromAlbumBody GetMediaCommonBody
 

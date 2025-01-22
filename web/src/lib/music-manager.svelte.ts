@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
 import type { ApiClient } from "$lib/api/client";
-import type { MusicTrack } from "$lib/api/types";
+import type { MediaItem } from "$lib/api/types";
 import { type Emitter, createNanoEvents } from "nanoevents";
 import { getContext, setContext } from "svelte";
 
@@ -10,17 +10,17 @@ type AddToQueueSettings = {
 };
 
 export abstract class Queue {
-  items: MusicTrack[] = [];
+  items: MediaItem[] = [];
   index: number = 0;
 
   async initialize() {}
 
-  setQueueItems(tracks: MusicTrack[], index?: number) {
-    this.items = tracks;
+  setQueueItems(items: MediaItem[], index?: number) {
+    this.items = items;
     this.index = index ?? 0;
   }
 
-  getCurrentTrack() {
+  getCurrentMediaItem() {
     if (this.items.length === 0) return null;
     return this.items[this.index];
   }
@@ -63,6 +63,7 @@ export abstract class Queue {
   ): Promise<void>;
 }
 
+/*
 export class BackendQueue extends Queue {
   apiClient: ApiClient;
   queueId: string;
@@ -138,6 +139,7 @@ export class BackendQueue extends Queue {
     });
   }
 }
+*/
 
 export class LocalQueue extends Queue {
   apiClient: ApiClient;
@@ -155,11 +157,13 @@ export class LocalQueue extends Queue {
 
   async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
-    const res = await this.apiClient.getAlbumTracksForPlay(albumId);
+    const res = await this.apiClient.getMediaFromAlbum(albumId, {});
     if (res.success) {
-      res.data.tracks.forEach((track) => {
-        this.items.push(track);
-      });
+      this.items = [...this.items, ...res.data.items];
+
+      // res.data.items.forEach((track) => {
+      //   this.items.push(track);
+      // });
     }
   }
 

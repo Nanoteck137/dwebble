@@ -193,22 +193,6 @@ func (c *Client) GetAlbumTracks(id string, options Options) (*GetAlbumTracks, er
 	return Request[GetAlbumTracks](data)
 }
 
-func (c *Client) GetAlbumTracksForPlay(id string, options Options) (*GetAlbumTracksForPlay, error) {
-	path := Sprintf("/api/v1/albums/%v/tracks/play", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "GET",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[GetAlbumTracksForPlay](data)
-}
-
 func (c *Client) EditAlbum(id string, body EditAlbumBody, options Options) (*any, error) {
 	path := Sprintf("/api/v1/albums/%v", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
@@ -365,118 +349,6 @@ func (c *Client) DeleteTrack(id string, options Options) (*any, error) {
 		Method: "DELETE",
 		Token: c.token,
 		Body: nil,
-	}
-	return Request[any](data)
-}
-
-func (c *Client) GetDefaultQueue(playerId string, options Options) (*Queue, error) {
-	path := Sprintf("/api/v1/queue/default/%v", playerId)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "GET",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[Queue](data)
-}
-
-func (c *Client) ClearQueue(id string, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v/clear", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[any](data)
-}
-
-func (c *Client) UpdateQueue(id string, body UpdateQueueBody, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "PATCH",
-		Token: c.token,
-		Body: body,
-	}
-	return Request[any](data)
-}
-
-func (c *Client) GetQueueItems(id string, options Options) (*GetQueueItems, error) {
-	path := Sprintf("/api/v1/queue/%v/items", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "GET",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[GetQueueItems](data)
-}
-
-func (c *Client) AddToQueueFromPlaylist(id string, body AddToQueuePlaylistBody, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v/add/playlist", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
-		Token: c.token,
-		Body: body,
-	}
-	return Request[any](data)
-}
-
-func (c *Client) AddToQueueFromTaglist(id string, body AddToQueueTaglistBody, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v/add/taglist", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
-		Token: c.token,
-		Body: body,
-	}
-	return Request[any](data)
-}
-
-func (c *Client) AddToQueueFromAlbum(id string, body AddToQueueAlbumBody, options Options) (*any, error) {
-	path := Sprintf("/api/v1/queue/%v/add/album", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
-		Token: c.token,
-		Body: body,
 	}
 	return Request[any](data)
 }
@@ -927,6 +799,38 @@ func (c *Client) DeleteApiToken(id string, options Options) (*any, error) {
 		Body: nil,
 	}
 	return Request[any](data)
+}
+
+func (c *Client) GetMediaFromPlaylist(playlistId string, body GetMediaFromPlaylistBody, options Options) (*GetMedia, error) {
+	path := Sprintf("/api/v1/media/playlist/%v", playlistId)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[GetMedia](data)
+}
+
+func (c *Client) GetMediaFromAlbum(albumId string, body GetMediaFromAlbumBody, options Options) (*GetMedia, error) {
+	path := Sprintf("/api/v1/media/album/%v", albumId)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		Token: c.token,
+		Body: body,
+	}
+	return Request[GetMedia](data)
 }
 
 func (c *Client) ChangeArtistPicture(id string, body Reader, options Options) (*any, error) {

@@ -10,7 +10,6 @@
     "INVALID_SORT",
     "PLAYLIST_ALREADY_HAS_TRACK",
     "PLAYLIST_NOT_FOUND",
-    "QUEUE_NOT_FOUND",
     "ROUTE_NOT_FOUND",
     "TAGLIST_NOT_FOUND",
     "TRACK_NOT_FOUND",
@@ -354,85 +353,6 @@
       ]
     },
     {
-      "name": "MusicTrackArtist",
-      "extend": "",
-      "fields": [
-        {
-          "name": "artistId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artistName",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "MusicTrackAlbum",
-      "extend": "",
-      "fields": [
-        {
-          "name": "albumId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "albumName",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "MusicTrack",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artists",
-          "type": "[]MusicTrackArtist",
-          "omit": false
-        },
-        {
-          "name": "album",
-          "type": "MusicTrackAlbum",
-          "omit": false
-        },
-        {
-          "name": "coverArt",
-          "type": "Images",
-          "omit": false
-        },
-        {
-          "name": "mediaUrl",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetAlbumTracksForPlay",
-      "extend": "",
-      "fields": [
-        {
-          "name": "tracks",
-          "type": "[]MusicTrack",
-          "omit": false
-        }
-      ]
-    },
-    {
       "name": "EditAlbumBody",
       "extend": "",
       "fields": [
@@ -768,174 +688,6 @@
         {
           "name": "featuringArtists",
           "type": "[]string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "Queue",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "UpdateQueueBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "itemIndex",
-          "type": "*int",
-          "omit": true
-        }
-      ]
-    },
-    {
-      "name": "QueueItem",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "queueId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "orderNumber",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "trackId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "track",
-          "type": "MusicTrack",
-          "omit": false
-        },
-        {
-          "name": "created",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "updated",
-          "type": "int",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetQueueItems",
-      "extend": "",
-      "fields": [
-        {
-          "name": "index",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "items",
-          "type": "[]QueueItem",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "AddToQueue",
-      "extend": "",
-      "fields": [
-        {
-          "name": "shuffle",
-          "type": "bool",
-          "omit": true
-        },
-        {
-          "name": "addToFront",
-          "type": "bool",
-          "omit": true
-        }
-      ]
-    },
-    {
-      "name": "AddToQueuePlaylistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "shuffle",
-          "type": "bool",
-          "omit": true
-        },
-        {
-          "name": "addToFront",
-          "type": "bool",
-          "omit": true
-        },
-        {
-          "name": "playlistId",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "AddToQueueTaglistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "shuffle",
-          "type": "bool",
-          "omit": true
-        },
-        {
-          "name": "addToFront",
-          "type": "bool",
-          "omit": true
-        },
-        {
-          "name": "taglistId",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "AddToQueueAlbumBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "shuffle",
-          "type": "bool",
-          "omit": true
-        },
-        {
-          "name": "addToFront",
-          "type": "bool",
-          "omit": true
-        },
-        {
-          "name": "albumId",
-          "type": "string",
           "omit": false
         }
       ]
@@ -1490,6 +1242,110 @@
           "omit": false
         }
       ]
+    },
+    {
+      "name": "MediaResource",
+      "extend": "",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "MediaItem",
+      "extend": "",
+      "fields": [
+        {
+          "name": "track",
+          "type": "MediaResource",
+          "omit": false
+        },
+        {
+          "name": "artists",
+          "type": "[]MediaResource",
+          "omit": false
+        },
+        {
+          "name": "album",
+          "type": "MediaResource",
+          "omit": false
+        },
+        {
+          "name": "coverArt",
+          "type": "Images",
+          "omit": false
+        },
+        {
+          "name": "mediaType",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "mediaUrl",
+          "type": "string",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetMedia",
+      "extend": "",
+      "fields": [
+        {
+          "name": "items",
+          "type": "[]MediaItem",
+          "omit": false
+        }
+      ]
+    },
+    {
+      "name": "GetMediaCommonBody",
+      "extend": "",
+      "fields": [
+        {
+          "name": "type",
+          "type": "string",
+          "omit": true
+        },
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omit": true
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "omit": true
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "omit": true
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "omit": true
+        }
+      ]
+    },
+    {
+      "name": "GetMediaFromPlaylistBody",
+      "extend": "GetMediaCommonBody",
+      "fields": null
+    },
+    {
+      "name": "GetMediaFromAlbumBody",
+      "extend": "GetMediaCommonBody",
+      "fields": null
     }
   ],
   "apiEndpoints": [
@@ -1578,13 +1434,6 @@
       "bodyType": ""
     },
     {
-      "name": "GetAlbumTracksForPlay",
-      "method": "GET",
-      "path": "/api/v1/albums/:id/tracks/play",
-      "responseType": "GetAlbumTracksForPlay",
-      "bodyType": ""
-    },
-    {
       "name": "EditAlbum",
       "method": "PATCH",
       "path": "/api/v1/albums/:id",
@@ -1653,55 +1502,6 @@
       "path": "/api/v1/tracks/:id",
       "responseType": "",
       "bodyType": ""
-    },
-    {
-      "name": "GetDefaultQueue",
-      "method": "GET",
-      "path": "/api/v1/queue/default/:playerId",
-      "responseType": "Queue",
-      "bodyType": ""
-    },
-    {
-      "name": "ClearQueue",
-      "method": "POST",
-      "path": "/api/v1/queue/:id/clear",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "UpdateQueue",
-      "method": "PATCH",
-      "path": "/api/v1/queue/:id",
-      "responseType": "",
-      "bodyType": "UpdateQueueBody"
-    },
-    {
-      "name": "GetQueueItems",
-      "method": "GET",
-      "path": "/api/v1/queue/:id/items",
-      "responseType": "GetQueueItems",
-      "bodyType": ""
-    },
-    {
-      "name": "AddToQueueFromPlaylist",
-      "method": "POST",
-      "path": "/api/v1/queue/:id/add/playlist",
-      "responseType": "",
-      "bodyType": "AddToQueuePlaylistBody"
-    },
-    {
-      "name": "AddToQueueFromTaglist",
-      "method": "POST",
-      "path": "/api/v1/queue/:id/add/taglist",
-      "responseType": "",
-      "bodyType": "AddToQueueTaglistBody"
-    },
-    {
-      "name": "AddToQueueFromAlbum",
-      "method": "POST",
-      "path": "/api/v1/queue/:id/add/album",
-      "responseType": "",
-      "bodyType": "AddToQueueAlbumBody"
     },
     {
       "name": "Signup",
@@ -1898,6 +1698,20 @@
       "path": "/api/v1/user/apitoken/:id",
       "responseType": "",
       "bodyType": ""
+    },
+    {
+      "name": "GetMediaFromPlaylist",
+      "method": "POST",
+      "path": "/api/v1/media/playlist/:playlistId",
+      "responseType": "GetMedia",
+      "bodyType": "GetMediaFromPlaylistBody"
+    },
+    {
+      "name": "GetMediaFromAlbum",
+      "method": "POST",
+      "path": "/api/v1/media/album/:albumId",
+      "responseType": "GetMedia",
+      "bodyType": "GetMediaFromAlbumBody"
     }
   ],
   "formApiEndpoints": [
