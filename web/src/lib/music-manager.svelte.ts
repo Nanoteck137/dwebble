@@ -156,6 +156,11 @@ export class BackendQueue extends Queue {
 }
 */
 
+type SavedQueue = {
+  items: string[];
+  index: number;
+};
+
 export class LocalQueue extends Queue {
   apiClient: ApiClient;
 
@@ -165,9 +170,31 @@ export class LocalQueue extends Queue {
     this.apiClient = apiClient;
   }
 
+  async initialize() {
+    await this.loadQueue();
+  }
+
   async clearQueue() {
     this.items = [];
     this.index = 0;
+  }
+
+  saveQueue() {
+    const q: SavedQueue = {
+      items: this.items.map((i) => i.track.id),
+      index: this.index,
+    };
+
+    localStorage.setItem("queue", JSON.stringify(q));
+  }
+
+  async loadQueue() {
+    const s = localStorage.getItem("queue");
+    if (s) {
+      const q: SavedQueue = JSON.parse(s);
+      await this.addFromIds(q.items);
+      this.index = q.index;
+    }
   }
 
   async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
@@ -176,6 +203,8 @@ export class LocalQueue extends Queue {
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
+
+    this.saveQueue();
   }
 
   async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
@@ -184,6 +213,8 @@ export class LocalQueue extends Queue {
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
+
+    this.saveQueue();
   }
 
   async addFromFilter(filter: string, settings?: AddToQueueSettings) {
@@ -192,6 +223,8 @@ export class LocalQueue extends Queue {
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
+
+    this.saveQueue();
   }
 
   async addFromArtist(artistId: string, settings?: AddToQueueSettings) {
@@ -200,6 +233,8 @@ export class LocalQueue extends Queue {
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
+
+    this.saveQueue();
   }
 
   async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
@@ -207,11 +242,9 @@ export class LocalQueue extends Queue {
     const res = await this.apiClient.getMediaFromAlbum(albumId, {});
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
-
-      // res.data.items.forEach((track) => {
-      //   this.items.push(track);
-      // });
     }
+
+    this.saveQueue();
   }
 
   async addFromIds(trackIds: string[], settings?: AddToQueueSettings) {
@@ -220,6 +253,8 @@ export class LocalQueue extends Queue {
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
+
+    this.saveQueue();
   }
 }
 
