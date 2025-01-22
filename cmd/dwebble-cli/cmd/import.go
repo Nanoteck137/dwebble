@@ -21,6 +21,7 @@ import (
 	"github.com/nanoteck137/pyrin/tools/transform"
 	"github.com/spf13/cobra"
 )
+
 var quoteEscaper = strings.NewReplacer(
 	`"`, `\"`,
 )
@@ -280,7 +281,7 @@ func getTrackInfo(p string) (TrackInfo, error) {
 		if len(match) > 0 {
 			res.Year, _ = strconv.Atoi(match[1])
 		}
-	} 
+	}
 
 	if tag, err := probe.Tags.GetInt("track"); err == nil {
 		res.Number = int(tag)
@@ -297,7 +298,6 @@ var importCmd = &cobra.Command{
 		dir, _ := cmd.Flags().GetString("dir")
 		open, _ := cmd.Flags().GetBool("open")
 		extract, _ := cmd.Flags().GetBool("extract")
-
 
 		client := api.New(server)
 

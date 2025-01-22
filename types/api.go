@@ -2,7 +2,7 @@ package types
 
 const (
 	RoleSuperUser = "super_user"
-	RoleAdmin = "admin"
+	RoleAdmin     = "admin"
 )
 
 type Page struct {

@@ -105,7 +105,6 @@ func (db *Database) SearchAlbums(searchQuery string) ([]Album, error) {
 	return res, nil
 }
 
-
 func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 	searchQuery = replacer.Replace(searchQuery)
 

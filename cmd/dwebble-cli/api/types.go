@@ -2,24 +2,24 @@
 package api
 
 type Name struct {
-	Default string `json:"default"`
-	Other *string `json:"other,omitempty"`
+	Default string  `json:"default"`
+	Other   *string `json:"other,omitempty"`
 }
 
 type Images struct {
 	Original string `json:"original"`
-	Small string `json:"small"`
-	Medium string `json:"medium"`
-	Large string `json:"large"`
+	Small    string `json:"small"`
+	Medium   string `json:"medium"`
+	Large    string `json:"large"`
 }
 
 type Artist struct {
-	Id string `json:"id"`
-	Name Name `json:"name"`
-	Picture Images `json:"picture"`
-	Tags []string `json:"tags"`
-	Created int `json:"created"`
-	Updated int `json:"updated"`
+	Id      string   `json:"id"`
+	Name    Name     `json:"name"`
+	Picture Images   `json:"picture"`
+	Tags    []string `json:"tags"`
+	Created int      `json:"created"`
+	Updated int      `json:"updated"`
 }
 
 type GetArtists struct {
@@ -29,22 +29,22 @@ type GetArtists struct {
 type GetArtistById Artist
 
 type ArtistInfo struct {
-	Id string `json:"id"`
-	Name Name `json:"name"`
+	Id   string `json:"id"`
+	Name Name   `json:"name"`
 }
 
 type Album struct {
-	Id string `json:"id"`
-	Name Name `json:"name"`
-	Year *int `json:"year,omitempty"`
-	CoverArt Images `json:"coverArt"`
-	ArtistId string `json:"artistId"`
-	ArtistName Name `json:"artistName"`
-	Tags []string `json:"tags"`
+	Id               string       `json:"id"`
+	Name             Name         `json:"name"`
+	Year             *int         `json:"year,omitempty"`
+	CoverArt         Images       `json:"coverArt"`
+	ArtistId         string       `json:"artistId"`
+	ArtistName       Name         `json:"artistName"`
+	Tags             []string     `json:"tags"`
 	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
-	AllArtists []ArtistInfo `json:"allArtists"`
-	Created int `json:"created"`
-	Updated int `json:"updated"`
+	AllArtists       []ArtistInfo `json:"allArtists"`
+	Created          int          `json:"created"`
+	Updated          int          `json:"updated"`
 }
 
 type GetArtistAlbumsById struct {
@@ -52,9 +52,9 @@ type GetArtistAlbumsById struct {
 }
 
 type EditArtistBody struct {
-	Name *string `json:"name,omitempty"`
-	OtherName *string `json:"otherName,omitempty"`
-	Tags *[]string `json:"tags,omitempty"`
+	Name      *string   `json:"name,omitempty"`
+	OtherName *string   `json:"otherName,omitempty"`
+	Tags      *[]string `json:"tags,omitempty"`
 }
 
 type CreateArtist struct {
@@ -62,7 +62,7 @@ type CreateArtist struct {
 }
 
 type CreateArtistBody struct {
-	Name string `json:"name"`
+	Name      string `json:"name"`
 	OtherName string `json:"otherName"`
 }
 
@@ -77,18 +77,18 @@ type GetAlbums struct {
 type GetAlbumById Album
 
 type Track struct {
-	Id string `json:"id"`
-	Name Name `json:"name"`
-	Duration int `json:"duration"`
-	Number *int `json:"number,omitempty"`
-	Year *int `json:"year,omitempty"`
-	CoverArt Images `json:"coverArt"`
-	AlbumId string `json:"albumId"`
-	AlbumName Name `json:"albumName"`
-	Artists []ArtistInfo `json:"artists"`
-	Tags []string `json:"tags"`
-	Created int `json:"created"`
-	Updated int `json:"updated"`
+	Id        string       `json:"id"`
+	Name      Name         `json:"name"`
+	Duration  int          `json:"duration"`
+	Number    *int         `json:"number,omitempty"`
+	Year      *int         `json:"year,omitempty"`
+	CoverArt  Images       `json:"coverArt"`
+	AlbumId   string       `json:"albumId"`
+	AlbumName Name         `json:"albumName"`
+	Artists   []ArtistInfo `json:"artists"`
+	Tags      []string     `json:"tags"`
+	Created   int          `json:"created"`
+	Updated   int          `json:"updated"`
 }
 
 type GetAlbumTracks struct {
@@ -96,11 +96,11 @@ type GetAlbumTracks struct {
 }
 
 type EditAlbumBody struct {
-	Name *string `json:"name,omitempty"`
-	OtherName *string `json:"otherName,omitempty"`
-	ArtistId *string `json:"artistId,omitempty"`
-	Year *int `json:"year,omitempty"`
-	Tags *[]string `json:"tags,omitempty"`
+	Name             *string   `json:"name,omitempty"`
+	OtherName        *string   `json:"otherName,omitempty"`
+	ArtistId         *string   `json:"artistId,omitempty"`
+	Year             *int      `json:"year,omitempty"`
+	Tags             *[]string `json:"tags,omitempty"`
 	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
 }
 
@@ -109,52 +109,52 @@ type CreateAlbum struct {
 }
 
 type CreateAlbumBody struct {
-	Name string `json:"name"`
-	OtherName string `json:"otherName"`
-	ArtistId string `json:"artistId"`
-	Year int `json:"year"`
-	Tags []string `json:"tags"`
+	Name             string   `json:"name"`
+	OtherName        string   `json:"otherName"`
+	ArtistId         string   `json:"artistId"`
+	Year             int      `json:"year"`
+	Tags             []string `json:"tags"`
 	FeaturingArtists []string `json:"featuringArtists"`
 }
 
 type Page struct {
-	Page int `json:"page"`
-	PerPage int `json:"perPage"`
+	Page       int `json:"page"`
+	PerPage    int `json:"perPage"`
 	TotalItems int `json:"totalItems"`
 	TotalPages int `json:"totalPages"`
 }
 
 type GetTracks struct {
-	Page Page `json:"page"`
+	Page   Page    `json:"page"`
 	Tracks []Track `json:"tracks"`
 }
 
 type TrackFormat struct {
-	Id string `json:"id"`
-	MediaType string `json:"mediaType"`
-	IsOriginal bool `json:"isOriginal"`
+	Id         string `json:"id"`
+	MediaType  string `json:"mediaType"`
+	IsOriginal bool   `json:"isOriginal"`
 }
 
 type TrackDetails struct {
-	Id string `json:"id"`
-	Name Name `json:"name"`
-	Duration int `json:"duration"`
-	Number *int `json:"number,omitempty"`
-	Year *int `json:"year,omitempty"`
-	CoverArt Images `json:"coverArt"`
-	AlbumId string `json:"albumId"`
-	AlbumName Name `json:"albumName"`
-	ArtistId string `json:"artistId"`
-	ArtistName Name `json:"artistName"`
-	Tags []string `json:"tags"`
-	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
-	Formats []TrackFormat `json:"formats"`
-	Created int `json:"created"`
-	Updated int `json:"updated"`
+	Id               string        `json:"id"`
+	Name             Name          `json:"name"`
+	Duration         int           `json:"duration"`
+	Number           *int          `json:"number,omitempty"`
+	Year             *int          `json:"year,omitempty"`
+	CoverArt         Images        `json:"coverArt"`
+	AlbumId          string        `json:"albumId"`
+	AlbumName        Name          `json:"albumName"`
+	ArtistId         string        `json:"artistId"`
+	ArtistName       Name          `json:"artistName"`
+	Tags             []string      `json:"tags"`
+	FeaturingArtists []ArtistInfo  `json:"featuringArtists"`
+	Formats          []TrackFormat `json:"formats"`
+	Created          int           `json:"created"`
+	Updated          int           `json:"updated"`
 }
 
 type GetDetailedTracks struct {
-	Page Page `json:"page"`
+	Page   Page           `json:"page"`
 	Tracks []TrackDetails `json:"tracks"`
 }
 
@@ -163,34 +163,34 @@ type GetTrackById Track
 type GetDetailedTrackById TrackDetails
 
 type EditTrackBody struct {
-	Name *string `json:"name,omitempty"`
-	OtherName *string `json:"otherName,omitempty"`
-	ArtistId *string `json:"artistId,omitempty"`
-	Year *int `json:"year,omitempty"`
-	Number *int `json:"number,omitempty"`
-	Tags *[]string `json:"tags,omitempty"`
+	Name             *string   `json:"name,omitempty"`
+	OtherName        *string   `json:"otherName,omitempty"`
+	ArtistId         *string   `json:"artistId,omitempty"`
+	Year             *int      `json:"year,omitempty"`
+	Number           *int      `json:"number,omitempty"`
+	Tags             *[]string `json:"tags,omitempty"`
 	FeaturingArtists *[]string `json:"featuringArtists,omitempty"`
 }
 
 type UploadTrackBody struct {
-	Name string `json:"name"`
-	OtherName string `json:"otherName"`
-	Number int `json:"number"`
-	Year int `json:"year"`
-	AlbumId string `json:"albumId"`
-	ArtistId string `json:"artistId"`
-	Tags []string `json:"tags"`
+	Name             string   `json:"name"`
+	OtherName        string   `json:"otherName"`
+	Number           int      `json:"number"`
+	Year             int      `json:"year"`
+	AlbumId          string   `json:"albumId"`
+	ArtistId         string   `json:"artistId"`
+	Tags             []string `json:"tags"`
 	FeaturingArtists []string `json:"featuringArtists"`
 }
 
 type Signup struct {
-	Id string `json:"id"`
+	Id       string `json:"id"`
 	Username string `json:"username"`
 }
 
 type SignupBody struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username        string `json:"username"`
+	Password        string `json:"password"`
 	PasswordConfirm string `json:"passwordConfirm"`
 }
 
@@ -204,21 +204,21 @@ type SigninBody struct {
 }
 
 type ChangePasswordBody struct {
-	CurrentPassword string `json:"currentPassword"`
-	NewPassword string `json:"newPassword"`
+	CurrentPassword    string `json:"currentPassword"`
+	NewPassword        string `json:"newPassword"`
 	NewPasswordConfirm string `json:"newPasswordConfirm"`
 }
 
 type GetMe struct {
-	Id string `json:"id"`
-	Username string `json:"username"`
-	Role string `json:"role"`
-	DisplayName string `json:"displayName"`
+	Id            string  `json:"id"`
+	Username      string  `json:"username"`
+	Role          string  `json:"role"`
+	DisplayName   string  `json:"displayName"`
 	QuickPlaylist *string `json:"quickPlaylist,omitempty"`
 }
 
 type Playlist struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -233,7 +233,7 @@ type CreatePlaylistBody struct {
 }
 
 type PostPlaylistFilterBody struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
 	Filter string `json:"filter"`
 }
 
@@ -256,45 +256,45 @@ type GetSystemInfo struct {
 }
 
 type ExportArtist struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
+	Id      string `json:"id"`
+	Name    string `json:"name"`
 	Picture string `json:"picture"`
 }
 
 type ExportAlbum struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
+	Id       string `json:"id"`
+	Name     string `json:"name"`
 	ArtistId string `json:"artistId"`
 	CoverArt string `json:"coverArt"`
-	Year int `json:"year"`
+	Year     int    `json:"year"`
 }
 
 type ExportTrack struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	AlbumId string `json:"albumId"`
-	ArtistId string `json:"artistId"`
-	Duration int `json:"duration"`
-	Number int `json:"number"`
-	Year int `json:"year"`
-	OriginalFilename string `json:"originalFilename"`
-	MobileFilename string `json:"mobileFilename"`
-	Created int `json:"created"`
-	Tags []string `json:"tags"`
+	Id               string   `json:"id"`
+	Name             string   `json:"name"`
+	AlbumId          string   `json:"albumId"`
+	ArtistId         string   `json:"artistId"`
+	Duration         int      `json:"duration"`
+	Number           int      `json:"number"`
+	Year             int      `json:"year"`
+	OriginalFilename string   `json:"originalFilename"`
+	MobileFilename   string   `json:"mobileFilename"`
+	Created          int      `json:"created"`
+	Tags             []string `json:"tags"`
 }
 
 type Export struct {
 	Artists []ExportArtist `json:"artists"`
-	Albums []ExportAlbum `json:"albums"`
-	Tracks []ExportTrack `json:"tracks"`
+	Albums  []ExportAlbum  `json:"albums"`
+	Tracks  []ExportTrack  `json:"tracks"`
 }
 
 type Taglist struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Filter string `json:"filter"`
-	Created int `json:"created"`
-	Updated int `json:"updated"`
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Filter  string `json:"filter"`
+	Created int    `json:"created"`
+	Updated int    `json:"updated"`
 }
 
 type GetTaglists struct {
@@ -304,7 +304,7 @@ type GetTaglists struct {
 type GetTaglistById Taglist
 
 type GetTaglistTracks struct {
-	Page Page `json:"page"`
+	Page   Page    `json:"page"`
 	Tracks []Track `json:"tracks"`
 }
 
@@ -313,17 +313,17 @@ type CreateTaglist struct {
 }
 
 type CreateTaglistBody struct {
-	Name string `json:"name"`
+	Name   string `json:"name"`
 	Filter string `json:"filter"`
 }
 
 type UpdateTaglistBody struct {
-	Name *string `json:"name,omitempty"`
+	Name   *string `json:"name,omitempty"`
 	Filter *string `json:"filter,omitempty"`
 }
 
 type UpdateUserSettingsBody struct {
-	DisplayName *string `json:"displayName,omitempty"`
+	DisplayName   *string `json:"displayName,omitempty"`
 	QuickPlaylist *string `json:"quickPlaylist,omitempty"`
 }
 
@@ -344,7 +344,7 @@ type CreateApiTokenBody struct {
 }
 
 type ApiToken struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -353,17 +353,17 @@ type GetAllApiTokens struct {
 }
 
 type MediaResource struct {
-	Id string `json:"id"`
+	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
 type MediaItem struct {
-	Track MediaResource `json:"track"`
-	Artists []MediaResource `json:"artists"`
-	Album MediaResource `json:"album"`
-	CoverArt Images `json:"coverArt"`
-	MediaType string `json:"mediaType"`
-	MediaUrl string `json:"mediaUrl"`
+	Track     MediaResource   `json:"track"`
+	Artists   []MediaResource `json:"artists"`
+	Album     MediaResource   `json:"album"`
+	CoverArt  Images          `json:"coverArt"`
+	MediaType string          `json:"mediaType"`
+	MediaUrl  string          `json:"mediaUrl"`
 }
 
 type GetMedia struct {
@@ -371,11 +371,11 @@ type GetMedia struct {
 }
 
 type GetMediaCommonBody struct {
-	Type string `json:"type"`
-	Shuffle bool `json:"shuffle"`
-	Sort string `json:"sort"`
-	Limit int `json:"limit"`
-	Offset int `json:"offset"`
+	Type    string `json:"type"`
+	Shuffle bool   `json:"shuffle"`
+	Sort    string `json:"sort"`
+	Limit   int    `json:"limit"`
+	Offset  int    `json:"offset"`
 }
 
 type GetMediaFromPlaylistBody GetMediaCommonBody
@@ -383,12 +383,12 @@ type GetMediaFromPlaylistBody GetMediaCommonBody
 type GetMediaFromTaglistBody GetMediaCommonBody
 
 type GetMediaFromFilterBody struct {
-	Type string `json:"type"`
-	Shuffle bool `json:"shuffle"`
-	Sort string `json:"sort"`
-	Limit int `json:"limit"`
-	Offset int `json:"offset"`
-	Filter string `json:"filter"`
+	Type    string `json:"type"`
+	Shuffle bool   `json:"shuffle"`
+	Sort    string `json:"sort"`
+	Limit   int    `json:"limit"`
+	Offset  int    `json:"offset"`
+	Filter  string `json:"filter"`
 }
 
 type GetMediaFromArtistBody GetMediaCommonBody
@@ -396,12 +396,11 @@ type GetMediaFromArtistBody GetMediaCommonBody
 type GetMediaFromAlbumBody GetMediaCommonBody
 
 type GetMediaFromIdsBody struct {
-	Type string `json:"type"`
-	Shuffle bool `json:"shuffle"`
-	Sort string `json:"sort"`
-	Limit int `json:"limit"`
-	Offset int `json:"offset"`
-	TrackIds []string `json:"trackIds"`
-	KeepOrder bool `json:"keepOrder"`
+	Type      string   `json:"type"`
+	Shuffle   bool     `json:"shuffle"`
+	Sort      string   `json:"sort"`
+	Limit     int      `json:"limit"`
+	Offset    int      `json:"offset"`
+	TrackIds  []string `json:"trackIds"`
+	KeepOrder bool     `json:"keepOrder"`
 }
-

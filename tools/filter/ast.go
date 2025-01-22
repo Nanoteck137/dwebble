@@ -44,10 +44,10 @@ type Table struct {
 }
 
 type InTableExpr struct {
-	Not   bool
+	Not        bool
 	IdSelector string
-	Table Table
-	Ids   []string
+	Table      Table
+	Ids        []string
 }
 
 func (e *AndExpr) filterExprType()     {}

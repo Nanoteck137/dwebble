@@ -170,10 +170,10 @@ func ImportTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		}
 
 		err = db.CreateTrackMedia(ctx, database.CreateTrackMediaParams{
-			Id:         mediaId,
-			TrackId:    trackId,
-			Filename:   original,
-			MediaType:  mediaType,
+			Id:        mediaId,
+			TrackId:   trackId,
+			Filename:  original,
+			MediaType: mediaType,
 		})
 		if err != nil {
 			return "", err

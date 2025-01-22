@@ -533,11 +533,11 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:   "AddToQueueFromAlbum",
-			Method: http.MethodPost,
-			Path:   "/queue/:id/add/album",
+			Name:     "AddToQueueFromAlbum",
+			Method:   http.MethodPost,
+			Path:     "/queue/:id/add/album",
 			BodyType: AddToQueueAlbumBody{},
-			Errors: []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypeAlbumNotFound},
+			Errors:   []pyrin.ErrorType{ErrTypeQueueNotFound, ErrTypeAlbumNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
@@ -598,6 +598,6 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 
 				return nil, nil
 			},
-		},	
+		},
 	)
 }

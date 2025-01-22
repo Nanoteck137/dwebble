@@ -224,7 +224,7 @@ func (db *Database) AddTagToArtist(ctx context.Context, tagSlug, artistId string
 		Prepared(true).
 		Rows(goqu.Record{
 			"artist_id": artistId,
-			"tag_slug": tagSlug,
+			"tag_slug":  tagSlug,
 		})
 
 	_, err := db.Exec(ctx, ds)

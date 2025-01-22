@@ -394,14 +394,14 @@ func (db *Database) CreateDefaultQueue(ctx context.Context, params CreateDefault
 }
 
 type NewTrackQueryItem struct {
-	Id string `db:"id"`
+	Id   string `db:"id"`
 	Name string `db:"name"`
 
-	AlbumId string `db:"album_id"`
+	AlbumId  string `db:"album_id"`
 	ArtistId string `db:"artist_id"`
-	
+
 	ArtistName string `db:"artist_name"`
-	AlbumName string `db:"album_name"`
+	AlbumName  string `db:"album_name"`
 
 	CoverArt sql.NullString `db:"cover_art"`
 

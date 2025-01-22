@@ -51,7 +51,7 @@ type ApiError[E any] struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
 	Type    string `json:"type"`
-	Extra  E      `json:"extra,omitempty"`
+	Extra   E      `json:"extra,omitempty"`
 }
 
 func (err *ApiError[E]) Error() string {
