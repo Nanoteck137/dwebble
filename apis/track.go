@@ -144,7 +144,7 @@ func ConvertDBTrackToDetails(c pyrin.Context, track database.Track) TrackDetails
 			formats[i] = TrackFormat{
 				Id:         format.Id,
 				MediaType:  types.MediaType(format.MediaType),
-				IsOriginal: format.IsOriginal == 1,
+				IsOriginal: format.IsOriginal,
 			}
 		}
 	}

@@ -128,7 +128,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					found := false
 					var originalItem database.TrackFormat
 					for _, item := range mediaItems {
-						if item.IsOriginal >= 1 {
+						if item.IsOriginal {
 							originalItem = item
 							found = true
 							break

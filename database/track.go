@@ -51,9 +51,9 @@ type TrackFormat struct {
 	Id      string `json:"id"`
 	TrackId string `json:"track_id"`
 
-	Filename   string `json:"filename"`
+	Filename   string          `json:"filename"`
 	MediaType  types.MediaType `json:"media_type"`
-	IsOriginal int    `json:"is_original"`
+	IsOriginal bool            `json:"is_original"`
 }
 
 type TrackMedia struct {
@@ -127,7 +127,11 @@ func TrackQuery() *goqu.SelectDataset {
 					goqu.I("tracks_media.media_type"),
 
 					"is_original",
-					goqu.I("tracks_media.is_original"),
+					goqu.Func("IIF",
+						goqu.I("tracks_media.is_original").Gte(1),
+						goqu.L("json('true')"),
+						goqu.L("json('false')"),
+					),
 				),
 			).As("formats"),
 		).
