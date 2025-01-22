@@ -182,6 +182,11 @@ export class LocalQueue extends Queue {
     this.saveQueue();
   }
 
+  async setQueueIndex(index: number) {
+    super.setQueueIndex(index);
+    this.saveQueue();
+  }
+
   saveQueue() {
     const q: SavedQueue = {
       items: this.items.map((i) => i.track.id),
