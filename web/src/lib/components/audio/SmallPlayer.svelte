@@ -17,8 +17,8 @@
   } from "@nanoteck137/nano-ui";
   import SeekSlider from "$lib/components/SeekSlider.svelte";
   import { fly } from "svelte/transition";
-  import type { MusicTrack } from "$lib/api/types";
   import { getMusicManager } from "$lib/music-manager.svelte";
+  import type { MediaItem } from "$lib/api/types";
 
   const musicManager = getMusicManager();
 
@@ -32,11 +32,9 @@
     volume: number;
     audioMuted: boolean;
 
-    trackName: string;
-    artistName: string;
-    coverArt: string;
+    currentMediaItem: MediaItem | null;
 
-    queue: MusicTrack[];
+    queue: MediaItem[];
     currentQueueIndex: number;
 
     onPlay: () => void;
@@ -58,10 +56,7 @@
     volume,
     audioMuted,
 
-    trackName,
-    artistName,
-    coverArt,
-
+    currentMediaItem,
     queue,
     currentQueueIndex,
 
@@ -90,12 +85,12 @@
       <p class="pb-2">Queue</p>
       <ScrollArea class="h-96">
         <div class="flex flex-col gap-2">
-          {#each queue as track, i}
+          {#each queue as mediaItem, i}
             <div class="flex items-center gap-2">
               <div class="group relative">
                 <img
                   class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
-                  src={track.coverArt.small}
+                  src={mediaItem.coverArt.small}
                   alt="cover"
                 />
                 {#if i == currentQueueIndex}
@@ -117,14 +112,14 @@
                 {/if}
               </div>
               <div class="flex flex-col">
-                <p class="line-clamp-1 text-sm" title={track.name}>
-                  {track.name}
+                <p class="line-clamp-1 text-sm" title={mediaItem.track.name}>
+                  {mediaItem.track.name}
                 </p>
                 <p
                   class="line-clamp-1 text-xs"
-                  title={track.artists[0].artistName}
+                  title={mediaItem.artists[0].name}
                 >
-                  {track.artists[0].artistName}
+                  {mediaItem.artists[0].name}
                 </p>
               </div>
             </div>
@@ -154,13 +149,15 @@
       <Sheet.Trigger class="flex grow items-center">
         <img
           class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
-          src={coverArt}
+          src={currentMediaItem?.coverArt.small}
           alt="cover"
         />
 
         <div class="flex flex-col items-start justify-center px-2">
-          <p class="line-clamp-1 text-sm">{trackName}</p>
-          <p class="line-clamp-1 text-xs">{artistName}</p>
+          <p class="line-clamp-1 text-sm">{currentMediaItem?.track.name}</p>
+          <p class="line-clamp-1 text-xs">
+            {currentMediaItem?.artists[0].name}
+          </p>
         </div>
 
         <div class="flex-grow"></div>
@@ -173,14 +170,14 @@
           {@render queueSheet()}
 
           <img
-            class="aspect-square w-64 rounded object-cover"
-            src={coverArt}
+            class="aspect-square w-64 rounded border object-cover"
+            src={currentMediaItem?.coverArt.medium}
             alt="Track Cover Art"
           />
 
           <div class="flex flex-col items-center">
-            <p class="font-medium">{trackName}</p>
-            <p class="text-xs">{artistName}</p>
+            <p class="font-medium">{currentMediaItem?.track.name}</p>
+            <p class="text-xs">{currentMediaItem?.artists[0].name}</p>
           </div>
 
           <div class="flex w-full flex-col gap-1 px-4 py-2">

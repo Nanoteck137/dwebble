@@ -224,9 +224,7 @@
   <SmallPlayer
     {playing}
     {loading}
-    trackName={"UNKNOWN"}
-    artistName={"UNKNOWN"}
-    coverArt={"UNKNOWN"}
+    {currentMediaItem}
     {currentTime}
     {duration}
     {volume}
