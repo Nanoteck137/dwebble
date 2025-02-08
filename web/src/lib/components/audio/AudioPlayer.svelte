@@ -5,6 +5,7 @@
   import { getMusicManager } from "$lib/music-manager.svelte";
   import { browser } from "$app/environment";
   import type { MediaItem } from "$lib/api/types";
+  import toast from "svelte-5-french-toast";
 
   const musicManager = getMusicManager();
 
@@ -50,7 +51,14 @@
       if (currentMediaItem?.track.id === mediaItem.track.id) return;
 
       currentMediaItem = mediaItem;
-      audio.src = mediaItem.mediaUrl;
+      if (mediaItem.mediaUrl) {
+        audio.src = mediaItem.mediaUrl;
+      } else {
+        audio.removeAttribute("src");
+        audio.load();
+
+        toast.error("Media item has no media attached");
+      }
     } else {
       currentMediaItem = null;
       audio.removeAttribute("src");

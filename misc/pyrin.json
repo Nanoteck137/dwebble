@@ -1290,7 +1290,7 @@
         },
         {
           "name": "mediaUrl",
-          "type": "string",
+          "type": "*string",
           "omit": false
         }
       ]

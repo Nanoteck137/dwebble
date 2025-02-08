@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 
 	"github.com/nanoteck137/dwebble/core"
@@ -26,7 +27,7 @@ type MediaItem struct {
 	CoverArt types.Images `json:"coverArt"`
 
 	MediaType types.MediaType `json:"mediaType"`
-	MediaUrl  string          `json:"mediaUrl"`
+	MediaUrl  *string         `json:"mediaUrl"`
 }
 
 type GetMedia struct {
@@ -72,15 +73,72 @@ type GetMediaFromIdsBody struct {
 	KeepOrder bool     `json:"keepOrder,omitempty"`
 }
 
-func InstallMediaHandlers(app core.App, group pyrin.Group) {
-	// TODO(patrik):
-	// - [x] Playlist
-	// - [x] Taglist
-	// - [x] Filter
-	// - [x] Artist
-	// - [x] Album
-	// - [x] Ids
+func packMediaResult(c pyrin.Context, tracks []database.Track, shuffle bool) (GetMedia, error) {
+	if shuffle {
+		rand.Shuffle(len(tracks), func(i, j int) {
+			tracks[i], tracks[j] = tracks[j], tracks[i]
+		})
+	}
 
+	res := GetMedia{
+		Items: make([]MediaItem, len(tracks)),
+	}
+
+	for i, track := range tracks {
+		artists := make([]MediaResource, len(track.FeaturingArtists)+1)
+
+		artists[0] = MediaResource{
+			Id:   track.ArtistId,
+			Name: track.ArtistName,
+		}
+
+		for i, v := range track.FeaturingArtists {
+			artists[i+1] = MediaResource{
+				Id:   v.Id,
+				Name: v.Name,
+			}
+		}
+
+		mediaFormats := *track.Formats.Get()
+
+		// TODO(patrik): Better selection algo
+		var formatFound *database.TrackFormat
+		for _, item := range mediaFormats {
+			if item.IsOriginal {
+				formatFound = &item
+				break
+			}
+		}
+
+		var mediaType types.MediaType
+		var mediaUrl *string
+		if formatFound != nil {
+			mediaType = formatFound.MediaType
+
+			url := ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, formatFound.Id, formatFound.Filename))
+			mediaUrl = &url
+		}
+
+		res.Items[i] = MediaItem{
+			Track: MediaResource{
+				Id:   track.Id,
+				Name: track.Name,
+			},
+			Artists: artists,
+			Album: MediaResource{
+				Id:   track.AlbumId,
+				Name: track.AlbumName,
+			},
+			CoverArt:  ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
+			MediaType: mediaType,
+			MediaUrl:  mediaUrl,
+		}
+	}
+
+	return res, nil
+}
+
+func InstallMediaHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
 			Name:         "GetMediaFromPlaylist",
@@ -93,6 +151,11 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 				playlistId := c.Param("playlistId")
 
 				ctx := context.TODO()
+
+				body, err := pyrin.Body[GetMediaFromPlaylistBody](c)
+				if err != nil {
+					return nil, err
+				}
 
 				user, err := User(app, c)
 				if err != nil {
@@ -118,60 +181,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := GetMedia{
-					Items: make([]MediaItem, len(tracks)),
-				}
-
-				for i, track := range tracks {
-					artists := make([]MediaResource, len(track.FeaturingArtists)+1)
-
-					artists[0] = MediaResource{
-						Id:   track.ArtistId,
-						Name: track.ArtistName,
-					}
-
-					for i, v := range track.FeaturingArtists {
-						artists[i+1] = MediaResource{
-							Id:   v.Id,
-							Name: v.Name,
-						}
-					}
-
-					mediaItems := *track.Formats.Get()
-
-					// TODO(patrik): Better selection algo
-					found := false
-					var originalItem database.TrackFormat
-					for _, item := range mediaItems {
-						if item.IsOriginal {
-							originalItem = item
-							found = true
-							break
-						}
-					}
-
-					if !found {
-						// TODO(patrik): Better error handling
-						return nil, errors.New("Contains bad media items")
-					}
-
-					res.Items[i] = MediaItem{
-						Track: MediaResource{
-							Id:   track.Id,
-							Name: track.Name,
-						},
-						Artists: artists,
-						Album: MediaResource{
-							Id:   track.AlbumId,
-							Name: track.AlbumName,
-						},
-						CoverArt:  ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-						MediaType: originalItem.MediaType,
-						MediaUrl:  ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
-					}
-				}
-
-				return res, nil
+				return packMediaResult(c, tracks, body.Shuffle)
 			},
 		},
 
@@ -186,6 +196,11 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 				taglistId := c.Param("taglistId")
 
 				ctx := context.TODO()
+
+				body, err := pyrin.Body[GetMediaFromTaglistBody](c)
+				if err != nil {
+					return nil, err
+				}
 
 				user, err := User(app, c)
 				if err != nil {
@@ -210,60 +225,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := GetMedia{
-					Items: make([]MediaItem, len(tracks)),
-				}
-
-				for i, track := range tracks {
-					artists := make([]MediaResource, len(track.FeaturingArtists)+1)
-
-					artists[0] = MediaResource{
-						Id:   track.ArtistId,
-						Name: track.ArtistName,
-					}
-
-					for i, v := range track.FeaturingArtists {
-						artists[i+1] = MediaResource{
-							Id:   v.Id,
-							Name: v.Name,
-						}
-					}
-
-					mediaItems := *track.Formats.Get()
-
-					// TODO(patrik): Better selection algo
-					found := false
-					var originalItem database.TrackFormat
-					for _, item := range mediaItems {
-						if item.IsOriginal {
-							originalItem = item
-							found = true
-							break
-						}
-					}
-
-					if !found {
-						// TODO(patrik): Better error handling
-						return nil, errors.New("Contains bad media items")
-					}
-
-					res.Items[i] = MediaItem{
-						Track: MediaResource{
-							Id:   track.Id,
-							Name: track.Name,
-						},
-						Artists: artists,
-						Album: MediaResource{
-							Id:   track.AlbumId,
-							Name: track.AlbumName,
-						},
-						CoverArt:  ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-						MediaType: originalItem.MediaType,
-						MediaUrl:  ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
-					}
-				}
-
-				return res, nil
+				return packMediaResult(c, tracks, body.Shuffle)
 			},
 		},
 
@@ -287,60 +249,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := GetMedia{
-					Items: make([]MediaItem, len(tracks)),
-				}
-
-				for i, track := range tracks {
-					artists := make([]MediaResource, len(track.FeaturingArtists)+1)
-
-					artists[0] = MediaResource{
-						Id:   track.ArtistId,
-						Name: track.ArtistName,
-					}
-
-					for i, v := range track.FeaturingArtists {
-						artists[i+1] = MediaResource{
-							Id:   v.Id,
-							Name: v.Name,
-						}
-					}
-
-					mediaItems := *track.Formats.Get()
-
-					// TODO(patrik): Better selection algo
-					found := false
-					var originalItem database.TrackFormat
-					for _, item := range mediaItems {
-						if item.IsOriginal {
-							originalItem = item
-							found = true
-							break
-						}
-					}
-
-					if !found {
-						// TODO(patrik): Better error handling
-						return nil, errors.New("Contains bad media items")
-					}
-
-					res.Items[i] = MediaItem{
-						Track: MediaResource{
-							Id:   track.Id,
-							Name: track.Name,
-						},
-						Artists: artists,
-						Album: MediaResource{
-							Id:   track.AlbumId,
-							Name: track.AlbumName,
-						},
-						CoverArt:  ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-						MediaType: originalItem.MediaType,
-						MediaUrl:  ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
-					}
-				}
-
-				return res, nil
+				return packMediaResult(c, tracks, body.Shuffle)
 			},
 		},
 
@@ -355,6 +264,11 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 				artistId := c.Param("artistId")
 
 				ctx := context.TODO()
+
+				body, err := pyrin.Body[GetMediaFromArtistBody](c)
+				if err != nil {
+					return nil, err
+				}
 
 				artist, err := app.DB().GetArtistById(ctx, artistId)
 				if err != nil {
@@ -371,60 +285,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := GetMedia{
-					Items: make([]MediaItem, len(tracks)),
-				}
-
-				for i, track := range tracks {
-					artists := make([]MediaResource, len(track.FeaturingArtists)+1)
-
-					artists[0] = MediaResource{
-						Id:   track.ArtistId,
-						Name: track.ArtistName,
-					}
-
-					for i, v := range track.FeaturingArtists {
-						artists[i+1] = MediaResource{
-							Id:   v.Id,
-							Name: v.Name,
-						}
-					}
-
-					mediaItems := *track.Formats.Get()
-
-					// TODO(patrik): Better selection algo
-					found := false
-					var originalItem database.TrackFormat
-					for _, item := range mediaItems {
-						if item.IsOriginal {
-							originalItem = item
-							found = true
-							break
-						}
-					}
-
-					if !found {
-						// TODO(patrik): Better error handling
-						return nil, errors.New("Contains bad media items")
-					}
-
-					res.Items[i] = MediaItem{
-						Track: MediaResource{
-							Id:   track.Id,
-							Name: track.Name,
-						},
-						Artists: artists,
-						Album: MediaResource{
-							Id:   track.AlbumId,
-							Name: track.AlbumName,
-						},
-						CoverArt:  ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-						MediaType: originalItem.MediaType,
-						MediaUrl:  ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
-					}
-				}
-
-				return res, nil
+				return packMediaResult(c, tracks, body.Shuffle)
 			},
 		},
 
@@ -465,60 +326,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				res := GetMedia{
-					Items: make([]MediaItem, len(tracks)),
-				}
-
-				for i, track := range tracks {
-					artists := make([]MediaResource, len(track.FeaturingArtists)+1)
-
-					artists[0] = MediaResource{
-						Id:   track.ArtistId,
-						Name: track.ArtistName,
-					}
-
-					for i, v := range track.FeaturingArtists {
-						artists[i+1] = MediaResource{
-							Id:   v.Id,
-							Name: v.Name,
-						}
-					}
-
-					mediaItems := *track.Formats.Get()
-
-					// TODO(patrik): Better selection algo
-					found := false
-					var originalItem database.TrackFormat
-					for _, item := range mediaItems {
-						if item.IsOriginal {
-							originalItem = item
-							found = true
-							break
-						}
-					}
-
-					if !found {
-						// TODO(patrik): Better error handling
-						return nil, errors.New("Contains bad media items")
-					}
-
-					res.Items[i] = MediaItem{
-						Track: MediaResource{
-							Id:   track.Id,
-							Name: track.Name,
-						},
-						Artists: artists,
-						Album: MediaResource{
-							Id:   track.AlbumId,
-							Name: track.AlbumName,
-						},
-						CoverArt:  ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-						MediaType: originalItem.MediaType,
-						MediaUrl:  ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
-					}
-				}
-
-				return res, nil
+				return packMediaResult(c, tracks, body.Shuffle)
 			},
 		},
 
@@ -559,60 +367,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				res := GetMedia{
-					Items: make([]MediaItem, len(tracks)),
-				}
-
-				for i, track := range tracks {
-					artists := make([]MediaResource, len(track.FeaturingArtists)+1)
-
-					artists[0] = MediaResource{
-						Id:   track.ArtistId,
-						Name: track.ArtistName,
-					}
-
-					for i, v := range track.FeaturingArtists {
-						artists[i+1] = MediaResource{
-							Id:   v.Id,
-							Name: v.Name,
-						}
-					}
-
-					mediaItems := *track.Formats.Get()
-
-					// TODO(patrik): Better selection algo
-					found := false
-					var originalItem database.TrackFormat
-					for _, item := range mediaItems {
-						if item.IsOriginal {
-							originalItem = item
-							found = true
-							break
-						}
-					}
-
-					if !found {
-						// TODO(patrik): Better error handling
-						return nil, errors.New("Contains bad media items")
-					}
-
-					res.Items[i] = MediaItem{
-						Track: MediaResource{
-							Id:   track.Id,
-							Name: track.Name,
-						},
-						Artists: artists,
-						Album: MediaResource{
-							Id:   track.AlbumId,
-							Name: track.AlbumName,
-						},
-						CoverArt:  ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
-						MediaType: originalItem.MediaType,
-						MediaUrl:  ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, originalItem.Id, originalItem.Filename)),
-					}
-				}
-
-				return res, nil
+				return packMediaResult(c, tracks, body.Shuffle)
 			},
 		},
 	)
