@@ -26,7 +26,7 @@ in
 
     package = mkOption {
       type = types.package;
-      default = self.packages.${pkgs.system}.dwebble-web;
+      default = self.packages.${pkgs.system}.frontend;
       description = "package to use for this service (defaults to the one in the flake)";
     };
 

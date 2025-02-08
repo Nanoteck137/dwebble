@@ -50,7 +50,7 @@ in
 
     package = mkOption {
       type = types.package;
-      default = self.packages.${pkgs.system}.default;
+      default = self.packages.${pkgs.system}.backend;
       description = "package to use for this service (defaults to the one in the flake)";
     };
 
