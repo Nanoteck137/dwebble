@@ -35,13 +35,17 @@
 <p>Artist: {data.artist.name.default}</p>
 
 <p>Num Albums: {data.albums.length}</p>
-{#each data.albums as album}
-  <a href="/albums/{album.id}">{album.name.default}</a>
-{/each}
+<div class="flex flex-col">
+  {#each data.albums as album}
+    <a href="/albums/{album.id}">{album.name.default}</a>
+  {/each}
+</div>
 
 <Separator />
 
 <p>Num Tracks: {data.trackPage.totalItems}</p>
-{#each data.tracks as track}
-  <a href="/albums/{track.albumId}">{track.name.default}</a>
-{/each}
+<div class="flex flex-col">
+  {#each data.tracks as track}
+    <a href="/albums/{track.albumId}">{track.name.default}</a>
+  {/each}
+</div>
