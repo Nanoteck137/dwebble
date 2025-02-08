@@ -11,6 +11,7 @@
   import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { goto } from "$app/navigation";
   import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
+  import { isRoleAdmin } from "$lib/utils";
 
   let { data } = $props();
   const musicManager = getMusicManager();
@@ -57,10 +58,12 @@
         <ListPlus />
         Append to Queue
       </DropdownMenu.Item>
-      <DropdownMenu.Link href="/albums/{data.album.id}/edit">
-        <Pencil />
-        Edit Album
-      </DropdownMenu.Link>
+      {#if isRoleAdmin(data.user?.role || "")}
+        <DropdownMenu.Link href="/albums/{data.album.id}/edit">
+          <Pencil />
+          Edit Album
+        </DropdownMenu.Link>
+      {/if}
     </DropdownMenu.Group>
   {/snippet}
 </TrackListHeader>
