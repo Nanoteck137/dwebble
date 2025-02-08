@@ -31,8 +31,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   event.locals.apiClient = client;
 
-  if (url.pathname === "/login" && event.locals.user) {
-    throw redirect(303, "/");
+  if (
+    event.locals.user &&
+    (url.pathname === "/login" || url.pathname === "/register")
+  ) {
+    throw redirect(301, "/");
+  }
+
+  if (
+    !event.locals.user &&
+    (url.pathname.startsWith("/taglists") ||
+      url.pathname.startsWith("/playlists") ||
+      url.pathname.startsWith("/account"))
+  ) {
+    throw redirect(301, "/");
   }
 
   const response = await resolve(event);
