@@ -308,6 +308,10 @@ func (b UploadTrackBody) Validate() error {
 	)
 }
 
+type GetTrackDetails struct {
+	TrackDetails
+}
+
 func InstallTrackHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
@@ -486,6 +490,30 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 
 				return GetTrackById{
 					Track: ConvertDBTrack(c, track),
+				}, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:         "GetTrackDetails",
+			Method:       http.MethodGet,
+			Path:         "/tracks/:id/details",
+			ResponseType: GetTrackDetails{},
+			Errors:       []pyrin.ErrorType{ErrTypeTrackNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				track, err := app.DB().GetTrackById(c.Request().Context(), id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, TrackNotFound()
+					}
+
+					return nil, err
+				}
+
+				return GetTrackDetails{
+					TrackDetails: ConvertDBTrackToDetails(c, track),
 				}, nil
 			},
 		},

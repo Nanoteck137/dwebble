@@ -84,6 +84,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/tracks/${id}`, "GET", api.GetTrackById, z.any(), undefined, options)
   }
   
+  getTrackDetails(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/tracks/${id}/details`, "GET", api.GetTrackDetails, z.any(), undefined, options)
+  }
+  
   getDetailedTrackById(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}/detailed`, "GET", api.GetDetailedTrackById, z.any(), undefined, options)
   }

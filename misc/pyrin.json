@@ -601,6 +601,11 @@
       "fields": null
     },
     {
+      "name": "GetTrackDetails",
+      "extend": "TrackDetails",
+      "fields": null
+    },
+    {
       "name": "GetDetailedTrackById",
       "extend": "TrackDetails",
       "fields": null
@@ -1567,6 +1572,13 @@
       "method": "GET",
       "path": "/api/v1/tracks/:id",
       "responseType": "GetTrackById",
+      "bodyType": ""
+    },
+    {
+      "name": "GetTrackDetails",
+      "method": "GET",
+      "path": "/api/v1/tracks/:id/details",
+      "responseType": "GetTrackDetails",
       "bodyType": ""
     },
     {

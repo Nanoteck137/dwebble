@@ -305,6 +305,22 @@ func (c *Client) GetTrackById(id string, options Options) (*GetTrackById, error)
 	return Request[GetTrackById](data)
 }
 
+func (c *Client) GetTrackDetails(id string, options Options) (*GetTrackDetails, error) {
+	path := Sprintf("/api/v1/tracks/%v/details", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetTrackDetails](data)
+}
+
 func (c *Client) GetDetailedTrackById(id string, options Options) (*GetDetailedTrackById, error) {
 	path := Sprintf("/api/v1/tracks/%v/detailed", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)

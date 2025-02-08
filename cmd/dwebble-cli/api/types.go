@@ -160,6 +160,8 @@ type GetDetailedTracks struct {
 
 type GetTrackById Track
 
+type GetTrackDetails TrackDetails
+
 type GetDetailedTrackById TrackDetails
 
 type EditTrackBody struct {

@@ -185,6 +185,9 @@ export type GetDetailedTracks = z.infer<typeof GetDetailedTracks>;
 export const GetTrackById = Track;
 export type GetTrackById = z.infer<typeof GetTrackById>;
 
+export const GetTrackDetails = TrackDetails;
+export type GetTrackDetails = z.infer<typeof GetTrackDetails>;
+
 export const GetDetailedTrackById = TrackDetails;
 export type GetDetailedTrackById = z.infer<typeof GetDetailedTrackById>;
 
