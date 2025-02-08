@@ -6,7 +6,6 @@ with lib; let
   dwebbleConfig = pkgs.writeText "config.toml" ''
     listen_addr = "${cfg.host}:${toString cfg.port}"
     data_dir = "/var/lib/dwebble"
-    library_dir = "${cfg.library}"
     username = "${cfg.username}"
     initial_password = "${cfg.initialPassword}"
     jwt_secret = "${cfg.jwtSecret}"
@@ -26,11 +25,6 @@ in
       type = types.str;
       default = "";
       description = "hostname or address to listen on";
-    };
-
-    library = mkOption {
-      type = types.path;
-      description = "path to series library";
     };
 
     username = mkOption {
