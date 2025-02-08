@@ -41,12 +41,19 @@ in
       default = "dwebble-web";
       description = lib.mdDoc "group to use for this service";
     };
+
+    openFirewall = mkOption {
+      type = types.bool;
+      default = false;
+      description = "open the ports in the firewall";
+    };
   };
 
   config = mkIf cfg.enable {
     systemd.services.dwebble-web = {
       description = "Frontend for dwebble";
       wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
 
       environment = {
         PORT = "${toString cfg.port}";
@@ -77,6 +84,10 @@ in
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
       };
+    };
+
+    networking.firewall = lib.mkIf cfg.openFirewall {
+      allowedTCPPorts = [ cfg.port ];
     };
 
     users.users = mkIf (cfg.user == "dwebble-web") {

@@ -66,6 +66,11 @@ in
       description = "group to use for this service";
     };
 
+    openFirewall = mkOption {
+      type = types.bool;
+      default = false;
+      description = "open the ports in the firewall";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -98,6 +103,10 @@ in
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
       };
+    };
+
+    networking.firewall = lib.mkIf cfg.openFirewall {
+      allowedTCPPorts = [ cfg.port ];
     };
 
     users.users = mkIf (cfg.user == "dwebble") {
