@@ -98,10 +98,10 @@
     ) // {
       nixosModules.backend = import ./nix/backend.nix { inherit self; };
       nixosModules.frontend = import ./nix/frontend.nix { inherit self; };
-      nixosModules.default = { config, lib, pkgs, ... }: {
+      nixosModules.default = { ... }: {
         imports = [
-          import ./nix/backend.nix { inherit self; }
-          import ./nix/frontend.nix { inherit self; }
+          self.nixosModules.backend
+          self.nixosModules.frontend
         ];
       };
     };
