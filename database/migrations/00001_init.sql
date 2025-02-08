@@ -1,3 +1,5 @@
+-- NOTE(patrik): Final
+
 -- +goose Up
 CREATE TABLE artists (
     id TEXT PRIMARY KEY,
