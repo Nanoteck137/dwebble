@@ -1,4 +1,5 @@
 import { CreateAlbumBody } from "$lib/api/types";
+import { isRoleAdmin } from "$lib/utils";
 import { error, redirect } from "@sveltejs/kit";
 import { fail, setError, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
@@ -15,7 +16,11 @@ const schema = Body.extend({
 // eslint-disable-next-line @typescript-eslint/no-unused-expressions
 assert<Equals<keyof z.infer<typeof Body>, keyof z.infer<typeof schema>>>;
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
+  if (!locals.user || !isRoleAdmin(locals.user.role)) {
+    throw redirect(301, "/albums");
+  }
+
   const form = await superValidate(zod(schema));
 
   return {

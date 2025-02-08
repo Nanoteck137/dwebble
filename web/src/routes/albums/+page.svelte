@@ -2,6 +2,7 @@
   import { Button, Select } from "@nanoteck137/nano-ui";
   import type { PageData } from "./$types";
   import ArtistList from "$lib/components/ArtistList.svelte";
+  import { isRoleAdmin } from "$lib/utils";
 
   interface Props {
     data: PageData;
@@ -25,7 +26,9 @@
   let form: HTMLFormElement | undefined = $state();
 </script>
 
-<Button href="/albums/new">New Album</Button>
+{#if isRoleAdmin(data.user?.role || "")}
+  <Button href="/albums/new">New Album</Button>
+{/if}
 
 <div class="flex flex-col gap-2">
   <form bind:this={form} method="get">
