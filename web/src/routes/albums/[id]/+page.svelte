@@ -139,7 +139,7 @@
     await musicManager.clearQueue();
     await musicManager.addFromAlbum(data.album.id);
     await musicManager.setQueueIndex(
-      musicManager.queue.items.findIndex((t) => t.id === trackId),
+      musicManager.queue.items.findIndex((t) => t.track.id === trackId),
     );
     musicManager.requestPlay();
   }}
