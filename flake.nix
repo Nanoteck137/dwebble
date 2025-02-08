@@ -26,7 +26,7 @@
         version = pkgs.lib.strings.fileContents "${self}/version";
         fullVersion = ''${version}-${self.dirtyShortRev or self.shortRev or "dirty"}'';
 
-        dwebble = pkgs.buildGoModule {
+        backend = pkgs.buildGoModule {
           pname = "dwebble";
           version = fullVersion;
           src = ./.;
@@ -50,7 +50,7 @@
           '';
         };
 
-        dwebbleWeb = pkgs.buildNpmPackage {
+        frontend = pkgs.buildNpmPackage {
           name = "dwebble-web";
           version = fullVersion;
 
@@ -77,9 +77,8 @@
       in
       {
         packages = {
-          default = dwebble;
-          dwebble = dwebble;
-          dwebble-web = dwebbleWeb;
+          default = backend;
+          inherit backend frontend;
         };
 
         devShells.default = pkgs.mkShell {
@@ -97,7 +96,13 @@
         };
       }
     ) // {
-      nixosModules.default = import ./nix/dwebble.nix { inherit self; };
-      nixosModules.dwebble-web = import ./nix/dwebble-web.nix { inherit self; };
+      nixosModules.backend = import ./nix/backend.nix { inherit self; };
+      nixosModules.frontend = import ./nix/frontend.nix { inherit self; };
+      nixosModules.default = { config, lib, pkgs, ... }: {
+        imports = [
+          import ./nix/backend.nix { inherit self; }
+          import ./nix/frontend.nix { inherit self; }
+        ];
+      };
     };
 }

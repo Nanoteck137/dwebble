@@ -72,6 +72,7 @@ in
     systemd.services.dwebble = {
       description = "dwebble";
       wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
 
       serviceConfig = {
         User = cfg.user;

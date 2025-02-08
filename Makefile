@@ -6,9 +6,11 @@ clean:
 	rm -rf tmp
 	rm -f result
 
-publish:
-	nix build --no-link .#
-	nix build --no-link .#dwebble-web
+test-build:
+	nix build --no-link .#backend
+	nix build --no-link .#frontend
+
+publish: test-build
 	publish-version
 
 .PHONY: run clean publish
