@@ -5,7 +5,6 @@ import (
 	"errors"
 	"go/parser"
 	"net/http"
-	"strconv"
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
@@ -200,34 +199,8 @@ func InstallTaglistHandlers(app core.App, group pyrin.Group) {
 					return nil, TaglistNotFound()
 				}
 
-				// TODO(patrik): Standardize FetchOption
-				perPage := 100
-				page := 0
-
-				if s := q.Get("perPage"); s != "" {
-					i, err := strconv.Atoi(s)
-					if err != nil {
-						return nil, err
-					}
-
-					perPage = i
-				}
-
-				if s := q.Get("page"); s != "" {
-					i, err := strconv.Atoi(s)
-					if err != nil {
-						return nil, err
-					}
-
-					page = i
-				}
-
-				opts := database.FetchOption{
-					Filter:  taglist.Filter,
-					Sort:    q.Get("sort"),
-					PerPage: perPage,
-					Page:    page,
-				}
+				opts := getPageOptions(q)
+				opts.Filter = taglist.Filter
 
 				tracks, p, err := app.DB().GetPagedTracks(ctx, opts)
 				if err != nil {

@@ -7,6 +7,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"strconv"
@@ -312,6 +313,31 @@ type GetTrackDetails struct {
 	TrackDetails
 }
 
+// TODO(patrik): Move
+func getPageOptions(q url.Values) database.FetchOptions {
+	perPage := 100
+	page := 0
+
+	if s := q.Get("perPage"); s != "" {
+		i, _ := strconv.Atoi(s)
+		if i > 0 {
+			perPage = i
+		}
+	}
+
+	if s := q.Get("page"); s != "" {
+		i, _ := strconv.Atoi(s)
+		page = i
+	}
+
+	return database.FetchOptions{
+		Filter:  q.Get("filter"),
+		Sort:    q.Get("sort"),
+		PerPage: perPage,
+		Page:    page,
+	}
+}
+
 func InstallTrackHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
@@ -322,35 +348,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			Errors:       []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
-
-				perPage := 100
-				page := 0
-
-				// TODO(patrik): Move to util
-				if s := q.Get("perPage"); s != "" {
-					i, err := strconv.Atoi(s)
-					if err != nil {
-						return nil, err
-					}
-
-					perPage = i
-				}
-
-				if s := q.Get("page"); s != "" {
-					i, err := strconv.Atoi(s)
-					if err != nil {
-						return nil, err
-					}
-
-					page = i
-				}
-
-				opts := database.FetchOption{
-					Filter:  q.Get("filter"),
-					Sort:    q.Get("sort"),
-					PerPage: perPage,
-					Page:    page,
-				}
+				opts := getPageOptions(q)
 
 				tracks, p, err := app.DB().GetPagedTracks(c.Request().Context(), opts)
 				if err != nil {
@@ -409,7 +407,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 					page = i
 				}
 
-				opts := database.FetchOption{
+				opts := database.FetchOptions{
 					Filter:  q.Get("filter"),
 					Sort:    q.Get("sort"),
 					PerPage: perPage,

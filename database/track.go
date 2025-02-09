@@ -237,7 +237,7 @@ func (db *Database) GetTracksByAlbumForPlay(ctx context.Context, albumId string)
 }
 
 // TODO(patrik): Move
-type FetchOption struct {
+type FetchOptions struct {
 	Filter  string
 	Sort    string
 	PerPage int
@@ -271,7 +271,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr, sortStr string)
 	return items, nil
 }
 
-func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOption) ([]Track, types.Page, error) {
+func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOptions) ([]Track, types.Page, error) {
 	query := TrackQuery()
 
 	var err error
