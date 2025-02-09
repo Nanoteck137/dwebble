@@ -1,23 +1,10 @@
 import type { Page, Track } from "$lib/api/types";
+import { getPagedQueryOptions } from "$lib/utils";
 import { error } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
-  const query: Record<string, string> = {};
-  const filter = url.searchParams.get("filter");
-  if (filter) {
-    query["filter"] = filter;
-  }
-
-  const sort = url.searchParams.get("sort");
-  if (sort) {
-    query["sort"] = sort;
-  }
-
-  const page = url.searchParams.get("page");
-  if (page) {
-    query["page"] = page;
-  }
+  const query = getPagedQueryOptions(url.searchParams);
 
   const tracks = await locals.apiClient.getTracks({
     query,
@@ -29,8 +16,8 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       return {
         page: {} as Page,
         tracks: [] as Track[],
-        filter,
-        sort,
+        filter: query["filter"],
+        sort: query["sort"],
         filterError: tracks.error.message,
       };
     }
@@ -39,18 +26,19 @@ export const load: PageServerLoad = async ({ locals, url }) => {
       return {
         page: {} as Page,
         tracks: [] as Track[],
-        filter,
-        sort,
+        filter: query["filter"],
+        sort: query["sort"],
         sortError: tracks.error.message,
       };
     }
+
     throw error(tracks.error.code, tracks.error.message);
   }
 
   return {
     page: tracks.data.page,
     tracks: tracks.data.tracks,
-    filter,
-    sort,
+    filter: query["filter"],
+    sort: query["sort"],
   };
 };

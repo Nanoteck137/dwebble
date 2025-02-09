@@ -1,13 +1,20 @@
+import { getPagedQueryOptions } from "$lib/utils";
 import { error } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals }) => {
-  const artists = await locals.apiClient.getArtists();
+export const load: PageServerLoad = async ({ locals, url }) => {
+  const query = getPagedQueryOptions(url.searchParams);
+  query["perPage"] = "2";
+
+  const artists = await locals.apiClient.getArtists({
+    query,
+  });
   if (!artists.success) {
     throw error(artists.error.code, artists.error.message);
   }
 
   return {
+    page: artists.data.page,
     artists: artists.data.artists,
   };
 };

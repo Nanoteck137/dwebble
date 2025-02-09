@@ -74,7 +74,7 @@
   page={data.page.page + 1}
   count={data.page.totalItems}
   perPage={data.page.perPage}
-  siblingCount={0}
+  siblingCount={1}
   onPageChange={(p) => {
     const query = $page.url.searchParams;
     query.set("page", (p - 1).toString());

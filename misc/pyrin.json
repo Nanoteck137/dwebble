@@ -19,6 +19,32 @@
   ],
   "types": [
     {
+      "name": "Page",
+      "extend": "",
+      "fields": [
+        {
+          "name": "page",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "perPage",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "totalItems",
+          "type": "int",
+          "omit": false
+        },
+        {
+          "name": "totalPages",
+          "type": "int",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "Name",
       "extend": "",
       "fields": [
@@ -100,6 +126,11 @@
       "name": "GetArtists",
       "extend": "",
       "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omit": false
+        },
         {
           "name": "artists",
           "type": "[]Artist",
@@ -263,6 +294,11 @@
       "name": "GetAlbums",
       "extend": "",
       "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omit": false
+        },
         {
           "name": "albums",
           "type": "[]Album",
@@ -431,32 +467,6 @@
         {
           "name": "featuringArtists",
           "type": "[]string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "Page",
-      "extend": "",
-      "fields": [
-        {
-          "name": "page",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "perPage",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "totalItems",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "totalPages",
-          "type": "int",
           "omit": false
         }
       ]
@@ -881,6 +891,11 @@
       "name": "GetPlaylistItems",
       "extend": "",
       "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omit": false
+        },
         {
           "name": "items",
           "type": "[]Track",
