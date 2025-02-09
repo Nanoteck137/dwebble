@@ -460,7 +460,10 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				DeleteAlbum(ctx, db, app.WorkDir(), album)
+				err = DeleteAlbum(ctx, db, app.WorkDir(), album)
+					if err != nil {
+						return nil, err
+					}
 
 				err = tx.Commit()
 				if err != nil {
