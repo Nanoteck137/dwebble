@@ -4,7 +4,6 @@ import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, url }) => {
   const query = getPagedQueryOptions(url.searchParams);
-  query["perPage"] = "2";
 
   const artists = await locals.apiClient.getArtists({
     query,
