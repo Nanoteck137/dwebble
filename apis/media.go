@@ -35,7 +35,7 @@ type GetMedia struct {
 }
 
 type GetMediaCommonBody struct {
-	MediaType types.MediaType `json:"type,omitempty"`
+	MediaType types.MediaType `json:"mediaType,omitempty"`
 
 	Shuffle bool   `json:"shuffle,omitempty"`
 	Sort    string `json:"sort,omitempty"`
@@ -73,7 +73,7 @@ type GetMediaFromIdsBody struct {
 	KeepOrder bool     `json:"keepOrder,omitempty"`
 }
 
-func packMediaResult(c pyrin.Context, tracks []database.Track, shuffle bool) (GetMedia, error) {
+func packMediaResult(c pyrin.Context, tracks []database.Track, mediaType types.MediaType, shuffle bool) (GetMedia, error) {
 	if shuffle {
 		rand.Shuffle(len(tracks), func(i, j int) {
 			tracks[i], tracks[j] = tracks[j], tracks[i]
@@ -104,9 +104,16 @@ func packMediaResult(c pyrin.Context, tracks []database.Track, shuffle bool) (Ge
 		// TODO(patrik): Better selection algo
 		var formatFound *database.TrackFormat
 		for _, item := range mediaFormats {
-			if item.IsOriginal {
-				formatFound = &item
-				break
+			if mediaType != "" {
+				if item.MediaType == mediaType {
+					formatFound = &item
+					break
+				}
+			} else {
+				if item.IsOriginal {
+					formatFound = &item
+					break
+				}
 			}
 		}
 
@@ -181,7 +188,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return packMediaResult(c, tracks, body.Shuffle)
+				return packMediaResult(c, tracks, body.MediaType, body.Shuffle)
 			},
 		},
 
@@ -225,7 +232,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return packMediaResult(c, tracks, body.Shuffle)
+				return packMediaResult(c, tracks, body.MediaType, body.Shuffle)
 			},
 		},
 
@@ -249,7 +256,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return packMediaResult(c, tracks, body.Shuffle)
+				return packMediaResult(c, tracks, body.MediaType, body.Shuffle)
 			},
 		},
 
@@ -285,7 +292,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return packMediaResult(c, tracks, body.Shuffle)
+				return packMediaResult(c, tracks, body.MediaType, body.Shuffle)
 			},
 		},
 
@@ -326,7 +333,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				return packMediaResult(c, tracks, body.Shuffle)
+				return packMediaResult(c, tracks, body.MediaType, body.Shuffle)
 			},
 		},
 
@@ -367,7 +374,7 @@ func InstallMediaHandlers(app core.App, group pyrin.Group) {
 					}
 				}
 
-				return packMediaResult(c, tracks, body.Shuffle)
+				return packMediaResult(c, tracks, body.MediaType, body.Shuffle)
 			},
 		},
 	)
