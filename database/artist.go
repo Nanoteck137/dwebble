@@ -92,6 +92,56 @@ func (db *Database) GetAllArtists(ctx context.Context, filterStr, sortStr string
 	return items, nil
 }
 
+func (db *Database) GetArtistsPaged(ctx context.Context, opts FetchOptions) ([]Artist, types.Page, error) {
+	query := ArtistQuery()
+
+	var err error
+
+	a := adapter.ArtistResolverAdapter{}
+	resolver := filter.New(&a)
+
+	query, err = applyFilter(query, resolver, opts.Filter)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	query, err = applySort(query, resolver, opts.Sort)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	countQuery := query.
+		Select(goqu.COUNT("artists.id"))
+
+	if opts.PerPage > 0 {
+		query = query.
+			Limit(uint(opts.PerPage)).
+			Offset(uint(opts.Page * opts.PerPage))
+	}
+
+	var totalItems int
+	err = db.Get(&totalItems, countQuery)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	totalPages := utils.TotalPages(opts.PerPage, totalItems)
+	page := types.Page{
+		Page:       opts.Page,
+		PerPage:    opts.PerPage,
+		TotalItems: totalItems,
+		TotalPages: totalPages,
+	}
+
+	var items []Artist
+	err = db.Select(&items, query)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	return items, page, nil
+}
+
 func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error) {
 	query := ArtistQuery().
 		Where(goqu.I("artists.id").Eq(id))

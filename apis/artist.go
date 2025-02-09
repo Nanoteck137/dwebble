@@ -67,7 +67,8 @@ func ConvertDBArtist(c pyrin.Context, artist database.Artist) Artist {
 }
 
 type GetArtists struct {
-	Artists []Artist `json:"artists"`
+	Page    types.Page `json:"page"`
+	Artists []Artist   `json:"artists"`
 }
 
 type GetArtistById struct {
@@ -131,10 +132,9 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
-				filter := q.Get("filter")
-				sort := q.Get("sort")
+				opts := getPageOptions(q)
 
-				artists, err := app.DB().GetAllArtists(c.Request().Context(), filter, sort)
+				artists, pageInfo, err := app.DB().GetArtistsPaged(c.Request().Context(), opts)
 				if err != nil {
 					if errors.Is(err, database.ErrInvalidFilter) {
 						return nil, InvalidFilter(err)
@@ -148,6 +148,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				res := GetArtists{
+					Page:    pageInfo,
 					Artists: make([]Artist, len(artists)),
 				}
 
