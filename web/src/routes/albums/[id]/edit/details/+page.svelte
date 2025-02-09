@@ -105,7 +105,7 @@
     <Button
       variant="outline"
       onclick={async () => {
-        const res = await openArtistQuery({ apiClient });
+        const res = await openArtistQuery({});
         if (res) {
           artist = res;
         }
@@ -121,7 +121,7 @@
         class="hover:cursor-pointer"
         tabindex={7}
         onclick={async () => {
-          const res = await openArtistQuery({ apiClient });
+          const res = await openArtistQuery({});
           if (res) {
             const index = featuringArtists.findIndex((a) => a.id === res.id);
             if (index === -1) {

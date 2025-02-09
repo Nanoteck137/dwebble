@@ -1,6 +1,11 @@
 import type { Album, Artist, Track } from "$lib/api/types";
 import { z } from "zod";
 
+export interface CheckedValue<T> {
+  checked: boolean;
+  value: T;
+}
+
 // TODO(patrik): Better name
 export type UIArtist = {
   id: string;

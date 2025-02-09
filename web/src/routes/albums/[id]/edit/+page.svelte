@@ -21,9 +21,13 @@
   import { modals } from "svelte-modals";
   import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
   import { getApiClient, handleApiError } from "$lib";
+  import { getMusicManager } from "$lib/music-manager.svelte.js";
+  import EditSingleModal from "./EditSingleModal.svelte";
+  import { type CheckedValue } from "$lib/types";
 
   const { data } = $props();
   const apiClient = getApiClient();
+  const musicManager = getMusicManager();
 </script>
 
 <div class="py-2">
@@ -66,16 +70,11 @@
         <DropdownMenu.Content align="center">
           <DropdownMenu.Group>
             <DropdownMenu.Item
-              onSelect={() => {
-                // musicManager.clearQueue();
-                // for (const track of data.tracks) {
-                //   musicManager.addTrackToQueue(
-                //     trackToMusicTrack(track),
-                //     false,
-                //   );
-                // }
-                // musicManager.setQueueIndex(0);
-                // musicManager.requestPlay();
+              onSelect={async () => {
+                await musicManager.clearQueue();
+                await musicManager.addFromAlbum(data.album.id);
+                await musicManager.setQueueIndex(0);
+                musicManager.requestPlay();
               }}
             >
               <Play />
@@ -163,6 +162,69 @@
 
 <div class="flex flex-col">
   <div class="flex gap-2">
+    {#if data.tracks.length === 1}
+      <!-- <Button
+        class="w-full"
+        variant="outline"
+        onclick={async () => {
+          const values = await modals.open(EditSingleModal, {});
+          if (values) {
+            console.log(values);
+          }
+        }}
+      >
+        <FolderPen />
+        Edit as Single
+      </Button> -->
+
+      <EditSingleModal
+        class={buttonVariants({ variant: "outline", class: "w-full" })}
+        onResult={async (editData) => {
+          function convertValue<T>(val: CheckedValue<T>): T | undefined {
+            if (val.checked) {
+              return val.value;
+            }
+
+            return undefined;
+          }
+
+          const name = convertValue(editData.name);
+          const otherName = convertValue(editData.otherName);
+          const year = convertValue(editData.year);
+          const tags = convertValue(editData.tags);
+          const artist = convertValue(editData.artist);
+          const featuringArtists = convertValue(editData.featuringArtists);
+
+          const body = {
+            name,
+            otherName,
+            year,
+            tags: tags?.split(","),
+            artistId: artist?.id,
+            featuringArtists: featuringArtists?.map((a) => a.id),
+          };
+
+          {
+            const res = await apiClient.editAlbum(data.album.id, body);
+            if (!res.success) {
+              handleApiError(res.error);
+            }
+          }
+
+          {
+            const res = await apiClient.editTrack(data.tracks[0].id, body);
+            if (!res.success) {
+              handleApiError(res.error);
+            }
+          }
+
+          invalidateAll();
+        }}
+      >
+        <FolderPen />
+        Edit as Single
+      </EditSingleModal>
+    {/if}
     <Button href="edit/tracks/common" class="w-full" variant="outline">
       <FolderPen />
       Set Common Values
