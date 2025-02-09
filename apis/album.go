@@ -77,7 +77,8 @@ func ConvertDBAlbum(c pyrin.Context, album database.Album) Album {
 }
 
 type GetAlbums struct {
-	Albums []Album `json:"albums"`
+	Page   types.Page `json:"page"`
+	Albums []Album    `json:"albums"`
 }
 
 type GetAlbumById struct {
@@ -161,11 +162,9 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 			Errors:       []pyrin.ErrorType{ErrTypeInvalidFilter, ErrTypeInvalidSort},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
+				opts := getPageOptions(q)
 
-				filter := q.Get("filter")
-				sort := q.Get("sort")
-
-				albums, err := app.DB().GetAllAlbums(c.Request().Context(), filter, sort)
+				albums, pageInfo, err := app.DB().GetAlbumsPaged(c.Request().Context(), opts)
 				if err != nil {
 					if errors.Is(err, database.ErrInvalidFilter) {
 						return nil, InvalidFilter(err)
@@ -179,6 +178,7 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 				}
 
 				res := GetAlbums{
+					Page:   pageInfo,
 					Albums: make([]Album, len(albums)),
 				}
 
