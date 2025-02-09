@@ -7,6 +7,7 @@ import (
 
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 	"github.com/nanoteck137/pyrin/tools/transform"
 	"github.com/nanoteck137/validate"
@@ -61,7 +62,8 @@ type GetPlaylistById struct {
 }
 
 type GetPlaylistItems struct {
-	Items []Track `json:"items"`
+	Page  types.Page `json:"page"`
+	Items []Track    `json:"items"`
 }
 
 type AddItemToPlaylistBody struct {
@@ -245,6 +247,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 			ResponseType: GetPlaylistItems{},
 			Errors:       []pyrin.ErrorType{ErrTypePlaylistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
+				q := c.Request().URL.Query()
 				playlistId := c.Param("id")
 
 				ctx := context.TODO()
@@ -267,12 +270,15 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, PlaylistNotFound()
 				}
 
-				tracks, err := app.DB().GetPlaylistTracks(ctx, playlist.Id)
+				opts := getPageOptions(q)
+
+				tracks, pageInfo, err := app.DB().GetPlaylistTracksPaged(ctx, playlist.Id, opts)
 				if err != nil {
 					return nil, err
 				}
 
 				res := GetPlaylistItems{
+					Page:  pageInfo,
 					Items: make([]Track, len(tracks)),
 				}
 
