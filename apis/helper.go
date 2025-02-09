@@ -252,6 +252,11 @@ func DeleteTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 		return err
 	}
 
+	err = db.DeleteTrackMedia(ctx, track.Id)
+	if err != nil {
+		return err
+	}
+
 	err = db.DeleteTrack(ctx, track.Id)
 	if err != nil {
 		return err

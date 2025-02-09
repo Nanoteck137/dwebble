@@ -580,6 +580,19 @@ func (db *Database) ChangeAllTrackArtist(ctx context.Context, artistId, newArtis
 	return err
 }
 
+func (db *Database) DeleteTrackMedia(ctx context.Context, trackId string) error {
+	query := dialect.Delete("tracks_media").
+		Prepared(true).
+		Where(goqu.I("tracks_media.track_id").Eq(trackId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (db *Database) DeleteTrack(ctx context.Context, id string) error {
 	query := dialect.Delete("tracks").
 		Prepared(true).
