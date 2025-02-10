@@ -60,7 +60,7 @@
 </script>
 
 <Dialog.Root bind:open>
-  <Dialog.Trigger class={className}>
+  <Dialog.Trigger class={className} type="button">
     {@render children?.()}
   </Dialog.Trigger>
 

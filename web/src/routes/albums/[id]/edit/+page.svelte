@@ -25,10 +25,16 @@
   import EditSingleModal from "./EditSingleModal.svelte";
   import { type CheckedValue } from "$lib/types";
   import Image from "$lib/components/Image.svelte";
+  import EditAlbumDetailsModal from "./EditAlbumDetailsModal.svelte";
+  import toast from "svelte-5-french-toast";
+  import ChangeAlbumCoverModal from "./ChangeAlbumCoverModal.svelte";
 
   const { data } = $props();
   const apiClient = getApiClient();
   const musicManager = getMusicManager();
+
+  let openEditAlbumDetails = $state(false);
+  let openChangeAlbumCoverModal = $state(false);
 </script>
 
 <div class="py-2">
@@ -84,7 +90,7 @@
 
             <DropdownMenu.Item
               onSelect={() => {
-                goto(`/albums/${data.album.id}/edit/details`);
+                openEditAlbumDetails = true;
               }}
             >
               <Edit />
@@ -102,7 +108,7 @@
 
             <DropdownMenu.Item
               onSelect={() => {
-                goto(`/albums/${data.album.id}/edit/cover`);
+                openChangeAlbumCoverModal = true;
               }}
             >
               <Wallpaper />
@@ -380,3 +386,45 @@
     <Separator />
   {/each}
 </div>
+
+<EditAlbumDetailsModal
+  album={data.album}
+  bind:open={openEditAlbumDetails}
+  onResult={async (resultData) => {
+    const res = await apiClient.editAlbum(data.album.id, {
+      name: resultData.name,
+      otherName: resultData.otherName,
+      year: resultData.year ?? 0,
+      artistId: resultData.artist.id,
+      tags: resultData.tags.split(","),
+      featuringArtists: resultData.featuringArtists.map((a) => a.id),
+    });
+    if (!res.success) {
+      handleApiError(res.error);
+      invalidateAll();
+      return;
+    }
+
+    toast.success("Successfully updated album");
+    invalidateAll();
+  }}
+/>
+
+<ChangeAlbumCoverModal
+  bind:open={openChangeAlbumCoverModal}
+  onResult={async (formData) => {
+    const toastId = toast.loading("Uploading image...");
+
+    const res = await apiClient.changeAlbumCover(data.album.id, formData);
+    if (!res.success) {
+      toast.dismiss(toastId);
+
+      handleApiError(res.error);
+      invalidateAll();
+      return;
+    }
+
+    toast.dismiss(toastId);
+    toast.success("Successfully uploaded image, force reload page to see it");
+  }}
+/>

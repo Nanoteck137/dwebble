@@ -1,11 +1,8 @@
 <script lang="ts">
-  import { getApiClient, handleApiError } from "$lib";
   import type { Playlist } from "$lib/api/types";
   import type { Modal } from "$lib/components/new-modals";
-  import Spinner from "$lib/components/Spinner.svelte";
-  import { Button, Dialog, Input, ScrollArea } from "@nanoteck137/nano-ui";
+  import { Button, Dialog, ScrollArea } from "@nanoteck137/nano-ui";
   import { Check } from "lucide-svelte";
-  import { onMount } from "svelte";
 
   export type Props = {
     playlists: Playlist[];
