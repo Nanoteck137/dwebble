@@ -4,6 +4,7 @@
     FileMusic,
     Home,
     ListMusic,
+    ListVideo,
     LogIn,
     LogOut,
     Menu,
@@ -18,16 +19,19 @@
   import Link from "$lib/components/Link.svelte";
   import { browser } from "$app/environment";
   import { fade, fly } from "svelte/transition";
-  import { Button } from "@nanoteck137/nano-ui";
+  import { Button, buttonVariants, Dialog } from "@nanoteck137/nano-ui";
   import { modals, Modals } from "svelte-modals";
-  import { Toaster } from "svelte-5-french-toast";
+  import toast, { Toaster } from "svelte-5-french-toast";
   import { navigating } from "$app/stores";
-  import { setApiClient } from "$lib";
+  import { handleApiError, setApiClient } from "$lib";
   import {
     DummyQueue,
     LocalQueue,
     setMusicManager,
   } from "$lib/music-manager.svelte";
+  import QuickPlaylistSelectorModal from "$lib/components/new-modals/QuickPlaylistSelectorModal.svelte";
+  import { error } from "@sveltejs/kit";
+  import { invalidateAll } from "$app/navigation";
 
   let { children, data } = $props();
 
@@ -102,9 +106,34 @@
 
     <div class="flex-grow"></div>
 
-    <Button href="/search" size="icon" variant="ghost">
-      <Search />
-    </Button>
+    <div class="flex items-center gap-2">
+      {#if data.userPlaylists}
+        <QuickPlaylistSelectorModal
+          class={buttonVariants({ variant: "ghost", size: "icon" })}
+          playlists={data.userPlaylists}
+          currentQuickPlaylistId={data.user?.quickPlaylist ?? undefined}
+          onResult={async (playlistId) => {
+            const res = await apiClient.updateUserSettings({
+              quickPlaylist: playlistId.toString(),
+            });
+            if (!res.success) {
+              handleApiError(res.error);
+              invalidateAll();
+              return;
+            }
+
+            toast.success("Successfully set quick playlist");
+            invalidateAll();
+          }}
+        >
+          <ListVideo />
+        </QuickPlaylistSelectorModal>
+      {/if}
+
+      <Button href="/search" size="icon" variant="ghost">
+        <Search />
+      </Button>
+    </div>
   </div>
 </header>
 
