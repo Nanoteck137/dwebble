@@ -517,30 +517,6 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:         "GetDetailedTrackById",
-			Method:       http.MethodGet,
-			Path:         "/tracks/:id/detailed",
-			ResponseType: GetDetailedTrackById{},
-			Errors:       []pyrin.ErrorType{ErrTypeTrackNotFound},
-			HandlerFunc: func(c pyrin.Context) (any, error) {
-				id := c.Param("id")
-
-				track, err := app.DB().GetTrackById(c.Request().Context(), id)
-				if err != nil {
-					if errors.Is(err, database.ErrItemNotFound) {
-						return nil, TrackNotFound()
-					}
-
-					return nil, err
-				}
-
-				return GetDetailedTrackById{
-					TrackDetails: ConvertDBTrackToDetails(c, track),
-				}, nil
-			},
-		},
-
-		pyrin.ApiHandler{
 			Name:     "EditTrack",
 			Method:   http.MethodPatch,
 			Path:     "/tracks/:id",
