@@ -29,6 +29,8 @@
   import EditTrackDetailsModal from "./EditTrackDetailsModal.svelte";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
   import ConfirmModal from "$lib/components/new-modals/ConfirmModal.svelte";
+  import ImportTracksModal from "./ImportTracksModal.svelte";
+  import { UploadTrackBody } from "$lib/api/types";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -471,6 +473,39 @@
     }
 
     toast.success("Successfully deleted track");
+    invalidateAll();
+  }}
+/>
+
+<ImportTracksModal
+  open={true}
+  onResult={async (resultData) => {
+    for (const file of resultData.file) {
+      const body: UploadTrackBody = {
+        name: file.name,
+        albumId: data.album.id,
+        artistId: data.album.artistId,
+        number: 0,
+        year: 0,
+        tags: [],
+        featuringArtists: [],
+        otherName: "",
+      };
+
+      const trackData = new FormData();
+      trackData.set("body", JSON.stringify(body));
+      trackData.set("track", file);
+
+      const res = await apiClient.uploadTrack(trackData);
+      if (!res.success) {
+        handleApiError(res.error);
+        invalidateAll();
+        return;
+      }
+      toast.success("Successfully uploaded tracks");
+    }
+
+    toast.success("Successfully uploaded tracks");
     invalidateAll();
   }}
 />
