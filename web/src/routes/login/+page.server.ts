@@ -1,4 +1,5 @@
 import { SigninBody } from "$lib/api/types";
+import { capitilize } from "$lib/utils";
 import { error, redirect } from "@sveltejs/kit";
 import { fail, setError, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
@@ -33,18 +34,28 @@ export const actions: Actions = {
 
     const res = await locals.apiClient.signin(form.data);
     if (!res.success) {
-      if (res.error.type === "VALIDATION_ERROR") {
-        const extra = res.error.extra as Record<
-          keyof z.infer<typeof schema>,
-          string | undefined
-        >;
+      switch (res.error.type) {
+        case "VALIDATION_ERROR": {
+          const extra = res.error.extra as Record<
+            keyof z.infer<typeof schema>,
+            string | undefined
+          >;
 
-        setError(form, "username", extra.username ?? "");
-        setError(form, "password", extra.password ?? "");
+          setError(form, "username", capitilize(extra.username ?? ""));
+          setError(form, "password", capitilize(extra.password ?? ""));
 
-        return fail(400, { form });
-      } else {
-        throw error(res.error.code, { message: res.error.message });
+          return fail(400, { form });
+        }
+        case "USER_NOT_FOUND": {
+          setError(form, "username", "The user does not exist");
+          return fail(400, { form });
+        }
+        case "INVALID_CREDENTIALS": {
+          setError(form, "password", "Invalid credentials");
+          return fail(400, { form });
+        }
+        default:
+          throw error(res.error.code, { message: res.error.message });
       }
     }
 

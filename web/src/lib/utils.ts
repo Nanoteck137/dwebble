@@ -2,6 +2,11 @@ import type { Name } from "$lib/api/types";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export function capitilize(s: string) {
+  if (s.length === 0) return "";
+  return s[0].toUpperCase() + s.substring(1);
+}
+
 export function formatName(name: Name) {
   let s = name.default;
   if (name.other) {

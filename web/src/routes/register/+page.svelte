@@ -1,7 +1,8 @@
 <script>
   import Errors from "$lib/components/Errors.svelte";
+  import FormItem from "$lib/components/FormItem.svelte";
   import { Button, Card, Input, Label } from "@nanoteck137/nano-ui";
-  import SuperDebug, { superForm } from "sveltekit-superforms";
+  import { superForm } from "sveltekit-superforms";
 
   const { data } = $props();
 
@@ -14,7 +15,7 @@
       <Card.Title>Register</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <div class="flex flex-col gap-2">
+      <FormItem>
         <Label for="username">Username</Label>
         <Input
           id="username"
@@ -23,8 +24,9 @@
           bind:value={$form.username}
         />
         <Errors errors={$errors.username} />
-      </div>
-      <div class="flex flex-col gap-2">
+      </FormItem>
+
+      <FormItem>
         <Label for="password">Password</Label>
         <Input
           id="password"
@@ -33,8 +35,9 @@
           bind:value={$form.password}
         />
         <Errors errors={$errors.password} />
-      </div>
-      <div class="flex flex-col gap-2">
+      </FormItem>
+
+      <FormItem>
         <Label for="passwordConfirm">Confirm Password</Label>
         <Input
           id="passwordConfirm"
@@ -43,12 +46,11 @@
           bind:value={$form.passwordConfirm}
         />
         <Errors errors={$errors.passwordConfirm} />
-      </div>
+      </FormItem>
     </Card.Content>
     <Card.Footer class="flex justify-end gap-4">
+      <Button href="/login" variant="ghost">Login</Button>
       <Button type="submit">Register</Button>
     </Card.Footer>
   </Card.Root>
 </form>
-
-<SuperDebug data={$form} />

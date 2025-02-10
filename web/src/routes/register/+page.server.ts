@@ -1,4 +1,5 @@
 import { SignupBody } from "$lib/api/types";
+import { capitilize } from "$lib/utils";
 import { error, redirect } from "@sveltejs/kit";
 import { fail, setError, superValidate } from "sveltekit-superforms";
 import { zod } from "sveltekit-superforms/adapters";
@@ -40,13 +41,17 @@ export const actions: Actions = {
           string | undefined
         >;
 
-        setError(form, "username", extra.username ?? "");
-        setError(form, "password", extra.password ?? "");
-        setError(form, "passwordConfirm", extra.passwordConfirm ?? "");
+        setError(form, "username", capitilize(extra.username ?? ""));
+        setError(form, "password", capitilize(extra.password ?? ""));
+        setError(
+          form,
+          "passwordConfirm",
+          capitilize(extra.passwordConfirm ?? ""),
+        );
 
         return fail(400, { form });
       } else if (res.error.type === "USER_ALREADY_EXISTS") {
-        return setError(form, "username", "user already exists");
+        return setError(form, "username", "User already exists");
       } else {
         throw error(res.error.code, { message: res.error.message });
       }
