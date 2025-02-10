@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Track } from "$lib/api/types";
   import ArtistList from "$lib/components/ArtistList.svelte";
+  import Image from "$lib/components/Image.svelte";
   import { Play } from "lucide-svelte";
   import type { Snippet } from "svelte";
 
@@ -36,12 +37,7 @@
         {/if}
       </div>
     {:else}
-      <img
-        class="inline-flex aspect-square w-14 min-w-14 items-center justify-center rounded border object-cover text-xs"
-        src={track.coverArt.small}
-        alt="cover"
-        loading="lazy"
-      />
+      <Image class="w-14 min-w-14" src={track.coverArt.small} alt="cover" />
       {#if onPlayClicked}
         <button
           class={`absolute bottom-0 left-0 right-0 top-0 hidden items-center justify-center rounded border bg-black/80 group-hover:flex`}

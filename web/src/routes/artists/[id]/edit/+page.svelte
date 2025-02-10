@@ -13,6 +13,7 @@
     type Props as EditArtistDetailsModalProps,
   } from "./EditArtistDetailsModal.svelte";
   import { modals } from "svelte-modals";
+  import Image from "$lib/components/Image.svelte";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -44,8 +45,8 @@
 
 <div class="flex gap-2">
   <div class="relative aspect-square w-48 min-w-48">
-    <img
-      class="inline-flex h-full w-full items-center justify-center rounded border object-cover text-xs"
+    <Image
+      class="h-full w-full"
       src={data.artist.picture.medium}
       alt="cover"
     />

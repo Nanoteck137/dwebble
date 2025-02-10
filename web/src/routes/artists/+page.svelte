@@ -3,6 +3,7 @@
   import { page } from "$app/stores";
   import { getApiClient, handleApiError } from "$lib";
   import { Artist } from "$lib/api/types";
+  import Image from "$lib/components/Image.svelte";
   import { cn, formatName } from "$lib/utils";
   import {
     Button,
@@ -47,12 +48,7 @@
         ></button>
       {/if}
       <a href={`/artists/${artist.id}`}>
-        <img
-          class="inline-flex aspect-square w-14 min-w-14 items-center justify-center rounded border object-cover text-xs"
-          src={artist.picture.small}
-          alt="cover"
-          loading="lazy"
-        />
+        <Image class="w-14 min-w-14" src={artist.picture.small} alt="cover" />
       </a>
       <div class="flex flex-grow flex-col">
         <div class="flex items-center gap-1">

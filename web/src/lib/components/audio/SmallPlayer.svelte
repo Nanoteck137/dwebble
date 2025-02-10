@@ -19,6 +19,7 @@
   import { fly } from "svelte/transition";
   import { getMusicManager } from "$lib/music-manager.svelte";
   import type { MediaItem } from "$lib/api/types";
+  import Image from "$lib/components/Image.svelte";
 
   const musicManager = getMusicManager();
 
@@ -88,8 +89,8 @@
           {#each queue as mediaItem, i}
             <div class="flex items-center gap-2">
               <div class="group relative">
-                <img
-                  class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
+                <Image
+                  class="w-12 min-w-12"
                   src={mediaItem.coverArt.small}
                   alt="cover"
                 />
@@ -147,8 +148,8 @@
 
     <Sheet.Root>
       <Sheet.Trigger class="flex grow items-center">
-        <img
-          class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
+        <Image
+          class="w-12 min-w-12"
           src={currentMediaItem?.coverArt.small}
           alt="cover"
         />
@@ -169,8 +170,8 @@
         <div class="relative flex flex-col items-center justify-center gap-2">
           {@render queueSheet()}
 
-          <img
-            class="aspect-square w-64 rounded border object-cover"
+          <Image
+            class="w-64"
             src={currentMediaItem?.coverArt.medium}
             alt="Track Cover Art"
           />

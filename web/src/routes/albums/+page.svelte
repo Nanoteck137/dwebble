@@ -5,6 +5,7 @@
   import { isRoleAdmin } from "$lib/utils";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
+  import Image from "$lib/components/Image.svelte";
 
   interface Props {
     data: PageData;
@@ -62,11 +63,10 @@
       <div class="flex flex-col items-center">
         <div class="group">
           <a href="/albums/{album.id}">
-            <img
-              class="inline-flex aspect-square w-40 min-w-40 items-center justify-center rounded border object-cover text-xs group-hover:brightness-75"
+            <Image
+              class="w-40 min-w-40 group-hover:brightness-75"
               src={album.coverArt.medium}
               alt="cover"
-              loading="lazy"
             />
           </a>
           <div class="h-2"></div>

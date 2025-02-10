@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Album } from "$lib/api/types";
+  import Image from "$lib/components/Image.svelte";
   import type { Snippet } from "svelte";
 
   type Props = {
@@ -13,12 +14,7 @@
 
 <div class="flex items-center gap-2 border-b py-2 pr-2">
   <div class="group relative">
-    <img
-      class="inline-flex aspect-square w-14 min-w-14 items-center justify-center rounded border object-cover text-xs"
-      src={album.coverArt.small}
-      alt="cover"
-      loading="lazy"
-    />
+    <Image class="w-14 min-w-14" src={album.coverArt.small} alt="cover" />
   </div>
   <div class="flex flex-grow flex-col">
     <div class="flex items-center gap-1">

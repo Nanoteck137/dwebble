@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import type { ArtistInfo } from "$lib/api/types";
   import ArtistList from "$lib/components/ArtistList.svelte";
+  import Image from "$lib/components/Image.svelte";
   import { Button, buttonVariants, DropdownMenu } from "@nanoteck137/nano-ui";
   import { EllipsisVertical, Play, Shuffle } from "lucide-svelte";
   import type { Snippet } from "svelte";
@@ -23,11 +24,7 @@
 
 <div class="flex h-48">
   {#if image}
-    <img
-      class="inline-flex aspect-square w-48 min-w-48 items-center justify-center rounded border object-cover text-xs"
-      src={image}
-      alt="cover"
-    />
+    <Image class="w-48 min-w-48" src={image} alt="cover" />
     <div class="w-2"></div>
   {/if}
 

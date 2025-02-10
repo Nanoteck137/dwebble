@@ -12,6 +12,7 @@
   import { goto } from "$app/navigation";
   import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
   import { isRoleAdmin } from "$lib/utils";
+  import Image from "$lib/components/Image.svelte";
 
   let { data } = $props();
   const musicManager = getMusicManager();
@@ -70,8 +71,8 @@
 
 {#if 0}
   <div class="flex gap-2">
-    <img
-      class="inline-flex aspect-square w-48 min-w-48 items-center justify-center rounded border object-cover text-xs"
+    <Image
+      class="w-48 min-w-48"
       src={data.album.coverArt.medium}
       alt="cover"
     />

@@ -24,6 +24,7 @@
   import { getMusicManager } from "$lib/music-manager.svelte.js";
   import EditSingleModal from "./EditSingleModal.svelte";
   import { type CheckedValue } from "$lib/types";
+  import Image from "$lib/components/Image.svelte";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -52,8 +53,8 @@
 
 <div class="flex gap-2">
   <div class="relative aspect-square w-48 min-w-48">
-    <img
-      class="inline-flex h-full w-full items-center justify-center rounded border object-cover text-xs"
+    <Image
+      class="h-full w-full"
       src={data.album.coverArt.medium}
       alt="cover"
     />

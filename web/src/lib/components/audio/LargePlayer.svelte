@@ -15,6 +15,7 @@
   import { getMusicManager } from "$lib/music-manager.svelte";
   import Spinner from "$lib/components/Spinner.svelte";
   import type { MediaItem } from "$lib/api/types";
+  import Image from "$lib/components/Image.svelte";
 
   const musicManager = getMusicManager();
 
@@ -89,8 +90,8 @@
               class={`flex items-center gap-2 rounded p-1 ${currentQueueIndex === i ? "bg-accent text-accent-foreground" : ""}`}
             >
               <div class="group relative">
-                <img
-                  class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
+                <Image
+                  class="w-12 min-w-12"
                   src={mediaItem?.coverArt.small}
                   alt="cover"
                 />
@@ -182,10 +183,11 @@
       </p>
 
       <div class="flex items-center justify-center gap-2 align-middle">
-        <img
-          class="inline-flex aspect-square w-12 min-w-12 items-center justify-center rounded border object-cover text-xs"
+        <Image
+          class="w-12 min-w-12"
           src={mediaItem?.coverArt.small}
           alt="cover"
+          loading="eager"
         />
         <div class="flex flex-col">
           <p
