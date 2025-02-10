@@ -18,12 +18,9 @@
     Separator,
   } from "@nanoteck137/nano-ui";
   import { goto, invalidateAll } from "$app/navigation";
-  import { modals } from "svelte-modals";
-  import ConfirmModal from "$lib/components/modals/ConfirmModal.svelte";
   import { getApiClient, handleApiError } from "$lib";
   import { getMusicManager } from "$lib/music-manager.svelte.js";
   import EditSingleModal from "./EditSingleModal.svelte";
-  import { type CheckedValue } from "$lib/types";
   import Image from "$lib/components/Image.svelte";
   import EditAlbumDetailsModal from "./EditAlbumDetailsModal.svelte";
   import toast from "svelte-5-french-toast";
@@ -31,6 +28,7 @@
   import SetCommonValuesModal from "./SetCommonValuesModal.svelte";
   import EditTrackDetailsModal from "./EditTrackDetailsModal.svelte";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
+  import ConfirmModal from "$lib/components/new-modals/ConfirmModal.svelte";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -38,6 +36,9 @@
 
   let openEditAlbumDetails = $state(false);
   let openChangeAlbumCoverModal = $state(false);
+
+  let openConfirmDeleteAlbum = $state(false);
+  let openConfirmDeleteTrack = $state({ open: false, trackId: "" });
 </script>
 
 <div class="py-2">
@@ -122,7 +123,7 @@
 
             <DropdownMenu.Item
               onSelect={() => {
-                goto(`/albums/${data.album.id}/edit/delete`);
+                openConfirmDeleteAlbum = true;
               }}
             >
               <Trash />
@@ -383,21 +384,7 @@
             <DropdownMenu.Group>
               <DropdownMenu.Item
                 onSelect={async () => {
-                  const confirmed = await modals.open(ConfirmModal, {
-                    title: "Are you sure?",
-                    description: "You are about to delete this track",
-                    confirmDelete: true,
-                  });
-
-                  if (confirmed) {
-                    const res = await apiClient.deleteTrack(track.id);
-                    if (!res.success) {
-                      handleApiError(res.error);
-                      return;
-                    }
-
-                    await invalidateAll();
-                  }
+                  openConfirmDeleteTrack = { open: true, trackId: track.id };
                 }}
               >
                 <Trash />
@@ -451,5 +438,39 @@
 
     toast.dismiss(toastId);
     toast.success("Successfully uploaded image, force reload page to see it");
+  }}
+/>
+
+<ConfirmModal
+  bind:open={openConfirmDeleteAlbum}
+  removeTrigger
+  confirmDelete
+  onResult={async () => {
+    const res = await apiClient.deleteAlbum(data.album.id);
+    if (!res.success) {
+      handleApiError(res.error);
+      invalidateAll();
+      return;
+    }
+
+    toast.success("Successfully deleted album");
+    goto("/albums", { invalidateAll: true });
+  }}
+/>
+
+<ConfirmModal
+  bind:open={openConfirmDeleteTrack.open}
+  removeTrigger
+  confirmDelete
+  onResult={async () => {
+    const res = await apiClient.deleteTrack(openConfirmDeleteTrack.trackId);
+    if (!res.success) {
+      handleApiError(res.error);
+      invalidateAll();
+      return;
+    }
+
+    toast.success("Successfully deleted track");
+    invalidateAll();
   }}
 />
