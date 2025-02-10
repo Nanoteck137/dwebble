@@ -148,6 +148,7 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 			Method:       http.MethodPost,
 			ResponseType: Signin{},
 			BodyType:     SigninBody{},
+			Errors:       []pyrin.ErrorType{ErrTypeUserNotFound, ErrTypeInvalidCredentials},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				body, err := pyrin.Body[SigninBody](c)
 				if err != nil {
@@ -156,13 +157,15 @@ func InstallAuthHandlers(app core.App, group pyrin.Group) {
 
 				user, err := app.DB().GetUserByUsername(c.Request().Context(), body.Username)
 				if err != nil {
-					// TODO(patrik): Check for ErrItemNotFound
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, UserNotFound()
+					}
+
 					return nil, err
 				}
 
 				if user.Password != body.Password {
-					// TODO(patrik): Fix error
-					return nil, errors.New("Incorrect creds")
+					return nil, InvalidCredentials()
 				}
 
 				token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

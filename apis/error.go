@@ -15,9 +15,11 @@ const (
 	ErrTypeApiTokenNotFound pyrin.ErrorType = "API_TOKEN_NOT_FOUND"
 	ErrTypeQueueNotFound    pyrin.ErrorType = "QUEUE_NOT_FOUND"
 
-	ErrTypeInvalidFilter     pyrin.ErrorType = "INVALID_FILTER"
-	ErrTypeInvalidSort       pyrin.ErrorType = "INVALID_SORT"
-	ErrTypeUserAlreadyExists pyrin.ErrorType = "USER_ALREADY_EXISTS"
+	ErrTypeInvalidFilter      pyrin.ErrorType = "INVALID_FILTER"
+	ErrTypeInvalidSort        pyrin.ErrorType = "INVALID_SORT"
+	ErrTypeUserAlreadyExists  pyrin.ErrorType = "USER_ALREADY_EXISTS"
+	ErrTypeUserNotFound       pyrin.ErrorType = "USER_NOT_FOUND"
+	ErrTypeInvalidCredentials pyrin.ErrorType = "INVALID_CREDENTIALS"
 
 	ErrTypePlaylistNotFound        pyrin.ErrorType = "PLAYLIST_NOT_FOUND"
 	ErrTypePlaylistAlreadyHasTrack pyrin.ErrorType = "PLAYLIST_ALREADY_HAS_TRACK"
@@ -100,6 +102,22 @@ func UserAlreadyExists() *pyrin.Error {
 		Code:    http.StatusBadRequest,
 		Type:    ErrTypeUserAlreadyExists,
 		Message: "User already exists",
+	}
+}
+
+func UserNotFound() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusUnauthorized,
+		Type:    ErrTypeUserNotFound,
+		Message: "User not found",
+	}
+}
+
+func InvalidCredentials() *pyrin.Error {
+	return &pyrin.Error{
+		Code:    http.StatusUnauthorized,
+		Type:    ErrTypeInvalidCredentials,
+		Message: "Invalid Credentials",
 	}
 }
 
