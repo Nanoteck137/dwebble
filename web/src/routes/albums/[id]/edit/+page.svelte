@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { cn, formatTime } from "$lib/utils";
+  import { cn, convertValue, formatTime } from "$lib/utils";
   import {
     Edit,
     EllipsisVertical,
@@ -28,6 +28,8 @@
   import EditAlbumDetailsModal from "./EditAlbumDetailsModal.svelte";
   import toast from "svelte-5-french-toast";
   import ChangeAlbumCoverModal from "./ChangeAlbumCoverModal.svelte";
+  import SetCommonValuesModal from "./SetCommonValuesModal.svelte";
+  import EditTrackDetailsModal from "./EditTrackDetailsModal.svelte";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -168,33 +170,11 @@
 </div>
 
 <div class="flex flex-col">
-  <div class="flex gap-2">
+  <div class="flex flex-col gap-2 md:flex-row">
     {#if data.tracks.length === 1}
-      <!-- <Button
-        class="w-full"
-        variant="outline"
-        onclick={async () => {
-          const values = await modals.open(EditSingleModal, {});
-          if (values) {
-            console.log(values);
-          }
-        }}
-      >
-        <FolderPen />
-        Edit as Single
-      </Button> -->
-
       <EditSingleModal
         class={buttonVariants({ variant: "outline", class: "w-full" })}
         onResult={async (editData) => {
-          function convertValue<T>(val: CheckedValue<T>): T | undefined {
-            if (val.checked) {
-              return val.value;
-            }
-
-            return undefined;
-          }
-
           const name = convertValue(editData.name);
           const otherName = convertValue(editData.otherName);
           const year = convertValue(editData.year);
@@ -232,10 +212,50 @@
         Edit as Single
       </EditSingleModal>
     {/if}
-    <Button href="edit/tracks/common" class="w-full" variant="outline">
+
+    <SetCommonValuesModal
+      class={buttonVariants({ variant: "outline", class: "w-full" })}
+      onResult={async (resultData) => {
+        const year = convertValue(resultData.year);
+        const tags = convertValue(resultData.tags);
+        const artist = convertValue(resultData.artist);
+        const featuringArtists = convertValue(resultData.featuringArtists);
+
+        let error = false;
+
+        const body = {
+          year,
+          tags: tags?.split(","),
+          artistId: artist?.id,
+          featuringArtists: featuringArtists?.map((a) => a.id),
+        };
+
+        if (resultData.changeAlbum) {
+          const res = await apiClient.editAlbum(data.album.id, body);
+          if (!res.success) {
+            handleApiError(res.error);
+            error = true;
+          }
+        }
+
+        for (const track of data.tracks) {
+          const res = await apiClient.editTrack(track.id, body);
+          if (!res.success) {
+            handleApiError(res.error);
+            error = true;
+          }
+        }
+
+        if (!error) {
+          toast.success("Successfully updated values");
+        }
+        invalidateAll();
+      }}
+    >
       <FolderPen />
       Set Common Values
-    </Button>
+    </SetCommonValuesModal>
+
     <Button href="edit/import" class="w-full" variant="outline">
       <Import />
       Import Tracks
@@ -300,22 +320,55 @@
           class="rounded-full"
           variant="ghost"
           size="icon"
-          onclick={() => {
-            // musicManager.clearQueue();
-            // musicManager.addTrackToQueue(trackToMusicTrack(track), true);
+          onclick={async () => {
+            await musicManager.clearQueue();
+            await musicManager.addFromIds([track.id]);
+            musicManager.requestPlay();
           }}
         >
           <Play />
         </Button>
 
-        <Button
+        <EditTrackDetailsModal
+          class={cn(
+            buttonVariants({
+              variant: "ghost",
+              size: "icon",
+            }),
+            "rounded-full",
+          )}
+          {track}
+          onResult={async (resultData) => {
+            const res = await apiClient.editTrack(track.id, {
+              name: resultData.name,
+              otherName: resultData.otherName,
+              artistId: resultData.artist.id,
+              number: resultData.number,
+              year: resultData.year,
+              tags: resultData.tags.split(","),
+              featuringArtists: resultData.featuringArtists.map((a) => a.id),
+            });
+            if (!res.success) {
+              handleApiError(res.error);
+              invalidateAll();
+              return;
+            }
+
+            toast.success("Successfully updated track");
+            invalidateAll();
+          }}
+        >
+          <Pencil />
+        </EditTrackDetailsModal>
+
+        <!-- <Button
           class="rounded-full"
           variant="ghost"
           size="icon"
           href="edit/tracks/{track.id}"
         >
           <Pencil />
-        </Button>
+        </Button> -->
 
         <DropdownMenu.Root>
           <DropdownMenu.Trigger
@@ -328,34 +381,6 @@
           </DropdownMenu.Trigger>
           <DropdownMenu.Content align="end">
             <DropdownMenu.Group>
-              <DropdownMenu.Item>
-                <button
-                  class="flex w-full items-center gap-2"
-                  onclick={() => {
-                    // musicManager.clearQueue();
-                    // musicManager.addTrackToQueue(
-                    //   trackToMusicTrack(track),
-                    //   true,
-                    // );
-                  }}
-                >
-                  <Play size="16" />
-                  Play
-                </button>
-              </DropdownMenu.Item>
-
-              <DropdownMenu.Item>
-                <a
-                  class="flex w-full items-center gap-2"
-                  href="edit/tracks/{track.id}"
-                >
-                  <Edit size="16" />
-                  Edit
-                </a>
-              </DropdownMenu.Item>
-
-              <DropdownMenu.Separator />
-
               <DropdownMenu.Item
                 onSelect={async () => {
                   const confirmed = await modals.open(ConfirmModal, {

@@ -193,6 +193,22 @@ func (c *Client) GetAlbumTracks(id string, options Options) (*GetAlbumTracks, er
 	return Request[GetAlbumTracks](data)
 }
 
+func (c *Client) GetAlbumTracksDetails(id string, options Options) (*GetAlbumTracksDetails, error) {
+	path := Sprintf("/api/v1/albums/%v/tracks/details", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		Token: c.token,
+		Body: nil,
+	}
+	return Request[GetAlbumTracksDetails](data)
+}
+
 func (c *Client) EditAlbum(id string, body EditAlbumBody, options Options) (*any, error) {
 	path := Sprintf("/api/v1/albums/%v", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
@@ -319,22 +335,6 @@ func (c *Client) GetTrackDetails(id string, options Options) (*GetTrackDetails, 
 		Body: nil,
 	}
 	return Request[GetTrackDetails](data)
-}
-
-func (c *Client) GetDetailedTrackById(id string, options Options) (*GetDetailedTrackById, error) {
-	path := Sprintf("/api/v1/tracks/%v/detailed", id)
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "GET",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[GetDetailedTrackById](data)
 }
 
 func (c *Client) EditTrack(id string, body EditTrackBody, options Options) (*any, error) {

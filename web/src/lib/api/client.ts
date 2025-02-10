@@ -56,6 +56,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracks, z.any(), undefined, options)
   }
   
+  getAlbumTracksDetails(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/albums/${id}/tracks/details`, "GET", api.GetAlbumTracksDetails, z.any(), undefined, options)
+  }
+  
   editAlbum(id: string, body: api.EditAlbumBody, options?: ExtraOptions) {
     return this.request(`/api/v1/albums/${id}`, "PATCH", z.undefined(), z.any(), body, options)
   }
@@ -86,10 +90,6 @@ export class ApiClient extends BaseApiClient {
   
   getTrackDetails(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}/details`, "GET", api.GetTrackDetails, z.any(), undefined, options)
-  }
-  
-  getDetailedTrackById(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/tracks/${id}/detailed`, "GET", api.GetDetailedTrackById, z.any(), undefined, options)
   }
   
   editTrack(id: string, body: api.EditTrackBody, options?: ExtraOptions) {

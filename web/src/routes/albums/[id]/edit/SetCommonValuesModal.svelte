@@ -10,14 +10,14 @@
     Dialog,
     Input,
     Label,
+    Switch,
   } from "@nanoteck137/nano-ui";
   import { Plus, X } from "lucide-svelte";
 
   export type Props = {};
 
   export type Result = {
-    name: CheckedValue<string>;
-    otherName: CheckedValue<string>;
+    changeAlbum: boolean;
     year: CheckedValue<number>;
     tags: CheckedValue<string>;
     artist: CheckedValue<UIArtist | null>;
@@ -32,14 +32,7 @@
 
   let open = $state(false);
   let result = $state<Result>({
-    name: {
-      checked: false,
-      value: "",
-    },
-    otherName: {
-      checked: false,
-      value: "",
-    },
+    changeAlbum: true,
     year: {
       checked: false,
       value: 0,
@@ -56,6 +49,30 @@
       checked: false,
       value: [],
     },
+  });
+
+  $effect(() => {
+    if (open) {
+      result = {
+        changeAlbum: true,
+        year: {
+          checked: false,
+          value: 0,
+        },
+        tags: {
+          checked: false,
+          value: "",
+        },
+        artist: {
+          checked: false,
+          value: null,
+        },
+        featuringArtists: {
+          checked: false,
+          value: [],
+        },
+      };
+    }
   });
 </script>
 
@@ -74,43 +91,10 @@
       }}
     >
       <Dialog.Header>
-        <Dialog.Title>Edit as Single</Dialog.Title>
+        <Dialog.Title>Set Common Values</Dialog.Title>
       </Dialog.Header>
 
-      <div class="flex flex-col gap-2">
-        <FormItem>
-          <Label for="name">Name</Label>
-
-          <div class="flex items-center gap-2">
-            <Checkbox class="h-5 w-5" bind:checked={result.name.checked} />
-            <Input
-              id="name"
-              type="text"
-              autocomplete="off"
-              disabled={!result.name.checked}
-              bind:value={result.name.value}
-            />
-          </div>
-        </FormItem>
-
-        <FormItem>
-          <Label for="otherName">Other Name</Label>
-
-          <div class="flex items-center gap-2">
-            <Checkbox
-              class="h-5 w-5"
-              bind:checked={result.otherName.checked}
-            />
-            <Input
-              id="otherName"
-              type="text"
-              autocomplete="off"
-              disabled={!result.otherName.checked}
-              bind:value={result.otherName.value}
-            />
-          </div>
-        </FormItem>
-
+      <div class="flex flex-col gap-4">
         <FormItem>
           <Label for="year">Year</Label>
 
@@ -168,24 +152,6 @@
 
         <Label class="flex items-center gap-2">
           Featuring Artists
-          <!-- <button
-            type="button"
-            class="hover:cursor-pointer"
-            tabindex={7}
-            onclick={async () => {
-              const res = await openArtistQuery({});
-              if (res) {
-                const index = featuringArtists.findIndex(
-                  (a) => a.id === res.id,
-                );
-                if (index === -1) {
-                  featuringArtists.push(res);
-                }
-              }
-            }}
-          >
-          </button> -->
-
           {#if result.featuringArtists.checked}
             <QueryArtistModal
               onResult={(artist) => {
@@ -224,6 +190,11 @@
               {artist.name}
             </p>
           {/each}
+        </div>
+
+        <div class="flex items-center gap-2">
+          <Switch id="updateAlbum" bind:checked={result.changeAlbum} />
+          <Label for="updateAlbum">Update album</Label>
         </div>
       </div>
 

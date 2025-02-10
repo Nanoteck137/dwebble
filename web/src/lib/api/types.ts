@@ -121,6 +121,37 @@ export const GetAlbumTracks = z.object({
 });
 export type GetAlbumTracks = z.infer<typeof GetAlbumTracks>;
 
+export const TrackFormat = z.object({
+  id: z.string(),
+  mediaType: z.string(),
+  isOriginal: z.boolean(),
+});
+export type TrackFormat = z.infer<typeof TrackFormat>;
+
+export const TrackDetails = z.object({
+  id: z.string(),
+  name: Name,
+  duration: z.number(),
+  number: z.number().nullable(),
+  year: z.number().nullable(),
+  coverArt: Images,
+  albumId: z.string(),
+  albumName: Name,
+  artistId: z.string(),
+  artistName: Name,
+  tags: z.array(z.string()),
+  featuringArtists: z.array(ArtistInfo),
+  formats: z.array(TrackFormat),
+  created: z.number(),
+  updated: z.number(),
+});
+export type TrackDetails = z.infer<typeof TrackDetails>;
+
+export const GetAlbumTracksDetails = z.object({
+  tracks: z.array(TrackDetails),
+});
+export type GetAlbumTracksDetails = z.infer<typeof GetAlbumTracksDetails>;
+
 export const EditAlbumBody = z.object({
   name: z.string().nullable().optional(),
   otherName: z.string().nullable().optional(),
@@ -152,32 +183,6 @@ export const GetTracks = z.object({
 });
 export type GetTracks = z.infer<typeof GetTracks>;
 
-export const TrackFormat = z.object({
-  id: z.string(),
-  mediaType: z.string(),
-  isOriginal: z.boolean(),
-});
-export type TrackFormat = z.infer<typeof TrackFormat>;
-
-export const TrackDetails = z.object({
-  id: z.string(),
-  name: Name,
-  duration: z.number(),
-  number: z.number().nullable(),
-  year: z.number().nullable(),
-  coverArt: Images,
-  albumId: z.string(),
-  albumName: Name,
-  artistId: z.string(),
-  artistName: Name,
-  tags: z.array(z.string()),
-  featuringArtists: z.array(ArtistInfo),
-  formats: z.array(TrackFormat),
-  created: z.number(),
-  updated: z.number(),
-});
-export type TrackDetails = z.infer<typeof TrackDetails>;
-
 export const GetDetailedTracks = z.object({
   page: Page,
   tracks: z.array(TrackDetails),
@@ -189,9 +194,6 @@ export type GetTrackById = z.infer<typeof GetTrackById>;
 
 export const GetTrackDetails = TrackDetails;
 export type GetTrackDetails = z.infer<typeof GetTrackDetails>;
-
-export const GetDetailedTrackById = TrackDetails;
-export type GetDetailedTrackById = z.infer<typeof GetDetailedTrackById>;
 
 export const EditTrackBody = z.object({
   name: z.string().nullable().optional(),
@@ -442,7 +444,7 @@ export const GetMedia = z.object({
 export type GetMedia = z.infer<typeof GetMedia>;
 
 export const GetMediaCommonBody = z.object({
-  type: z.string().optional(),
+  mediaType: z.string().optional(),
   shuffle: z.boolean().optional(),
   sort: z.string().optional(),
   limit: z.number().optional(),
@@ -457,7 +459,7 @@ export const GetMediaFromTaglistBody = GetMediaCommonBody;
 export type GetMediaFromTaglistBody = z.infer<typeof GetMediaFromTaglistBody>;
 
 export const GetMediaFromFilterBody = z.object({
-  type: z.string().optional(),
+  mediaType: z.string().optional(),
   shuffle: z.boolean().optional(),
   sort: z.string().optional(),
   limit: z.number().optional(),
@@ -473,7 +475,7 @@ export const GetMediaFromAlbumBody = GetMediaCommonBody;
 export type GetMediaFromAlbumBody = z.infer<typeof GetMediaFromAlbumBody>;
 
 export const GetMediaFromIdsBody = z.object({
-  type: z.string().optional(),
+  mediaType: z.string().optional(),
   shuffle: z.boolean().optional(),
   sort: z.string().optional(),
   limit: z.number().optional(),

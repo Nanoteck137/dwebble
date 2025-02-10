@@ -12,20 +12,10 @@ export const load: LayoutServerLoad = async ({ locals, params }) => {
     throw error(album.error.code, { message: album.error.message });
   }
 
-  const tracks = await locals.apiClient.getDetailedTracks({
-    query: {
-      filter: `albumId == "${params.id}"`,
-      sort: "sort=number",
-    },
-  });
+  const tracks = await locals.apiClient.getAlbumTracksDetails(params.id);
   if (!tracks.success) {
     throw error(tracks.error.code, { message: tracks.error.message });
   }
-
-  // const tracks = await locals.apiClient.getAlbumTracks(params.id);
-  // if (!tracks.success) {
-  //   throw error(tracks.error.code, { message: tracks.error.message });
-  // }
 
   return {
     album: album.data,
