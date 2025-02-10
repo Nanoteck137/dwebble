@@ -89,6 +89,10 @@ type GetAlbumTracks struct {
 	Tracks []Track `json:"tracks"`
 }
 
+type GetAlbumTracksDetails struct {
+	Tracks []TrackDetails `json:"tracks"`
+}
+
 type EditAlbumBody struct {
 	Name             *string   `json:"name,omitempty"`
 	OtherName        *string   `json:"otherName,omitempty"`
@@ -270,6 +274,41 @@ func InstallAlbumHandlers(app core.App, group pyrin.Group) {
 
 				for i, track := range tracks {
 					res.Tracks[i] = ConvertDBTrack(c, track)
+				}
+
+				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:         "GetAlbumTracksDetails",
+			Method:       http.MethodGet,
+			Path:         "/albums/:id/tracks/details",
+			ResponseType: GetAlbumTracksDetails{},
+			Errors:       []pyrin.ErrorType{ErrTypeAlbumNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				id := c.Param("id")
+
+				album, err := app.DB().GetAlbumById(c.Request().Context(), id)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, AlbumNotFound()
+					}
+
+					return nil, err
+				}
+
+				tracks, err := app.DB().GetTracksByAlbum(c.Request().Context(), album.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				res := GetAlbumTracksDetails{
+					Tracks: make([]TrackDetails, len(tracks)),
+				}
+
+				for i, track := range tracks {
+					res.Tracks[i] = ConvertDBTrackToDetails(c, track)
 				}
 
 				return res, nil
