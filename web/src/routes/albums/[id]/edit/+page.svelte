@@ -41,6 +41,7 @@
 
   let openConfirmDeleteAlbum = $state(false);
   let openConfirmDeleteTrack = $state({ open: false, trackId: "" });
+  let openTrackImporting = $state(false);
 </script>
 
 <div class="py-2">
@@ -105,7 +106,7 @@
 
             <DropdownMenu.Item
               onSelect={() => {
-                goto(`/albums/${data.album.id}/edit/import`);
+                openTrackImporting = true;
               }}
             >
               <Import />
@@ -260,7 +261,13 @@
       Set Common Values
     </SetCommonValuesModal>
 
-    <Button href="edit/import" class="w-full" variant="outline">
+    <Button
+      class="w-full"
+      variant="outline"
+      onclick={() => {
+        openTrackImporting = true;
+      }}
+    >
       <Import />
       Import Tracks
     </Button>
@@ -478,7 +485,7 @@
 />
 
 <ImportTracksModal
-  open={true}
+  bind:open={openTrackImporting}
   onResult={async (resultData) => {
     for (const file of resultData.file) {
       const body: UploadTrackBody = {
