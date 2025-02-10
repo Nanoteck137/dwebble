@@ -9,18 +9,15 @@
   } from "@nanoteck137/nano-ui";
   import { Edit, EllipsisVertical, Trash, Wallpaper } from "lucide-svelte";
   import toast from "svelte-5-french-toast";
-  import EditArtistDetailsModal, {
-    type Props as EditArtistDetailsModalProps,
-  } from "./EditArtistDetailsModal.svelte";
-  import { modals } from "svelte-modals";
   import Image from "$lib/components/Image.svelte";
+  import ChangeArtistPictureModal from "./ChangeArtistPictureModal.svelte";
+  import EditArtistDetailsModal from "./EditArtistDetailsModal.svelte";
 
   const { data } = $props();
   const apiClient = getApiClient();
 
-  function openEditDetailsModal(props: EditArtistDetailsModalProps) {
-    return modals.open(EditArtistDetailsModal, props);
-  }
+  let openEditArtistDetailsModal = $state(false);
+  let openArtistPictureModal = $state(false);
 </script>
 
 <div class="py-2">
@@ -63,24 +60,8 @@
         <DropdownMenu.Content align="center">
           <DropdownMenu.Group>
             <DropdownMenu.Item
-              onSelect={async () => {
-                const res = await openEditDetailsModal({
-                  artist: data.artist,
-                });
-                if (res) {
-                  const apiRes = await apiClient.editArtist(data.artist.id, {
-                    name: res.name,
-                    otherName: res.otherName,
-                    tags: res.tags.split(","),
-                  });
-                  if (!apiRes.success) {
-                    handleApiError(apiRes.error);
-                    return;
-                  }
-
-                  toast.success("Updated artist");
-                  await invalidateAll();
-                }
+              onSelect={() => {
+                openEditArtistDetailsModal = true;
               }}
             >
               <Edit />
@@ -89,7 +70,7 @@
 
             <DropdownMenu.Item
               onSelect={() => {
-                goto(`/artists/${data.artist.id}/edit/picture`);
+                openArtistPictureModal = true;
               }}
             >
               <Wallpaper />
@@ -129,12 +110,6 @@
     <p class="font-bold">
       {data.artist.name.default}
     </p>
-    <!-- <p class="text-xs">
-      Artist:
-      <a class="hover:underline" href="/artists/{data.album.artistId}">
-        {data.artist.artistName.default}
-      </a>
-    </p> -->
 
     {#if data.artist.name.other}
       <p class="text-xs">Other Name: {data.artist.name.other}</p>
@@ -143,12 +118,44 @@
     {#if data.artist.tags.length > 0}
       <p class="text-xs">Tags: {data.artist.tags.join(", ")}</p>
     {/if}
-
-    <!-- {#if data.album.featuringArtists.length > 0}
-      <p class="text-xs">Featuring Artists</p>
-      {#each data.album.featuringArtists as artist}
-        <p class="pl-2 text-xs">{artist.name.default}</p>
-      {/each}
-    {/if} -->
   </div>
 </div>
+
+<EditArtistDetailsModal
+  bind:open={openEditArtistDetailsModal}
+  artist={data.artist}
+  onResult={async (resultData) => {
+    const res = await apiClient.editArtist(data.artist.id, {
+      name: resultData.name,
+      otherName: resultData.otherName,
+      tags: resultData.tags.split(","),
+    });
+    if (!res.success) {
+      handleApiError(res.error);
+      invalidateAll();
+      return;
+    }
+
+    toast.success("Successfully updated artist");
+    invalidateAll();
+  }}
+/>
+
+<ChangeArtistPictureModal
+  bind:open={openArtistPictureModal}
+  onResult={async (formData) => {
+    const toastId = toast.loading("Uploading image...");
+
+    const res = await apiClient.changeArtistPicture(data.artist.id, formData);
+    if (!res.success) {
+      toast.dismiss(toastId);
+
+      handleApiError(res.error);
+      invalidateAll();
+      return;
+    }
+
+    toast.dismiss(toastId);
+    toast.success("Successfully uploaded image, force reload page to see it");
+  }}
+/>

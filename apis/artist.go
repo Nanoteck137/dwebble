@@ -383,7 +383,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Path:   "/artists/:id/picture",
 			Spec: pyrin.FormSpec{
 				Files: map[string]pyrin.FormFileSpec{
-					"cover": {
+					"picture": {
 						NumExpected: 1,
 					},
 				},
@@ -401,7 +401,7 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 
 				artistDir := app.WorkDir().Artist(artist.Id)
 
-				files, err := pyrin.FormFiles(c, "cover")
+				files, err := pyrin.FormFiles(c, "picture")
 				if err != nil {
 					return nil, err
 				}

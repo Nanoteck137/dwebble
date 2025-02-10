@@ -85,7 +85,7 @@
       }}
     >
       <Dialog.Header>
-        <Dialog.Title>Edit album details</Dialog.Title>
+        <Dialog.Title>Edit track</Dialog.Title>
       </Dialog.Header>
 
       <div class="flex flex-col gap-4">

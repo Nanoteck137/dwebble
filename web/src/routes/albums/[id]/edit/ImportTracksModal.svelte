@@ -32,7 +32,7 @@
       }}
     >
       <Dialog.Header>
-        <Dialog.Title>Edit album details</Dialog.Title>
+        <Dialog.Title>Import new tracks</Dialog.Title>
       </Dialog.Header>
 
       <ScrollArea class="max-h-[280px]">

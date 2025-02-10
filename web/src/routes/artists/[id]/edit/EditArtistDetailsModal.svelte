@@ -1,11 +1,12 @@
 <script lang="ts">
   import type { Artist } from "$lib/api/types";
   import FormItem from "$lib/components/FormItem.svelte";
+  import type { Modal } from "$lib/components/new-modals";
   import { Button, Dialog, Input, Label } from "@nanoteck137/nano-ui";
-  import type { ModalProps } from "svelte-modals";
 
   export type Props = {
     artist: Artist;
+    open: boolean;
   };
 
   export type Result = {
@@ -14,57 +15,80 @@
     tags: string;
   };
 
-  const { artist, isOpen, close }: Props & ModalProps<Result | null> =
-    $props();
+  let {
+    artist,
+    open = $bindable(),
+    onResult,
+  }: Props & Modal<Result> = $props();
 
   let result = $state<Result>({
-    name: artist.name.default,
-    otherName: artist.name.other,
-    tags: artist.tags.join(","),
+    name: "",
+    otherName: null,
+    tags: "",
+  });
+
+  $effect(() => {
+    if (open) {
+      result = {
+        name: artist.name.default,
+        otherName: artist.name.other,
+        tags: artist.tags.join(","),
+      };
+    }
   });
 </script>
 
-<Dialog.Root
-  controlledOpen
-  open={isOpen}
-  onOpenChange={(v) => {
-    if (!v) {
-      close(null);
-    }
-  }}
->
+<Dialog.Root bind:open>
   <Dialog.Content>
     <form
       class="flex flex-col gap-4"
       onsubmit={(e) => {
         e.preventDefault();
-        close(result);
+        onResult(result);
+        open = false;
       }}
     >
       <Dialog.Header>
-        <Dialog.Title>Edit Artist Details</Dialog.Title>
+        <Dialog.Title>Edit artist details</Dialog.Title>
       </Dialog.Header>
 
-      <FormItem>
-        <Label for="name">Name</Label>
-        <Input id="name" bind:value={result.name} />
-      </FormItem>
+      <div class="flex flex-col gap-4">
+        <FormItem>
+          <Label for="name">Name</Label>
+          <Input
+            id="name"
+            type="text"
+            autocomplete="off"
+            bind:value={result.name}
+          />
+        </FormItem>
 
-      <FormItem>
-        <Label for="otherName">Other Name</Label>
-        <Input id="otherName" bind:value={result.otherName} />
-      </FormItem>
+        <FormItem>
+          <Label for="otherName">Other Name</Label>
+          <Input
+            id="otherName"
+            type="text"
+            autocomplete="off"
+            bind:value={result.otherName}
+          />
+        </FormItem>
 
-      <FormItem>
-        <Label for="tags">Tags</Label>
-        <Input id="tags" bind:value={result.tags} />
-      </FormItem>
+        <FormItem>
+          <Label for="tags">Tags</Label>
+          <Input
+            id="tags"
+            type="text"
+            autocomplete="off"
+            bind:value={result.tags}
+          />
+        </FormItem>
+      </div>
 
       <Dialog.Footer>
         <Button
           variant="outline"
           onclick={() => {
-            close(null);
+            open = false;
           }}
         >
           Close

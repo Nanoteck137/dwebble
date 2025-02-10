@@ -23,15 +23,15 @@
       }}
     >
       <Dialog.Header>
-        <Dialog.Title>Change album cover</Dialog.Title>
+        <Dialog.Title>Change Artist Picture</Dialog.Title>
       </Dialog.Header>
 
       <div class="flex flex-col gap-4">
         <FormItem>
-          <Label for="coverArt">Cover Art</Label>
+          <Label for="picture">Picture</Label>
           <Input
-            id="coverArt"
-            name="cover"
+            id="picture"
+            name="picture"
             type="file"
             accept="image/png,image/jpeg"
           />
