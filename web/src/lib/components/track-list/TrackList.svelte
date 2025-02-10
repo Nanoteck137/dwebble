@@ -51,7 +51,11 @@
         onTrackPlay(track.id);
       }}
     >
-      <QuickAddButton show={!!quickPlaylist} {track} {isInQuickPlaylist} />
+      <QuickAddButton
+        show={!!quickPlaylist}
+        trackId={track.id}
+        {isInQuickPlaylist}
+      />
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger

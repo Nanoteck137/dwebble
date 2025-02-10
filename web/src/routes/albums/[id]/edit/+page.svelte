@@ -30,6 +30,7 @@
   import ChangeAlbumCoverModal from "./ChangeAlbumCoverModal.svelte";
   import SetCommonValuesModal from "./SetCommonValuesModal.svelte";
   import EditTrackDetailsModal from "./EditTrackDetailsModal.svelte";
+  import QuickAddButton from "$lib/components/QuickAddButton.svelte";
 
   const { data } = $props();
   const apiClient = getApiClient();
@@ -306,15 +307,14 @@
       </div>
 
       <div class="flex items-center gap-2">
-        <!-- <QuickAddButton
+        <QuickAddButton
           show={!!(data.user && data.user.quickPlaylist)}
-          {track}
-          {apiClient}
+          trackId={track.id}
           isInQuickPlaylist={(trackId) => {
             if (!data.quickPlaylistIds) return false;
             return !!data.quickPlaylistIds.find((v) => v === trackId);
           }}
-        /> -->
+        />
 
         <Button
           class="rounded-full"

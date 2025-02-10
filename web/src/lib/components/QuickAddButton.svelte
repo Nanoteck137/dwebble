@@ -8,11 +8,11 @@
 
   type Props = {
     show: boolean;
-    track: Track;
+    trackId: string;
     isInQuickPlaylist: (trackId: string) => boolean;
   };
 
-  const { show, track, isInQuickPlaylist }: Props = $props();
+  const { show, trackId, isInQuickPlaylist }: Props = $props();
   const apiClient = getApiClient();
 </script>
 
@@ -23,9 +23,9 @@
     variant="ghost"
     size="icon-lg"
     onclick={async () => {
-      if (isInQuickPlaylist(track.id)) {
+      if (isInQuickPlaylist(trackId)) {
         const res = await apiClient.removeItemFromUserQuickPlaylist({
-          trackId: track.id,
+          trackId: trackId,
         });
 
         if (!res.success) {
@@ -34,7 +34,7 @@
         }
       } else {
         const res = await apiClient.addToUserQuickPlaylist({
-          trackId: track.id,
+          trackId: trackId,
         });
 
         if (!res.success) {
@@ -46,7 +46,7 @@
       await invalidateAll();
     }}
   >
-    {#if isInQuickPlaylist(track.id)}
+    {#if isInQuickPlaylist(trackId)}
       <Star class="fill-primary" />
     {:else}
       <Star />
