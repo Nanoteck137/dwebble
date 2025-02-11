@@ -20,16 +20,21 @@ export const handle: Handle = async ({ event, resolve }) => {
     client.setToken(obj.token);
     event.locals.token = obj.token;
 
+    let failed = false;
     try {
       const me = await client.getMe();
       if (!me.success) {
         event.cookies.delete("auth", { path: "/" });
-        throw redirect(301, "/");
+        failed = true;
+      } else {
+        event.locals.user = me.data;
       }
-
-      event.locals.user = me.data;
     } catch {
       throw error(500, { message: "Failed to communicate with api server" });
+    }
+
+    if (failed) {
+      throw redirect(301, "/");
     }
   }
 
