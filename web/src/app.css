@@ -73,8 +73,8 @@
     @apply bg-background text-foreground;
   }
 
-  body[data-player="true"] main {
-    padding-bottom: 5.5rem;
+  main {
+    padding-bottom: 5.5rem !important;
   }
 
   .bottom-popup {
