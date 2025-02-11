@@ -10,10 +10,11 @@
     buttonVariants,
     Checkbox,
     DropdownMenu,
+    Input,
     Pagination,
     Separator,
   } from "@nanoteck137/nano-ui";
-  import { EllipsisVertical, Merge, Users, X } from "lucide-svelte";
+  import { EllipsisVertical, Filter, Merge, Users, X } from "lucide-svelte";
   import toast from "svelte-5-french-toast";
 
   let { data } = $props();
@@ -26,6 +27,38 @@
     return !!selected.find((i) => i === id);
   }
 </script>
+
+<form method="GET">
+  <div class="flex flex-col gap-2">
+    <Input
+      type="text"
+      name="filter"
+      placeholder="Filter"
+      value={data.filter ?? ""}
+    />
+
+    <Input
+      type="text"
+      name="sort"
+      placeholder="Sort"
+      value={data.sort ?? ""}
+    />
+  </div>
+
+  {#if data.filterError}
+    <p class="text-red-400">{data.filterError}</p>
+  {/if}
+  {#if data.sortError}
+    <p class="text-red-400">{data.sortError}</p>
+  {/if}
+  <div class="h-2"></div>
+  <Button type="submit">
+    <Filter />
+    Filter Tracks
+  </Button>
+</form>
+
+<div class="h-2"></div>
 
 {#snippet artistItem(artist: Artist)}
   {@const isMergeTarget = artist.id === merge}
