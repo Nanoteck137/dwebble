@@ -255,6 +255,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
+				_, err := User(app, c, RequireAdmin)
+				if err != nil {
+					return nil, err
+				}
+
 				body, err := pyrin.Body[EditArtistBody](c)
 				if err != nil {
 					return nil, err
@@ -341,6 +346,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			ResponseType: CreateArtist{},
 			BodyType:     CreateArtistBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
+				_, err := User(app, c, RequireAdmin)
+				if err != nil {
+					return nil, err
+				}
+
 				body, err := pyrin.Body[CreateArtistBody](c)
 				if err != nil {
 					return nil, err
@@ -391,6 +401,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Errors: []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
+
+				_, err := User(app, c, RequireAdmin)
+				if err != nil {
+					return nil, err
+				}
 
 				ctx := context.TODO()
 
@@ -484,6 +499,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Errors:   []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
+
+				_, err := User(app, c, RequireAdmin)
+				if err != nil {
+					return nil, err
+				}
 
 				body, err := pyrin.Body[MergeArtistsBody](c)
 				if err != nil {
@@ -582,6 +602,11 @@ func InstallArtistHandlers(app core.App, group pyrin.Group) {
 			Errors: []pyrin.ErrorType{ErrTypeArtistNotFound},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
+
+				_, err := User(app, c, RequireAdmin)
+				if err != nil {
+					return nil, err
+				}
 
 				ctx := context.TODO()
 

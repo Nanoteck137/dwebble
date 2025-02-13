@@ -525,6 +525,11 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
+				_, err := User(app, c, RequireAdmin)
+				if err != nil {
+					return nil, err
+				}
+
 				body, err := pyrin.Body[EditTrackBody](c)
 				if err != nil {
 					return nil, err
@@ -690,6 +695,11 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				id := c.Param("id")
 
+				_, err := User(app, c, RequireAdmin)
+				if err != nil {
+					return nil, err
+				}
+
 				ctx := context.TODO()
 
 				track, err := app.DB().GetTrackById(ctx, id)
@@ -734,6 +744,11 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 				},
 			},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
+				_, err := User(app, c, RequireAdmin)
+				if err != nil {
+					return nil, err
+				}
+
 				body, err := pyrin.Body[UploadTrackBody](c)
 				if err != nil {
 					pretty.Println(err)
