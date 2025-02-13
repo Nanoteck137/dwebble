@@ -385,35 +385,7 @@ func InstallTrackHandlers(app core.App, group pyrin.Group) {
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				q := c.Request().URL.Query()
 
-				perPage := 100
-				page := 0
-
-				// TODO(patrik): Move to util
-				if s := q.Get("perPage"); s != "" {
-					i, err := strconv.Atoi(s)
-					if err != nil {
-						return nil, err
-					}
-
-					perPage = i
-				}
-
-				if s := q.Get("page"); s != "" {
-					i, err := strconv.Atoi(s)
-					if err != nil {
-						return nil, err
-					}
-
-					page = i
-				}
-
-				opts := database.FetchOptions{
-					Filter:  q.Get("filter"),
-					Sort:    q.Get("sort"),
-					PerPage: perPage,
-					Page:    page,
-				}
-
+				opts := getPageOptions(q)
 				tracks, p, err := app.DB().GetPagedTracks(c.Request().Context(), opts)
 				if err != nil {
 					if errors.Is(err, database.ErrInvalidFilter) {
