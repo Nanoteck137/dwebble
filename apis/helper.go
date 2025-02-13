@@ -19,9 +19,34 @@ import (
 	"github.com/nanoteck137/pyrin"
 )
 
-const defaultMemory = 32 << 20 // 32 MB
+type UserCheckFunc func(user *database.User) error
 
-func User(app core.App, c pyrin.Context) (*database.User, error) {
+func RequireAdmin(user *database.User) error {
+	if user.Role != types.RoleSuperUser && user.Role != types.RoleAdmin {
+		return InvalidAuth("user requires 'super_user' or 'admin' role")
+	}
+
+	return nil
+}
+
+func User(app core.App, c pyrin.Context, checks ...UserCheckFunc) (*database.User, error) {
+	user, err := getUser(app, c)
+	if err != nil {
+		return nil, err
+	}
+
+
+	for _, check := range checks {
+		err := check(user)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return user, nil
+}
+
+func getUser(app core.App, c pyrin.Context) (*database.User, error) {
 	apiTokenHeader := c.Request().Header.Get("X-Api-Token")
 	if apiTokenHeader != "" {
 		ctx := context.TODO()
@@ -36,8 +61,7 @@ func User(app core.App, c pyrin.Context) (*database.User, error) {
 
 		user, err := app.DB().GetUserById(c.Request().Context(), token.UserId)
 		if err != nil {
-			// TODO(patrik): Should we handle error here?
-			return nil, err
+			return nil, InvalidAuth("invalid api token")
 		}
 
 		return &user, nil
