@@ -1,19 +1,15 @@
 <script lang="ts">
-  import { invalidateAll } from "$app/navigation";
-  import { getApiClient, handleApiError } from "$lib";
-  import type { Track } from "$lib/api/types";
+  import { getQuickPlaylist } from "$lib/quick-playlist.svelte";
   import { Button } from "@nanoteck137/nano-ui";
   import { Star } from "lucide-svelte";
-  import { toast } from "svelte-5-french-toast";
 
   type Props = {
     show: boolean;
     trackId: string;
-    isInQuickPlaylist: (trackId: string) => boolean;
   };
 
-  const { show, trackId, isInQuickPlaylist }: Props = $props();
-  const apiClient = getApiClient();
+  const { show, trackId }: Props = $props();
+  const quickPlaylist = getQuickPlaylist();
 </script>
 
 {#if show}
@@ -22,31 +18,11 @@
     class="rounded-full"
     variant="ghost"
     size="icon-lg"
-    onclick={async () => {
-      if (isInQuickPlaylist(trackId)) {
-        const res = await apiClient.removeItemFromUserQuickPlaylist({
-          trackId: trackId,
-        });
-
-        if (!res.success) {
-          handleApiError(res.error);
-          return;
-        }
-      } else {
-        const res = await apiClient.addToUserQuickPlaylist({
-          trackId: trackId,
-        });
-
-        if (!res.success) {
-          handleApiError(res.error);
-          return;
-        }
-      }
-
-      await invalidateAll();
+    onclick={() => {
+      quickPlaylist.toggleTrack(trackId);
     }}
   >
-    {#if isInQuickPlaylist(trackId)}
+    {#if quickPlaylist.hasTrack(trackId)}
       <Star class="fill-primary" />
     {:else}
       <Star />

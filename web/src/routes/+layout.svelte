@@ -19,7 +19,7 @@
   import Link from "$lib/components/Link.svelte";
   import { browser } from "$app/environment";
   import { fade, fly } from "svelte/transition";
-  import { Button, buttonVariants, Dialog } from "@nanoteck137/nano-ui";
+  import { Button, buttonVariants } from "@nanoteck137/nano-ui";
   import { modals, Modals } from "svelte-modals";
   import toast, { Toaster } from "svelte-5-french-toast";
   import { navigating } from "$app/stores";
@@ -30,13 +30,18 @@
     setMusicManager,
   } from "$lib/music-manager.svelte";
   import QuickPlaylistSelectorModal from "$lib/components/new-modals/QuickPlaylistSelectorModal.svelte";
-  import { error } from "@sveltejs/kit";
   import { invalidateAll } from "$app/navigation";
+  import { setQuickPlaylist } from "$lib/quick-playlist.svelte";
 
   let { children, data } = $props();
 
   let apiClient = setApiClient(data.apiAddress, data.userToken);
   let musicManager = setMusicManager(apiClient, new DummyQueue());
+  let quickPlaylist = setQuickPlaylist(
+    apiClient,
+    data.user?.quickPlaylist ?? "",
+    data.quickPlaylistIds,
+  );
 
   $effect(() => {
     if (!browser) return;
@@ -58,6 +63,11 @@
     //   }
     // } else {
     // }
+  });
+
+  $effect(() => {
+    quickPlaylist.playlistId = data.user?.quickPlaylist ?? "";
+    quickPlaylist.ids = data.quickPlaylistIds;
   });
 
   let showSideMenu = $state(false);

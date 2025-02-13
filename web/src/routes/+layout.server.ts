@@ -8,8 +8,8 @@ export const load: LayoutServerLoad = async ({ locals }) => {
   let quickPlaylistIds = [] as string[];
   let playlists: Playlist[] | null = null;
 
-  if (user && user.quickPlaylist) {
-    {
+  if (user) {
+    if (user.quickPlaylist) {
       const res = await locals.apiClient.getUserQuickPlaylistItemIds();
       if (!res.success) {
         throw error(res.error.code, { message: res.error.message });

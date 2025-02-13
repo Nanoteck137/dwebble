@@ -9,16 +9,17 @@
   import { cn } from "$lib/utils";
   import type { Playlist, Track } from "$lib/api/types";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
-  import { getApiClient, openAddToPlaylist } from "$lib";
+  import { openAddToPlaylist } from "$lib";
   import { goto, invalidateAll } from "$app/navigation";
 
   type Props = {
-    isAlbumShowcase?: boolean;
     totalTracks: number;
     tracks: Track[];
+
+    isAlbumShowcase?: boolean;
+
     userPlaylists?: Playlist[] | null;
     quickPlaylist?: string | null;
-    isInQuickPlaylist: (trackId: string) => boolean;
 
     onPlay: (shuffle: boolean) => void;
     onTrackPlay: (trackId: string) => void;
@@ -30,11 +31,8 @@
     tracks,
     userPlaylists,
     quickPlaylist,
-    isInQuickPlaylist,
     onTrackPlay,
   }: Props = $props();
-
-  const apiClient = getApiClient();
 </script>
 
 <div class="flex flex-col">
@@ -43,7 +41,7 @@
     <p class="text-sm">{totalTracks} track(s)</p>
   </div>
 
-  {#each tracks as track, i}
+  {#each tracks as track}
     <TrackListItem
       showNumber={isAlbumShowcase}
       {track}
@@ -51,11 +49,7 @@
         onTrackPlay(track.id);
       }}
     >
-      <QuickAddButton
-        show={!!quickPlaylist}
-        trackId={track.id}
-        {isInQuickPlaylist}
-      />
+      <QuickAddButton show={!!quickPlaylist} trackId={track.id} />
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger

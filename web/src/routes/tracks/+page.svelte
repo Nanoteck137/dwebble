@@ -3,7 +3,6 @@
   import { Button, Input, Pagination } from "@nanoteck137/nano-ui";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
-  import { isInQuickPlaylist } from "$lib";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import { getMusicManager } from "$lib/music-manager.svelte";
   import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
@@ -61,7 +60,6 @@
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}
   quickPlaylist={data.user?.quickPlaylist}
-  isInQuickPlaylist={(trackId) => isInQuickPlaylist(data, trackId)}
   onPlay={async (shuffle) => {
     await musicManager.clearQueue();
     await musicManager.addFromFilter(data.filter ?? "", { shuffle });
