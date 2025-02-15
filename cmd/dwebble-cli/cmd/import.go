@@ -295,11 +295,15 @@ var importCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		server, _ := cmd.Flags().GetString("server")
 		web, _ := cmd.Flags().GetString("web")
+		token, _ := cmd.Flags().GetString("token")
 		dir, _ := cmd.Flags().GetString("dir")
 		open, _ := cmd.Flags().GetBool("open")
 		extract, _ := cmd.Flags().GetBool("extract")
 
 		client := api.New(server)
+		if token != "" {
+			client.SetToken(token)
+		}
 
 		c := Context{
 			client:  client,
@@ -480,6 +484,7 @@ var importCmd = &cobra.Command{
 }
 
 func init() {
+	importCmd.Flags().StringP("token", "t", ".", "Api Token to use")
 	importCmd.Flags().StringP("dir", "d", ".", "Directory to search")
 	importCmd.Flags().BoolP("open", "p", false, "Open in Browser")
 	importCmd.Flags().BoolP("extract", "e", false, "Force extract track number from filename")
