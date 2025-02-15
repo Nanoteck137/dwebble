@@ -484,7 +484,7 @@ var importCmd = &cobra.Command{
 }
 
 func init() {
-	importCmd.Flags().StringP("token", "t", ".", "Api Token to use")
+	importCmd.Flags().StringP("token", "t", "", "Api Token to use")
 	importCmd.Flags().StringP("dir", "d", ".", "Directory to search")
 	importCmd.Flags().BoolP("open", "p", false, "Open in Browser")
 	importCmd.Flags().BoolP("extract", "e", false, "Force extract track number from filename")
