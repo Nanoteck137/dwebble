@@ -148,14 +148,6 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/system/info", "GET", api.GetSystemInfo, z.any(), undefined, options)
   }
   
-  systemExport(options?: ExtraOptions) {
-    return this.request("/api/v1/system/export", "POST", api.Export, z.any(), undefined, options)
-  }
-  
-  process(options?: ExtraOptions) {
-    return this.request("/api/v1/system/process", "POST", z.undefined(), z.any(), undefined, options)
-  }
-  
   refillSearch(options?: ExtraOptions) {
     return this.request("/api/v1/system/search", "POST", z.undefined(), z.any(), undefined, options)
   }

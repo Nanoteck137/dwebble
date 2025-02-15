@@ -302,7 +302,7 @@ var importCmd = &cobra.Command{
 
 		client := api.New(server)
 		if token != "" {
-			client.SetToken(token)
+			client.SetApiToken(token)
 		}
 
 		c := Context{

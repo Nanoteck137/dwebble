@@ -262,40 +262,6 @@ type GetSystemInfo struct {
 	Version string `json:"version"`
 }
 
-type ExportArtist struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Picture string `json:"picture"`
-}
-
-type ExportAlbum struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	ArtistId string `json:"artistId"`
-	CoverArt string `json:"coverArt"`
-	Year int `json:"year"`
-}
-
-type ExportTrack struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	AlbumId string `json:"albumId"`
-	ArtistId string `json:"artistId"`
-	Duration int `json:"duration"`
-	Number int `json:"number"`
-	Year int `json:"year"`
-	OriginalFilename string `json:"originalFilename"`
-	MobileFilename string `json:"mobileFilename"`
-	Created int `json:"created"`
-	Tags []string `json:"tags"`
-}
-
-type Export struct {
-	Artists []ExportArtist `json:"artists"`
-	Albums []ExportAlbum `json:"albums"`
-	Tracks []ExportTrack `json:"tracks"`
-}
-
 type Taglist struct {
 	Id string `json:"id"`
 	Name string `json:"name"`

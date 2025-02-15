@@ -11,7 +11,8 @@ func (c *Client) GetArtists(options Options) (*GetArtists, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetArtists](data)
@@ -27,7 +28,8 @@ func (c *Client) SearchArtists(options Options) (*GetArtists, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetArtists](data)
@@ -43,7 +45,8 @@ func (c *Client) GetArtistById(id string, options Options) (*GetArtistById, erro
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetArtistById](data)
@@ -59,7 +62,8 @@ func (c *Client) GetArtistAlbums(id string, options Options) (*GetArtistAlbumsBy
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetArtistAlbumsById](data)
@@ -75,7 +79,8 @@ func (c *Client) EditArtist(id string, body EditArtistBody, options Options) (*a
 	data := RequestData{
 		Url: url,
 		Method: "PATCH",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -91,7 +96,8 @@ func (c *Client) CreateArtist(body CreateArtistBody, options Options) (*CreateAr
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[CreateArtist](data)
@@ -107,7 +113,8 @@ func (c *Client) MergeArtists(id string, body MergeArtistsBody, options Options)
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -123,7 +130,8 @@ func (c *Client) DeleteArtist(id string, options Options) (*any, error) {
 	data := RequestData{
 		Url: url,
 		Method: "DELETE",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[any](data)
@@ -139,7 +147,8 @@ func (c *Client) GetAlbums(options Options) (*GetAlbums, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetAlbums](data)
@@ -155,7 +164,8 @@ func (c *Client) SearchAlbums(options Options) (*GetAlbums, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetAlbums](data)
@@ -171,7 +181,8 @@ func (c *Client) GetAlbumById(id string, options Options) (*GetAlbumById, error)
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetAlbumById](data)
@@ -187,7 +198,8 @@ func (c *Client) GetAlbumTracks(id string, options Options) (*GetAlbumTracks, er
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetAlbumTracks](data)
@@ -203,7 +215,8 @@ func (c *Client) GetAlbumTracksDetails(id string, options Options) (*GetAlbumTra
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetAlbumTracksDetails](data)
@@ -219,7 +232,8 @@ func (c *Client) EditAlbum(id string, body EditAlbumBody, options Options) (*any
 	data := RequestData{
 		Url: url,
 		Method: "PATCH",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -235,7 +249,8 @@ func (c *Client) DeleteAlbum(id string, options Options) (*any, error) {
 	data := RequestData{
 		Url: url,
 		Method: "DELETE",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[any](data)
@@ -251,7 +266,8 @@ func (c *Client) CreateAlbum(body CreateAlbumBody, options Options) (*CreateAlbu
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[CreateAlbum](data)
@@ -267,7 +283,8 @@ func (c *Client) GetTracks(options Options) (*GetTracks, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetTracks](data)
@@ -283,7 +300,8 @@ func (c *Client) GetDetailedTracks(options Options) (*GetDetailedTracks, error) 
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetDetailedTracks](data)
@@ -299,7 +317,8 @@ func (c *Client) SearchTracks(options Options) (*GetTracks, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetTracks](data)
@@ -315,7 +334,8 @@ func (c *Client) GetTrackById(id string, options Options) (*GetTrackById, error)
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetTrackById](data)
@@ -331,7 +351,8 @@ func (c *Client) GetTrackDetails(id string, options Options) (*GetTrackDetails, 
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetTrackDetails](data)
@@ -347,7 +368,8 @@ func (c *Client) EditTrack(id string, body EditTrackBody, options Options) (*any
 	data := RequestData{
 		Url: url,
 		Method: "PATCH",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -363,7 +385,8 @@ func (c *Client) DeleteTrack(id string, options Options) (*any, error) {
 	data := RequestData{
 		Url: url,
 		Method: "DELETE",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[any](data)
@@ -379,7 +402,8 @@ func (c *Client) Signup(body SignupBody, options Options) (*Signup, error) {
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[Signup](data)
@@ -395,7 +419,8 @@ func (c *Client) Signin(body SigninBody, options Options) (*Signin, error) {
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[Signin](data)
@@ -411,7 +436,8 @@ func (c *Client) ChangePassword(body ChangePasswordBody, options Options) (*any,
 	data := RequestData{
 		Url: url,
 		Method: "PATCH",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -427,7 +453,8 @@ func (c *Client) GetMe(options Options) (*GetMe, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetMe](data)
@@ -443,7 +470,8 @@ func (c *Client) GetPlaylists(options Options) (*GetPlaylists, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetPlaylists](data)
@@ -459,7 +487,8 @@ func (c *Client) CreatePlaylist(body CreatePlaylistBody, options Options) (*Crea
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[CreatePlaylist](data)
@@ -475,7 +504,8 @@ func (c *Client) CreatePlaylistFromFilter(body PostPlaylistFilterBody, options O
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[CreatePlaylist](data)
@@ -491,7 +521,8 @@ func (c *Client) GetPlaylistById(id string, options Options) (*GetPlaylistById, 
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetPlaylistById](data)
@@ -507,7 +538,8 @@ func (c *Client) GetPlaylistItems(id string, options Options) (*GetPlaylistItems
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetPlaylistItems](data)
@@ -523,7 +555,8 @@ func (c *Client) AddItemToPlaylist(id string, body AddItemToPlaylistBody, option
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -539,7 +572,8 @@ func (c *Client) RemovePlaylistItem(id string, body RemovePlaylistItemBody, opti
 	data := RequestData{
 		Url: url,
 		Method: "DELETE",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -555,42 +589,11 @@ func (c *Client) GetSystemInfo(options Options) (*GetSystemInfo, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetSystemInfo](data)
-}
-
-func (c *Client) SystemExport(options Options) (*Export, error) {
-	path := "/api/v1/system/export"
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[Export](data)
-}
-
-func (c *Client) Process(options Options) (*any, error) {
-	path := "/api/v1/system/process"
-	url, err := createUrl(c.addr, path, options.QueryParams)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "POST",
-		Token: c.token,
-		Body: nil,
-	}
-	return Request[any](data)
 }
 
 func (c *Client) RefillSearch(options Options) (*any, error) {
@@ -603,7 +606,8 @@ func (c *Client) RefillSearch(options Options) (*any, error) {
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[any](data)
@@ -619,7 +623,8 @@ func (c *Client) GetTaglists(options Options) (*GetTaglists, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetTaglists](data)
@@ -635,7 +640,8 @@ func (c *Client) GetTaglistById(id string, options Options) (*GetTaglistById, er
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetTaglistById](data)
@@ -651,7 +657,8 @@ func (c *Client) GetTaglistTracks(id string, options Options) (*GetTaglistTracks
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetTaglistTracks](data)
@@ -667,7 +674,8 @@ func (c *Client) CreateTaglist(body CreateTaglistBody, options Options) (*Create
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[CreateTaglist](data)
@@ -683,7 +691,8 @@ func (c *Client) DeleteTaglist(id string, options Options) (*any, error) {
 	data := RequestData{
 		Url: url,
 		Method: "DELETE",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[any](data)
@@ -699,7 +708,8 @@ func (c *Client) UpdateTaglist(id string, body UpdateTaglistBody, options Option
 	data := RequestData{
 		Url: url,
 		Method: "PATCH",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -715,7 +725,8 @@ func (c *Client) UpdateUserSettings(body UpdateUserSettingsBody, options Options
 	data := RequestData{
 		Url: url,
 		Method: "PATCH",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -731,7 +742,8 @@ func (c *Client) AddToUserQuickPlaylist(body TrackId, options Options) (*any, er
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -747,7 +759,8 @@ func (c *Client) RemoveItemFromUserQuickPlaylist(body TrackId, options Options) 
 	data := RequestData{
 		Url: url,
 		Method: "DELETE",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[any](data)
@@ -763,7 +776,8 @@ func (c *Client) GetUserQuickPlaylistItemIds(options Options) (*GetUserQuickPlay
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetUserQuickPlaylistItemIds](data)
@@ -779,7 +793,8 @@ func (c *Client) CreateApiToken(body CreateApiTokenBody, options Options) (*Crea
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[CreateApiToken](data)
@@ -795,7 +810,8 @@ func (c *Client) GetAllApiTokens(options Options) (*GetAllApiTokens, error) {
 	data := RequestData{
 		Url: url,
 		Method: "GET",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[GetAllApiTokens](data)
@@ -811,7 +827,8 @@ func (c *Client) DeleteApiToken(id string, options Options) (*any, error) {
 	data := RequestData{
 		Url: url,
 		Method: "DELETE",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return Request[any](data)
@@ -827,7 +844,8 @@ func (c *Client) GetMediaFromPlaylist(playlistId string, body GetMediaFromPlayli
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[GetMedia](data)
@@ -843,7 +861,8 @@ func (c *Client) GetMediaFromTaglist(taglistId string, body GetMediaFromTaglistB
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[GetMedia](data)
@@ -859,7 +878,8 @@ func (c *Client) GetMediaFromFilter(body GetMediaFromFilterBody, options Options
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[GetMedia](data)
@@ -875,7 +895,8 @@ func (c *Client) GetMediaFromArtist(artistId string, body GetMediaFromArtistBody
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[GetMedia](data)
@@ -891,7 +912,8 @@ func (c *Client) GetMediaFromAlbum(albumId string, body GetMediaFromAlbumBody, o
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[GetMedia](data)
@@ -907,7 +929,8 @@ func (c *Client) GetMediaFromIds(body GetMediaFromIdsBody, options Options) (*Ge
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return Request[GetMedia](data)
@@ -923,7 +946,8 @@ func (c *Client) ChangeArtistPicture(id string, body Reader, options Options) (*
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return RequestForm[any](data, options.Boundary, body)
@@ -939,7 +963,8 @@ func (c *Client) ChangeAlbumCover(id string, body Reader, options Options) (*any
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: nil,
 	}
 	return RequestForm[any](data, options.Boundary, body)
@@ -955,7 +980,8 @@ func (c *Client) UploadTrack(body Reader, options Options) (*any, error) {
 	data := RequestData{
 		Url: url,
 		Method: "POST",
-		Token: c.token,
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
 		Body: body,
 	}
 	return RequestForm[any](data, options.Boundary, body)
