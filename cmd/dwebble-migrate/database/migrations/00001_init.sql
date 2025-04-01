@@ -1,3 +1,5 @@
+-- NOTE(patrik): Final
+
 -- +goose Up
 CREATE TABLE artists (
     id TEXT PRIMARY KEY,
@@ -43,11 +45,20 @@ CREATE TABLE tracks (
     number INT,
     year INT,
 
-    original_filename TEXT NOT NULL,
-    mobile_filename TEXT NOT NULL,
-
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
+);
+
+CREATE TABLE tracks_media (
+    id TEXT PRIMARY KEY,
+    track_id TEXT NOT NULL REFERENCES tracks(id),
+
+    filename TEXT NOT NULL,
+    media_type TEXT NOT NULL,
+    rank INT NOT NULL,
+    is_original BOOL NOT NULL,
+
+    UNIQUE(track_id, is_original)
 );
 
 CREATE TABLE tracks_featuring_artists (
@@ -140,25 +151,26 @@ CREATE TABLE api_tokens (
 );
 
 -- +goose Down
-DROP TABLE api_tokens;
+DROP TABLE api_tokens; 
 
-DROP TABLE taglists;
+DROP TABLE taglists; 
+DROP TABLE playlist_items; 
+DROP TABLE playlists; 
 
-DROP TABLE playlist_items;
-DROP TABLE playlists;
+DROP TABLE users_settings; 
+DROP TABLE users; 
 
-DROP TABLE users_settings;
-DROP TABLE users;
+DROP TABLE tracks_tags; 
+DROP TABLE albums_tags ; 
+DROP TABLE artists_tags ; 
+DROP TABLE tags; 
 
-DROP TABLE tracks_tags;
-DROP TABLE albums_tags;
-DROP TABLE artists_tags;
-DROP TABLE tags;
+DROP TABLE tracks_featuring_artists; 
+DROP TABLE tracks_media; 
+DROP TABLE tracks; 
 
-DROP TABLE tracks_featuring_artists
-DROP TABLE tracks;
+DROP TABLE albums_featuring_artists; 
+DROP TABLE albums; 
 
-DROP TABLE albums_featuring_artists
-DROP TABLE albums;
+DROP TABLE artists; 
 
-DROP TABLE artists;

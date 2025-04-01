@@ -266,7 +266,7 @@ func DeleteTrack(ctx context.Context, db *database.Database, workDir types.WorkD
 	targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
 	target := path.Join(workDir.Trash(), targetName)
 
-	err := os.Rename(dir.String(), target)
+	err := os.Rename(dir, target)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}

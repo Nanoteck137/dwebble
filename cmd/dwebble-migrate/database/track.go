@@ -15,6 +15,8 @@ import (
 )
 
 type Track struct {
+	RowId int `db:"rowid"`
+
 	Id        string         `db:"id"`
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
@@ -41,7 +43,26 @@ type Track struct {
 
 	Tags sql.NullString `db:"tags"`
 
-	FeaturingArtists FeaturingArtists `db:"featuring_artists"`
+	FeaturingArtists FeaturingArtists          `db:"featuring_artists"`
+	Formats          JsonColumn[[]TrackFormat] `db:"formats"`
+}
+
+type TrackFormat struct {
+	Id      string `json:"id"`
+	TrackId string `json:"track_id"`
+
+	Filename   string          `json:"filename"`
+	MediaType  types.MediaType `json:"media_type"`
+	IsOriginal bool            `json:"is_original"`
+}
+
+type TrackMedia struct {
+	Id      string `db:"id"`
+	TrackId string `db:"track_id"`
+
+	Filename   string `db:"filename"`
+	MediaType  string `db:"media_type"`
+	IsOriginal bool   `db:"is_original"`
 }
 
 // TODO(patrik): Move
@@ -84,8 +105,42 @@ func TrackQuery() *goqu.SelectDataset {
 		).
 		GroupBy(goqu.I("tracks_tags.track_id"))
 
+	formats := dialect.From("tracks_media").
+		Select(
+			goqu.I("tracks_media.track_id").As("track_id"),
+
+			goqu.Func(
+				"json_group_array",
+				goqu.Func(
+					"json_object",
+
+					"id",
+					goqu.I("tracks_media.id"),
+
+					"track_id",
+					goqu.I("tracks_media.track_id"),
+
+					"filename",
+					goqu.I("tracks_media.filename"),
+
+					"media_type",
+					goqu.I("tracks_media.media_type"),
+
+					"is_original",
+					goqu.Func("IIF",
+						goqu.I("tracks_media.is_original").Gte(1),
+						goqu.L("json('true')"),
+						goqu.L("json('false')"),
+					),
+				),
+			).As("formats"),
+		).
+		GroupBy(goqu.I("tracks_media.track_id"))
+
 	query := dialect.From("tracks").
 		Select(
+			"tracks.rowid",
+
 			"tracks.id",
 			"tracks.name",
 			"tracks.other_name",
@@ -97,8 +152,8 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.duration",
 			"tracks.year",
 
-			"tracks.original_filename",
-			"tracks.mobile_filename",
+			// "tracks.original_filename",
+			// "tracks.mobile_filename",
 
 			"tracks.created",
 			"tracks.updated",
@@ -113,6 +168,8 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.I("tags.tags").As("tags"),
 
 			goqu.I("featuring_artists.artists").As("featuring_artists"),
+
+			goqu.I("formats.formats").As("formats"),
 		).
 		Prepared(true).
 		Join(
@@ -130,13 +187,57 @@ func TrackQuery() *goqu.SelectDataset {
 		LeftJoin(
 			FeaturingArtistsQuery("tracks_featuring_artists", "track_id").As("featuring_artists"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("featuring_artists.id"))),
+		).
+		LeftJoin(
+			formats.As("formats"),
+			goqu.On(goqu.I("tracks.id").Eq(goqu.I("formats.track_id"))),
 		)
 
 	return query
 }
 
+func (db *Database) GetAllTracksByArtistId(ctx context.Context, artistId string) ([]Track, error) {
+	query := TrackQuery().
+		Where(goqu.I("tracks.artist_id").Eq(artistId))
+
+	var items []Track
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func (db *Database) GetTracksByIds(ctx context.Context, ids []string) ([]Track, error) {
+	query := TrackQuery().Where(goqu.I("tracks.id").In(ids))
+
+	var items []Track
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func (db *Database) GetTracksByAlbumForPlay(ctx context.Context, albumId string) ([]NewTrackQueryItem, error) {
+	query := NewTrackQuery().
+		Where(goqu.I("tracks.album_id").Eq(albumId)).
+		Order(goqu.I("tracks.number").Asc().NullsLast(), goqu.I("tracks.name").Asc()).
+		As("tracks")
+
+	var items []NewTrackQueryItem
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 // TODO(patrik): Move
-type FetchOption struct {
+type FetchOptions struct {
 	Filter  string
 	Sort    string
 	PerPage int
@@ -156,7 +257,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr, sortStr string)
 		return nil, err
 	}
 
-	query, err = applySort(query, resolver, filterStr)
+	query, err = applySort(query, resolver, sortStr)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +271,7 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr, sortStr string)
 	return items, nil
 }
 
-func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOption) ([]Track, types.Page, error) {
+func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOptions) ([]Track, types.Page, error) {
 	query := TrackQuery()
 
 	var err error
@@ -222,11 +323,75 @@ func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOption) ([]Tra
 
 func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
 	query := TrackQuery().
-		Where(goqu.I("tracks.album_id").Eq(albumId)).
-		Order(goqu.I("tracks.number").Asc().NullsLast(), goqu.I("tracks.name").Asc())
+		Where(
+			goqu.I("tracks.id").In(
+				goqu.From("tracks").
+					Select("tracks.id").
+					Where(goqu.I("tracks.album_id").Eq(albumId)),
+			),
+		).
+		Order(
+			goqu.I("tracks.number").Asc().NullsLast(),
+			goqu.I("tracks.name").Asc(),
+		)
 
 	var items []Track
 	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
+func AlbumTrackSubquery(albumId string) *goqu.SelectDataset {
+	return goqu.From("tracks").
+		Select("tracks.id").
+		Where(goqu.I("tracks.album_id").Eq(albumId))
+}
+
+func ArtistTrackSubquery(artistId string) *goqu.SelectDataset {
+	tbl := goqu.T("tracks_featuring_artists")
+	return goqu.From("tracks").
+		Select("tracks.id").
+		FullOuterJoin(
+			tbl,
+			goqu.On(
+				goqu.I("tracks.id").Eq(tbl.Col("track_id")),
+			),
+		).
+		Where(
+			goqu.Or(
+				goqu.I("tracks.artist_id").Eq(artistId),
+				tbl.Col("artist_id").Eq(artistId),
+			),
+		)
+}
+
+func PlaylistTrackSubquery(playlistId string) *goqu.SelectDataset {
+	return goqu.From("playlist_items").
+		Select("playlist_items.track_id").
+		Where(
+			goqu.I("playlist_items.playlist_id").Eq(playlistId),
+		)
+}
+
+func (db *Database) GetTracksIn(ctx context.Context, in any, sort string) ([]Track, error) {
+	query := TrackQuery().
+		Where(
+			goqu.I("tracks.id").In(in),
+		)
+
+	a := adapter.TrackResolverAdapter{}
+	resolver := filter.New(&a)
+
+	query, err := applySort(query, resolver, sort)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []Track
+	err = db.Select(&items, query)
 	if err != nil {
 		return nil, err
 	}
@@ -285,8 +450,8 @@ type CreateTrackParams struct {
 	Number   sql.NullInt64
 	Year     sql.NullInt64
 
-	OriginalFilename string
-	MobileFilename   string
+	// OriginalFilename string
+	// MobileFilename   string
 
 	Created int64
 	Updated int64
@@ -319,8 +484,8 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"number":   params.Number,
 		"year":     params.Year,
 
-		"original_filename": params.OriginalFilename,
-		"mobile_filename":   params.MobileFilename,
+		// "original_filename": params.OriginalFilename,
+		// "mobile_filename":   params.MobileFilename,
 
 		"created": created,
 		"updated": updated,
@@ -373,8 +538,8 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	addToRecord(record, "number", changes.Number)
 	addToRecord(record, "year", changes.Year)
 
-	addToRecord(record, "original_filename", changes.OriginalFilename)
-	addToRecord(record, "mobile_filename", changes.MobileFilename)
+	// addToRecord(record, "original_filename", changes.OriginalFilename)
+	// addToRecord(record, "mobile_filename", changes.MobileFilename)
 
 	addToRecord(record, "created", changes.Created)
 
@@ -397,10 +562,28 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	return nil
 }
 
-func (db *Database) RemoveAlbumTracks(ctx context.Context, albumId string) error {
-	query := dialect.Delete("tracks").
+func (db *Database) ChangeAllTrackArtist(ctx context.Context, artistId, newArtistId string) error {
+	record := goqu.Record{
+		"artist_id": newArtistId,
+		"updated":   time.Now().UnixMilli(),
+	}
+	query := goqu.Update("tracks").
 		Prepared(true).
-		Where(goqu.I("tracks.album_id").Eq(albumId))
+		Set(record).
+		Where(goqu.I("tracks.artist_id").Eq(artistId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (db *Database) DeleteTrackMedia(ctx context.Context, trackId string) error {
+	query := dialect.Delete("tracks_media").
+		Prepared(true).
+		Where(goqu.I("tracks_media.track_id").Eq(trackId))
 
 	_, err := db.Exec(ctx, query)
 	if err != nil {
@@ -410,7 +593,7 @@ func (db *Database) RemoveAlbumTracks(ctx context.Context, albumId string) error
 	return nil
 }
 
-func (db *Database) RemoveTrack(ctx context.Context, id string) error {
+func (db *Database) DeleteTrack(ctx context.Context, id string) error {
 	query := dialect.Delete("tracks").
 		Prepared(true).
 		Where(goqu.I("tracks.id").Eq(id))
@@ -500,6 +683,55 @@ func (db *Database) AddFeaturingArtistToTrack(ctx context.Context, trackId, arti
 			}
 		}
 
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) RemoveFeaturingArtistFromTrack(ctx context.Context, trackId, artistId string) error {
+	query := goqu.Delete("tracks_featuring_artists").
+		Prepared(true).
+		Where(
+			goqu.And(
+				goqu.I("tracks_featuring_artists.track_id").Eq(trackId),
+				goqu.I("tracks_featuring_artists.artist_id").Eq(artistId),
+			),
+		)
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+type CreateTrackMediaParams struct {
+	Id      string
+	TrackId string
+
+	Filename   string
+	MediaType  types.MediaType
+	Rank       int
+	IsOriginal bool
+}
+
+func (db *Database) CreateTrackMedia(ctx context.Context, params CreateTrackMediaParams) error {
+	query := dialect.Insert("tracks_media").
+		Rows(goqu.Record{
+			"id":       params.Id,
+			"track_id": params.TrackId,
+
+			"filename":    params.Filename,
+			"media_type":  params.MediaType,
+			"rank":        params.Rank,
+			"is_original": params.IsOriginal,
+		}).
+		Prepared(true)
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
 		return err
 	}
 

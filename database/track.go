@@ -17,7 +17,11 @@ import (
 type Track struct {
 	RowId int `db:"rowid"`
 
-	Id        string         `db:"id"`
+	Id string `db:"id"`
+
+	Filename  string `db:"filename"`
+	MediaType types.MediaType `db:"media_type"`
+
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
 
@@ -43,26 +47,7 @@ type Track struct {
 
 	Tags sql.NullString `db:"tags"`
 
-	FeaturingArtists FeaturingArtists          `db:"featuring_artists"`
-	Formats          JsonColumn[[]TrackFormat] `db:"formats"`
-}
-
-type TrackFormat struct {
-	Id      string `json:"id"`
-	TrackId string `json:"track_id"`
-
-	Filename   string          `json:"filename"`
-	MediaType  types.MediaType `json:"media_type"`
-	IsOriginal bool            `json:"is_original"`
-}
-
-type TrackMedia struct {
-	Id      string `db:"id"`
-	TrackId string `db:"track_id"`
-
-	Filename   string `db:"filename"`
-	MediaType  string `db:"media_type"`
-	IsOriginal bool   `db:"is_original"`
+	FeaturingArtists FeaturingArtists `db:"featuring_artists"`
 }
 
 // TODO(patrik): Move
@@ -105,43 +90,15 @@ func TrackQuery() *goqu.SelectDataset {
 		).
 		GroupBy(goqu.I("tracks_tags.track_id"))
 
-	formats := dialect.From("tracks_media").
-		Select(
-			goqu.I("tracks_media.track_id").As("track_id"),
-
-			goqu.Func(
-				"json_group_array",
-				goqu.Func(
-					"json_object",
-
-					"id",
-					goqu.I("tracks_media.id"),
-
-					"track_id",
-					goqu.I("tracks_media.track_id"),
-
-					"filename",
-					goqu.I("tracks_media.filename"),
-
-					"media_type",
-					goqu.I("tracks_media.media_type"),
-
-					"is_original",
-					goqu.Func("IIF",
-						goqu.I("tracks_media.is_original").Gte(1),
-						goqu.L("json('true')"),
-						goqu.L("json('false')"),
-					),
-				),
-			).As("formats"),
-		).
-		GroupBy(goqu.I("tracks_media.track_id"))
-
 	query := dialect.From("tracks").
 		Select(
 			"tracks.rowid",
 
 			"tracks.id",
+
+			"tracks.filename",
+			"tracks.media_type",
+
 			"tracks.name",
 			"tracks.other_name",
 
@@ -151,9 +108,6 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.number",
 			"tracks.duration",
 			"tracks.year",
-
-			// "tracks.original_filename",
-			// "tracks.mobile_filename",
 
 			"tracks.created",
 			"tracks.updated",
@@ -168,8 +122,6 @@ func TrackQuery() *goqu.SelectDataset {
 			goqu.I("tags.tags").As("tags"),
 
 			goqu.I("featuring_artists.artists").As("featuring_artists"),
-
-			goqu.I("formats.formats").As("formats"),
 		).
 		Prepared(true).
 		Join(
@@ -187,10 +139,6 @@ func TrackQuery() *goqu.SelectDataset {
 		LeftJoin(
 			FeaturingArtistsQuery("tracks_featuring_artists", "track_id").As("featuring_artists"),
 			goqu.On(goqu.I("tracks.id").Eq(goqu.I("featuring_artists.id"))),
-		).
-		LeftJoin(
-			formats.As("formats"),
-			goqu.On(goqu.I("tracks.id").Eq(goqu.I("formats.track_id"))),
 		)
 
 	return query
@@ -439,7 +387,11 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 }
 
 type CreateTrackParams struct {
-	Id        string
+	Id string
+
+	Filename  string
+	MediaType types.MediaType
+
 	Name      string
 	OtherName sql.NullString
 
@@ -473,7 +425,11 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	}
 
 	ds := dialect.Insert("tracks").Rows(goqu.Record{
-		"id":         id,
+		"id": id,
+
+		"filename":   params.Filename,
+		"media_type": params.MediaType,
+
 		"name":       params.Name,
 		"other_name": params.OtherName,
 
@@ -483,9 +439,6 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"duration": params.Duration,
 		"number":   params.Number,
 		"year":     params.Year,
-
-		// "original_filename": params.OriginalFilename,
-		// "mobile_filename":   params.MobileFilename,
 
 		"created": created,
 		"updated": updated,
@@ -509,6 +462,9 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 }
 
 type TrackChanges struct {
+	Filename  types.Change[string]
+	MediaType types.Change[types.MediaType]
+
 	Name      types.Change[string]
 	OtherName types.Change[sql.NullString]
 
@@ -519,14 +475,14 @@ type TrackChanges struct {
 	Number   types.Change[sql.NullInt64]
 	Year     types.Change[sql.NullInt64]
 
-	OriginalFilename types.Change[string]
-	MobileFilename   types.Change[string]
-
 	Created types.Change[int64]
 }
 
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
 	record := goqu.Record{}
+
+	addToRecord(record, "filename", changes.Filename)
+	addToRecord(record, "media_type", changes.MediaType)
 
 	addToRecord(record, "name", changes.Name)
 	addToRecord(record, "other_name", changes.OtherName)
@@ -537,9 +493,6 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	addToRecord(record, "duration", changes.Duration)
 	addToRecord(record, "number", changes.Number)
 	addToRecord(record, "year", changes.Year)
-
-	// addToRecord(record, "original_filename", changes.OriginalFilename)
-	// addToRecord(record, "mobile_filename", changes.MobileFilename)
 
 	addToRecord(record, "created", changes.Created)
 
@@ -567,6 +520,7 @@ func (db *Database) ChangeAllTrackArtist(ctx context.Context, artistId, newArtis
 		"artist_id": newArtistId,
 		"updated":   time.Now().UnixMilli(),
 	}
+
 	query := goqu.Update("tracks").
 		Prepared(true).
 		Set(record).

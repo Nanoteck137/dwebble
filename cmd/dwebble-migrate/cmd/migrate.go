@@ -14,7 +14,6 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/spf13/cobra"
-	"gopkg.in/vansante/go-ffprobe.v2"
 
 	olddb "github.com/nanoteck137/dwebble/cmd/dwebble-migrate/database"
 )
@@ -61,8 +60,22 @@ func (d OldWorkDir) Tracks() string {
 	return path.Join(d.String(), "tracks")
 }
 
-func (d OldWorkDir) Track(id string) string {
-	return path.Join(d.Tracks(), id)
+func (d OldWorkDir) Track(id string) TrackDir {
+	return TrackDir(path.Join(d.Tracks(), id))
+}
+
+type TrackDir string
+
+func (d TrackDir) String() string {
+	return string(d)
+}
+
+func (d TrackDir) Media() string {
+	return path.Join(d.String(), "media")
+}
+
+func (d TrackDir) MediaItem(id string) string {
+	return path.Join(d.Media(), id)
 }
 
 var migrateCmd = &cobra.Command{
@@ -202,8 +215,7 @@ var migrateCmd = &cobra.Command{
 				trackDir := app.WorkDir().Track(track.Id)
 
 				dirs := []string{
-					trackDir.String(),
-					trackDir.Media(),
+					trackDir,
 				}
 
 				for _, dir := range dirs {
@@ -213,8 +225,36 @@ var migrateCmd = &cobra.Command{
 					}
 				}
 
+				var mediaType types.MediaType
+				var filename string
+
+				formats := *track.Formats.Get()
+				for _, tf := range formats {
+					if tf.IsOriginal {
+						dir := oldWorkDir.Track(track.Id).MediaItem(tf.Id)
+						ext := path.Ext(tf.Filename)
+						p := path.Join(dir, tf.Filename)
+
+						name := "track" + ext
+						dst := path.Join(trackDir, name)
+
+						cmd := exec.Command("cp", p, dst)
+						err := cmd.Run()
+						if err != nil {
+							log.Fatal("Failed to copy original track file to new directory", "err", err, "track", p, "new", dst)
+						}
+
+						filename = name
+						mediaType = tf.MediaType
+
+						break
+					}
+				}
+
 				_, err = app.DB().CreateTrack(ctx, database.CreateTrackParams{
 					Id:        track.Id,
+					Filename:  filename,
+					MediaType: mediaType,
 					Name:      track.Name,
 					OtherName: track.OtherName,
 					AlbumId:   track.AlbumId,
@@ -248,129 +288,6 @@ var migrateCmd = &cobra.Command{
 					err := app.DB().AddFeaturingArtistToTrack(ctx, track.Id, artist.Id)
 					if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 						log.Fatal("Failed to add featuring artist to track", "err", err, "artist", artist, "track", track)
-					}
-				}
-
-				mediaId := utils.CreateTrackMediaId()
-				mediaDir := trackDir.MediaItem(mediaId)
-
-				{
-					dirs := []string{
-						mediaDir,
-					}
-
-					for _, dir := range dirs {
-						err := os.Mkdir(dir, 0755)
-						if err != nil && !os.IsExist(err) {
-							log.Fatal("Failed to create track media directory", "err", err, "dir", mediaDir, "track", track)
-						}
-					}
-				}
-
-				p := path.Join(oldWorkDir.Track(track.Id), track.OriginalFilename)
-
-				original, err := utils.ProcessOriginalVersion(p, mediaDir, "track")
-				if err != nil {
-					log.Fatal("Failed to process media", "err", err, "track", track)
-				}
-
-				var mediaType types.MediaType
-
-				res, err := ffprobe.ProbeURL(ctx, p)
-				if err != nil {
-					log.Fatal("Failed to probe media", "err", err, "path", p)
-				}
-				_ = res
-
-				// TODO(patrik): Check for nil
-				stream := res.FirstAudioStream()
-
-				// TODO(patrik): Move to helper
-				switch res.Format.FormatName {
-				case "flac":
-					mediaType = types.MediaTypeFlac
-				case "ogg":
-					switch stream.CodecName {
-					case "opus":
-						mediaType = types.MediaTypeOggOpus
-					case "vorbis":
-						mediaType = types.MediaTypeOggVorbis
-					}
-				default:
-					log.Fatal("Unknown media type", "format", res.Format)
-				}
-
-				log.Info("Found media type", "type", mediaType)
-
-				err = app.DB().CreateTrackMedia(ctx, database.CreateTrackMediaParams{
-					Id:         mediaId,
-					TrackId:    track.Id,
-					Filename:   original,
-					MediaType:  mediaType,
-					IsOriginal: true,
-				})
-				if err != nil {
-					log.Fatal("Failed to create track media", "err", err, "track", track, "path", p)
-				}
-
-				switch mediaType {
-				case types.MediaTypeFlac:
-					mediaId := utils.CreateTrackMediaId()
-					mediaDir := trackDir.MediaItem(mediaId)
-
-					{
-						dirs := []string{
-							mediaDir,
-						}
-
-						for _, dir := range dirs {
-							err := os.Mkdir(dir, 0755)
-							if err != nil && !os.IsExist(err) {
-								log.Fatal("Failed to create track media directory", "err", err, "dir", mediaDir, "track", track)
-							}
-						}
-					}
-
-					p := path.Join(oldWorkDir.Track(track.Id), track.MobileFilename)
-					original, err := utils.ProcessLossyVersion(p, mediaDir, "track")
-					if err != nil {
-						log.Fatal("Failed to process media", "err", err, "track", track)
-					}
-
-					var mediaType types.MediaType
-					res, err := ffprobe.ProbeURL(ctx, p)
-					if err != nil {
-						log.Fatal("Failed to probe media", "err", err, "path", p)
-					}
-
-					// TODO(patrik): Check for nil
-					stream := res.FirstAudioStream()
-
-					// TODO(patrik): Move to helper
-					switch res.Format.FormatName {
-					case "flac":
-						mediaType = types.MediaTypeFlac
-					case "ogg":
-						switch stream.CodecName {
-						case "opus":
-							mediaType = types.MediaTypeOggOpus
-						case "vorbis":
-							mediaType = types.MediaTypeOggVorbis
-						}
-					default:
-						log.Fatal("Unknown media type", "format", res.Format)
-					}
-
-					log.Info("Found lossy media type", "type", mediaType)
-
-					err = app.DB().CreateTrackMedia(ctx, database.CreateTrackMediaParams{
-						Id:        mediaId,
-						TrackId:   track.Id,
-						Filename:  original,
-						MediaType: mediaType,
-					})
-					if err != nil {
-						log.Fatal("Failed to create track media", "err", err, "track", track, "path", p)
 					}
 				}
 			}

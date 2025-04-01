@@ -9,6 +9,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/tools/utils"
+	"github.com/nanoteck137/dwebble/types"
 )
 
 type Playlist struct {
@@ -92,11 +93,14 @@ func (db *Database) GetPlaylistItems(ctx context.Context, playlistId string) ([]
 }
 
 func (db *Database) GetPlaylistTracks(ctx context.Context, playlistId string) ([]Track, error) {
-	tracks := TrackQuery().As("tracks")
+	tracks := TrackQuery()
 
 	query := dialect.From("playlist_items").
 		Select("tracks.*").
-		Join(tracks, goqu.On(goqu.I("tracks.id").Eq(goqu.I("playlist_items.track_id")))).
+		Join(
+			tracks.As("tracks"), 
+			goqu.On(goqu.I("playlist_items.track_id").Eq(goqu.I("tracks.id"))),
+		).
 		Where(goqu.I("playlist_items.playlist_id").Eq(playlistId)).
 		Order(goqu.I("tracks.name").Asc())
 
@@ -107,6 +111,52 @@ func (db *Database) GetPlaylistTracks(ctx context.Context, playlistId string) ([
 	}
 
 	return items, nil
+}
+
+func (db *Database) GetPlaylistTracksPaged(ctx context.Context, playlistId string, opts FetchOptions) ([]Track, types.Page, error) {
+	tracks := TrackQuery()
+
+	query := dialect.From("playlist_items").
+		Select("tracks.*").
+		Join(
+			tracks.As("tracks"), 
+			goqu.On(goqu.I("playlist_items.track_id").Eq(goqu.I("tracks.id"))),
+		).
+		Where(goqu.I("playlist_items.playlist_id").Eq(playlistId)).
+		Order(goqu.I("tracks.name").Asc())
+
+	var err error
+
+	countQuery := query.
+		Select(goqu.COUNT("tracks.id"))
+
+	if opts.PerPage > 0 {
+		query = query.
+			Limit(uint(opts.PerPage)).
+			Offset(uint(opts.Page * opts.PerPage))
+	}
+
+	var totalItems int
+	err = db.Get(&totalItems, countQuery)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	totalPages := utils.TotalPages(opts.PerPage, totalItems)
+	page := types.Page{
+		Page:       opts.Page,
+		PerPage:    opts.PerPage,
+		TotalItems: totalItems,
+		TotalPages: totalPages,
+	}
+
+	var items []Track
+	err = db.Select(&items, query)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	return items, page, nil
 }
 
 type CreatePlaylistParams struct {

@@ -29,12 +29,6 @@ type Name struct {
 	Other   *string `json:"other"`
 }
 
-type TrackFormat struct {
-	Id         string          `json:"id"`
-	MediaType  types.MediaType `json:"mediaType"`
-	IsOriginal bool            `json:"isOriginal"`
-}
-
 type TrackDetails struct {
 	Id   string `json:"id"`
 	Name Name   `json:"name"`
@@ -51,9 +45,8 @@ type TrackDetails struct {
 	ArtistId   string `json:"artistId"`
 	ArtistName Name   `json:"artistName"`
 
-	Tags             []string      `json:"tags"`
-	FeaturingArtists []ArtistInfo  `json:"featuringArtists"`
-	Formats          []TrackFormat `json:"formats"`
+	Tags             []string     `json:"tags"`
+	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
 
 	Created int64 `json:"created"`
 	Updated int64 `json:"updated"`
@@ -105,22 +98,14 @@ func ConvertDBTrack(c pyrin.Context, track database.Track) Track {
 		Duration: track.Duration,
 		Number:   ConvertSqlNullInt64(track.Number),
 		Year:     ConvertSqlNullInt64(track.Year),
-		// OriginalMediaUrl: utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.OriginalFilename)),
-		// MobileMediaUrl:   utils.ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.MobileFilename)),
 		CoverArt: ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 		AlbumId:  track.AlbumId,
 		AlbumName: Name{
 			Default: track.AlbumName,
 			Other:   ConvertSqlNullString(track.AlbumOtherName),
 		},
-		// ArtistId:         track.ArtistId,
-		// ArtistName: Name{
-		// 	Default: track.ArtistName,
-		// 	Other:   ConvertSqlNullString(track.ArtistOtherName),
-		// },
 		Artists: artists,
 		Tags:    utils.SplitString(track.Tags.String),
-		// FeaturingArtists: featuringArtists,
 		Created: track.Created,
 		Updated: track.Updated,
 	}
@@ -132,22 +117,6 @@ func ConvertDBTrackToDetails(c pyrin.Context, track database.Track) TrackDetails
 	featuringArtists := ConvertDBFeaturingArtists(track.FeaturingArtists)
 	for i, v := range featuringArtists {
 		artists[i] = v
-	}
-
-	formats := []TrackFormat{}
-
-	formatsPtr := track.Formats.Get()
-	if formatsPtr != nil {
-		f := *formatsPtr
-		formats = make([]TrackFormat, len(f))
-
-		for i, format := range f {
-			formats[i] = TrackFormat{
-				Id:         format.Id,
-				MediaType:  types.MediaType(format.MediaType),
-				IsOriginal: format.IsOriginal,
-			}
-		}
 	}
 
 	return TrackDetails{
@@ -172,7 +141,6 @@ func ConvertDBTrackToDetails(c pyrin.Context, track database.Track) TrackDetails
 		},
 		Tags:             utils.SplitString(track.Tags.String),
 		FeaturingArtists: featuringArtists,
-		Formats:          formats,
 		Created:          track.Created,
 		Updated:          track.Updated,
 	}

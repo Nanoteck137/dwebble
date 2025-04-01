@@ -104,12 +104,6 @@ type GetAlbumTracks struct {
 	Tracks []Track `json:"tracks"`
 }
 
-type TrackFormat struct {
-	Id string `json:"id"`
-	MediaType string `json:"mediaType"`
-	IsOriginal bool `json:"isOriginal"`
-}
-
 type TrackDetails struct {
 	Id string `json:"id"`
 	Name Name `json:"name"`
@@ -123,7 +117,6 @@ type TrackDetails struct {
 	ArtistName Name `json:"artistName"`
 	Tags []string `json:"tags"`
 	FeaturingArtists []ArtistInfo `json:"featuringArtists"`
-	Formats []TrackFormat `json:"formats"`
 	Created int `json:"created"`
 	Updated int `json:"updated"`
 }

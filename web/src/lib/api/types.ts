@@ -121,13 +121,6 @@ export const GetAlbumTracks = z.object({
 });
 export type GetAlbumTracks = z.infer<typeof GetAlbumTracks>;
 
-export const TrackFormat = z.object({
-  id: z.string(),
-  mediaType: z.string(),
-  isOriginal: z.boolean(),
-});
-export type TrackFormat = z.infer<typeof TrackFormat>;
-
 export const TrackDetails = z.object({
   id: z.string(),
   name: Name,
@@ -141,7 +134,6 @@ export const TrackDetails = z.object({
   artistName: Name,
   tags: z.array(z.string()),
   featuringArtists: z.array(ArtistInfo),
-  formats: z.array(TrackFormat),
   created: z.number(),
   updated: z.number(),
 });

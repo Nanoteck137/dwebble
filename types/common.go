@@ -56,22 +56,8 @@ func (d WorkDir) Tracks() string {
 	return path.Join(d.String(), "tracks")
 }
 
-func (d WorkDir) Track(id string) TrackDir {
-	return TrackDir(path.Join(d.Tracks(), id))
-}
-
-type TrackDir string
-
-func (d TrackDir) String() string {
-	return string(d)
-}
-
-func (d TrackDir) Media() string {
-	return path.Join(d.String(), "media")
-}
-
-func (d TrackDir) MediaItem(id string) string {
-	return path.Join(d.Media(), id)
+func (d WorkDir) Track(id string) string {
+	return path.Join(d.Tracks(), id)
 }
 
 type Change[T any] struct {

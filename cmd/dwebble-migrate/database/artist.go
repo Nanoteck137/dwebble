@@ -16,6 +16,8 @@ import (
 )
 
 type Artist struct {
+	RowId int `db:"rowid"`
+
 	Id        string         `db:"id"`
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
@@ -42,6 +44,7 @@ func ArtistQuery() *goqu.SelectDataset {
 
 	query := dialect.From("artists").
 		Select(
+			"artists.rowid",
 			"artists.id",
 			"artists.name",
 			"artists.other_name",
@@ -87,6 +90,56 @@ func (db *Database) GetAllArtists(ctx context.Context, filterStr, sortStr string
 	}
 
 	return items, nil
+}
+
+func (db *Database) GetArtistsPaged(ctx context.Context, opts FetchOptions) ([]Artist, types.Page, error) {
+	query := ArtistQuery()
+
+	var err error
+
+	a := adapter.ArtistResolverAdapter{}
+	resolver := filter.New(&a)
+
+	query, err = applyFilter(query, resolver, opts.Filter)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	query, err = applySort(query, resolver, opts.Sort)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	countQuery := query.
+		Select(goqu.COUNT("artists.id"))
+
+	if opts.PerPage > 0 {
+		query = query.
+			Limit(uint(opts.PerPage)).
+			Offset(uint(opts.Page * opts.PerPage))
+	}
+
+	var totalItems int
+	err = db.Get(&totalItems, countQuery)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	totalPages := utils.TotalPages(opts.PerPage, totalItems)
+	page := types.Page{
+		Page:       opts.Page,
+		PerPage:    opts.PerPage,
+		TotalItems: totalItems,
+		TotalPages: totalPages,
+	}
+
+	var items []Artist
+	err = db.Select(&items, query)
+	if err != nil {
+		return nil, types.Page{}, err
+	}
+
+	return items, page, nil
 }
 
 func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error) {
@@ -212,6 +265,107 @@ func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistC
 	_, err := db.Exec(ctx, ds)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (db *Database) DeleteArtist(ctx context.Context, id string) error {
+	query := dialect.Delete("artists").
+		Prepared(true).
+		Where(goqu.I("artists.id").Eq(id))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) MergeArtist(ctx context.Context, targetId, artistId string) error {
+	// TODO(patrik): Changes
+	// - albums
+	// - albums_featuring_artists
+	// - tracks
+	// - tracks_featuring_artists
+	// - artists_tags (maybe)
+
+	albums, err := db.GetAlbumsByArtist(ctx, artistId)
+	if err != nil {
+		return err
+	}
+
+	for _, album := range albums {
+		err = db.UpdateAlbum(ctx, album.Id, AlbumChanges{
+			ArtistId: types.Change[string]{
+				Value:   targetId,
+				Changed: true,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		record := goqu.Record{
+			"artist_id": targetId,
+		}
+		query := goqu.Update("albums_featuring_artists").
+			Prepared(true).
+			Set(record).
+			Where(goqu.I("albums_featuring_artists.artist_id").Eq(artistId))
+
+		_, err = db.Exec(ctx, query)
+		if err != nil {
+			var sqlErr sqlite3.Error
+			if errors.As(err, &sqlErr) {
+				if sqlErr.ExtendedCode != sqlite3.ErrConstraintPrimaryKey {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+	}
+
+	{
+		record := goqu.Record{
+			"artist_id": targetId,
+			"updated":   time.Now().UnixMilli(),
+		}
+		query := goqu.Update("tracks").
+			Prepared(true).
+			Set(record).
+			Where(goqu.I("tracks.artist_id").Eq(artistId))
+
+		_, err = db.Exec(ctx, query)
+		if err != nil {
+			return err
+		}
+	}
+
+	{
+		record := goqu.Record{
+			"artist_id": targetId,
+		}
+		query := goqu.Update("tracks_featuring_artists").
+			Prepared(true).
+			Set(record).
+			Where(goqu.I("tracks_featuring_artists.artist_id").Eq(artistId))
+
+		_, err = db.Exec(ctx, query)
+		if err != nil {
+			var sqlErr sqlite3.Error
+			if errors.As(err, &sqlErr) {
+				if sqlErr.ExtendedCode != sqlite3.ErrConstraintPrimaryKey {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
 	}
 
 	return nil

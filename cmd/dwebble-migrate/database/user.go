@@ -44,6 +44,7 @@ func UserQuery() *goqu.SelectDataset {
 		Select(
 			"users.id",
 			"users.username",
+			// TODO(patrik): Maybe don't include the password?
 			"users.password",
 			"users.role",
 
@@ -115,7 +116,7 @@ func (db *Database) CreateUser(ctx context.Context, params CreateUserParams) (Us
 	query := dialect.
 		Insert("users").
 		Rows(goqu.Record{
-			"id":       utils.CreateId(),
+			"id":       id,
 			"username": params.Username,
 			"password": params.Password,
 			"role":     params.Role,

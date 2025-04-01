@@ -133,9 +133,9 @@ func generateFilter(e filter.FilterExpr) (exp.Expression, error) {
 
 		if e.Not {
 			// TODO(patrik): Move tracks.id
-			return goqu.L("? NOT IN ?", goqu.I("tracks.id"), s), nil
+			return goqu.L("? NOT IN ?", goqu.I(e.IdSelector), s), nil
 		} else {
-			return goqu.L("? IN ?", goqu.I("tracks.id"), s), nil
+			return goqu.L("? IN ?", goqu.I(e.IdSelector), s), nil
 		}
 	}
 
@@ -149,9 +149,9 @@ func generateSort(e filter.SortExpr) ([]exp.OrderedExpression, error) {
 		for _, item := range e.Items {
 			switch item.Type {
 			case filter.SortTypeAsc:
-				items = append(items, goqu.I(item.Name).Asc())
+				items = append(items, goqu.I(item.Name).Asc().NullsLast())
 			case filter.SortTypeDesc:
-				items = append(items, goqu.I(item.Name).Desc())
+				items = append(items, goqu.I(item.Name).Desc().NullsFirst())
 			default:
 				return nil, fmt.Errorf("Unknown SortItemType: %d", item.Type)
 			}

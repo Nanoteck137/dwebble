@@ -1,5 +1,3 @@
--- NOTE(patrik): Final
-
 -- +goose Up
 CREATE TABLE artists (
     id TEXT PRIMARY KEY,
@@ -35,6 +33,10 @@ CREATE TABLE albums_featuring_artists (
 
 CREATE TABLE tracks (
     id TEXT PRIMARY KEY,
+
+    filename TEXT NOT NULL,
+    media_type TEXT NOT NULL,
+
     name TEXT NOT NULL CHECK(name<>''),
     other_name TEXT,
 
@@ -47,18 +49,6 @@ CREATE TABLE tracks (
 
     created INTEGER NOT NULL,
     updated INTEGER NOT NULL
-);
-
-CREATE TABLE tracks_media (
-    id TEXT PRIMARY KEY,
-    track_id TEXT NOT NULL REFERENCES tracks(id),
-
-    filename TEXT NOT NULL,
-    media_type TEXT NOT NULL,
-    rank INT NOT NULL,
-    is_original BOOL NOT NULL,
-
-    UNIQUE(track_id, is_original)
 );
 
 CREATE TABLE tracks_featuring_artists (

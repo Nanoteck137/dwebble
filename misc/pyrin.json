@@ -391,27 +391,6 @@
       ]
     },
     {
-      "name": "TrackFormat",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "mediaType",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "isOriginal",
-          "type": "bool",
-          "omit": false
-        }
-      ]
-    },
-    {
       "name": "TrackDetails",
       "extend": "",
       "fields": [
@@ -473,11 +452,6 @@
         {
           "name": "featuringArtists",
           "type": "[]ArtistInfo",
-          "omit": false
-        },
-        {
-          "name": "formats",
-          "type": "[]TrackFormat",
           "omit": false
         },
         {
@@ -1758,7 +1732,7 @@
     {
       "name": "",
       "method": "GET",
-      "path": "/files/tracks/:trackId/media/:mediaId/:file"
+      "path": "/files/tracks/:trackId/:file"
     }
   ]
 }

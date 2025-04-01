@@ -150,7 +150,7 @@ func (db *Database) UpdateTaglist(ctx context.Context, id string, changes Taglis
 	return nil
 }
 
-func (db *Database) RemoveTaglist(ctx context.Context, id string) error {
+func (db *Database) DeleteTaglist(ctx context.Context, id string) error {
 	query := dialect.Delete("taglists").
 		Prepared(true).
 		Where(goqu.I("taglists.id").Eq(id))

@@ -119,7 +119,7 @@ func (db *Database) CreateApiToken(ctx context.Context, params CreateApiTokenPar
 	return item, nil
 }
 
-func (db *Database) RemoveApiToken(ctx context.Context, id string) error {
+func (db *Database) DeleteApiToken(ctx context.Context, id string) error {
 	query := dialect.Delete("api_tokens").
 		Where(goqu.I("api_tokens.id").Eq(id))
 
