@@ -60,6 +60,24 @@ func (d WorkDir) Track(id string) string {
 	return path.Join(d.Tracks(), id)
 }
 
+func (d WorkDir) Cache() CacheDir {
+	return CacheDir(path.Join(d.String(), "cache"))
+}
+
+type CacheDir string
+
+func (d CacheDir) String() string {
+	return string(d)
+}
+
+func (d CacheDir) Tracks() string {
+	return path.Join(d.String(), "tracks")
+}
+
+func (d CacheDir) Track(id string) string {
+	return path.Join(d.Tracks(), id)
+}
+
 type Change[T any] struct {
 	Value   T
 	Changed bool

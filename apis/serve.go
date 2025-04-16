@@ -3,8 +3,12 @@ package apis
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
+	"path"
+	"strings"
 
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/assets"
@@ -84,26 +88,73 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 					return err
 				}
 
+				trackDir := app.WorkDir().Track(trackId)
+
+				// Return the original file if the filename matches the
+				// one stored inside the track
 				if file == track.Filename {
-					trackDir := app.WorkDir().Track(trackId)
 					f := os.DirFS(trackDir)
-
 					return pyrin.ServeFile(c, f, file)
-				} else {
-					// TODO(patrik): Implement transcoding
-					// ext := path.Ext(file)
-					// fmt.Printf("ext: %v\n", ext)
-					// switch ext {
-					// case ".mp3":
-					// 	return nil
-					// case ".opus":
-					// 	return nil
-					// case ".ogg":
-					// 	return nil
-					// }
-
-					return pyrin.NoContentNotFound()
 				}
+
+				// Here we need to start transcoding the original track
+				// media to the requested format
+
+				ext := path.Ext(track.Filename)
+				name := strings.TrimSuffix(track.Filename, ext)
+				fmt.Printf("name: %v\n", name)
+
+				cacheDir := app.WorkDir().Cache()
+				trackCache := cacheDir.Track(track.Id)
+
+				// Make sure that the cache directory is setup
+				dirs := []string{
+					cacheDir.String(),
+					cacheDir.Tracks(),
+					trackCache,
+				}
+
+				for _, dir := range dirs {
+					err = os.Mkdir(dir, 0755)
+					if err != nil && !os.IsExist(err) {
+						return err
+					}
+				}
+
+				input := path.Join(trackDir, track.Filename)
+
+				// TODO(patrik): Implement transcoding
+				ext = path.Ext(file)
+				fmt.Printf("ext: %v\n", ext)
+				switch ext {
+				case ".mp3":
+					name = name + ".mp3"
+
+					p := path.Join(trackCache, name)
+					fmt.Printf("p: %v\n", p)
+
+					_, err := os.Stat(p)
+					if err != nil {
+						if os.IsNotExist(err) {
+							cmd := exec.Command("ffmpeg", "-i", input, "-b:a", "320k", p)
+							err := cmd.Run()
+							if err != nil {
+								return err
+							}
+						} else {
+							return err
+						}
+					}
+
+					f := os.DirFS(trackCache)
+					return pyrin.ServeFile(c, f, name)
+				case ".opus":
+					return nil
+				case ".ogg":
+					return nil
+				}
+
+				return pyrin.NoContentNotFound()
 			},
 		},
 	)

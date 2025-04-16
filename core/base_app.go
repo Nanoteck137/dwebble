@@ -40,6 +40,8 @@ func (app *BaseApp) Bootstrap() error {
 		workDir.Albums(),
 		workDir.Tracks(),
 		workDir.Trash(),
+		workDir.Cache().String(),
+		workDir.Cache().Tracks(),
 	}
 
 	for _, dir := range dirs {
