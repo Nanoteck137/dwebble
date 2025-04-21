@@ -489,5 +489,11 @@ func init() {
 	importCmd.Flags().BoolP("open", "p", false, "Open in Browser")
 	importCmd.Flags().BoolP("extract", "e", false, "Force extract track number from filename")
 
+	importCmd.PersistentFlags().String("server", "", "Server Address")
+	importCmd.MarkPersistentFlagRequired("server")
+
+	importCmd.PersistentFlags().String("web", "", "Web Address")
+	importCmd.MarkPersistentFlagRequired("web")
+
 	rootCmd.AddCommand(importCmd)
 }
