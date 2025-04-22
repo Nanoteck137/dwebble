@@ -17,9 +17,12 @@ import (
 type Track struct {
 	RowId int `db:"rowid"`
 
-	Id string `db:"id"`
+	Id   string `db:"id"`
+	Path string `db:"path"`
 
-	Filename  string `db:"filename"`
+	ModifiedTime int64 `db:"modified_time"`
+
+	Filename  string          `db:"filename"`
 	MediaType types.MediaType `db:"media_type"`
 
 	Name      string         `db:"name"`
@@ -95,6 +98,9 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.rowid",
 
 			"tracks.id",
+			"tracks.path",
+
+			"tracks.modified_time",
 
 			"tracks.filename",
 			"tracks.media_type",
@@ -364,6 +370,23 @@ func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) 
 	return item, nil
 }
 
+func (db *Database) GetTrackByPath(ctx context.Context, path string) (Track, error) {
+	query := TrackQuery().
+		Where(goqu.I("tracks.path").Eq(path))
+
+	var item Track
+	err := db.Get(&item, query)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Track{}, ErrItemNotFound
+		}
+
+		return Track{}, err
+	}
+
+	return item, nil
+}
+
 func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, albumId string) (Track, error) {
 	query := TrackQuery().
 		Where(
@@ -387,7 +410,10 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 }
 
 type CreateTrackParams struct {
-	Id string
+	Id   string
+	Path string
+
+	ModifiedTime int64
 
 	Filename  string
 	MediaType types.MediaType
@@ -425,7 +451,10 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	}
 
 	ds := dialect.Insert("tracks").Rows(goqu.Record{
-		"id": id,
+		"id":   id,
+		"path": params.Path,
+
+		"modified_time": params.ModifiedTime,
 
 		"filename":   params.Filename,
 		"media_type": params.MediaType,
@@ -462,6 +491,8 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 }
 
 type TrackChanges struct {
+	ModifiedTime  types.Change[int64]
+
 	Filename  types.Change[string]
 	MediaType types.Change[types.MediaType]
 
@@ -480,6 +511,8 @@ type TrackChanges struct {
 
 func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
 	record := goqu.Record{}
+
+	addToRecord(record, "modified_time", changes.ModifiedTime)
 
 	addToRecord(record, "filename", changes.Filename)
 	addToRecord(record, "media_type", changes.MediaType)

@@ -33,6 +33,8 @@ type MetadataTrack struct {
 	Year    int      `toml:"year"`
 	Tags    []string `toml:"tags"`
 	Artists []string `toml:"artists"`
+
+	ModifiedTime int64 `toml:"-"`
 }
 
 type Metadata struct {
@@ -41,14 +43,23 @@ type Metadata struct {
 	Tracks  []MetadataTrack `toml:"tracks"`
 }
 
+type Album struct {
+	Path     string
+	Metadata Metadata
+}
+
 type Library struct {
 	Albums []Metadata
 }
 
-func FindAlbums(p string) ([]Metadata, error) {
+func FindAlbums(p string) ([]Album, error) {
 	var albums []string
 
 	err := filepath.WalkDir(p, func(p string, d fs.DirEntry, err error) error {
+		if d == nil {
+			return nil
+		}
+
 		if d.IsDir() {
 			return nil
 		}
@@ -73,7 +84,7 @@ func FindAlbums(p string) ([]Metadata, error) {
 
 	pretty.Println(albums)
 
-	res := make([]Metadata, 0, len(albums))
+	res := make([]Album, 0, len(albums))
 
 	for _, p := range albums {
 		metadataPath := path.Join(p, "album.toml")
@@ -94,11 +105,21 @@ func FindAlbums(p string) ([]Metadata, error) {
 
 		for i, t := range metadata.Tracks {
 			metadata.Tracks[i].File = path.Join(p, t.File)
+
+			info, err := os.Stat(metadata.Tracks[i].File)
+			if err != nil {
+				return nil, err
+			}
+
+			metadata.Tracks[i].ModifiedTime = info.ModTime().UnixMilli()
 		}
 
 		pretty.Println(metadata)
 
-		res = append(res, metadata)
+		res = append(res, Album{
+			Path:     p,
+			Metadata: metadata,
+		})
 	}
 
 	return res, nil

@@ -18,7 +18,9 @@ import (
 type Artist struct {
 	RowId int `db:"rowid"`
 
-	Id        string         `db:"id"`
+	Id   string `db:"id"`
+	Slug string `db:"slug"`
+
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
 
@@ -45,7 +47,10 @@ func ArtistQuery() *goqu.SelectDataset {
 	query := dialect.From("artists").
 		Select(
 			"artists.rowid",
+
 			"artists.id",
+			"artists.slug",
+
 			"artists.name",
 			"artists.other_name",
 
@@ -159,6 +164,23 @@ func (db *Database) GetArtistById(ctx context.Context, id string) (Artist, error
 	return item, nil
 }
 
+func (db *Database) GetArtistBySlug(ctx context.Context, slug string) (Artist, error) {
+	query := ArtistQuery().
+		Where(goqu.I("artists.slug").Eq(slug))
+
+	var item Artist
+	err := db.Get(&item, query)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return Artist{}, ErrItemNotFound
+		}
+
+		return Artist{}, err
+	}
+
+	return item, nil
+}
+
 func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, error) {
 	query := ArtistQuery().
 		Where(goqu.Func("LOWER", goqu.I("artists.name")).Eq(strings.ToLower(name)))
@@ -177,7 +199,9 @@ func (db *Database) GetArtistByName(ctx context.Context, name string) (Artist, e
 }
 
 type CreateArtistParams struct {
-	Id        string
+	Id   string
+	Slug string
+
 	Name      string
 	OtherName sql.NullString
 
@@ -203,7 +227,9 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 	}
 
 	query := dialect.Insert("artists").Rows(goqu.Record{
-		"id":         id,
+		"id":   id,
+		"slug": params.Slug,
+
 		"name":       params.Name,
 		"other_name": params.OtherName,
 
@@ -234,7 +260,10 @@ func (db *Database) CreateArtist(ctx context.Context, params CreateArtistParams)
 }
 
 type ArtistChanges struct {
+	Slug      types.Change[string]
+
 	Name      types.Change[string]
+
 	OtherName types.Change[sql.NullString]
 	Picture   types.Change[sql.NullString]
 
@@ -243,6 +272,8 @@ type ArtistChanges struct {
 
 func (db *Database) UpdateArtist(ctx context.Context, id string, changes ArtistChanges) error {
 	record := goqu.Record{}
+
+	addToRecord(record, "slug", changes.Slug)
 
 	addToRecord(record, "name", changes.Name)
 	addToRecord(record, "other_name", changes.OtherName)
