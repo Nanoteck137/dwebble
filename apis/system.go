@@ -214,7 +214,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 									Id:           track.Id,
 									Filename:     track.File,
 									ModifiedTime: track.ModifiedTime,
-									MediaType:    "",
+									MediaType:    probeResult.MediaType,
 									Name:         track.Name,
 									OtherName:    sql.NullString{},
 									AlbumId:      dbAlbum.Id,
@@ -252,6 +252,16 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 							changes.Duration = types.Change[int64]{
 								Value:   dur,
 								Changed: dur != dbTrack.Duration,
+							}
+
+							changes.MediaType = types.Change[types.MediaType]{
+								Value:   probeResult.MediaType,
+								Changed: probeResult.MediaType != dbTrack.MediaType,
+							}
+
+							changes.ModifiedTime = types.Change[int64]{
+								Value:   track.ModifiedTime,
+								Changed: track.ModifiedTime != dbTrack.ModifiedTime,
 							}
 						}
 
