@@ -18,7 +18,6 @@ type Album struct {
 	RowId int `db:"rowid"`
 
 	Id   string `db:"id"`
-	Path string `db:"path"`
 
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
@@ -56,7 +55,6 @@ func AlbumQuery() *goqu.SelectDataset {
 			"albums.rowid",
 
 			"albums.id",
-			"albums.path",
 
 			"albums.name",
 			"albums.other_name",
@@ -219,26 +217,8 @@ func (db *Database) GetAlbumByName(ctx context.Context, name string) (Album, err
 	return item, nil
 }
 
-func (db *Database) GetAlbumByPath(ctx context.Context, path string) (Album, error) {
-	query := AlbumQuery().
-		Where(goqu.I("albums.path").Eq(path))
-
-	var item Album
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Album{}, ErrItemNotFound
-		}
-
-		return Album{}, err
-	}
-
-	return item, nil
-}
-
 type CreateAlbumParams struct {
 	Id   string
-	Path string
 
 	Name      string
 	OtherName sql.NullString
@@ -270,7 +250,6 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 	query := dialect.Insert("albums").
 		Rows(goqu.Record{
 			"id":   id,
-			"path": params.Path,
 
 			"name":       params.Name,
 			"other_name": params.OtherName,
@@ -285,7 +264,6 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 		}).
 		Returning(
 			"albums.id",
-			"albums.path",
 
 			"albums.name",
 			"albums.other_name",

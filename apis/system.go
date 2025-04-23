@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble"
@@ -14,13 +15,67 @@ import (
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
+	"github.com/nanoteck137/pyrin/tools/transform"
 )
 
 type GetSystemInfo struct {
 	Version string `json:"version"`
 }
 
+// TODO(patrik): Add testing for this
 func FixMetadata(metadata *library.Metadata) error {
+	album := &metadata.Album
+
+	album.Name = transform.String(album.Name)
+
+	if album.Year == 0 {
+		album.Year = metadata.General.Year
+	}
+
+	if len(album.Artists) == 0 {
+		album.Artists = []string{UNKNOWN_ARTIST_NAME}
+	}
+
+	for i := range metadata.Tracks {
+		t := &metadata.Tracks[i]
+
+		if t.Year == 0 {
+			t.Year = metadata.General.Year
+		}
+
+		t.Name = transform.String(t.Name)
+
+		t.Tags = append(t.Tags, metadata.General.Tags...)
+		t.Tags = append(t.Tags, metadata.General.TrackTags...)
+
+		if len(t.Artists) == 0 {
+			t.Artists = []string{UNKNOWN_ARTIST_NAME}
+		}
+
+		for i, tag := range t.Tags {
+			t.Tags[i] = utils.Slug(strings.TrimSpace(tag))
+		}
+	}
+
+	// err := validate.ValidateStruct(&metadata.Album,
+	// 	validate.Field(&metadata.Album.Name, validate.Required),
+	// 	validate.Field(&metadata.Album.Artists, validate.Length(1, 0)),
+	// )
+	// if err != nil {
+	// 	return err
+	// }
+	//
+	// for _, track := range metadata.Tracks {
+	// 	err := validate.ValidateStruct(&track,
+	// 		validate.Field(&track.File, validate.Required),
+	// 		validate.Field(&track.Name, validate.Required),
+	// 		validate.Field(&track.Artists, validate.Length(1, 0)),
+	// 	)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
+
 	return nil
 }
 
@@ -64,6 +119,12 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 			Path:         "/system/library",
 			ResponseType: nil,
 			HandlerFunc: func(c pyrin.Context) (any, error) {
+				// TODO(patrik):
+				//  - Handle Errors
+				//  - Handle Single Album Syncing
+				//  - Handle album modified syncing
+
+				// TODO(patrik): Check for duplicated ids
 				albums, err := library.FindAlbums("/Volumes/media/test/Ado/unravel (live)/")
 				if err != nil {
 					return nil, err
@@ -112,7 +173,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 
-					dbAlbum, err := app.DB().GetAlbumByPath(ctx, album.Path)
+					dbAlbum, err := app.DB().GetAlbumById(ctx, album.Metadata.Album.Id)
 					if err != nil {
 						if errors.Is(err, database.ErrItemNotFound) {
 							artist, err := getOrCreateArtist(album.Metadata.Album.Artists[0])
@@ -121,7 +182,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 							}
 
 							dbAlbum, err = app.DB().CreateAlbum(ctx, database.CreateAlbumParams{
-								Path:     album.Path,
+								Id:       album.Metadata.Album.Id,
 								Name:     album.Metadata.Album.Name,
 								ArtistId: artist,
 							})
@@ -134,15 +195,13 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 						}
 					}
 
-					pretty.Println(dbAlbum)
-
 					for _, track := range album.Metadata.Tracks {
 						artist, err := getOrCreateArtist(track.Artists[0])
 						if err != nil {
 							return nil, err
 						}
 
-						dbTrack, err := app.DB().GetTrackByPath(ctx, track.File)
+						dbTrack, err := app.DB().GetTrackById(ctx, track.Id)
 						if err != nil {
 							if errors.Is(err, database.ErrItemNotFound) {
 								// TODO(patrik): Get the media type
@@ -152,9 +211,9 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 								}
 
 								_, err = app.DB().CreateTrack(ctx, database.CreateTrackParams{
-									Path:         track.File,
-									ModifiedTime: track.ModifiedTime,
+									Id:           track.Id,
 									Filename:     track.File,
+									ModifiedTime: track.ModifiedTime,
 									MediaType:    "",
 									Name:         track.Name,
 									OtherName:    sql.NullString{},
@@ -196,27 +255,30 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 							}
 						}
 
+						// TODO(patrik): Implement all the changes here
+
+						changes.Filename = types.Change[string]{
+							Value:   track.File,
+							Changed: dbTrack.Filename != track.File,
+						}
+
 						changes.Name = types.Change[string]{
 							Value:   track.Name,
 							Changed: dbTrack.Name != track.Name,
 						}
 
 						changes.Year = types.Change[sql.NullInt64]{
-							Value:   sql.NullInt64{
+							Value: sql.NullInt64{
 								Int64: int64(track.Year),
 								Valid: track.Year != 0,
 							},
 							Changed: dbTrack.Year.Int64 != int64(track.Year),
 						}
 
-						pretty.Println(changes)
-
 						err = app.DB().UpdateTrack(ctx, dbTrack.Id, changes)
 						if err != nil {
 							return nil, err
 						}
-
-						pretty.Println(dbTrack)
 					}
 				}
 

@@ -14,7 +14,6 @@ CREATE TABLE artists (
 
 CREATE TABLE albums (
     id TEXT PRIMARY KEY,
-    path TEXT NOT NULL UNIQUE,
 
     name TEXT NOT NULL CHECK(name<>''),
     other_name TEXT,
@@ -37,11 +36,9 @@ CREATE TABLE albums_featuring_artists (
 
 CREATE TABLE tracks (
     id TEXT PRIMARY KEY,
-    path TEXT NOT NULL UNIQUE,
-
-    modified_time INT NOT NULL,
 
     filename TEXT NOT NULL,
+    modified_time INT NOT NULL,
     media_type TEXT NOT NULL,
 
     name TEXT NOT NULL CHECK(name<>''),

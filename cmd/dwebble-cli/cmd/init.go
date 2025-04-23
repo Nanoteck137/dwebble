@@ -67,6 +67,8 @@ var initCmd = &cobra.Command{
 
 		isSingle := len(tracks) == 1
 
+		metadata.Album.Id = utils.CreateAlbumId()
+
 		if !isSingle {
 			metadata.Album.Name, _ = probe.Tags.GetString("album")
 		} else {
@@ -117,9 +119,11 @@ var initCmd = &cobra.Command{
 			artists := parseArtist(trackInfo.Artist)
 
 			metadata.Tracks = append(metadata.Tracks, library.MetadataTrack{
+				Id:      utils.CreateTrackId(),
 				File:    filename,
 				Name:    trackInfo.Name,
 				Number:  trackInfo.Number,
+				Year:    0,
 				Tags:    []string{},
 				Artists: artists,
 			})

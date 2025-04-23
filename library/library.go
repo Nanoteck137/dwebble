@@ -13,34 +13,36 @@ import (
 )
 
 type MetadataGeneral struct {
-	Cover     string   `toml:"cover"`
-	Tags      []string `toml:"tags"`
-	TrackTags []string `toml:"trackTags"`
-	Year      int      `toml:"year"`
+	Cover     string   `json:"cover" toml:"cover"`
+	Tags      []string `json:"tags" toml:"tags"`
+	TrackTags []string `json:"trackTags" toml:"trackTags"`
+	Year      int      `json:"year" toml:"year"`
 }
 
 type MetadataAlbum struct {
-	Name    string   `toml:"name"`
-	Year    int      `toml:"year"`
-	Tags    []string `toml:"tags"`
-	Artists []string `toml:"artists"`
+	Id      string   `json:"id" toml:"id"`
+	Name    string   `json:"name" toml:"name"`
+	Year    int      `json:"year" toml:"year"`
+	Tags    []string `json:"tags" toml:"tags"`
+	Artists []string `json:"artists" toml:"artists"`
 }
 
 type MetadataTrack struct {
-	File    string   `toml:"file"`
-	Name    string   `toml:"name"`
-	Number  int      `toml:"number"`
-	Year    int      `toml:"year"`
-	Tags    []string `toml:"tags"`
-	Artists []string `toml:"artists"`
+	Id      string   `json:"id" toml:"id"`
+	File    string   `json:"file" toml:"file"`
+	Name    string   `json:"name" toml:"name"`
+	Number  int      `json:"number" toml:"number"`
+	Year    int      `json:"year" toml:"year"`
+	Tags    []string `json:"tags" toml:"tags"`
+	Artists []string `json:"artists" toml:"artists"`
 
-	ModifiedTime int64 `toml:"-"`
+	ModifiedTime int64 `json:"-" toml:"-"`
 }
 
 type Metadata struct {
-	General MetadataGeneral `toml:"general"`
-	Album   MetadataAlbum   `toml:"album"`
-	Tracks  []MetadataTrack `toml:"tracks"`
+	General MetadataGeneral `json:"general" toml:"general"`
+	Album   MetadataAlbum   `json:"album" toml:"album"`
+	Tracks  []MetadataTrack `json:"tracks" toml:"tracks"`
 }
 
 type Album struct {
