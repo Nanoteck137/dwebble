@@ -7,16 +7,18 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 
-	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
+	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/pelletier/go-toml/v2"
 )
 
 type GetSystemInfo struct {
@@ -307,6 +309,117 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 	return nil
 }
 
+type SyncStatus struct {
+	IsSyncing   bool     `json:"isSyncing"`
+	LastReports []Report `json:"lastReports"`
+}
+
+type ReportType string
+
+const (
+	ReportTypeSearch ReportType = "search"
+	ReportTypeSync   ReportType = "sync"
+)
+
+type Report struct {
+	Type        ReportType `json:"type"`
+	Message     string     `json:"message"`
+	FullMessage *string    `json:"fullMessage,omitempty"`
+}
+
+type SyncHandler struct {
+	mutex sync.RWMutex
+
+	isSyncing   bool
+	lastReports []Report
+}
+
+func (s *SyncHandler) GetSyncStatus() SyncStatus {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	return SyncStatus{
+		IsSyncing:        s.isSyncing,
+		LastReports: s.lastReports,
+	}
+}
+
+func (s *SyncHandler) SetSyncing(syncing bool) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	s.isSyncing = syncing
+}
+
+func (s *SyncHandler) GetSyncing(syncing bool) bool {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	return s.isSyncing
+}
+
+func (s *SyncHandler) RunSync(app core.App) error {
+	s.SetSyncing(true)
+	defer s.SetSyncing(false)
+
+	// TODO(patrik): Check for duplicated ids
+	search, err := library.FindAlbums("/Volumes/media/test/Ado/")
+	if err != nil {
+		return err
+	}
+
+	ctx := context.TODO()
+
+	err = EnsureUnknownArtistExists(ctx, app.DB(), app.WorkDir())
+	if err != nil {
+		return err
+	}
+
+	helper := SyncHelper{
+		artists: map[string]string{},
+	}
+
+	var syncErrors []error
+
+	for _, album := range search.Albums {
+		err := helper.syncAlbum(ctx, &album.Metadata, app.DB())
+		if err != nil {
+			syncErrors = append(syncErrors, err)
+		}
+	}
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	for _, err := range search.Errors {
+		var fullMessage *string
+
+
+		var tomlError *toml.DecodeError
+		if errors.As(err, &tomlError) {
+			m := tomlError.String()
+			fullMessage = &m
+		}
+
+		s.lastReports = append(s.lastReports, Report{
+			Type:        ReportTypeSearch,
+			Message:     err.Error(),
+			FullMessage: fullMessage,
+		})
+	}
+
+	for _, err := range syncErrors {
+		s.lastReports = append(s.lastReports, Report{
+			Type:        ReportTypeSync,
+			Message:     err.Error(),
+		})
+	}
+
+	return nil
+}
+
+var syncHandler = SyncHandler{}
+
 func InstallSystemHandlers(app core.App, group pyrin.Group) {
 	group.Register(
 		pyrin.ApiHandler{
@@ -342,6 +455,17 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
+			Name:         "GetSyncStatus",
+			Method:       http.MethodGet,
+			Path:         "/system/library",
+			ResponseType: SyncStatus{},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				res := syncHandler.GetSyncStatus()
+				return res, nil
+			},
+		},
+
+		pyrin.ApiHandler{
 			Name:         "SyncLibrary",
 			Method:       http.MethodPost,
 			Path:         "/system/library",
@@ -352,35 +476,12 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 				//  - Handle Single Album Syncing
 				//  - Handle album modified syncing
 
-				// TODO(patrik): Check for duplicated ids
-				search, err := library.FindAlbums("/Volumes/media/test/Ado/")
-				if err != nil {
-					return nil, err
-				}
-
-				pretty.Println(search)
-
-				ctx := context.TODO()
-
-				err = EnsureUnknownArtistExists(ctx, app.DB(), app.WorkDir())
-				if err != nil {
-					return nil, err
-				}
-
-				helper := SyncHelper{
-					artists: map[string]string{},
-				}
-
-				var errors []error
-
-				for _, album := range search.Albums {
-					err := helper.syncAlbum(ctx, &album.Metadata, app.DB())
+				go func() {
+					err := syncHandler.RunSync(app)
 					if err != nil {
-						errors = append(errors, err)
+						log.Error("Failed to run sync", "err", err)
 					}
-				}
-
-				pretty.Println(errors)
+				}()
 
 				return nil, nil
 			},
