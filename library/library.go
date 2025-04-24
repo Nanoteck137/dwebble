@@ -1,14 +1,12 @@
 package library
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 
-	"github.com/kr/pretty"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -54,7 +52,51 @@ type Library struct {
 	Albums []Metadata
 }
 
-func FindAlbums(p string) ([]Album, error) {
+type SearchError struct {
+	Path string
+	Err  error
+}
+
+type Search struct {
+	Albums []Album
+	Errors map[string]error
+}
+
+func readAlbum(p string) (Album, error) {
+	metadataPath := path.Join(p, "album.toml")
+	data, err := os.ReadFile(metadataPath)
+	if err != nil {
+		return Album{}, err
+	}
+
+	var metadata Metadata
+	err = toml.Unmarshal(data, &metadata)
+	if err != nil {
+		return Album{}, err
+	}
+
+	if metadata.General.Cover != "" {
+		metadata.General.Cover = path.Join(p, metadata.General.Cover)
+	}
+
+	for i, t := range metadata.Tracks {
+		metadata.Tracks[i].File = path.Join(p, t.File)
+
+		info, err := os.Stat(metadata.Tracks[i].File)
+		if err != nil {
+			return Album{}, err
+		}
+
+		metadata.Tracks[i].ModifiedTime = info.ModTime().UnixMilli()
+	}
+
+	return Album{
+		Path:     p,
+		Metadata: metadata,
+	}, nil
+}
+
+func FindAlbums(p string) (*Search, error) {
 	var albums []string
 
 	err := filepath.WalkDir(p, func(p string, d fs.DirEntry, err error) error {
@@ -72,8 +114,6 @@ func FindAlbums(p string) ([]Album, error) {
 			return nil
 		}
 
-		fmt.Printf("p: %v\n", p)
-
 		if name == "album.toml" {
 			albums = append(albums, path.Dir(p))
 		}
@@ -84,45 +124,21 @@ func FindAlbums(p string) ([]Album, error) {
 		return nil, err
 	}
 
-	pretty.Println(albums)
-
+	errors := map[string]error{}
 	res := make([]Album, 0, len(albums))
 
 	for _, p := range albums {
-		metadataPath := path.Join(p, "album.toml")
-		data, err := os.ReadFile(metadataPath)
+		album, err := readAlbum(p)
 		if err != nil {
-			return nil, err
+			errors[p] = err
+			continue
 		}
 
-		var metadata Metadata
-		err = toml.Unmarshal(data, &metadata)
-		if err != nil {
-			return nil, err
-		}
-
-		if metadata.General.Cover != "" {
-			metadata.General.Cover = path.Join(p, metadata.General.Cover)
-		}
-
-		for i, t := range metadata.Tracks {
-			metadata.Tracks[i].File = path.Join(p, t.File)
-
-			info, err := os.Stat(metadata.Tracks[i].File)
-			if err != nil {
-				return nil, err
-			}
-
-			metadata.Tracks[i].ModifiedTime = info.ModTime().UnixMilli()
-		}
-
-		pretty.Println(metadata)
-
-		res = append(res, Album{
-			Path:     p,
-			Metadata: metadata,
-		})
+		res = append(res, album)
 	}
 
-	return res, nil
+	return &Search{
+		Albums: res,
+		Errors: errors,
+	}, nil
 }
