@@ -185,12 +185,36 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 	changes := database.AlbumChanges{}
 
 	// TODO(patrik): More updates
+
+	changes.Name = types.Change[string]{
+		Value:   metadata.Album.Name,
+		Changed: metadata.Album.Name != dbAlbum.Name,
+	}
+
+	artist, err := helper.getOrCreateArtist(ctx, db, metadata.Album.Artists[0])
+	if err != nil {
+		return fmt.Errorf("failed to create artist for album: %w", err)
+	}
+
+	changes.ArtistId = types.Change[string]{
+		Value:   artist,
+		Changed: artist != dbAlbum.ArtistId,
+	}
+
 	changes.CoverArt = types.Change[sql.NullString]{
 		Value: sql.NullString{
 			String: metadata.General.Cover,
 			Valid:  metadata.General.Cover != "",
 		},
 		Changed: metadata.General.Cover != dbAlbum.CoverArt.String,
+	}
+
+	changes.Year = types.Change[sql.NullInt64]{
+		Value: sql.NullInt64{
+			Int64: metadata.Album.Year,
+			Valid: metadata.Album.Year != 0,
+		},
+		Changed: metadata.Album.Year != dbAlbum.Year.Int64,
 	}
 
 	err = db.UpdateAlbum(ctx, dbAlbum.Id, changes)
@@ -233,11 +257,11 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 					ArtistId:     artist,
 					Duration:     int64(probeResult.Duration),
 					Number: sql.NullInt64{
-						Int64: int64(track.Number),
+						Int64: track.Number,
 						Valid: track.Number != 0,
 					},
 					Year: sql.NullInt64{
-						Int64: int64(track.Year),
+						Int64: track.Year,
 						Valid: track.Year != 0,
 					},
 				})
@@ -301,20 +325,33 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 
 		changes.Filename = types.Change[string]{
 			Value:   track.File,
-			Changed: dbTrack.Filename != track.File,
+			Changed: track.File != dbTrack.Filename,
 		}
 
 		changes.Name = types.Change[string]{
 			Value:   track.Name,
-			Changed: dbTrack.Name != track.Name,
+			Changed: track.Name != dbTrack.Name,
+		}
+
+		changes.ArtistId = types.Change[string]{
+			Value:   artist,
+			Changed: artist != dbTrack.ArtistId,
+		}
+
+		changes.Number = types.Change[sql.NullInt64]{
+			Value: sql.NullInt64{
+				Int64: track.Number,
+				Valid: track.Number != 0,
+			},
+			Changed: track.Number != dbTrack.Number.Int64,
 		}
 
 		changes.Year = types.Change[sql.NullInt64]{
 			Value: sql.NullInt64{
-				Int64: int64(track.Year),
+				Int64: track.Year,
 				Valid: track.Year != 0,
 			},
-			Changed: dbTrack.Year.Int64 != int64(track.Year),
+			Changed: track.Year != dbTrack.Year.Int64,
 		}
 
 		err = db.UpdateTrack(ctx, dbTrack.Id, changes)

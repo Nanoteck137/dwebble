@@ -14,13 +14,13 @@ type MetadataGeneral struct {
 	Cover     string   `json:"cover" toml:"cover"`
 	Tags      []string `json:"tags" toml:"tags"`
 	TrackTags []string `json:"trackTags" toml:"trackTags"`
-	Year      int      `json:"year" toml:"year"`
+	Year      int64      `json:"year" toml:"year"`
 }
 
 type MetadataAlbum struct {
 	Id      string   `json:"id" toml:"id"`
 	Name    string   `json:"name" toml:"name"`
-	Year    int      `json:"year" toml:"year"`
+	Year    int64      `json:"year" toml:"year"`
 	Tags    []string `json:"tags" toml:"tags"`
 	Artists []string `json:"artists" toml:"artists"`
 }
@@ -29,8 +29,8 @@ type MetadataTrack struct {
 	Id      string   `json:"id" toml:"id"`
 	File    string   `json:"file" toml:"file"`
 	Name    string   `json:"name" toml:"name"`
-	Number  int      `json:"number" toml:"number"`
-	Year    int      `json:"year" toml:"year"`
+	Number  int64      `json:"number" toml:"number"`
+	Year    int64      `json:"year" toml:"year"`
 	Tags    []string `json:"tags" toml:"tags"`
 	Artists []string `json:"artists" toml:"artists"`
 
