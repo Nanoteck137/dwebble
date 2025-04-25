@@ -154,6 +154,7 @@ func (helper *SyncHelper) setTrackFeaturingArtists(ctx context.Context, db *data
 	return nil
 }
 
+// TODO(patrik): Update the errors for album
 func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metadata, db *database.Database) error {
 	err := FixMetadata(metadata)
 	if err != nil {
@@ -179,6 +180,22 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 		} else {
 			return err
 		}
+	}
+
+	changes := database.AlbumChanges{}
+
+	// TODO(patrik): More updates
+	changes.CoverArt = types.Change[sql.NullString]{
+		Value: sql.NullString{
+			String: metadata.General.Cover,
+			Valid:  metadata.General.Cover != "",
+		},
+		Changed: metadata.General.Cover != dbAlbum.CoverArt.String,
+	}
+
+	err = db.UpdateAlbum(ctx, dbAlbum.Id, changes)
+	if err != nil {
+		return fmt.Errorf("failed to update album: %w", err)
 	}
 
 	err = helper.setAlbumFeaturingArtists(
@@ -339,7 +356,7 @@ func (s *SyncHandler) GetSyncStatus() SyncStatus {
 	defer s.mutex.RUnlock()
 
 	return SyncStatus{
-		IsSyncing:        s.isSyncing,
+		IsSyncing:   s.isSyncing,
 		LastReports: s.lastReports,
 	}
 }
@@ -394,7 +411,6 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	for _, err := range search.Errors {
 		var fullMessage *string
 
-
 		var tomlError *toml.DecodeError
 		if errors.As(err, &tomlError) {
 			m := tomlError.String()
@@ -410,8 +426,8 @@ func (s *SyncHandler) RunSync(app core.App) error {
 
 	for _, err := range syncErrors {
 		s.lastReports = append(s.lastReports, Report{
-			Type:        ReportTypeSync,
-			Message:     err.Error(),
+			Type:    ReportTypeSync,
+			Message: err.Error(),
 		})
 	}
 
@@ -477,10 +493,14 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 				//  - Handle album modified syncing
 
 				go func() {
+					log.Info("Started library sync")
+
 					err := syncHandler.RunSync(app)
 					if err != nil {
 						log.Error("Failed to run sync", "err", err)
 					}
+
+					log.Info("Library sync done")
 				}()
 
 				return nil, nil
