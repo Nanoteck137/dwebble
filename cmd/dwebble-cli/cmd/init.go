@@ -94,7 +94,7 @@ var initCmd = &cobra.Command{
 		if tag, err := probe.Tags.GetString("date"); err == nil {
 			match := dateRegex.FindStringSubmatch(tag)
 			if len(match) > 0 {
-				metadata.General.Year, _ = strconv.Atoi(match[1])
+				metadata.General.Year, _ = strconv.ParseInt(match[1], 10, 64)
 			}
 		}
 
@@ -122,7 +122,7 @@ var initCmd = &cobra.Command{
 				Id:      utils.CreateTrackId(),
 				File:    filename,
 				Name:    trackInfo.Name,
-				Number:  trackInfo.Number,
+				Number:  int64(trackInfo.Number),
 				Year:    0,
 				Tags:    []string{},
 				Artists: artists,
