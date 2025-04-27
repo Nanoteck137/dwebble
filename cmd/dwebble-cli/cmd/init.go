@@ -450,6 +450,7 @@ var oldInitCmd = &cobra.Command{
 				}
 
 				if track == nil {
+					log.Warn("Failed to find match for track", "track", p)
 					continue
 				}
 
