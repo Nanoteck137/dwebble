@@ -14,13 +14,13 @@ type MetadataGeneral struct {
 	Cover     string   `json:"cover" toml:"cover"`
 	Tags      []string `json:"tags" toml:"tags"`
 	TrackTags []string `json:"trackTags" toml:"trackTags"`
-	Year      int64      `json:"year" toml:"year"`
+	Year      int64    `json:"year" toml:"year"`
 }
 
 type MetadataAlbum struct {
 	Id      string   `json:"id" toml:"id"`
 	Name    string   `json:"name" toml:"name"`
-	Year    int64      `json:"year" toml:"year"`
+	Year    int64    `json:"year" toml:"year"`
 	Tags    []string `json:"tags" toml:"tags"`
 	Artists []string `json:"artists" toml:"artists"`
 }
@@ -29,12 +29,10 @@ type MetadataTrack struct {
 	Id      string   `json:"id" toml:"id"`
 	File    string   `json:"file" toml:"file"`
 	Name    string   `json:"name" toml:"name"`
-	Number  int64      `json:"number" toml:"number"`
-	Year    int64      `json:"year" toml:"year"`
+	Number  int64    `json:"number" toml:"number"`
+	Year    int64    `json:"year" toml:"year"`
 	Tags    []string `json:"tags" toml:"tags"`
 	Artists []string `json:"artists" toml:"artists"`
-
-	ModifiedTime int64 `json:"-" toml:"-"`
 }
 
 type Metadata struct {
@@ -81,13 +79,6 @@ func readAlbum(p string) (Album, error) {
 
 	for i, t := range metadata.Tracks {
 		metadata.Tracks[i].File = path.Join(p, t.File)
-
-		info, err := os.Stat(metadata.Tracks[i].File)
-		if err != nil {
-			return Album{}, err
-		}
-
-		metadata.Tracks[i].ModifiedTime = info.ModTime().UnixMilli()
 	}
 
 	return Album{

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 
@@ -133,6 +134,29 @@ func (helper *SyncHelper) setAlbumFeaturingArtists(ctx context.Context, db *data
 	return nil
 }
 
+func (helper *SyncHelper) setAlbumTags(ctx context.Context, db *database.Database, albumId string, tags []string) error {
+	err := db.RemoveAllTagsFromAlbum(ctx, albumId)
+	if err != nil {
+		return err
+	}
+
+	for _, tag := range tags {
+		slug := utils.Slug(tag)
+
+		err := db.CreateTag(ctx, slug)
+		if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+			return err
+		}
+
+		err = db.AddTagToAlbum(ctx, slug, albumId)
+		if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (helper *SyncHelper) setTrackFeaturingArtists(ctx context.Context, db *database.Database, trackId string, artists []string) error {
 	err := db.RemoveAllTrackFeaturingArtists(ctx, trackId)
 	if err != nil {
@@ -147,6 +171,29 @@ func (helper *SyncHelper) setTrackFeaturingArtists(ctx context.Context, db *data
 
 		err = db.AddFeaturingArtistToTrack(ctx, trackId, artistId)
 		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (helper *SyncHelper) setTrackTags(ctx context.Context, db *database.Database, trackId string, tags []string) error {
+	err := db.RemoveAllTagsFromTrack(ctx, trackId)
+	if err != nil {
+		return err
+	}
+
+	for _, tag := range tags {
+		slug := utils.Slug(tag)
+
+		err := db.CreateTag(ctx, slug)
+		if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
+			return err
+		}
+
+		err = db.AddTagToTrack(ctx, slug, trackId)
+		if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 			return err
 		}
 	}
@@ -232,7 +279,24 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 		return fmt.Errorf("failed to set album featuring artists: %w", err)
 	}
 
+	err = helper.setAlbumTags(
+		ctx,
+		db,
+		dbAlbum.Id,
+		metadata.Album.Tags,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to set album tags: %w", err)
+	}
+
 	for i, track := range metadata.Tracks {
+		stat, err := os.Stat(track.File)
+		if err != nil {
+			return fmt.Errorf("failed to stat track[%d] file (%s): %w", i, track.File, err)
+		}
+
+		modifiedTime := stat.ModTime().UnixMilli()
+
 		artist, err := helper.getOrCreateArtist(ctx, db, track.Artists[0])
 		if err != nil {
 			return fmt.Errorf("failed to set create artist for track[%d]: %w", i, err)
@@ -249,7 +313,7 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 				trackId, err := db.CreateTrack(ctx, database.CreateTrackParams{
 					Id:           track.Id,
 					Filename:     track.File,
-					ModifiedTime: track.ModifiedTime,
+					ModifiedTime: modifiedTime,
 					MediaType:    probeResult.MediaType,
 					Name:         track.Name,
 					OtherName:    sql.NullString{},
@@ -293,12 +357,18 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 			return fmt.Errorf("failed to set track[%d] featuring artists: %w", i, err)
 		}
 
+		err = helper.setTrackTags(ctx, db, dbTrack.Id, track.Tags)
+		if err != nil {
+			return fmt.Errorf("failed to set track[%d] tags: %w", i, err)
+		}
+
 		// TODO(patrik): Check modified time and probe again
 		// TODO(patrik): Update track
 
 		changes := database.TrackChanges{}
 
-		if track.ModifiedTime > dbTrack.ModifiedTime {
+
+		if modifiedTime > dbTrack.ModifiedTime {
 			probeResult, err := utils.ProbeTrack(track.File)
 			if err != nil {
 				return fmt.Errorf("failed to probe track[%d] file (%s): %w", i, track.File, err)
@@ -316,8 +386,8 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 			}
 
 			changes.ModifiedTime = types.Change[int64]{
-				Value:   track.ModifiedTime,
-				Changed: track.ModifiedTime != dbTrack.ModifiedTime,
+				Value:   modifiedTime,
+				Changed: modifiedTime != dbTrack.ModifiedTime,
 			}
 		}
 
