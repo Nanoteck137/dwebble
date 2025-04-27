@@ -19,8 +19,9 @@ type Track struct {
 
 	Id string `db:"id"`
 
-	Filename  string `db:"filename"`
-	MediaType types.MediaType `db:"media_type"`
+	Filename     string          `db:"filename"`
+	ModifiedTime int64           `db:"modified_time"`
+	MediaType    types.MediaType `db:"media_type"`
 
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
@@ -97,6 +98,7 @@ func TrackQuery() *goqu.SelectDataset {
 			"tracks.id",
 
 			"tracks.filename",
+			"tracks.modified_time",
 			"tracks.media_type",
 
 			"tracks.name",
@@ -387,10 +389,11 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 }
 
 type CreateTrackParams struct {
-	Id string
+	Id   string
 
-	Filename  string
-	MediaType types.MediaType
+	Filename     string
+	ModifiedTime int64
+	MediaType    types.MediaType
 
 	Name      string
 	OtherName sql.NullString
@@ -425,9 +428,10 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 	}
 
 	ds := dialect.Insert("tracks").Rows(goqu.Record{
-		"id": id,
+		"id":   id,
 
 		"filename":   params.Filename,
+		"modified_time": params.ModifiedTime,
 		"media_type": params.MediaType,
 
 		"name":       params.Name,
@@ -463,6 +467,7 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 
 type TrackChanges struct {
 	Filename  types.Change[string]
+	ModifiedTime types.Change[int64]
 	MediaType types.Change[types.MediaType]
 
 	Name      types.Change[string]
@@ -482,6 +487,7 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	record := goqu.Record{}
 
 	addToRecord(record, "filename", changes.Filename)
+	addToRecord(record, "modified_time", changes.ModifiedTime)
 	addToRecord(record, "media_type", changes.MediaType)
 
 	addToRecord(record, "name", changes.Name)

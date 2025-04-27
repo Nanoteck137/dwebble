@@ -35,7 +35,6 @@ func User(app core.App, c pyrin.Context, checks ...UserCheckFunc) (*database.Use
 		return nil, err
 	}
 
-
 	for _, check := range checks {
 		err := check(user)
 		if err != nil {
@@ -134,6 +133,7 @@ func EnsureUnknownArtistExists(ctx context.Context, db *database.Database, workD
 			_, err = helper.CreateArtist(ctx, db, workDir, database.CreateArtistParams{
 				Id:   UNKNOWN_ARTIST_ID,
 				Name: UNKNOWN_ARTIST_NAME,
+				Slug: utils.Slug(UNKNOWN_ARTIST_NAME),
 			})
 			if err != nil {
 				return err

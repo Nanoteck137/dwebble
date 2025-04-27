@@ -5,6 +5,7 @@ import "path"
 type MediaType string
 
 const (
+	MediaTypeUnknown   MediaType = "unknown"
 	MediaTypeFlac      MediaType = "flac"
 	MediaTypeOggOpus   MediaType = "ogg-opus"
 	MediaTypeOggVorbis MediaType = "ogg-vorbis"

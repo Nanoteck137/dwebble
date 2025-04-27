@@ -25,11 +25,5 @@ var cfgFile string
 func init() {
 	rootCmd.SetVersionTemplate(dwebble.VersionTemplate(AppName))
 
-	rootCmd.PersistentFlags().String("server", "", "Server Address")
-	rootCmd.MarkPersistentFlagRequired("server")
-
-	rootCmd.PersistentFlags().String("web", "", "Web Address")
-	rootCmd.MarkPersistentFlagRequired("web")
-
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "Config File")
 }

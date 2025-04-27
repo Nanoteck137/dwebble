@@ -56,6 +56,19 @@ func Open(workDir types.WorkDir) (*Database, error) {
 	return New(conn), nil
 }
 
+// TODO(patrik): Remove later
+// NOTE(patrik): This is used in dwebble-cli/init
+func OpenRaw(p string) (*Database, error) {
+	dbUrl := fmt.Sprintf("file:%s?_foreign_keys=true", p)
+
+	conn, err := sql.Open("sqlite3", dbUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	return New(conn), nil
+}
+
 func (db *Database) RunMigrateUp() error {
 	return migrations.RunMigrateUp(db.RawConn)
 }

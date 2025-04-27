@@ -37,11 +37,29 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 			HandlerFunc: func(c pyrin.Context) error {
 				albumId := c.Param("albumId")
 				image := c.Param("image")
+				_ = image
 
-				p := app.WorkDir().Album(albumId)
+				ctx := c.Request().Context()
+
+				album, err := app.DB().GetAlbumById(ctx, albumId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return pyrin.NoContentNotFound()
+					}
+
+					return err
+				}
+
+				if !album.CoverArt.Valid {
+					// TODO(patrik): Fix
+					return pyrin.ServeFile(c, assets.DefaultImagesFS, "default_album.png")
+				} 
+
+				// p := app.WorkDir().Album(albumId)
+				p := path.Dir(album.CoverArt.String)
 				f := os.DirFS(p)
 
-				return pyrin.ServeFile(c, f, image)
+				return pyrin.ServeFile(c, f, path.Base(album.CoverArt.String))
 			},
 		},
 		pyrin.NormalHandler{
@@ -64,18 +82,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 				trackId := c.Param("trackId")
 				file := c.Param("file")
 
-				trackDir := app.WorkDir().Track(trackId)
-				f := os.DirFS(trackDir)
-
-				return pyrin.ServeFile(c, f, file)
-			},
-		},
-		pyrin.NormalHandler{
-			Method: http.MethodGet,
-			Path:   "/tracks/:trackId/:file",
-			HandlerFunc: func(c pyrin.Context) error {
-				trackId := c.Param("trackId")
-				file := c.Param("file")
+				fileExt := path.Ext(file)
 
 				ctx := context.TODO()
 
@@ -92,10 +99,15 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 
 				// Return the original file if the filename matches the
 				// one stored inside the track
-				if file == track.Filename {
-					f := os.DirFS(trackDir)
-					return pyrin.ServeFile(c, f, file)
+				if fileExt == path.Ext(track.Filename) {
+					d := path.Dir(track.Filename)
+					filename := path.Base(track.Filename)
+
+					f := os.DirFS(d)
+					return pyrin.ServeFile(c, f, filename)
 				}
+
+				return errors.New("not implemented")
 
 				// Here we need to start transcoding the original track
 				// media to the requested format

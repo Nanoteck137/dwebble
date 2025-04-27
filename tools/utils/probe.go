@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/nanoteck137/dwebble/types"
 	"gopkg.in/vansante/go-ffprobe.v2"
 )
 
@@ -26,8 +27,9 @@ type TrackInfo struct {
 }
 
 type ProbeResult struct {
-	Tags     ffprobe.Tags
-	Duration float64
+	Tags      ffprobe.Tags
+	MediaType types.MediaType
+	Duration  float64
 }
 
 func ProbeTrack(filepath string) (ProbeResult, error) {
@@ -35,7 +37,7 @@ func ProbeTrack(filepath string) (ProbeResult, error) {
 
 	probe, err := ffprobe.ProbeURL(ctx, filepath)
 	if err != nil {
-		return ProbeResult{}, nil
+		return ProbeResult{}, err
 	}
 
 	var tags ffprobe.Tags
@@ -59,8 +61,25 @@ func ProbeTrack(filepath string) (ProbeResult, error) {
 		return ProbeResult{}, err
 	}
 
+	mediaType := types.MediaTypeUnknown
+
+	// TODO(patrik): Move to helper
+	// TODO(patrik): Add more types
+	switch probe.Format.FormatName {
+	case "flac":
+		mediaType = types.MediaTypeFlac
+	case "ogg":
+		switch audioStream.CodecName {
+		case "opus":
+			mediaType = types.MediaTypeOggOpus
+		case "vorbis":
+			mediaType = types.MediaTypeOggVorbis
+		}
+	}
+
 	return ProbeResult{
-		Tags:     tags,
-		Duration: duration,
+		Tags:      tags,
+		MediaType: mediaType,
+		Duration:  duration,
 	}, nil
 }
