@@ -919,6 +919,43 @@
       ]
     },
     {
+      "name": "Report",
+      "extend": "",
+      "fields": [
+        {
+          "name": "type",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "message",
+          "type": "string",
+          "omit": false
+        },
+        {
+          "name": "fullMessage",
+          "type": "*string",
+          "omit": true
+        }
+      ]
+    },
+    {
+      "name": "SyncStatus",
+      "extend": "",
+      "fields": [
+        {
+          "name": "isSyncing",
+          "type": "bool",
+          "omit": false
+        },
+        {
+          "name": "lastReports",
+          "type": "[]Report",
+          "omit": false
+        }
+      ]
+    },
+    {
       "name": "Taglist",
       "extend": "",
       "fields": [
@@ -1553,6 +1590,20 @@
       "name": "RefillSearch",
       "method": "POST",
       "path": "/api/v1/system/search",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
+      "name": "GetSyncStatus",
+      "method": "GET",
+      "path": "/api/v1/system/library",
+      "responseType": "SyncStatus",
+      "bodyType": ""
+    },
+    {
+      "name": "SyncLibrary",
+      "method": "POST",
+      "path": "/api/v1/system/library",
       "responseType": "",
       "bodyType": ""
     },

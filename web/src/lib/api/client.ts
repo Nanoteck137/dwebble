@@ -152,6 +152,14 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/system/search", "POST", z.undefined(), z.any(), undefined, options)
   }
   
+  getSyncStatus(options?: ExtraOptions) {
+    return this.request("/api/v1/system/library", "GET", api.SyncStatus, z.any(), undefined, options)
+  }
+  
+  syncLibrary(options?: ExtraOptions) {
+    return this.request("/api/v1/system/library", "POST", z.undefined(), z.any(), undefined, options)
+  }
+  
   getTaglists(options?: ExtraOptions) {
     return this.request("/api/v1/taglists", "GET", api.GetTaglists, z.any(), undefined, options)
   }

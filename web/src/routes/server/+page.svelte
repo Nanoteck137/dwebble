@@ -2,10 +2,69 @@
   import { PUBLIC_COMMIT, PUBLIC_VERSION } from "$env/static/public";
   import { getApiClient, handleApiError } from "$lib";
   import { Button } from "@nanoteck137/nano-ui";
+  import { onDestroy, onMount } from "svelte";
+  import { z } from "zod";
 
+  const { data } = $props();
   const apiClient = getApiClient();
 
   let refillSearch = $state(false);
+  let test = $state<string[]>([]);
+  let syncing = $state(false);
+
+  const Event = z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal("syncing"),
+      data: z.object({
+        syncing: z.boolean(),
+      }),
+    }),
+    z.object({
+      type: z.literal("report"),
+      data: z.object({
+        reports: z
+          .array(
+            z.object({
+              type: z.string(),
+              message: z.string(),
+              fullMessage: z.string().optional(),
+            }),
+          )
+          .nullable(),
+      }),
+    }),
+  ]);
+
+  onMount(() => {
+    console.log("Mount");
+    const eventSource = new EventSource(
+      data.apiAddress + "/api/v1/system/library/sse",
+    );
+
+    eventSource.onmessage = (e) => {
+      const event = Event.parse(JSON.parse(e.data));
+      console.log(event);
+
+      switch (event.type) {
+        case "syncing":
+          syncing = event.data.syncing;
+          break;
+        case "report":
+          const mapped =
+            event.data.reports?.map((t) => {
+              if (t.fullMessage) return t.fullMessage;
+              return t.message;
+            }) ?? [];
+          test = mapped;
+          break;
+      }
+    };
+
+    return () => {
+      console.log("Cleanup");
+      eventSource.close();
+    };
+  });
 </script>
 
 <p>Server Page (W.I.P)</p>
@@ -26,3 +85,22 @@
 >
   Refill Search
 </Button>
+
+<p>Library Syncing: {syncing}</p>
+
+<Button
+  onclick={async () => {
+    const res = await apiClient.syncLibrary();
+    if (!res.success) {
+      handleApiError(res.error);
+      return;
+    }
+  }}
+>
+  Sync Library
+</Button>
+
+{#each test as message}
+  <p class="whitespace-pre font-mono">{message}</p>
+  <br />
+{/each}

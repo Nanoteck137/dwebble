@@ -3,12 +3,14 @@ package apis
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
@@ -437,11 +439,6 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 	return nil
 }
 
-type SyncStatus struct {
-	IsSyncing   bool     `json:"isSyncing"`
-	LastReports []Report `json:"lastReports"`
-}
-
 type ReportType string
 
 const (
@@ -456,45 +453,36 @@ type Report struct {
 }
 
 type SyncHandler struct {
+	broker *Broker
+
 	mutex sync.RWMutex
 
-	isSyncing   bool
+	isSyncing   atomic.Bool
 	lastReports []Report
+
+	SyncChannel chan bool
 }
 
-func (s *SyncHandler) GetSyncStatus() SyncStatus {
+func (s *SyncHandler) GetLastReports() []Report {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	return SyncStatus{
-		IsSyncing:   s.isSyncing,
-		LastReports: s.lastReports,
-	}
-}
-
-func (s *SyncHandler) SetSyncing(syncing bool) {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
-
-	s.isSyncing = syncing
-}
-
-func (s *SyncHandler) GetSyncing(syncing bool) bool {
-	s.mutex.RLock()
-	defer s.mutex.RUnlock()
-
-	return s.isSyncing
+	return s.lastReports
 }
 
 func (s *SyncHandler) RunSync(app core.App) error {
-	s.SetSyncing(true)
-	defer s.SetSyncing(false)
+	s.isSyncing.Store(true)
+	defer s.isSyncing.Store(false)
+
+	log.Debug("Searching for albums", "libraryDir", app.Config().LibraryDir)
 
 	// TODO(patrik): Check for duplicated ids
 	search, err := library.FindAlbums(app.Config().LibraryDir)
 	if err != nil {
 		return err
 	}
+
+	log.Debug("Done searching for albums")
 
 	ctx := context.TODO()
 
@@ -510,14 +498,15 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	var syncErrors []error
 
 	for _, album := range search.Albums {
+		log.Debug("Syncing album", "path", album.Path)
+
 		err := helper.syncAlbum(ctx, &album.Metadata, app.DB())
 		if err != nil {
 			syncErrors = append(syncErrors, err)
 		}
 	}
 
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	reports := make([]Report, 0, len(search.Errors)+len(syncErrors))
 
 	for _, err := range search.Errors {
 		var fullMessage *string
@@ -528,7 +517,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 			fullMessage = &m
 		}
 
-		s.lastReports = append(s.lastReports, Report{
+		reports = append(reports, Report{
 			Type:        ReportTypeSearch,
 			Message:     err.Error(),
 			FullMessage: fullMessage,
@@ -536,16 +525,99 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	}
 
 	for _, err := range syncErrors {
-		s.lastReports = append(s.lastReports, Report{
+		reports = append(reports, Report{
 			Type:    ReportTypeSync,
 			Message: err.Error(),
 		})
 	}
 
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	s.lastReports = reports
+
 	return nil
 }
 
-var syncHandler = SyncHandler{}
+// NOTE(patrik): Based on: https://gist.github.com/Ananto30/8af841f250e89c07e122e2a838698246
+type Broker struct {
+	Notifier chan EventData
+
+	newClients     chan chan EventData
+	closingClients chan chan EventData
+	clients        map[chan EventData]bool
+}
+
+func NewServer() (broker *Broker) {
+	// Instantiate a broker
+	broker = &Broker{
+		Notifier:       make(chan EventData, 1),
+		newClients:     make(chan chan EventData),
+		closingClients: make(chan chan EventData),
+		clients:        make(map[chan EventData]bool),
+	}
+
+	// Set it running - listening and broadcasting events
+	go broker.listen()
+
+	return
+}
+
+func (broker *Broker) listen() {
+	for {
+		select {
+		case s := <-broker.newClients:
+			broker.clients[s] = true
+			log.Debug("Client added", "numClients", len(broker.clients))
+		case s := <-broker.closingClients:
+			delete(broker.clients, s)
+			log.Debug("Removed client", "numClients", len(broker.clients))
+		case event := <-broker.Notifier:
+			for clientMessageChan := range broker.clients {
+				clientMessageChan <- event
+			}
+		}
+	}
+}
+
+func (broker *Broker) EmitEvent(event EventData) {
+	broker.Notifier <- event
+}
+
+var syncHandler = SyncHandler{
+	SyncChannel: make(chan bool),
+	broker:      NewServer(),
+}
+
+type EventData interface {
+	GetEventType() string
+}
+
+const (
+	EventSyncing string = "syncing"
+	EventReport  string = "report"
+)
+
+type SyncEvent struct {
+	Syncing bool `json:"syncing"`
+}
+
+func (s SyncEvent) GetEventType() string {
+	return EventSyncing
+}
+
+type ReportEvent struct {
+	Reports []Report `json:"reports"`
+}
+
+func (s ReportEvent) GetEventType() string {
+	return EventReport
+}
+
+type Event struct {
+	Type string `json:"type"`
+	Data any    `json:"data"`
+}
 
 func InstallSystemHandlers(app core.App, group pyrin.Group) {
 	group.Register(
@@ -585,10 +657,10 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 			Name:         "GetSyncStatus",
 			Method:       http.MethodGet,
 			Path:         "/system/library",
-			ResponseType: SyncStatus{},
+			// ResponseType: SyncStatus{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				res := syncHandler.GetSyncStatus()
-				return res, nil
+				// res := syncHandler.GetSyncStatus()
+				return nil, nil
 			},
 		},
 
@@ -604,17 +676,93 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 				//  - Handle album modified syncing
 
 				go func() {
+					if syncHandler.isSyncing.Load() {
+						log.Info("Syncing already")
+						return
+					}
+
 					log.Info("Started library sync")
+
+					syncHandler.broker.EmitEvent(SyncEvent{
+						Syncing: true,
+					})
 
 					err := syncHandler.RunSync(app)
 					if err != nil {
 						log.Error("Failed to run sync", "err", err)
 					}
 
+					syncHandler.broker.EmitEvent(SyncEvent{
+						Syncing: false,
+					})
+
+					syncHandler.broker.EmitEvent(ReportEvent{
+						Reports: syncHandler.GetLastReports(),
+					})
+
 					log.Info("Library sync done")
 				}()
 
 				return nil, nil
+			},
+		},
+
+		pyrin.NormalHandler{
+			Name:   "SseHandler",
+			Method: http.MethodGet,
+			Path:   "/system/library/sse",
+			HandlerFunc: func(c pyrin.Context) error {
+				r := c.Request()
+				w := c.Response()
+
+				w.Header().Set("Content-Type", "text/event-stream")
+				w.Header().Set("Cache-Control", "no-cache")
+				w.Header().Set("Connection", "keep-alive")
+
+				w.Header().Set("Access-Control-Allow-Origin", "*")
+
+				rc := http.NewResponseController(w)
+
+				eventChan := make(chan EventData)
+				syncHandler.broker.newClients <- eventChan
+
+				defer func() {
+					syncHandler.broker.closingClients <- eventChan
+				}()
+
+				sendEvent := func(eventData EventData) {
+					fmt.Fprintf(w, "data: ")
+
+					event := Event{
+						Type: eventData.GetEventType(),
+						Data: eventData,
+					}
+
+					encode := json.NewEncoder(w)
+					encode.Encode(event)
+
+					fmt.Fprintf(w, "\n\n")
+					rc.Flush()
+				}
+
+				sendEvent(SyncEvent{
+					Syncing: syncHandler.isSyncing.Load(),
+				})
+
+				sendEvent(ReportEvent{
+					Reports: syncHandler.GetLastReports(),
+				})
+
+				for {
+					select {
+					case <-r.Context().Done():
+						syncHandler.broker.closingClients <- eventChan
+						return nil
+
+					case event := <-eventChan:
+						sendEvent(event)
+					}
+				}
 			},
 		},
 	)

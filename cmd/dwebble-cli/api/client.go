@@ -613,6 +613,40 @@ func (c *Client) RefillSearch(options Options) (*any, error) {
 	return Request[any](data)
 }
 
+func (c *Client) GetSyncStatus(options Options) (*SyncStatus, error) {
+	path := "/api/v1/system/library"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
+		Body: nil,
+	}
+	return Request[SyncStatus](data)
+}
+
+func (c *Client) SyncLibrary(options Options) (*any, error) {
+	path := "/api/v1/system/library"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) GetTaglists(options Options) (*GetTaglists, error) {
 	path := "/api/v1/taglists"
 	url, err := createUrl(c.addr, path, options.QueryParams)
