@@ -343,6 +343,11 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 					return fmt.Errorf("failed to set track[%d] featuring artists: %w", i, err)
 				}
 
+				err = helper.setTrackTags(ctx, db, trackId, track.Tags)
+				if err != nil {
+					return fmt.Errorf("failed to set track[%d] tags: %w", i, err)
+				}
+
 				continue
 			}
 		}
@@ -366,7 +371,6 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 		// TODO(patrik): Update track
 
 		changes := database.TrackChanges{}
-
 
 		if modifiedTime > dbTrack.ModifiedTime {
 			probeResult, err := utils.ProbeTrack(track.File)
