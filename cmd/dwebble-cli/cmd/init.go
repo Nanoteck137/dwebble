@@ -331,8 +331,11 @@ var oldInitCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		dir, _ := cmd.Flags().GetString("dir")
 		output, _ := cmd.Flags().GetString("output")
+		dbPath, _ := cmd.Flags().GetString("db")
 
-		db, err := database.OpenRaw("../data.db")
+		fmt.Printf("dbPath: %v\n", dbPath)
+
+		db, err := database.OpenRaw(dbPath)
 		if err != nil {
 			log.Fatal("Failed to open db", "err", err)
 		}
@@ -488,6 +491,8 @@ func init() {
 
 	oldInitCmd.Flags().String("dir", ".", "input directory")
 	oldInitCmd.Flags().StringP("output", "o", "album.toml", "write result to file")
+	oldInitCmd.Flags().String("db", "", "database to use")
+	oldInitCmd.MarkFlagRequired("db")
 
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(oldInitCmd)
