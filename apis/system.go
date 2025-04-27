@@ -491,7 +491,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	defer s.SetSyncing(false)
 
 	// TODO(patrik): Check for duplicated ids
-	search, err := library.FindAlbums("/Volumes/media/test/Ado/")
+	search, err := library.FindAlbums(app.Config().LibraryDir)
 	if err != nil {
 		return err
 	}

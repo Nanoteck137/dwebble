@@ -6,6 +6,7 @@ with lib; let
   dwebbleConfig = pkgs.writeText "config.toml" ''
     listen_addr = "${cfg.host}:${toString cfg.port}"
     data_dir = "/var/lib/dwebble"
+    library_dir = "${cfg.libraryDir}"
     username = "${cfg.username}"
     initial_password = "${cfg.initialPassword}"
     jwt_secret = "${cfg.jwtSecret}"
@@ -40,6 +41,11 @@ in
     jwtSecret = mkOption {
       type = types.str;
       description = "jwt secret";
+    };
+
+    libraryDir = mkOption {
+      type = types.path;
+      description = "library directory";
     };
 
     package = mkOption {
