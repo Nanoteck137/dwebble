@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
@@ -486,6 +487,125 @@ var oldInitCmd = &cobra.Command{
 	},
 }
 
+type Playlist struct {
+	Id      string         `db:"id"`
+	Name    string         `db:"name"`
+	Picture sql.NullString `db:"picture"`
+
+	OwnerId string `db:"owner_id"`
+
+	Created int64 `db:"created"`
+	Updated int64 `db:"updated"`
+}
+
+type PlaylistItem struct {
+	PlaylistId string `db:"playlist_id"`
+	TrackId    string `db:"track_id"`
+}
+
+func PlaylistQuery() *goqu.SelectDataset {
+	query := dialect.From("playlists").
+		Select(
+			"playlists.id",
+			"playlists.name",
+			"playlists.picture",
+
+			"playlists.owner_id",
+
+			"playlists.created",
+			"playlists.updated",
+		).
+		Prepared(true)
+
+	return query
+}
+
+type ExportedPlaylistItem struct {
+	TrackId    string `json:"trackId"`
+	TrackName  string `json:"trackName"`
+	AlbumName  string `json:"albumName"`
+	ArtistName string `json:"artistName"`
+}
+
+type ExportedPlaylist struct {
+	Name  string                 `json:"name"`
+	Items []ExportedPlaylistItem `json:"items"`
+}
+
+var exportPlaylistsCmd = &cobra.Command{
+	Use: "export-playlists",
+	Run: func(cmd *cobra.Command, args []string) {
+		output, _ := cmd.Flags().GetString("output")
+		dbPath, _ := cmd.Flags().GetString("db")
+
+		_ = output
+
+		db, err := database.OpenRaw(dbPath)
+		if err != nil {
+			log.Fatal("Failed to open db", "err", err)
+		}
+
+		query := PlaylistQuery()
+
+		var playlists []Playlist
+		err = db.Select(&playlists, query)
+		if err != nil {
+			log.Fatal("Failed to get playlists", "err", err)
+		}
+
+		pretty.Println(playlists)
+
+		for _, playlist := range playlists {
+			query := dialect.From("playlist_items").
+				Select(
+					"playlist_items.track_id",
+				).
+				Where(goqu.I("playlist_id").Eq(playlist.Id))
+
+			var items []string
+			err := db.Select(&items, query)
+			if err != nil {
+				log.Fatal("Failed to get playlist items", "err", err, "playlistId", playlist.Id)
+			}
+
+			res := ExportedPlaylist{
+				Name:  playlist.Name,
+				Items: make([]ExportedPlaylistItem, len(items)),
+			}
+
+			for i, trackId := range items {
+				query := TrackQuery().Where(goqu.I("tracks.id").Eq(trackId))
+
+				var track Track
+				err = db.Get(&track, query)
+				if err != nil {
+					log.Fatal("Failed to get track for playlist", "err", err, "playlistId", playlist.Id, "trackId", trackId)
+				}
+
+				res.Items[i] = ExportedPlaylistItem{
+					TrackId:    trackId,
+					TrackName:  track.Name,
+					AlbumName:  track.AlbumName,
+					ArtistName: track.ArtistName,
+				}
+			}
+
+			pretty.Println(res)
+
+			d, err := json.MarshalIndent(res, "", "  ")
+			if err != nil {
+				log.Fatal("Failed to marshal json", "err", err, "playlistId", playlist.Id)
+			}
+
+			name := utils.Slug(playlist.Name) + ".json"
+			err = os.WriteFile(path.Join(output, name), d, 0644)
+			if err != nil {
+				log.Fatal("Failed to write json", "err", err, "playlistId", playlist.Id)
+			}
+		}
+	},
+}
+
 func init() {
 	initCmd.Flags().String("dir", ".", "input directory")
 	initCmd.Flags().StringP("output", "o", "album.toml", "write result to file")
@@ -495,6 +615,11 @@ func init() {
 	oldInitCmd.Flags().String("db", "", "database to use")
 	oldInitCmd.MarkFlagRequired("db")
 
+	exportPlaylistsCmd.Flags().StringP("output", "o", "album.toml", "write result to file")
+	exportPlaylistsCmd.Flags().String("db", "", "database to use")
+	exportPlaylistsCmd.MarkFlagRequired("db")
+
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(oldInitCmd)
+	rootCmd.AddCommand(exportPlaylistsCmd)
 }
