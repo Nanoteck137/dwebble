@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/huh"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/kr/pretty"
+	"github.com/nanoteck137/dwebble/cmd/dwebble-cli/api"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/library"
@@ -606,6 +607,73 @@ var exportPlaylistsCmd = &cobra.Command{
 	},
 }
 
+var importPlaylistCmd = &cobra.Command{
+	Use:  "import-playlist <PLAYLIST_FILE>",
+	Args: cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		file := args[0]
+
+		server, _ := cmd.Flags().GetString("server")
+		token, _ := cmd.Flags().GetString("token")
+
+		client := api.New(server)
+		if token != "" {
+			client.SetApiToken(token)
+		}
+
+		d, err := os.ReadFile(file)
+		if err != nil {
+			log.Fatal("Failed", "err", err)
+		}
+
+		var p ExportedPlaylist
+		err = json.Unmarshal(d, &p)
+		if err != nil {
+			log.Fatal("Failed", "err", err)
+		}
+
+		pretty.Println(p)
+
+		playlists, err := client.GetPlaylists(api.Options{})
+		if err != nil {
+			log.Fatal("Failed", "err", err)
+		}
+
+		pretty.Println(playlists)
+
+		var playlistId *string
+
+		for _, playlist := range playlists.Playlists {
+			if playlist.Name == p.Name {
+				playlistId = &playlist.Id
+				break
+			}
+		}
+
+		if playlistId == nil {
+			log.Info("Failed to find playlist creating new playlist", "name", p.Name)
+
+			res, err := client.CreatePlaylist(api.CreatePlaylistBody{
+				Name: p.Name,
+			}, api.Options{})
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
+
+			playlistId = &res.Id
+		}
+
+		for _, item := range p.Items {
+			_, err := client.AddItemToPlaylist(*playlistId, api.AddItemToPlaylistBody{
+				TrackId: item.TrackId,
+			}, api.Options{})
+			if err != nil {
+				log.Error("Failed to add track to playlist", "err", err, "track", item)
+			}
+		}
+	},
+}
+
 func init() {
 	initCmd.Flags().String("dir", ".", "input directory")
 	initCmd.Flags().StringP("output", "o", "album.toml", "write result to file")
@@ -619,7 +687,12 @@ func init() {
 	exportPlaylistsCmd.Flags().String("db", "", "database to use")
 	exportPlaylistsCmd.MarkFlagRequired("db")
 
+	importPlaylistCmd.Flags().StringP("token", "t", "", "Api Token to use")
+	importPlaylistCmd.Flags().String("server", "", "Server Address")
+	importPlaylistCmd.MarkFlagRequired("server")
+
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(oldInitCmd)
 	rootCmd.AddCommand(exportPlaylistsCmd)
+	rootCmd.AddCommand(importPlaylistCmd)
 }
