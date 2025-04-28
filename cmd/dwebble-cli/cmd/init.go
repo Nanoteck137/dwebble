@@ -683,7 +683,7 @@ func init() {
 	oldInitCmd.Flags().String("db", "", "database to use")
 	oldInitCmd.MarkFlagRequired("db")
 
-	exportPlaylistsCmd.Flags().StringP("output", "o", "album.toml", "write result to file")
+	exportPlaylistsCmd.Flags().StringP("output", "o", ".", "write result to file")
 	exportPlaylistsCmd.Flags().String("db", "", "database to use")
 	exportPlaylistsCmd.MarkFlagRequired("db")
 
