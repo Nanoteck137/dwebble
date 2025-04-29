@@ -16,7 +16,7 @@
 
     more?: Snippet<[]>;
 
-    onPlay?: () => void;
+    onPlay?: (shuffle: boolean) => void;
   };
 
   const { name, image, tags, artists, more, onPlay }: Props = $props();
@@ -49,7 +49,7 @@
       <Button
         variant="outline"
         onclick={() => {
-          onPlay?.();
+          onPlay?.(false);
         }}
       >
         <Play />
@@ -59,7 +59,7 @@
       <Button
         variant="outline"
         onclick={() => {
-          onPlay?.();
+          onPlay?.(true);
         }}
       >
         <Shuffle />

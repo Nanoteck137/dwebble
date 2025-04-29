@@ -34,9 +34,9 @@
 
 <TrackListHeader
   name={data.playlist.name}
-  onPlay={async () => {
+  onPlay={async (shuffle) => {
     await musicManager.clearQueue();
-    await musicManager.addFromPlaylist(data.playlist.id);
+    await musicManager.addFromPlaylist(data.playlist.id, { shuffle });
     musicManager.requestPlay();
   }}
 >
@@ -66,9 +66,9 @@
   tracks={data.items}
   userPlaylists={data.userPlaylists}
   quickPlaylist={data.user?.quickPlaylist}
-  onPlay={async () => {
+  onPlay={async (shuffle) => {
     await musicManager.clearQueue();
-    await musicManager.addFromPlaylist(data.playlist.id);
+    await musicManager.addFromPlaylist(data.playlist.id, { shuffle });
     musicManager.requestPlay();
   }}
   onTrackPlay={async (trackId) => {

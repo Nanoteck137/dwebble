@@ -215,9 +215,12 @@ export class LocalQueue extends Queue {
     }
   }
 
+  // TODO(patrik): Fix every add method to use settings
   async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
-    const res = await this.apiClient.getMediaFromPlaylist(playlistId, {});
+    const res = await this.apiClient.getMediaFromPlaylist(playlistId, {
+      shuffle: settings?.shuffle,
+    });
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
@@ -227,7 +230,9 @@ export class LocalQueue extends Queue {
 
   async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
-    const res = await this.apiClient.getMediaFromTaglist(taglistId, {});
+    const res = await this.apiClient.getMediaFromTaglist(taglistId, {
+      shuffle: settings?.shuffle,
+    });
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
@@ -237,7 +242,10 @@ export class LocalQueue extends Queue {
 
   async addFromFilter(filter: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
-    const res = await this.apiClient.getMediaFromFilter({ filter });
+    const res = await this.apiClient.getMediaFromFilter({
+      filter,
+      shuffle: settings?.shuffle,
+    });
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
@@ -247,7 +255,9 @@ export class LocalQueue extends Queue {
 
   async addFromArtist(artistId: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
-    const res = await this.apiClient.getMediaFromArtist(artistId, {});
+    const res = await this.apiClient.getMediaFromArtist(artistId, {
+      shuffle: settings?.shuffle,
+    });
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
@@ -257,7 +267,9 @@ export class LocalQueue extends Queue {
 
   async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
-    const res = await this.apiClient.getMediaFromAlbum(albumId, {});
+    const res = await this.apiClient.getMediaFromAlbum(albumId, {
+      shuffle: settings?.shuffle,
+    });
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
@@ -267,7 +279,10 @@ export class LocalQueue extends Queue {
 
   async addFromIds(trackIds: string[], settings?: AddToQueueSettings) {
     // TODO(patrik): Handle error
-    const res = await this.apiClient.getMediaFromIds({ trackIds });
+    const res = await this.apiClient.getMediaFromIds({
+      trackIds,
+      shuffle: settings?.shuffle,
+    });
     if (res.success) {
       this.items = [...this.items, ...res.data.items];
     }
