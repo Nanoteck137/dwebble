@@ -98,7 +98,7 @@ func (db *Database) GetPlaylistTracks(ctx context.Context, playlistId string) ([
 	query := dialect.From("playlist_items").
 		Select("tracks.*").
 		Join(
-			tracks.As("tracks"), 
+			tracks.As("tracks"),
 			goqu.On(goqu.I("playlist_items.track_id").Eq(goqu.I("tracks.id"))),
 		).
 		Where(goqu.I("playlist_items.playlist_id").Eq(playlistId)).
@@ -119,7 +119,7 @@ func (db *Database) GetPlaylistTracksPaged(ctx context.Context, playlistId strin
 	query := dialect.From("playlist_items").
 		Select("tracks.*").
 		Join(
-			tracks.As("tracks"), 
+			tracks.As("tracks"),
 			goqu.On(goqu.I("playlist_items.track_id").Eq(goqu.I("tracks.id"))),
 		).
 		Where(goqu.I("playlist_items.playlist_id").Eq(playlistId)).
@@ -245,6 +245,31 @@ func (db *Database) RemovePlaylistItem(ctx context.Context, playlistId, trackId 
 			goqu.I("playlist_items.playlist_id").Eq(playlistId),
 			goqu.I("playlist_items.track_id").Eq(trackId),
 		))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) RemoveAllPlaylistItem(ctx context.Context, playlistId string) error {
+	query := goqu.Delete("playlist_items").
+		Where(goqu.I("playlist_items.playlist_id").Eq(playlistId))
+
+	_, err := db.Exec(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *Database) DeletePlaylist(ctx context.Context, id string) error {
+	query := dialect.Delete("playlists").
+		Prepared(true).
+		Where(goqu.I("playlists.id").Eq(id))
 
 	_, err := db.Exec(ctx, query)
 	if err != nil {

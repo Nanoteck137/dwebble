@@ -1,15 +1,21 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
+  import { getApiClient, handleApiError } from "$lib";
+  import ConfirmModal from "$lib/components/new-modals/ConfirmModal.svelte";
   import Spacer from "$lib/components/Spacer.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
   import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { Breadcrumb, DropdownMenu, Pagination } from "@nanoteck137/nano-ui";
-  import { Pencil } from "lucide-svelte";
+  import { Pencil, Trash } from "lucide-svelte";
+  import toast from "svelte-5-french-toast";
 
   const { data } = $props();
   const musicManager = getMusicManager();
+  const apiClient = getApiClient();
+
+  let openConfirmDeleteAlbum = $state(false);
 </script>
 
 <div class="py-2">
@@ -39,6 +45,15 @@
       <DropdownMenu.Item onSelect={() => {}}>
         <Pencil />
         Edit Playlist
+      </DropdownMenu.Item>
+
+      <DropdownMenu.Item
+        onSelect={() => {
+          openConfirmDeleteAlbum = true;
+        }}
+      >
+        <Trash />
+        Delete Playlist
       </DropdownMenu.Item>
     </DropdownMenu.Group>
   {/snippet}
@@ -108,3 +123,20 @@
     </Pagination.Content>
   {/snippet}
 </Pagination.Root>
+
+<ConfirmModal
+  bind:open={openConfirmDeleteAlbum}
+  removeTrigger
+  confirmDelete
+  onResult={async () => {
+    const res = await apiClient.deletePlaylist(data.playlist.id);
+    if (!res.success) {
+      handleApiError(res.error);
+      invalidateAll();
+      return;
+    }
+
+    toast.success("Successfully deleted album");
+    goto("/playlists", { invalidateAll: true });
+  }}
+/>

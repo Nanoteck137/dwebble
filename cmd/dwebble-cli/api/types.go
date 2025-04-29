@@ -255,17 +255,6 @@ type GetSystemInfo struct {
 	Version string `json:"version"`
 }
 
-type Report struct {
-	Type string `json:"type"`
-	Message string `json:"message"`
-	FullMessage *string `json:"fullMessage,omitempty"`
-}
-
-type SyncStatus struct {
-	IsSyncing bool `json:"isSyncing"`
-	LastReports []Report `json:"lastReports"`
-}
-
 type Taglist struct {
 	Id string `json:"id"`
 	Name string `json:"name"`

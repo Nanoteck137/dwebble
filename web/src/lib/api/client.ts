@@ -128,6 +128,10 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/playlists/filter", "POST", api.CreatePlaylist, z.any(), body, options)
   }
   
+  deletePlaylist(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/playlists/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
+  }
+  
   getPlaylistById(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/playlists/${id}`, "GET", api.GetPlaylistById, z.any(), undefined, options)
   }
@@ -144,6 +148,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/playlists/${id}/items`, "DELETE", z.undefined(), z.any(), body, options)
   }
   
+  clearPlaylist(id: string, options?: ExtraOptions) {
+    return this.request(`/api/v1/playlists/${id}/items/all`, "DELETE", z.undefined(), z.any(), undefined, options)
+  }
+  
   getSystemInfo(options?: ExtraOptions) {
     return this.request("/api/v1/system/info", "GET", api.GetSystemInfo, z.any(), undefined, options)
   }
@@ -153,7 +161,7 @@ export class ApiClient extends BaseApiClient {
   }
   
   getSyncStatus(options?: ExtraOptions) {
-    return this.request("/api/v1/system/library", "GET", api.SyncStatus, z.any(), undefined, options)
+    return this.request("/api/v1/system/library", "GET", z.undefined(), z.any(), undefined, options)
   }
   
   syncLibrary(options?: ExtraOptions) {

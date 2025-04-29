@@ -299,19 +299,6 @@ export const GetSystemInfo = z.object({
 });
 export type GetSystemInfo = z.infer<typeof GetSystemInfo>;
 
-export const Report = z.object({
-  type: z.string(),
-  message: z.string(),
-  fullMessage: z.string().nullable().optional(),
-});
-export type Report = z.infer<typeof Report>;
-
-export const SyncStatus = z.object({
-  isSyncing: z.boolean(),
-  lastReports: z.array(Report),
-});
-export type SyncStatus = z.infer<typeof SyncStatus>;
-
 export const Taglist = z.object({
   id: z.string(),
   name: z.string(),

@@ -661,7 +661,13 @@ var importPlaylistCmd = &cobra.Command{
 			}
 
 			playlistId = &res.Id
+		} else {
+			_, err = client.ClearPlaylist(*playlistId, api.Options{})
+			if err != nil {
+				log.Fatal("Failed", "err", err)
+			}
 		}
+
 
 		for _, item := range p.Items {
 			_, err := client.AddItemToPlaylist(*playlistId, api.AddItemToPlaylistBody{

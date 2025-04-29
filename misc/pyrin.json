@@ -919,43 +919,6 @@
       ]
     },
     {
-      "name": "Report",
-      "extend": "",
-      "fields": [
-        {
-          "name": "type",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "message",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "fullMessage",
-          "type": "*string",
-          "omit": true
-        }
-      ]
-    },
-    {
-      "name": "SyncStatus",
-      "extend": "",
-      "fields": [
-        {
-          "name": "isSyncing",
-          "type": "bool",
-          "omit": false
-        },
-        {
-          "name": "lastReports",
-          "type": "[]Report",
-          "omit": false
-        }
-      ]
-    },
-    {
       "name": "Taglist",
       "extend": "",
       "fields": [
@@ -1552,6 +1515,13 @@
       "bodyType": "PostPlaylistFilterBody"
     },
     {
+      "name": "DeletePlaylist",
+      "method": "DELETE",
+      "path": "/api/v1/playlists/:id",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "GetPlaylistById",
       "method": "GET",
       "path": "/api/v1/playlists/:id",
@@ -1580,6 +1550,13 @@
       "bodyType": "RemovePlaylistItemBody"
     },
     {
+      "name": "ClearPlaylist",
+      "method": "DELETE",
+      "path": "/api/v1/playlists/:id/items/all",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "GetSystemInfo",
       "method": "GET",
       "path": "/api/v1/system/info",
@@ -1597,7 +1574,7 @@
       "name": "GetSyncStatus",
       "method": "GET",
       "path": "/api/v1/system/library",
-      "responseType": "SyncStatus",
+      "responseType": "",
       "bodyType": ""
     },
     {
@@ -1765,6 +1742,11 @@
     }
   ],
   "normalEndpoints": [
+    {
+      "name": "SseHandler",
+      "method": "GET",
+      "path": "/api/v1/system/library/sse"
+    },
     {
       "name": "",
       "method": "GET",

@@ -511,6 +511,23 @@ func (c *Client) CreatePlaylistFromFilter(body PostPlaylistFilterBody, options O
 	return Request[CreatePlaylist](data)
 }
 
+func (c *Client) DeletePlaylist(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/playlists/%v", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "DELETE",
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) GetPlaylistById(id string, options Options) (*GetPlaylistById, error) {
 	path := Sprintf("/api/v1/playlists/%v", id)
 	url, err := createUrl(c.addr, path, options.QueryParams)
@@ -579,6 +596,23 @@ func (c *Client) RemovePlaylistItem(id string, body RemovePlaylistItemBody, opti
 	return Request[any](data)
 }
 
+func (c *Client) ClearPlaylist(id string, options Options) (*any, error) {
+	path := Sprintf("/api/v1/playlists/%v/items/all", id)
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "DELETE",
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) GetSystemInfo(options Options) (*GetSystemInfo, error) {
 	path := "/api/v1/system/info"
 	url, err := createUrl(c.addr, path, options.QueryParams)
@@ -613,7 +647,7 @@ func (c *Client) RefillSearch(options Options) (*any, error) {
 	return Request[any](data)
 }
 
-func (c *Client) GetSyncStatus(options Options) (*SyncStatus, error) {
+func (c *Client) GetSyncStatus(options Options) (*any, error) {
 	path := "/api/v1/system/library"
 	url, err := createUrl(c.addr, path, options.QueryParams)
 	if err != nil {
@@ -627,7 +661,7 @@ func (c *Client) GetSyncStatus(options Options) (*SyncStatus, error) {
 		ApiToken: c.apiToken,
 		Body: nil,
 	}
-	return Request[SyncStatus](data)
+	return Request[any](data)
 }
 
 func (c *Client) SyncLibrary(options Options) (*any, error) {

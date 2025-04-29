@@ -205,6 +205,43 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
+			Name:     "DeletePlaylist",
+			Path:     "/playlists/:id",
+			Method:   http.MethodDelete,
+			Errors:   []pyrin.ErrorType{ErrTypePlaylistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				playlistId := c.Param("id")
+
+				ctx := context.TODO()
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				playlist, err := app.DB().GetPlaylistById(ctx, playlistId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, PlaylistNotFound()
+					}
+
+					return nil, err
+				}
+
+				if playlist.OwnerId != user.Id {
+					return nil, PlaylistNotFound()
+				}
+
+				err = app.DB().DeletePlaylist(ctx, playlist.Id)
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
 			Name:         "GetPlaylistById",
 			Path:         "/playlists/:id",
 			Method:       http.MethodGet,
@@ -370,6 +407,43 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 
 				// TODO(patrik): Check for trackId exists?
 				err = app.DB().RemovePlaylistItem(c.Request().Context(), playlist.Id, body.TrackId)
+				if err != nil {
+					return nil, err
+				}
+
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:     "ClearPlaylist",
+			Path:     "/playlists/:id/items/all",
+			Method:   http.MethodDelete,
+			Errors:   []pyrin.ErrorType{ErrTypePlaylistNotFound},
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				playlistId := c.Param("id")
+
+				ctx := context.TODO()
+
+				user, err := User(app, c)
+				if err != nil {
+					return nil, err
+				}
+
+				playlist, err := app.DB().GetPlaylistById(ctx, playlistId)
+				if err != nil {
+					if errors.Is(err, database.ErrItemNotFound) {
+						return nil, PlaylistNotFound()
+					}
+
+					return nil, err
+				}
+
+				if playlist.OwnerId != user.Id {
+					return nil, PlaylistNotFound()
+				}
+
+				err = app.DB().RemoveAllPlaylistItem(ctx, playlist.Id)
 				if err != nil {
 					return nil, err
 				}
