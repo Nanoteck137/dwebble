@@ -87,6 +87,9 @@ func FixMetadata(metadata *library.Metadata) error {
 
 type SyncHelper struct {
 	artists map[string]string
+
+	albums map[string]struct{}
+	tracks map[string]struct{}
 }
 
 func (helper *SyncHelper) getOrCreateArtist(ctx context.Context, db *database.Database, name string) (string, error) {
@@ -231,6 +234,8 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 		}
 	}
 
+	helper.albums[dbAlbum.Id] = struct{}{}
+
 	changes := database.AlbumChanges{}
 
 	// TODO(patrik): More updates
@@ -335,6 +340,8 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 					return fmt.Errorf("failed to create track[%d]: %w", i, err)
 				}
 
+				helper.tracks[trackId] = struct{}{}
+
 				err = helper.setTrackFeaturingArtists(
 					ctx,
 					db,
@@ -353,6 +360,8 @@ func (helper *SyncHelper) syncAlbum(ctx context.Context, metadata *library.Metad
 				continue
 			}
 		}
+
+		helper.tracks[dbTrack.Id] = struct{}{}
 
 		err = helper.setTrackFeaturingArtists(
 			ctx,
@@ -446,10 +455,23 @@ const (
 	ReportTypeSync   ReportType = "sync"
 )
 
-type Report struct {
+type SyncError struct {
 	Type        ReportType `json:"type"`
 	Message     string     `json:"message"`
 	FullMessage *string    `json:"fullMessage,omitempty"`
+}
+
+type MissingAlbum struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	ArtistName string `json:"artistName"`
+}
+
+type MissingTrack struct {
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	AlbumName  string `json:"albumName"`
+	ArtistName string `json:"artistName"`
 }
 
 type SyncHandler struct {
@@ -457,17 +479,71 @@ type SyncHandler struct {
 
 	mutex sync.RWMutex
 
-	isSyncing   atomic.Bool
-	lastReports []Report
+	isSyncing atomic.Bool
+
+	syncErrors    []SyncError
+	missingAlbums []MissingAlbum
+	missingTracks []MissingTrack
 
 	SyncChannel chan bool
 }
 
-func (s *SyncHandler) GetLastReports() []Report {
+type Report struct {
+	SyncErrors    []SyncError    `json:"syncErrors"`
+	MissingAlbums []MissingAlbum `json:"missingAlbums"`
+	MissingTracks []MissingTrack `json:"missingTracks"`
+}
+
+func (s *SyncHandler) GetReport() Report {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	return s.lastReports
+	return Report{
+		SyncErrors:    s.syncErrors,
+		MissingAlbums: s.missingAlbums,
+		MissingTracks: s.missingTracks,
+	}
+}
+
+func (s *SyncHandler) Cleanup(app core.App) error {
+	db, tx, err := app.DB().Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	ctx := context.TODO()
+
+	for _, track := range s.missingTracks {
+		err := db.DeleteTrack(ctx, track.Id)
+		if err != nil {
+			return err
+		}
+
+		log.Info("Deleted track", "track", track)
+	}
+
+	for _, album := range s.missingAlbums {
+		err := db.DeleteAlbum(ctx, album.Id)
+		if err != nil {
+			return err
+		}
+
+		log.Info("Deleted album", "album", album)
+	}
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+
+	s.missingAlbums = []MissingAlbum{}
+	s.missingTracks = []MissingTrack{}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *SyncHandler) RunSync(app core.App) error {
@@ -493,6 +569,8 @@ func (s *SyncHandler) RunSync(app core.App) error {
 
 	helper := SyncHelper{
 		artists: map[string]string{},
+		albums:  map[string]struct{}{},
+		tracks:  map[string]struct{}{},
 	}
 
 	var syncErrors []error
@@ -506,7 +584,59 @@ func (s *SyncHandler) RunSync(app core.App) error {
 		}
 	}
 
-	reports := make([]Report, 0, len(search.Errors)+len(syncErrors))
+	var missingAlbums []MissingAlbum
+	var missingTracks []MissingTrack
+
+	{
+		ids, err := app.DB().GetAllAlbumIds(ctx)
+		if err != nil {
+			return err
+		}
+
+		for _, id := range ids {
+			_, exists := helper.albums[id]
+			if !exists {
+				album, err := app.DB().GetAlbumById(ctx, id)
+				if err != nil {
+					// TODO(patrik): How should we handle the error?
+					continue
+				}
+
+				missingAlbums = append(missingAlbums, MissingAlbum{
+					Id:         id,
+					Name:       album.Name,
+					ArtistName: album.ArtistName,
+				})
+			}
+		}
+	}
+
+	{
+		ids, err := app.DB().GetAllTrackIds(ctx)
+		if err != nil {
+			return err
+		}
+
+		for _, id := range ids {
+			_, exists := helper.tracks[id]
+			if !exists {
+				track, err := app.DB().GetTrackById(ctx, id)
+				if err != nil {
+					// TODO(patrik): How should we handle the error?
+					continue
+				}
+
+				missingTracks = append(missingTracks, MissingTrack{
+					Id:         id,
+					Name:       track.Name,
+					AlbumName:  track.AlbumName,
+					ArtistName: track.ArtistName,
+				})
+			}
+		}
+	}
+
+	errs := make([]SyncError, 0, len(search.Errors)+len(syncErrors))
 
 	for _, err := range search.Errors {
 		var fullMessage *string
@@ -517,7 +647,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 			fullMessage = &m
 		}
 
-		reports = append(reports, Report{
+		errs = append(errs, SyncError{
 			Type:        ReportTypeSearch,
 			Message:     err.Error(),
 			FullMessage: fullMessage,
@@ -525,7 +655,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	}
 
 	for _, err := range syncErrors {
-		reports = append(reports, Report{
+		errs = append(errs, SyncError{
 			Type:    ReportTypeSync,
 			Message: err.Error(),
 		})
@@ -534,7 +664,9 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	s.lastReports = reports
+	s.syncErrors = errs
+	s.missingAlbums = missingAlbums
+	s.missingTracks = missingTracks
 
 	return nil
 }
@@ -607,7 +739,7 @@ func (s SyncEvent) GetEventType() string {
 }
 
 type ReportEvent struct {
-	Reports []Report `json:"reports"`
+	Report
 }
 
 func (s ReportEvent) GetEventType() string {
@@ -654,9 +786,9 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:         "GetSyncStatus",
-			Method:       http.MethodGet,
-			Path:         "/system/library",
+			Name:   "GetSyncStatus",
+			Method: http.MethodGet,
+			Path:   "/system/library",
 			// ResponseType: SyncStatus{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				// res := syncHandler.GetSyncStatus()
@@ -697,11 +829,34 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 					})
 
 					syncHandler.broker.EmitEvent(ReportEvent{
-						Reports: syncHandler.GetLastReports(),
+						Report: syncHandler.GetReport(),
 					})
 
 					log.Info("Library sync done")
 				}()
+
+				return nil, nil
+			},
+		},
+
+		// TODO(patrik): Better name?
+		pyrin.ApiHandler{
+			Name:         "CleanupLibrary",
+			Method:       http.MethodPost,
+			Path:         "/system/library/cleanup",
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				if syncHandler.isSyncing.Load() {
+					return nil, errors.New("library is syncing")
+				}
+
+				err := syncHandler.Cleanup(app)
+				if err != nil {
+					return nil, err
+				}
+
+				syncHandler.broker.EmitEvent(ReportEvent{
+					Report: syncHandler.GetReport(),
+				})
 
 				return nil, nil
 			},
@@ -750,7 +905,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 				})
 
 				sendEvent(ReportEvent{
-					Reports: syncHandler.GetLastReports(),
+					Report: syncHandler.GetReport(),
 				})
 
 				for {

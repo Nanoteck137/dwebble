@@ -1585,6 +1585,13 @@
       "bodyType": ""
     },
     {
+      "name": "CleanupLibrary",
+      "method": "POST",
+      "path": "/api/v1/system/library/cleanup",
+      "responseType": "",
+      "bodyType": ""
+    },
+    {
       "name": "GetTaglists",
       "method": "GET",
       "path": "/api/v1/taglists",

@@ -17,7 +17,7 @@ import (
 type Album struct {
 	RowId int `db:"rowid"`
 
-	Id   string `db:"id"`
+	Id string `db:"id"`
 
 	Name      string         `db:"name"`
 	OtherName sql.NullString `db:"other_name"`
@@ -91,6 +91,19 @@ func AlbumQuery() *goqu.SelectDataset {
 		)
 
 	return query
+}
+
+func (db *Database) GetAllAlbumIds(ctx context.Context) ([]string, error) {
+	query := dialect.From("albums").
+		Select("albums.id")
+
+	var ids []string
+	err := db.Select(&ids, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
 }
 
 func (db *Database) GetAllAlbums(ctx context.Context, filterStr string, sortStr string) ([]Album, error) {
@@ -218,7 +231,7 @@ func (db *Database) GetAlbumByName(ctx context.Context, name string) (Album, err
 }
 
 type CreateAlbumParams struct {
-	Id   string
+	Id string
 
 	Name      string
 	OtherName sql.NullString
@@ -249,7 +262,7 @@ func (db *Database) CreateAlbum(ctx context.Context, params CreateAlbumParams) (
 
 	query := dialect.Insert("albums").
 		Rows(goqu.Record{
-			"id":   id,
+			"id": id,
 
 			"name":       params.Name,
 			"other_name": params.OtherName,

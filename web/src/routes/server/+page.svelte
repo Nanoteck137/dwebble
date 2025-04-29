@@ -12,6 +12,25 @@
   let test = $state<string[]>([]);
   let syncing = $state(false);
 
+  const SyncError = z.object({
+    type: z.string(),
+    message: z.string(),
+    fullMessage: z.string().optional(),
+  });
+
+  const MissingAlbum = z.object({
+    id: z.string(),
+    name: z.string(),
+    artistName: z.string(),
+  });
+
+  const MissingTrack = z.object({
+    id: z.string(),
+    name: z.string(),
+    albumName: z.string(),
+    artistName: z.string(),
+  });
+
   const Event = z.discriminatedUnion("type", [
     z.object({
       type: z.literal("syncing"),
@@ -22,15 +41,9 @@
     z.object({
       type: z.literal("report"),
       data: z.object({
-        reports: z
-          .array(
-            z.object({
-              type: z.string(),
-              message: z.string(),
-              fullMessage: z.string().optional(),
-            }),
-          )
-          .nullable(),
+        syncErrors: z.array(SyncError).nullable(),
+        missingAlbums: z.array(MissingAlbum).nullable(),
+        missingTracks: z.array(MissingTrack).nullable(),
       }),
     }),
   ]);
@@ -50,12 +63,13 @@
           syncing = event.data.syncing;
           break;
         case "report":
-          const mapped =
-            event.data.reports?.map((t) => {
-              if (t.fullMessage) return t.fullMessage;
-              return t.message;
-            }) ?? [];
-          test = mapped;
+          console.log("Report", event.data);
+          // const mapped =
+          //   event.data.reports?.map((t) => {
+          //     if (t.fullMessage) return t.fullMessage;
+          //     return t.message;
+          //   }) ?? [];
+          // test = mapped;
           break;
       }
     };
@@ -98,6 +112,18 @@
   }}
 >
   Sync Library
+</Button>
+
+<Button
+  onclick={async () => {
+    const res = await apiClient.cleanupLibrary();
+    if (!res.success) {
+      handleApiError(res.error);
+      return;
+    }
+  }}
+>
+  Cleanup Library
 </Button>
 
 {#each test as message}

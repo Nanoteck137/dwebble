@@ -681,6 +681,23 @@ func (c *Client) SyncLibrary(options Options) (*any, error) {
 	return Request[any](data)
 }
 
+func (c *Client) CleanupLibrary(options Options) (*any, error) {
+	path := "/api/v1/system/library/cleanup"
+	url, err := createUrl(c.addr, path, options.QueryParams)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		AuthToken: c.authToken,
+		ApiToken: c.apiToken,
+		Body: nil,
+	}
+	return Request[any](data)
+}
+
 func (c *Client) GetTaglists(options Options) (*GetTaglists, error) {
 	path := "/api/v1/taglists"
 	url, err := createUrl(c.addr, path, options.QueryParams)

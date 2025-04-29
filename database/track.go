@@ -186,6 +186,19 @@ func (db *Database) GetTracksByAlbumForPlay(ctx context.Context, albumId string)
 	return items, nil
 }
 
+func (db *Database) GetAllTrackIds(ctx context.Context) ([]string, error) {
+	query := dialect.From("tracks").
+		Select("tracks.id")
+
+	var items []string
+	err := db.Select(&items, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}
+
 // TODO(patrik): Move
 type FetchOptions struct {
 	Filter  string

@@ -168,6 +168,10 @@ export class ApiClient extends BaseApiClient {
     return this.request("/api/v1/system/library", "POST", z.undefined(), z.any(), undefined, options)
   }
   
+  cleanupLibrary(options?: ExtraOptions) {
+    return this.request("/api/v1/system/library/cleanup", "POST", z.undefined(), z.any(), undefined, options)
+  }
+  
   getTaglists(options?: ExtraOptions) {
     return this.request("/api/v1/taglists", "GET", api.GetTaglists, z.any(), undefined, options)
   }
