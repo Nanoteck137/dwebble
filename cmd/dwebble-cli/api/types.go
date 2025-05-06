@@ -231,7 +231,7 @@ type MediaItem struct {
 	Album MediaResource `json:"album"`
 	CoverArt Images `json:"coverArt"`
 	MediaType string `json:"mediaType"`
-	MediaUrl *string `json:"mediaUrl,omitempty"`
+	MediaUrl string `json:"mediaUrl"`
 }
 
 type GetMedia struct {

@@ -123,7 +123,7 @@ func packMediaResult(c pyrin.Context, tracks []database.Track, mediaType types.M
 			},
 			CoverArt:  ConvertAlbumCoverURL(c, track.AlbumId, track.AlbumCoverArt),
 			MediaType: mediaType,
-			MediaUrl:  &mediaUrl,
+			MediaUrl:  mediaUrl,
 		}
 	}
 

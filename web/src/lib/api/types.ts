@@ -276,7 +276,7 @@ export const MediaItem = z.object({
   album: MediaResource,
   coverArt: Images,
   mediaType: z.string(),
-  mediaUrl: z.string().nullable(),
+  mediaUrl: z.string(),
 });
 export type MediaItem = z.infer<typeof MediaItem>;
 
