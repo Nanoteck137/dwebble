@@ -27,7 +27,7 @@ type MediaItem struct {
 	CoverArt types.Images `json:"coverArt"`
 
 	MediaType types.MediaType `json:"mediaType"`
-	MediaUrl  *string         `json:"mediaUrl"`
+	MediaUrl  string          `json:"mediaUrl"`
 }
 
 type GetMedia struct {
