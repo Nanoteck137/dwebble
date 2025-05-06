@@ -5,15 +5,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"os"
 	"path"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
-	"github.com/nanoteck137/dwebble/tools/helper"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
@@ -130,7 +127,7 @@ func EnsureUnknownArtistExists(ctx context.Context, db *database.Database, workD
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
 			log.Info("Creating 'unknown' artist")
-			_, err = helper.CreateArtist(ctx, db, workDir, database.CreateArtistParams{
+			_, err := db.CreateArtist(ctx, database.CreateArtistParams{
 				Id:   UNKNOWN_ARTIST_ID,
 				Name: UNKNOWN_ARTIST_NAME,
 				Slug: utils.Slug(UNKNOWN_ARTIST_NAME),
@@ -149,7 +146,6 @@ func EnsureUnknownArtistExists(ctx context.Context, db *database.Database, workD
 const (
 	DefaultArtistPictureName = "default/default_artist.png"
 	DefaultAlbumCoverArtName = "default/default_album.png"
-	DefaultTrackCoverArtName = "default/default_album.png"
 )
 
 func ConvertURL(c pyrin.Context, path string) string {
@@ -214,78 +210,4 @@ func ConvertAlbumCoverURL(c pyrin.Context, albumId string, val sql.NullString) t
 		Medium:   url,
 		Large:    url,
 	}
-}
-
-func DeleteArtist(ctx context.Context, db *database.Database, workDir types.WorkDir, artist database.Artist) error {
-	dir := workDir.Artist(artist.Id)
-	targetName := fmt.Sprintf("artist-%s-%d", artist.Id, time.Now().UnixMilli())
-	target := path.Join(workDir.Trash(), targetName)
-
-	err := os.Rename(dir, target)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-
-	err = db.DeleteArtistFromSearch(ctx, artist)
-	if err != nil {
-		return err
-	}
-
-	err = db.DeleteArtist(ctx, artist.Id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DeleteAlbum(ctx context.Context, db *database.Database, workDir types.WorkDir, album database.Album) error {
-	dir := workDir.Album(album.Id)
-	targetName := fmt.Sprintf("album-%s-%d", album.Id, time.Now().UnixMilli())
-	target := path.Join(workDir.Trash(), targetName)
-
-	err := os.Rename(dir, target)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-
-	err = db.DeleteAlbumFromSearch(ctx, album)
-	if err != nil {
-		return err
-	}
-
-	err = db.DeleteAlbum(ctx, album.Id)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DeleteTrack(ctx context.Context, db *database.Database, workDir types.WorkDir, track database.Track) error {
-	dir := workDir.Track(track.Id)
-	targetName := fmt.Sprintf("track-%s-%d", track.Id, time.Now().UnixMilli())
-	target := path.Join(workDir.Trash(), targetName)
-
-	err := os.Rename(dir, target)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-
-	err = db.DeleteTrackFromSearch(ctx, track)
-	if err != nil {
-		return err
-	}
-
-	err = db.DeleteTrackMedia(ctx, track.Id)
-	if err != nil {
-		return err
-	}
-
-	err = db.DeleteTrack(ctx, track.Id)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
