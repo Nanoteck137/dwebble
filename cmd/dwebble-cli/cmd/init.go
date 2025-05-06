@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -20,6 +21,48 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/cobra"
 )
+
+var dateRegex = regexp.MustCompile(`^([12]\d\d\d)`)
+
+func parseArtist(s string) []string {
+	if s == "" {
+		return []string{}
+	}
+
+	return strings.Split(s, ",")
+}
+
+type TrackInfo struct {
+	Name   string
+	Artist string
+	Number int
+	Year   int
+}
+
+func getTrackInfo(p string) (TrackInfo, error) {
+	probe, err := utils.ProbeTrack(p)
+	if err != nil {
+		return TrackInfo{}, err
+	}
+
+	var res TrackInfo
+
+	res.Name, _ = probe.Tags.GetString("title")
+	res.Artist, _ = probe.Tags.GetString("artist")
+
+	if tag, err := probe.Tags.GetString("date"); err == nil {
+		match := dateRegex.FindStringSubmatch(tag)
+		if len(match) > 0 {
+			res.Year, _ = strconv.Atoi(match[1])
+		}
+	}
+
+	if tag, err := probe.Tags.GetInt("track"); err == nil {
+		res.Number = int(tag)
+	}
+
+	return res, nil
+}
 
 var initCmd = &cobra.Command{
 	Use: "init",
