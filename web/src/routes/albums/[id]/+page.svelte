@@ -45,13 +45,21 @@
   image={data.album.coverArt.medium}
   artists={data.album.artists}
   tags={data.album.tags}
+  onPlay={async (shuffle) => {
+    await musicManager.queueRequest(
+      { type: "addAlbum", albumId: data.album.id },
+      { shuffle },
+    );
+  }}
 >
   {#snippet more()}
     <DropdownMenu.Group>
       <DropdownMenu.Item
         onSelect={async () => {
-          await musicManager.addFromAlbum(data.album.id);
-          musicManager.requestPlay();
+          await musicManager.queueRequest(
+            { type: "addAlbum", albumId: data.album.id },
+            { append: "back" },
+          );
         }}
       >
         <ListPlus />
@@ -89,9 +97,10 @@
         <Button
           variant="outline"
           onclick={async () => {
-            await musicManager.clearQueue();
-            await musicManager.addFromAlbum(data.album.id);
-            musicManager.requestPlay();
+            await musicManager.queueRequest(
+              { type: "addAlbum", albumId: data.album.id },
+              {},
+            );
           }}
         >
           <Play />
@@ -119,17 +128,10 @@
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}
   quickPlaylist={data.user?.quickPlaylist}
-  onPlay={async () => {
-    await musicManager.clearQueue();
-    await musicManager.addFromAlbum(data.album.id);
-    musicManager.requestPlay();
-  }}
-  onTrackPlay={async (trackId) => {
-    await musicManager.clearQueue();
-    await musicManager.addFromAlbum(data.album.id);
-    await musicManager.setQueueIndex(
-      musicManager.queue.items.findIndex((t) => t.track.id === trackId),
+  onPlay={async (trackId) => {
+    await musicManager.queueRequest(
+      { type: "addAlbum", albumId: data.album.id },
+      { queueIndexToTrackId: trackId },
     );
-    musicManager.requestPlay();
   }}
 />

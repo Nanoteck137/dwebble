@@ -20,8 +20,7 @@
     userPlaylists?: Playlist[] | null;
     quickPlaylist?: string | null;
 
-    onPlay: (shuffle: boolean) => void;
-    onTrackPlay: (trackId: string) => void;
+    onPlay: (trackId: string) => void;
   };
 
   const {
@@ -30,7 +29,7 @@
     tracks,
     userPlaylists,
     quickPlaylist,
-    onTrackPlay,
+    onPlay,
   }: Props = $props();
 </script>
 
@@ -45,7 +44,7 @@
       showNumber={isAlbumShowcase}
       {track}
       onPlayClicked={() => {
-        onTrackPlay(track.id);
+        onPlay(track.id);
       }}
     >
       <QuickAddButton show={!!quickPlaylist} trackId={track.id} />

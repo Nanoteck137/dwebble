@@ -46,10 +46,14 @@
 
 <TrackListHeader
   name="Tracks"
-  onPlay={async () => {
-    await musicManager.clearQueue();
-    await musicManager.addFromFilter(data.filter ?? "", {});
-    musicManager.requestPlay();
+  onPlay={async (shuffle) => {
+    await musicManager.queueRequest(
+      {
+        type: "addFilter",
+        filter: data.filter ?? "",
+      },
+      { shuffle },
+    );
   }}
 />
 
@@ -60,12 +64,15 @@
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}
   quickPlaylist={data.user?.quickPlaylist}
-  onPlay={async (shuffle) => {
-    await musicManager.clearQueue();
-    await musicManager.addFromFilter(data.filter ?? "", { shuffle });
-    musicManager.requestPlay();
+  onPlay={async (trackId) => {
+    await musicManager.queueRequest(
+      {
+        type: "addFilter",
+        filter: data.filter ?? "",
+      },
+      { queueIndexToTrackId: trackId },
+    );
   }}
-  onTrackPlay={(trackId) => {}}
 />
 
 <Pagination.Root

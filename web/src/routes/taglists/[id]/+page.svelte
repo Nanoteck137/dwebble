@@ -10,7 +10,6 @@
   import { Filter } from "lucide-svelte";
 
   const { data } = $props();
-  const apiClient = getApiClient();
   const musicManager = getMusicManager();
 </script>
 
@@ -85,10 +84,14 @@
 
 <TrackListHeader
   name={data.taglist.name}
-  onPlay={async () => {
-    await musicManager.clearQueue();
-    await musicManager.addFromTaglist(data.taglist.id, {});
-    musicManager.requestPlay();
+  onPlay={async (shuffle) => {
+    await musicManager.queueRequest(
+      {
+        type: "addTaglist",
+        taglistId: data.taglist.id,
+      },
+      { shuffle },
+    );
   }}
 />
 
@@ -99,19 +102,14 @@
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}
   quickPlaylist={data.user?.quickPlaylist}
-  onPlay={async (shuffle) => {
-    await musicManager.clearQueue();
-    await musicManager.addFromTaglist(data.taglist.id, { shuffle });
-    musicManager.requestPlay();
-  }}
-  onTrackPlay={async (trackId) => {
-    // TODO(patrik): Replace with addFromTaglist and find the trackId
-    await musicManager.clearQueue();
-    await musicManager.addFromTaglist(data.taglist.id, {});
-    await musicManager.setQueueIndex(
-      musicManager.queue.items.findIndex((t) => t.track.id === trackId),
+  onPlay={async (trackId) => {
+    await musicManager.queueRequest(
+      {
+        type: "addTaglist",
+        taglistId: data.taglist.id,
+      },
+      { queueIndexToTrackId: trackId },
     );
-    musicManager.requestPlay();
   }}
 />
 

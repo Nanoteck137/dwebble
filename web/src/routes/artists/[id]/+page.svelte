@@ -2,6 +2,7 @@
   import AlbumListItem from "$lib/components/AlbumListItem.svelte";
   import Image from "$lib/components/Image.svelte";
   import TrackListItem from "$lib/components/track-list/TrackListItem.svelte";
+  import { getMusicManager } from "$lib/music-manager.svelte";
   import { isRoleAdmin } from "$lib/utils.js";
   import {
     Breadcrumb,
@@ -19,6 +20,7 @@
   } from "lucide-svelte";
 
   const { data } = $props();
+  const musicManager = getMusicManager();
 </script>
 
 <div class="py-2">
@@ -55,12 +57,34 @@
     <div class="flex-grow"></div>
 
     <div class="flex gap-2">
-      <Button variant="outline" onclick={() => {}}>
+      <Button
+        variant="outline"
+        onclick={async () => {
+          await musicManager.queueRequest(
+            {
+              type: "addArtist",
+              artistId: data.artist.id,
+            },
+            {},
+          );
+        }}
+      >
         <Play />
         Play
       </Button>
 
-      <Button variant="outline" onclick={() => {}}>
+      <Button
+        variant="outline"
+        onclick={async () => {
+          await musicManager.queueRequest(
+            {
+              type: "addArtist",
+              artistId: data.artist.id,
+            },
+            { shuffle: true },
+          );
+        }}
+      >
         <Shuffle />
         Shuffle
       </Button>
@@ -73,7 +97,17 @@
         </DropdownMenu.Trigger>
         <DropdownMenu.Content align="start">
           <DropdownMenu.Group>
-            <DropdownMenu.Item onSelect={async () => {}}>
+            <DropdownMenu.Item
+              onSelect={async () => {
+                await musicManager.queueRequest(
+                  {
+                    type: "addArtist",
+                    artistId: data.artist.id,
+                  },
+                  { append: "back" },
+                );
+              }}
+            >
               <ListPlus />
               Append to Queue
             </DropdownMenu.Item>

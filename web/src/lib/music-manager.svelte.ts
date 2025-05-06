@@ -7,6 +7,7 @@ import { getContext, setContext } from "svelte";
 
 type AddToQueueSettings = {
   shuffle?: boolean;
+  front?: boolean;
 };
 
 export abstract class Queue {
@@ -222,7 +223,11 @@ export class LocalQueue extends Queue {
       shuffle: settings?.shuffle,
     });
     if (res.success) {
-      this.items = [...this.items, ...res.data.items];
+      if (settings?.front) {
+        this.items = [...res.data.items, ...this.items];
+      } else {
+        this.items = [...this.items, ...res.data.items];
+      }
     }
 
     this.saveQueue();
@@ -234,7 +239,11 @@ export class LocalQueue extends Queue {
       shuffle: settings?.shuffle,
     });
     if (res.success) {
-      this.items = [...this.items, ...res.data.items];
+      if (settings?.front) {
+        this.items = [...res.data.items, ...this.items];
+      } else {
+        this.items = [...this.items, ...res.data.items];
+      }
     }
 
     this.saveQueue();
@@ -247,7 +256,11 @@ export class LocalQueue extends Queue {
       shuffle: settings?.shuffle,
     });
     if (res.success) {
-      this.items = [...this.items, ...res.data.items];
+      if (settings?.front) {
+        this.items = [...res.data.items, ...this.items];
+      } else {
+        this.items = [...this.items, ...res.data.items];
+      }
     }
 
     this.saveQueue();
@@ -259,7 +272,11 @@ export class LocalQueue extends Queue {
       shuffle: settings?.shuffle,
     });
     if (res.success) {
-      this.items = [...this.items, ...res.data.items];
+      if (settings?.front) {
+        this.items = [...res.data.items, ...this.items];
+      } else {
+        this.items = [...this.items, ...res.data.items];
+      }
     }
 
     this.saveQueue();
@@ -271,7 +288,11 @@ export class LocalQueue extends Queue {
       shuffle: settings?.shuffle,
     });
     if (res.success) {
-      this.items = [...this.items, ...res.data.items];
+      if (settings?.front) {
+        this.items = [...res.data.items, ...this.items];
+      } else {
+        this.items = [...this.items, ...res.data.items];
+      }
     }
 
     this.saveQueue();
@@ -284,7 +305,11 @@ export class LocalQueue extends Queue {
       shuffle: settings?.shuffle,
     });
     if (res.success) {
-      this.items = [...this.items, ...res.data.items];
+      if (settings?.front) {
+        this.items = [...res.data.items, ...this.items];
+      } else {
+        this.items = [...this.items, ...res.data.items];
+      }
     }
 
     this.saveQueue();
@@ -310,6 +335,46 @@ export class DummyQueue extends Queue {
   async setQueueIndex() {}
 }
 
+type QueueRequestOptions = {
+  queueIndex?: number;
+  queueIndexToTrackId?: string;
+  shuffle?: boolean;
+  skipPlay?: boolean;
+  append?: "front" | "back";
+};
+
+type QueueRequestAddPlaylist = {
+  type: "addPlaylist";
+  playlistId: string;
+};
+
+type QueueRequestAddAlbum = {
+  type: "addAlbum";
+  albumId: string;
+};
+
+type QueueRequestAddArtist = {
+  type: "addArtist";
+  artistId: string;
+};
+
+type QueueRequestAddTaglist = {
+  type: "addTaglist";
+  taglistId: string;
+};
+
+type QueueRequestAddFilter = {
+  type: "addFilter";
+  filter: string;
+};
+
+type QueueRequest =
+  | QueueRequestAddPlaylist
+  | QueueRequestAddAlbum
+  | QueueRequestAddArtist
+  | QueueRequestAddTaglist
+  | QueueRequestAddFilter;
+
 export class MusicManager {
   apiClient: ApiClient;
   queue: Queue;
@@ -329,6 +394,80 @@ export class MusicManager {
   async clearQueue() {
     await this.queue.clearQueue();
     this.emitter.emit("onQueueUpdated");
+  }
+
+  async queueRequest(request: QueueRequest, options: QueueRequestOptions) {
+    // onPlay={async (shuffle) => {
+    //   await musicManager.clearQueue();
+    //   await musicManager.addFromPlaylist(data.playlist.id, { shuffle });
+    //   musicManager.requestPlay();
+    // }}
+    // onTrackPlay={async (trackId) => {
+    //   await musicManager.clearQueue();
+    //   await musicManager.addFromPlaylist(data.playlist.id);
+    //   await musicManager.setQueueIndex(
+    //     musicManager.queue.items.findIndex((t) => t.track.id === trackId),
+    //   );
+    //   musicManager.requestPlay();
+    // }}
+
+    if (!options.append) {
+      await this.clearQueue();
+    }
+
+    switch (request.type) {
+      case "addPlaylist": {
+        await this.addFromPlaylist(request.playlistId, {
+          shuffle: options.shuffle,
+          front: options.append === "front",
+        });
+        break;
+      }
+      case "addAlbum": {
+        await this.addFromAlbum(request.albumId, {
+          shuffle: options.shuffle,
+          front: options.append === "front",
+        });
+        break;
+      }
+      case "addArtist": {
+        await this.addFromArtist(request.artistId, {
+          shuffle: options.shuffle,
+          front: options.append === "front",
+        });
+        break;
+      }
+      case "addTaglist": {
+        await this.addFromTaglist(request.taglistId, {
+          shuffle: options.shuffle,
+          front: options.append === "front",
+        });
+        break;
+      }
+      case "addFilter": {
+        await this.addFromFilter(request.filter, {
+          shuffle: options.shuffle,
+          front: options.append === "front",
+        });
+        break;
+      }
+    }
+
+    if (options.queueIndex) {
+      await this.setQueueIndex(options.queueIndex);
+    }
+
+    if (options.queueIndexToTrackId) {
+      await this.setQueueIndex(
+        this.queue.items.findIndex(
+          (t) => t.track.id === options.queueIndexToTrackId,
+        ),
+      );
+    }
+
+    if (!options.skipPlay) {
+      this.requestPlay();
+    }
   }
 
   async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
