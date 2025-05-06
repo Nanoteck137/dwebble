@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
 import type { ApiClient } from "$lib/api/client";
 import type { MediaItem } from "$lib/api/types";
@@ -79,84 +78,6 @@ export abstract class Queue {
     settings?: AddToQueueSettings,
   ): Promise<void>;
 }
-
-/*
-export class BackendQueue extends Queue {
-  apiClient: ApiClient;
-  queueId: string;
-
-  constructor(apiClient: ApiClient, queueId: string) {
-    super();
-
-    this.apiClient = apiClient;
-    this.queueId = queueId;
-
-    this.refetchQueue();
-  }
-
-  async initialize() {
-    await this.refetchQueue();
-  }
-
-  async refetchQueue() {
-    // TODO(patrik): Handle errors
-    const queueItems = await this.apiClient.getQueueItems(this.queueId);
-    if (queueItems.success) {
-      this.setQueueItems(
-        queueItems.data.items.map((i) => i.track),
-        queueItems.data.index,
-      );
-    }
-  }
-
-  async clearQueue() {
-    // TODO(patrik): Handle errors
-    const res = await this.apiClient.clearQueue(this.queueId);
-    if (res.success) {
-      await this.refetchQueue();
-    }
-  }
-
-  async addFromAlbum(albumId: string, settings?: AddToQueueSettings) {
-    // TODO(patrik): Handle errors
-    const res = await this.apiClient.addToQueueFromAlbum(this.queueId, {
-      albumId,
-      shuffle: settings?.shuffle,
-    });
-    if (res.success) {
-      await this.refetchQueue();
-    }
-  }
-
-  async addFromPlaylist(playlistId: string, settings?: AddToQueueSettings) {
-    const res = await this.apiClient.addToQueueFromPlaylist(this.queueId, {
-      playlistId,
-      shuffle: settings?.shuffle,
-    });
-    if (res.success) {
-      await this.refetchQueue();
-    }
-  }
-
-  async addFromTaglist(taglistId: string, settings?: AddToQueueSettings) {
-    const res = await this.apiClient.addToQueueFromTaglist(this.queueId, {
-      taglistId,
-      shuffle: settings?.shuffle,
-    });
-    if (res.success) {
-      await this.refetchQueue();
-    }
-  }
-
-  async setQueueIndex(index: number) {
-    super.setQueueIndex(index);
-
-    await this.apiClient.updateQueue(this.queueId, {
-      itemIndex: this.index,
-    });
-  }
-}
-*/
 
 type SavedQueue = {
   items: string[];
