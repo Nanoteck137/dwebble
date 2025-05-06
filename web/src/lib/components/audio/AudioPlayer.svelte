@@ -51,14 +51,7 @@
       if (currentMediaItem?.track.id === mediaItem.track.id) return;
 
       currentMediaItem = mediaItem;
-      if (mediaItem.mediaUrl) {
-        audio.src = mediaItem.mediaUrl;
-      } else {
-        audio.removeAttribute("src");
-        audio.load();
-
-        toast.error("Media item has no media attached");
-      }
+      audio.src = mediaItem.mediaUrl;
     } else {
       currentMediaItem = null;
       audio.removeAttribute("src");
