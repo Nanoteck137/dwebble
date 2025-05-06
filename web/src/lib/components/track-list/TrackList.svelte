@@ -9,7 +9,6 @@
   import { cn } from "$lib/utils";
   import type { Playlist, Track } from "$lib/api/types";
   import QuickAddButton from "$lib/components/QuickAddButton.svelte";
-  import { openAddToPlaylist } from "$lib";
   import { goto, invalidateAll } from "$app/navigation";
 
   type Props = {
@@ -84,10 +83,10 @@
               onSelect={async () => {
                 if (!userPlaylists) return;
 
-                await openAddToPlaylist({
-                  playlists: userPlaylists,
-                  track,
-                });
+                // await openAddToPlaylist({
+                //   playlists: userPlaylists,
+                //   track,
+                // });
 
                 await invalidateAll();
               }}

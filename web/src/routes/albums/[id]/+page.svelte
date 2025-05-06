@@ -9,9 +9,7 @@
   import ArtistList from "$lib/components/ArtistList.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import { getMusicManager } from "$lib/music-manager.svelte.js";
-  import { goto } from "$app/navigation";
   import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
-  import { isRoleAdmin } from "$lib/utils";
   import Image from "$lib/components/Image.svelte";
 
   let { data } = $props();
@@ -59,12 +57,6 @@
         <ListPlus />
         Append to Queue
       </DropdownMenu.Item>
-      {#if isRoleAdmin(data.user?.role || "")}
-        <DropdownMenu.Link href="/albums/{data.album.id}/edit">
-          <Pencil />
-          Edit Album
-        </DropdownMenu.Link>
-      {/if}
     </DropdownMenu.Group>
   {/snippet}
 </TrackListHeader>
@@ -130,10 +122,6 @@
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}
   quickPlaylist={data.user?.quickPlaylist}
-  isInQuickPlaylist={(trackId) => {
-    if (!data.quickPlaylistIds) return false;
-    return !!data.quickPlaylistIds.find((v) => v === trackId);
-  }}
   onPlay={async () => {
     await musicManager.clearQueue();
     await musicManager.addFromAlbum(data.album.id);
