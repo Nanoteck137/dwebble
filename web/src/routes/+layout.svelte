@@ -20,9 +20,7 @@
   import { browser } from "$app/environment";
   import { fade, fly } from "svelte/transition";
   import { Button, buttonVariants } from "@nanoteck137/nano-ui";
-  import { modals, Modals } from "svelte-modals";
   import toast, { Toaster } from "svelte-5-french-toast";
-  import { navigating } from "$app/stores";
   import { handleApiError, setApiClient } from "$lib";
   import {
     DummyQueue,
@@ -55,14 +53,6 @@
       console.log("Local");
       musicManager.setQueue(new LocalQueue(apiClient));
     }
-
-    // if (data.user) {
-    //   if (!(musicManager.queue instanceof BackendQueue)) {
-    //     console.log("Backend");
-    //     musicManager.setQueue(new BackendQueue(apiClient, data.queueId));
-    //   }
-    // } else {
-    // }
   });
 
   $effect(() => {
@@ -83,14 +73,6 @@
       if (browser) document.body.style.overflow = "";
     }
   });
-
-  $effect(() => {
-    if ($navigating !== null) {
-      if (modals.stack.length > 0) {
-        modals.closeAll();
-      }
-    }
-  });
 </script>
 
 <svelte:head>
@@ -98,7 +80,6 @@
 </svelte:head>
 
 <Toaster position="bottom-right" />
-<Modals />
 
 <header
   class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"

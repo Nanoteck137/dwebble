@@ -9,12 +9,6 @@ export const Page = z.object({
 });
 export type Page = z.infer<typeof Page>;
 
-export const Name = z.object({
-  default: z.string(),
-  other: z.string().nullable(),
-});
-export type Name = z.infer<typeof Name>;
-
 export const Images = z.object({
   original: z.string(),
   small: z.string(),
@@ -25,7 +19,7 @@ export type Images = z.infer<typeof Images>;
 
 export const Artist = z.object({
   id: z.string(),
-  name: Name,
+  name: z.string(),
   picture: Images,
   tags: z.array(z.string()),
   created: z.number(),
@@ -44,20 +38,17 @@ export type GetArtistById = z.infer<typeof GetArtistById>;
 
 export const ArtistInfo = z.object({
   id: z.string(),
-  name: Name,
+  name: z.string(),
 });
 export type ArtistInfo = z.infer<typeof ArtistInfo>;
 
 export const Album = z.object({
   id: z.string(),
-  name: Name,
+  name: z.string(),
   year: z.number().nullable(),
   coverArt: Images,
-  artistId: z.string(),
-  artistName: Name,
+  artists: z.array(ArtistInfo),
   tags: z.array(z.string()),
-  featuringArtists: z.array(ArtistInfo),
-  allArtists: z.array(ArtistInfo),
   created: z.number(),
   updated: z.number(),
 });
@@ -67,29 +58,6 @@ export const GetArtistAlbumsById = z.object({
   albums: z.array(Album),
 });
 export type GetArtistAlbumsById = z.infer<typeof GetArtistAlbumsById>;
-
-export const EditArtistBody = z.object({
-  name: z.string().nullable().optional(),
-  otherName: z.string().nullable().optional(),
-  tags: z.array(z.string()).nullable().optional(),
-});
-export type EditArtistBody = z.infer<typeof EditArtistBody>;
-
-export const CreateArtist = z.object({
-  id: z.string(),
-});
-export type CreateArtist = z.infer<typeof CreateArtist>;
-
-export const CreateArtistBody = z.object({
-  name: z.string(),
-  otherName: z.string(),
-});
-export type CreateArtistBody = z.infer<typeof CreateArtistBody>;
-
-export const MergeArtistsBody = z.object({
-  artists: z.array(z.string()),
-});
-export type MergeArtistsBody = z.infer<typeof MergeArtistsBody>;
 
 export const GetAlbums = z.object({
   page: Page,
@@ -102,13 +70,13 @@ export type GetAlbumById = z.infer<typeof GetAlbumById>;
 
 export const Track = z.object({
   id: z.string(),
-  name: Name,
+  name: z.string(),
   duration: z.number(),
   number: z.number().nullable(),
   year: z.number().nullable(),
   coverArt: Images,
   albumId: z.string(),
-  albumName: Name,
+  albumName: z.string(),
   artists: z.array(ArtistInfo),
   tags: z.array(z.string()),
   created: z.number(),
@@ -121,94 +89,14 @@ export const GetAlbumTracks = z.object({
 });
 export type GetAlbumTracks = z.infer<typeof GetAlbumTracks>;
 
-export const TrackDetails = z.object({
-  id: z.string(),
-  name: Name,
-  duration: z.number(),
-  number: z.number().nullable(),
-  year: z.number().nullable(),
-  coverArt: Images,
-  albumId: z.string(),
-  albumName: Name,
-  artistId: z.string(),
-  artistName: Name,
-  tags: z.array(z.string()),
-  featuringArtists: z.array(ArtistInfo),
-  created: z.number(),
-  updated: z.number(),
-});
-export type TrackDetails = z.infer<typeof TrackDetails>;
-
-export const GetAlbumTracksDetails = z.object({
-  tracks: z.array(TrackDetails),
-});
-export type GetAlbumTracksDetails = z.infer<typeof GetAlbumTracksDetails>;
-
-export const EditAlbumBody = z.object({
-  name: z.string().nullable().optional(),
-  otherName: z.string().nullable().optional(),
-  artistId: z.string().nullable().optional(),
-  year: z.number().nullable().optional(),
-  tags: z.array(z.string()).nullable().optional(),
-  featuringArtists: z.array(z.string()).nullable().optional(),
-});
-export type EditAlbumBody = z.infer<typeof EditAlbumBody>;
-
-export const CreateAlbum = z.object({
-  albumId: z.string(),
-});
-export type CreateAlbum = z.infer<typeof CreateAlbum>;
-
-export const CreateAlbumBody = z.object({
-  name: z.string(),
-  otherName: z.string(),
-  artistId: z.string(),
-  year: z.number(),
-  tags: z.array(z.string()),
-  featuringArtists: z.array(z.string()),
-});
-export type CreateAlbumBody = z.infer<typeof CreateAlbumBody>;
-
 export const GetTracks = z.object({
   page: Page,
   tracks: z.array(Track),
 });
 export type GetTracks = z.infer<typeof GetTracks>;
 
-export const GetDetailedTracks = z.object({
-  page: Page,
-  tracks: z.array(TrackDetails),
-});
-export type GetDetailedTracks = z.infer<typeof GetDetailedTracks>;
-
 export const GetTrackById = Track;
 export type GetTrackById = z.infer<typeof GetTrackById>;
-
-export const GetTrackDetails = TrackDetails;
-export type GetTrackDetails = z.infer<typeof GetTrackDetails>;
-
-export const EditTrackBody = z.object({
-  name: z.string().nullable().optional(),
-  otherName: z.string().nullable().optional(),
-  artistId: z.string().nullable().optional(),
-  year: z.number().nullable().optional(),
-  number: z.number().nullable().optional(),
-  tags: z.array(z.string()).nullable().optional(),
-  featuringArtists: z.array(z.string()).nullable().optional(),
-});
-export type EditTrackBody = z.infer<typeof EditTrackBody>;
-
-export const UploadTrackBody = z.object({
-  name: z.string(),
-  otherName: z.string(),
-  number: z.number(),
-  year: z.number(),
-  albumId: z.string(),
-  artistId: z.string(),
-  tags: z.array(z.string()),
-  featuringArtists: z.array(z.string()),
-});
-export type UploadTrackBody = z.infer<typeof UploadTrackBody>;
 
 export const Signup = z.object({
   id: z.string(),

@@ -114,10 +114,6 @@
     tracks={data.tracks}
     userPlaylists={data.userPlaylists}
     quickPlaylist={data.user?.quickPlaylist}
-    isInQuickPlaylist={(trackId) => {
-      if (!data.quickPlaylistIds) return false;
-      return !!data.quickPlaylistIds.find((v) => v === trackId);
-    }}
     onPlay={() => {}}
     onTrackPlay={() => {}}
   />

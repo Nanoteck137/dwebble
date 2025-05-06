@@ -2,7 +2,6 @@
   import AlbumListItem from "$lib/components/AlbumListItem.svelte";
   import Image from "$lib/components/Image.svelte";
   import TrackListItem from "$lib/components/track-list/TrackListItem.svelte";
-  import { getMusicManager } from "$lib/music-manager.svelte.js";
   import { isRoleAdmin } from "$lib/utils.js";
   import {
     Breadcrumb,
@@ -20,7 +19,6 @@
   } from "lucide-svelte";
 
   const { data } = $props();
-  const musicManager = getMusicManager();
 </script>
 
 <div class="py-2">
@@ -31,7 +29,7 @@
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
-        <Breadcrumb.Page>{data.artist.name.default}</Breadcrumb.Page>
+        <Breadcrumb.Page>{data.artist.name}</Breadcrumb.Page>
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
@@ -44,10 +42,7 @@
   <div class="flex flex-col">
     <div class="flex flex-col">
       <p class="font-bold">
-        {data.artist.name.default}
-        {#if data.artist.name.other}
-          - {data.artist.name.other}
-        {/if}
+        {data.artist.name}
       </p>
 
       {#if data.artist.tags.length > 0}
@@ -123,35 +118,3 @@
 <Button href="/artists/{data.artist.id}/albums" variant="outline">
   Show More
 </Button>
-
-{#if false}
-  <Button href="/artists/{data.artist.id}/edit">Edit</Button>
-
-  <Button
-    onclick={async () => {
-      await musicManager.clearQueue();
-      await musicManager.addFromArtist(data.artist.id);
-      musicManager.requestPlay();
-    }}
-  >
-    Play
-  </Button>
-
-  <p>Artist: {data.artist.name.default}</p>
-
-  <p>Num Albums: {data.albums.length}</p>
-  <div class="flex flex-col">
-    {#each data.albums as album}
-      <a href="/albums/{album.id}">{album.name.default}</a>
-    {/each}
-  </div>
-
-  <Separator />
-
-  <p>Num Tracks: {data.trackPage.totalItems}</p>
-  <div class="flex flex-col">
-    {#each data.tracks as track}
-      <a href="/albums/{track.albumId}">{track.name.default}</a>
-    {/each}
-  </div>
-{/if}

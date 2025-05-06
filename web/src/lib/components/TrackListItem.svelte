@@ -52,15 +52,12 @@
   </div>
   <div class="flex flex-grow flex-col">
     <div class="flex items-center gap-1">
-      <p
-        class="line-clamp-1 w-fit text-sm font-medium"
-        title={track.name.default}
-      >
-        {track.name.default}
+      <p class="line-clamp-1 w-fit text-sm font-medium" title={track.name}>
+        {track.name}
       </p>
     </div>
 
-    <ArtistList class="text-muted-foreground" artists={track.allArtists} />
+    <ArtistList class="text-muted-foreground" artists={track.artists} />
 
     <p class="line-clamp-1 text-xs text-muted-foreground">
       {#if track.tags.length > 0}

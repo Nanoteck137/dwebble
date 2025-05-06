@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { page } from "$app/stores";
-  import { Taglist } from "$lib/api/types";
   import {
     Breadcrumb,
     Button,

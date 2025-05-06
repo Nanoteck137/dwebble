@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto, invalidateAll } from "$app/navigation";
   import { page } from "$app/stores";
-  import { getApiClient, handleApiError, openConfirm } from "$lib";
+  import { getApiClient, handleApiError } from "$lib";
   import Spacer from "$lib/components/Spacer.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import TrackListHeader from "$lib/components/track-list/TrackListHeader.svelte";
@@ -33,7 +33,8 @@
 {/if}
 
 <Button href="/taglists/{data.taglist.id}/edit">Edit Taglist</Button>
-<Button
+<!--TODO(patrik): Fix this-->
+<!-- <Button
   onclick={async () => {
     // TODO(patrik): Better title and desc
     const confirmed = await openConfirm({ title: "Are you sure?" });
@@ -50,7 +51,7 @@
   }}
 >
   Delete Taglist
-</Button>
+</Button> -->
 
 <form
   method="GET"
@@ -98,10 +99,6 @@
   tracks={data.tracks}
   userPlaylists={data.userPlaylists}
   quickPlaylist={data.user?.quickPlaylist}
-  isInQuickPlaylist={(trackId) => {
-    if (!data.quickPlaylistIds) return false;
-    return !!data.quickPlaylistIds.find((v) => v === trackId);
-  }}
   onPlay={async (shuffle) => {
     await musicManager.clearQueue();
     await musicManager.addFromTaglist(data.taglist.id, { shuffle });
@@ -110,7 +107,10 @@
   onTrackPlay={async (trackId) => {
     // TODO(patrik): Replace with addFromTaglist and find the trackId
     await musicManager.clearQueue();
-    await musicManager.addFromIds([trackId], {});
+    await musicManager.addFromTaglist(data.taglist.id, {});
+    await musicManager.setQueueIndex(
+      musicManager.queue.items.findIndex((t) => t.track.id === trackId),
+    );
     musicManager.requestPlay();
   }}
 />

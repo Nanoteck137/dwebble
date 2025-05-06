@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Album, Artist } from "$lib/api/types";
+  import type { Artist } from "$lib/api/types";
   import Image from "$lib/components/Image.svelte";
   import type { Snippet } from "svelte";
 
@@ -21,17 +21,14 @@
       {#if link}
         <a
           class="line-clamp-1 w-fit text-sm font-medium hover:underline"
-          title={artist.name.default}
+          title={artist.name}
           href="/artists/{artist.id}"
         >
-          {artist.name.default}
+          {artist.name}
         </a>
       {:else}
-        <p
-          class="line-clamp-1 w-fit text-sm font-medium"
-          title={artist.name.default}
-        >
-          {artist.name.default}
+        <p class="line-clamp-1 w-fit text-sm font-medium" title={artist.name}>
+          {artist.name}
         </p>
       {/if}
     </div>

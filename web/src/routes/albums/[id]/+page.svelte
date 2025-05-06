@@ -5,7 +5,7 @@
     buttonVariants,
     DropdownMenu,
   } from "@nanoteck137/nano-ui";
-  import { EllipsisVertical, ListPlus, Pencil, Play } from "lucide-svelte";
+  import { EllipsisVertical, ListPlus, Play } from "lucide-svelte";
   import ArtistList from "$lib/components/ArtistList.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
   import { getMusicManager } from "$lib/music-manager.svelte.js";
@@ -16,7 +16,7 @@
   const musicManager = getMusicManager();
 
   function getName() {
-    const name = data.album.name.default;
+    const name = data.album.name;
 
     if (data.album.year) {
       return `${name} (${data.album.year})`;
@@ -34,7 +34,7 @@
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
-        <Breadcrumb.Page>{data.album.name.default}</Breadcrumb.Page>
+        <Breadcrumb.Page>{data.album.name}</Breadcrumb.Page>
       </Breadcrumb.Item>
     </Breadcrumb.List>
   </Breadcrumb.Root>
@@ -43,7 +43,7 @@
 <TrackListHeader
   name={getName()}
   image={data.album.coverArt.medium}
-  artists={data.album.allArtists}
+  artists={data.album.artists}
   tags={data.album.tags}
 >
   {#snippet more()}
@@ -72,18 +72,15 @@
     <div class="flex flex-col py-2">
       <div class="flex flex-col">
         <p class="font-bold">
-          {data.album.name.default}
+          {data.album.name}
           {#if data.album.year}
             ({data.album.year})
           {/if}
         </p>
-        <ArtistList artists={data.album.allArtists} />
+        <ArtistList artists={data.album.artists} />
         {#if data.album.tags}
           <p class="text-xs">{data.album.tags.join(", ")}</p>
         {/if}
-        <!-- <a class="text-xs hover:underline" href="/artists/{data.album.artistId}">
-        {data.album.artistName.default}
-      </a> -->
       </div>
 
       <div class="flex-grow"></div>

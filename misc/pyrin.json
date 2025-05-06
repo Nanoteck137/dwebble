@@ -47,22 +47,6 @@
       ]
     },
     {
-      "name": "Name",
-      "extend": "",
-      "fields": [
-        {
-          "name": "default",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "other",
-          "type": "*string",
-          "omit": false
-        }
-      ]
-    },
-    {
       "name": "Images",
       "extend": "",
       "fields": [
@@ -99,7 +83,7 @@
         },
         {
           "name": "name",
-          "type": "Name",
+          "type": "string",
           "omit": false
         },
         {
@@ -156,7 +140,7 @@
         },
         {
           "name": "name",
-          "type": "Name",
+          "type": "string",
           "omit": false
         }
       ]
@@ -172,7 +156,7 @@
         },
         {
           "name": "name",
-          "type": "Name",
+          "type": "string",
           "omit": false
         },
         {
@@ -186,28 +170,13 @@
           "omit": false
         },
         {
-          "name": "artistId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artistName",
-          "type": "Name",
+          "name": "artists",
+          "type": "[]ArtistInfo",
           "omit": false
         },
         {
           "name": "tags",
           "type": "[]string",
-          "omit": false
-        },
-        {
-          "name": "featuringArtists",
-          "type": "[]ArtistInfo",
-          "omit": false
-        },
-        {
-          "name": "allArtists",
-          "type": "[]ArtistInfo",
           "omit": false
         },
         {
@@ -229,65 +198,6 @@
         {
           "name": "albums",
           "type": "[]Album",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "EditArtistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "otherName",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "tags",
-          "type": "*[]string",
-          "omit": true
-        }
-      ]
-    },
-    {
-      "name": "CreateArtist",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "CreateArtistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "otherName",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "MergeArtistsBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "artists",
-          "type": "[]string",
           "omit": false
         }
       ]
@@ -324,7 +234,7 @@
         },
         {
           "name": "name",
-          "type": "Name",
+          "type": "string",
           "omit": false
         },
         {
@@ -354,7 +264,7 @@
         },
         {
           "name": "albumName",
-          "type": "Name",
+          "type": "string",
           "omit": false
         },
         {
@@ -391,176 +301,6 @@
       ]
     },
     {
-      "name": "TrackDetails",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "Name",
-          "omit": false
-        },
-        {
-          "name": "duration",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "number",
-          "type": "*int",
-          "omit": false
-        },
-        {
-          "name": "year",
-          "type": "*int",
-          "omit": false
-        },
-        {
-          "name": "coverArt",
-          "type": "Images",
-          "omit": false
-        },
-        {
-          "name": "albumId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "albumName",
-          "type": "Name",
-          "omit": false
-        },
-        {
-          "name": "artistId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artistName",
-          "type": "Name",
-          "omit": false
-        },
-        {
-          "name": "tags",
-          "type": "[]string",
-          "omit": false
-        },
-        {
-          "name": "featuringArtists",
-          "type": "[]ArtistInfo",
-          "omit": false
-        },
-        {
-          "name": "created",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "updated",
-          "type": "int",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetAlbumTracksDetails",
-      "extend": "",
-      "fields": [
-        {
-          "name": "tracks",
-          "type": "[]TrackDetails",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "EditAlbumBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "otherName",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "artistId",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "year",
-          "type": "*int",
-          "omit": true
-        },
-        {
-          "name": "tags",
-          "type": "*[]string",
-          "omit": true
-        },
-        {
-          "name": "featuringArtists",
-          "type": "*[]string",
-          "omit": true
-        }
-      ]
-    },
-    {
-      "name": "CreateAlbum",
-      "extend": "",
-      "fields": [
-        {
-          "name": "albumId",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "CreateAlbumBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "otherName",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artistId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "year",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "tags",
-          "type": "[]string",
-          "omit": false
-        },
-        {
-          "name": "featuringArtists",
-          "type": "[]string",
-          "omit": false
-        }
-      ]
-    },
-    {
       "name": "GetTracks",
       "extend": "",
       "fields": [
@@ -577,117 +317,9 @@
       ]
     },
     {
-      "name": "GetDetailedTracks",
-      "extend": "",
-      "fields": [
-        {
-          "name": "page",
-          "type": "Page",
-          "omit": false
-        },
-        {
-          "name": "tracks",
-          "type": "[]TrackDetails",
-          "omit": false
-        }
-      ]
-    },
-    {
       "name": "GetTrackById",
       "extend": "Track",
       "fields": null
-    },
-    {
-      "name": "GetTrackDetails",
-      "extend": "TrackDetails",
-      "fields": null
-    },
-    {
-      "name": "EditTrackBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "otherName",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "artistId",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "year",
-          "type": "*int",
-          "omit": true
-        },
-        {
-          "name": "number",
-          "type": "*int",
-          "omit": true
-        },
-        {
-          "name": "tags",
-          "type": "*[]string",
-          "omit": true
-        },
-        {
-          "name": "featuringArtists",
-          "type": "*[]string",
-          "omit": true
-        }
-      ]
-    },
-    {
-      "name": "UploadTrackBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "otherName",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "number",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "year",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "albumId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artistId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "tags",
-          "type": "[]string",
-          "omit": false
-        },
-        {
-          "name": "featuringArtists",
-          "type": "[]string",
-          "omit": false
-        }
-      ]
     },
     {
       "name": "Signup",
@@ -1333,34 +965,6 @@
       "bodyType": ""
     },
     {
-      "name": "EditArtist",
-      "method": "PATCH",
-      "path": "/api/v1/artists/:id",
-      "responseType": "",
-      "bodyType": "EditArtistBody"
-    },
-    {
-      "name": "CreateArtist",
-      "method": "POST",
-      "path": "/api/v1/artists",
-      "responseType": "CreateArtist",
-      "bodyType": "CreateArtistBody"
-    },
-    {
-      "name": "MergeArtists",
-      "method": "POST",
-      "path": "/api/v1/artists/:id/merge",
-      "responseType": "",
-      "bodyType": "MergeArtistsBody"
-    },
-    {
-      "name": "DeleteArtist",
-      "method": "DELETE",
-      "path": "/api/v1/artists/:id",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
       "name": "GetAlbums",
       "method": "GET",
       "path": "/api/v1/albums",
@@ -1389,45 +993,10 @@
       "bodyType": ""
     },
     {
-      "name": "GetAlbumTracksDetails",
-      "method": "GET",
-      "path": "/api/v1/albums/:id/tracks/details",
-      "responseType": "GetAlbumTracksDetails",
-      "bodyType": ""
-    },
-    {
-      "name": "EditAlbum",
-      "method": "PATCH",
-      "path": "/api/v1/albums/:id",
-      "responseType": "",
-      "bodyType": "EditAlbumBody"
-    },
-    {
-      "name": "DeleteAlbum",
-      "method": "DELETE",
-      "path": "/api/v1/albums/:id",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "CreateAlbum",
-      "method": "POST",
-      "path": "/api/v1/albums",
-      "responseType": "CreateAlbum",
-      "bodyType": "CreateAlbumBody"
-    },
-    {
       "name": "GetTracks",
       "method": "GET",
       "path": "/api/v1/tracks",
       "responseType": "GetTracks",
-      "bodyType": ""
-    },
-    {
-      "name": "GetDetailedTracks",
-      "method": "GET",
-      "path": "/api/v1/tracks/detailed",
-      "responseType": "GetDetailedTracks",
       "bodyType": ""
     },
     {
@@ -1442,27 +1011,6 @@
       "method": "GET",
       "path": "/api/v1/tracks/:id",
       "responseType": "GetTrackById",
-      "bodyType": ""
-    },
-    {
-      "name": "GetTrackDetails",
-      "method": "GET",
-      "path": "/api/v1/tracks/:id/details",
-      "responseType": "GetTrackDetails",
-      "bodyType": ""
-    },
-    {
-      "name": "EditTrack",
-      "method": "PATCH",
-      "path": "/api/v1/tracks/:id",
-      "responseType": "",
-      "bodyType": "EditTrackBody"
-    },
-    {
-      "name": "DeleteTrack",
-      "method": "DELETE",
-      "path": "/api/v1/tracks/:id",
-      "responseType": "",
       "bodyType": ""
     },
     {
@@ -1725,29 +1273,7 @@
       "bodyType": "GetMediaFromIdsBody"
     }
   ],
-  "formApiEndpoints": [
-    {
-      "name": "ChangeArtistPicture",
-      "method": "POST",
-      "path": "/api/v1/artists/:id/picture",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "ChangeAlbumCover",
-      "method": "POST",
-      "path": "/api/v1/albums/:id/cover",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "UploadTrack",
-      "method": "POST",
-      "path": "/api/v1/tracks",
-      "responseType": "",
-      "bodyType": "UploadTrackBody"
-    }
-  ],
+  "formApiEndpoints": null,
   "normalEndpoints": [
     {
       "name": "SseHandler",

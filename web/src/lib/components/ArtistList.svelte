@@ -16,7 +16,7 @@
       {", "}
     {/if}
     <a class="hover:underline" href="/artists/{artist.id}">
-      {artist.name.default}
+      {artist.name}
     </a>
   {/each}
 </p>

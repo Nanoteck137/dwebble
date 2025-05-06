@@ -72,13 +72,13 @@
           <div class="h-2"></div>
           <a
             class="line-clamp-2 w-40 text-sm font-medium group-hover:underline"
-            title={album.name.default}
+            title={album.name}
             href="/albums/{album.id}"
           >
-            {album.name.default}
+            {album.name}
           </a>
         </div>
-        <ArtistList artists={album.allArtists} />
+        <ArtistList artists={album.artists} />
         <div class="h-2"></div>
       </div>
     {/each}

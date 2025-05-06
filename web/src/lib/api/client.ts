@@ -24,22 +24,6 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/artists/${id}/albums`, "GET", api.GetArtistAlbumsById, z.any(), undefined, options)
   }
   
-  editArtist(id: string, body: api.EditArtistBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/artists/${id}`, "PATCH", z.undefined(), z.any(), body, options)
-  }
-  
-  createArtist(body: api.CreateArtistBody, options?: ExtraOptions) {
-    return this.request("/api/v1/artists", "POST", api.CreateArtist, z.any(), body, options)
-  }
-  
-  mergeArtists(id: string, body: api.MergeArtistsBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/artists/${id}/merge`, "POST", z.undefined(), z.any(), body, options)
-  }
-  
-  deleteArtist(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/artists/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
-  }
-  
   getAlbums(options?: ExtraOptions) {
     return this.request("/api/v1/albums", "GET", api.GetAlbums, z.any(), undefined, options)
   }
@@ -56,28 +40,8 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/albums/${id}/tracks`, "GET", api.GetAlbumTracks, z.any(), undefined, options)
   }
   
-  getAlbumTracksDetails(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/albums/${id}/tracks/details`, "GET", api.GetAlbumTracksDetails, z.any(), undefined, options)
-  }
-  
-  editAlbum(id: string, body: api.EditAlbumBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/albums/${id}`, "PATCH", z.undefined(), z.any(), body, options)
-  }
-  
-  deleteAlbum(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/albums/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
-  }
-  
-  createAlbum(body: api.CreateAlbumBody, options?: ExtraOptions) {
-    return this.request("/api/v1/albums", "POST", api.CreateAlbum, z.any(), body, options)
-  }
-  
   getTracks(options?: ExtraOptions) {
     return this.request("/api/v1/tracks", "GET", api.GetTracks, z.any(), undefined, options)
-  }
-  
-  getDetailedTracks(options?: ExtraOptions) {
-    return this.request("/api/v1/tracks/detailed", "GET", api.GetDetailedTracks, z.any(), undefined, options)
   }
   
   searchTracks(options?: ExtraOptions) {
@@ -86,18 +50,6 @@ export class ApiClient extends BaseApiClient {
   
   getTrackById(id: string, options?: ExtraOptions) {
     return this.request(`/api/v1/tracks/${id}`, "GET", api.GetTrackById, z.any(), undefined, options)
-  }
-  
-  getTrackDetails(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/tracks/${id}/details`, "GET", api.GetTrackDetails, z.any(), undefined, options)
-  }
-  
-  editTrack(id: string, body: api.EditTrackBody, options?: ExtraOptions) {
-    return this.request(`/api/v1/tracks/${id}`, "PATCH", z.undefined(), z.any(), body, options)
-  }
-  
-  deleteTrack(id: string, options?: ExtraOptions) {
-    return this.request(`/api/v1/tracks/${id}`, "DELETE", z.undefined(), z.any(), undefined, options)
   }
   
   signup(body: api.SignupBody, options?: ExtraOptions) {
@@ -246,17 +198,5 @@ export class ApiClient extends BaseApiClient {
   
   getMediaFromIds(body: api.GetMediaFromIdsBody, options?: ExtraOptions) {
     return this.request("/api/v1/media/ids", "POST", api.GetMedia, z.any(), body, options)
-  }
-  
-  changeArtistPicture(id: string, formData: FormData, options?: ExtraOptions) {
-    return this.requestWithFormData(`/api/v1/artists/${id}/picture`, "POST", z.undefined(), z.undefined(), formData, options)
-  }
-  
-  changeAlbumCover(id: string, formData: FormData, options?: ExtraOptions) {
-    return this.requestWithFormData(`/api/v1/albums/${id}/cover`, "POST", z.undefined(), z.undefined(), formData, options)
-  }
-  
-  uploadTrack(formData: FormData, options?: ExtraOptions) {
-    return this.requestWithFormData("/api/v1/tracks", "POST", z.undefined(), z.undefined(), formData, options)
   }
 }

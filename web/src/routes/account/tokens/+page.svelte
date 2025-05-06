@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Breadcrumb, Button, Input } from "@nanoteck137/nano-ui";
-  import { Eye, EyeOff, TypeOutlineIcon } from "lucide-svelte";
+  import { Eye, EyeOff } from "lucide-svelte";
 
   const { data } = $props();
 

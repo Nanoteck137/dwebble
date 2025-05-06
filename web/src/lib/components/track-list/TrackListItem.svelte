@@ -52,11 +52,8 @@
   </div>
   <div class="flex flex-grow flex-col">
     <div class="flex items-center gap-1">
-      <p
-        class="line-clamp-1 w-fit text-sm font-medium"
-        title={track.name.default}
-      >
-        {track.name.default}
+      <p class="line-clamp-1 w-fit text-sm font-medium" title={track.name}>
+        {track.name}
       </p>
     </div>
 

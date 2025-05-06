@@ -16,7 +16,7 @@
       <Breadcrumb.Separator />
       <Breadcrumb.Item>
         <Breadcrumb.Link href="/artists/{data.artist.id}">
-          {data.artist.name.default}
+          {data.artist.name}
         </Breadcrumb.Link>
       </Breadcrumb.Item>
       <Breadcrumb.Separator />
