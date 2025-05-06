@@ -7,11 +7,13 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/assets"
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
+	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
 )
@@ -36,7 +38,9 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 			HandlerFunc: func(c pyrin.Context) error {
 				albumId := c.Param("albumId")
 				image := c.Param("image")
-				_ = image
+
+				ext := path.Ext(image)
+				name := strings.TrimRight(image, ext)
 
 				ctx := c.Request().Context()
 
@@ -54,11 +58,83 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 					return pyrin.ServeFile(c, assets.DefaultImagesFS, "default_album.png")
 				}
 
-				// p := app.WorkDir().Album(albumId)
-				p := path.Dir(album.CoverArt.String)
-				f := os.DirFS(p)
+				cacheDir := app.WorkDir().Cache()
+				albumCache := cacheDir.Album(album.Id)
 
-				return pyrin.ServeFile(c, f, path.Base(album.CoverArt.String))
+				// Make sure that the cache directory is setup
+				dirs := []string{
+					cacheDir.String(),
+					cacheDir.Albums(),
+					albumCache,
+				}
+
+				for _, dir := range dirs {
+					err = os.Mkdir(dir, 0755)
+					if err != nil && !os.IsExist(err) {
+						return err
+					}
+				}
+
+				originalFilename := path.Base(album.CoverArt.String)
+				originalFileExt := path.Ext(originalFilename)
+
+				convertImage := func(name string, size int) error {
+					name = name + ext
+					p := path.Join(albumCache, name)
+
+					_, err := os.Stat(p)
+					if err != nil {
+						if os.IsNotExist(err) {
+							err := utils.CreateResizedImage(album.CoverArt.String, p, size, size)
+							if err != nil {
+								return err
+							}
+						} else {
+							return err
+						}
+					}
+
+
+					f := os.DirFS(albumCache)
+					return pyrin.ServeFile(c, f, name)
+				}
+
+				switch name {
+				case "original":
+					if originalFileExt == ext {
+						p := path.Dir(album.CoverArt.String)
+						f := os.DirFS(p)
+
+						return pyrin.ServeFile(c, f, originalFilename)
+					} else {
+						name := "original" + ext
+						p := path.Join(albumCache, name)
+
+						_, err := os.Stat(p)
+						if err != nil {
+							if os.IsNotExist(err) {
+								err := utils.ConvertImage(album.CoverArt.String, p)
+								if err != nil {
+									return err
+								}
+							} else {
+								return err
+							}
+						}
+
+						f := os.DirFS(albumCache)
+						return pyrin.ServeFile(c, f, name)
+					}
+
+				case "128":
+					return convertImage("128", 128)
+				case "256":
+					return convertImage("256", 256)
+				case "512":
+					return convertImage("512", 512)
+				}
+
+				return pyrin.NoContentNotFound()
 			},
 		},
 		pyrin.NormalHandler{

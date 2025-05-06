@@ -122,6 +122,14 @@ func (d CacheDir) String() string {
 	return string(d)
 }
 
+func (d CacheDir) Albums() string {
+	return path.Join(d.String(), "albums")
+}
+
+func (d CacheDir) Album(id string) string {
+	return path.Join(d.Albums(), id)
+}
+
 func (d CacheDir) Tracks() string {
 	return path.Join(d.String(), "tracks")
 }

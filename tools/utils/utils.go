@@ -64,6 +64,22 @@ func CreateResizedImage(src string, dest string, width, height int) error {
 	return nil
 }
 
+func ConvertImage(src string, dest string) error {
+	args := []string{
+		"convert",
+		src,
+		dest,
+	}
+
+	cmd := exec.Command("magick", args...)
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func Slug(s string) string {
 	return slug.Make(s)
 }
