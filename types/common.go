@@ -10,7 +10,7 @@ const (
 	MediaTypeOggOpus   MediaType = "ogg-opus"
 	MediaTypeOggVorbis MediaType = "ogg-vorbis"
 	MediaTypeMp3       MediaType = "mp3"
-	MediaTypeAcc       MediaType = "acc"
+	MediaTypeAac       MediaType = "aac"
 )
 
 func GetMediaTypeFromExt(ext string) MediaType {
@@ -23,8 +23,8 @@ func GetMediaTypeFromExt(ext string) MediaType {
 		return MediaTypeOggVorbis
 	case ".mp3":
 		return MediaTypeMp3
-	case ".acc":
-		return MediaTypeAcc
+	case ".aac":
+		return MediaTypeAac
 	}
 
 	return MediaTypeUnknown
@@ -40,8 +40,8 @@ func (m MediaType) ToExt() (string, bool) {
 		return ".ogg", true
 	case MediaTypeMp3:
 		return ".mp3", true
-	case MediaTypeAcc:
-		return ".acc", true
+	case MediaTypeAac:
+		return ".aac", true
 	}
 
 	return "", false
