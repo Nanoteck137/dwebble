@@ -99,8 +99,13 @@ func packMediaResult(c pyrin.Context, tracks []database.Track, mediaType types.M
 			}
 		}
 
+		mt := mediaType
+		if !mt.IsValid() {
+			mt = track.MediaType
+		}
+
 		ext := ".unknown"
-		if e, ok := track.MediaType.ToExt(); ok {
+		if e, ok := mt.ToExt(); ok {
 			ext = e
 		}
 

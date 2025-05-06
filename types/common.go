@@ -47,6 +47,23 @@ func (m MediaType) ToExt() (string, bool) {
 	return "", false
 }
 
+func (m MediaType) IsValid() bool {
+	switch m {
+	case MediaTypeFlac:
+		return true
+	case MediaTypeOggOpus:
+		return true
+	case MediaTypeOggVorbis:
+		return true
+	case MediaTypeMp3:
+		return true
+	case MediaTypeAac:
+		return true
+	}
+
+	return false
+}
+
 type Map map[string]any
 
 type WorkDir string
