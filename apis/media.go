@@ -99,34 +99,12 @@ func packMediaResult(c pyrin.Context, tracks []database.Track, mediaType types.M
 			}
 		}
 
-		// mediaFormats := *track.Formats.Get()
-		//
-		// // TODO(patrik): Better selection algo
-		// var formatFound *database.TrackFormat
-		// for _, item := range mediaFormats {
-		// 	if mediaType != "" {
-		// 		if item.MediaType == mediaType {
-		// 			formatFound = &item
-		// 			break
-		// 		}
-		// 	} else {
-		// 		if item.IsOriginal {
-		// 			formatFound = &item
-		// 			break
-		// 		}
-		// 	}
-		// }
-		//
-		// var mediaType types.MediaType
-		// var mediaUrl *string
-		// if formatFound != nil {
-		// 	mediaType = formatFound.MediaType
-		//
-		// 	url := ConvertURL(c, fmt.Sprintf("/files/tracks/%s/media/%s/%s", track.Id, formatFound.Id, formatFound.Filename))
-		// 	mediaUrl = &url
-		// }
+		ext := ".unknown"
+		if e, ok := track.MediaType.ToExt(); ok {
+			ext = e
+		}
 
-		mediaUrl := ConvertURL(c, fmt.Sprintf("/files/tracks/%s/%s", track.Id, track.Filename))
+		mediaUrl := ConvertURL(c, fmt.Sprintf("/files/tracks/%s/track%s", track.Id, ext))
 
 		res.Items[i] = MediaItem{
 			Track: MediaResource{

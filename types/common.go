@@ -13,6 +13,40 @@ const (
 	MediaTypeAcc       MediaType = "acc"
 )
 
+func GetMediaTypeFromExt(ext string) MediaType {
+	switch ext {
+	case ".flac":
+		return MediaTypeFlac
+	case ".opus":
+		return MediaTypeOggOpus
+	case ".ogg":
+		return MediaTypeOggVorbis
+	case ".mp3":
+		return MediaTypeMp3
+	case ".acc":
+		return MediaTypeAcc
+	}
+
+	return MediaTypeUnknown
+}
+
+func (m MediaType) ToExt() (string, bool) {
+	switch m {
+	case MediaTypeFlac:
+		return ".flac", true
+	case MediaTypeOggOpus:
+		return ".opus", true
+	case MediaTypeOggVorbis:
+		return ".ogg", true
+	case MediaTypeMp3:
+		return ".mp3", true
+	case MediaTypeAcc:
+		return ".acc", true
+	}
+
+	return "", false
+}
+
 type Map map[string]any
 
 type WorkDir string
