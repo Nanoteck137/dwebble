@@ -55,7 +55,7 @@
           version = fullVersion;
 
           src = gitignore.lib.gitignoreSource ./web;
-          npmDepsHash = "sha256-UJkNQyPqfWZgmbODd8QfKOdGfObsRqo4MTpqw9tMuxA=";
+          npmDepsHash = "sha256-EmEG72TQiP9NxQysfxyHYDq+MMNUyG8l1hMRjzG1SJw=";
 
           PUBLIC_VERSION=version;
           PUBLIC_COMMIT=self.dirtyRev or self.rev or "no-commit";
