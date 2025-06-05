@@ -29,7 +29,18 @@ func parseArtist(s string) []string {
 		return []string{}
 	}
 
-	return strings.Split(s, ",")
+	splits := strings.Split(s, ",")
+
+	artists := make([]string, 0, len(splits))
+	for _, s := range splits {
+		a := strings.TrimSpace(s)
+
+		if a != "" {
+			artists = append(artists, a)
+		}
+	}
+
+	return artists
 }
 
 type TrackInfo struct {
@@ -710,7 +721,6 @@ var importPlaylistCmd = &cobra.Command{
 				log.Fatal("Failed", "err", err)
 			}
 		}
-
 
 		for _, item := range p.Items {
 			_, err := client.AddItemToPlaylist(*playlistId, api.AddItemToPlaylistBody{
