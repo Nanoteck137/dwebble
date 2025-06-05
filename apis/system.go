@@ -29,6 +29,7 @@ type GetSystemInfo struct {
 }
 
 // TODO(patrik): Add testing for this
+// TODO(patrik): Trim artists names
 func FixMetadata(metadata *library.Metadata) error {
 	album := &metadata.Album
 
