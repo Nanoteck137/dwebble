@@ -671,6 +671,15 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	return nil
 }
 
+type Event struct {
+	Type string `json:"type"`
+	Data any    `json:"data"`
+}
+
+type EventData interface {
+	GetEventType() string
+}
+
 // NOTE(patrik): Based on: https://gist.github.com/Ananto30/8af841f250e89c07e122e2a838698246
 type Broker struct {
 	Notifier chan EventData
@@ -721,9 +730,6 @@ var syncHandler = SyncHandler{
 	broker:      NewServer(),
 }
 
-type EventData interface {
-	GetEventType() string
-}
 
 const (
 	EventSyncing string = "syncing"
@@ -744,11 +750,6 @@ type ReportEvent struct {
 
 func (s ReportEvent) GetEventType() string {
 	return EventReport
-}
-
-type Event struct {
-	Type string `json:"type"`
-	Data any    `json:"data"`
 }
 
 func InstallSystemHandlers(app core.App, group pyrin.Group) {
