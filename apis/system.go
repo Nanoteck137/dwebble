@@ -28,8 +28,26 @@ type GetSystemInfo struct {
 	Version string `json:"version"`
 }
 
+func fixArr(arr []string) []string {
+	seen := map[string]bool{}
+	res := make([]string, 0, len(arr))
+
+	for _, value := range arr {
+		value = transform.String(value)
+		if value == "" {
+			continue
+		}
+
+		if !seen[value] {
+			seen[value] = true
+			res = append(res, value)
+		}
+	}
+
+	return res
+}
+
 // TODO(patrik): Add testing for this
-// TODO(patrik): Trim artists names
 func FixMetadata(metadata *library.Metadata) error {
 	album := &metadata.Album
 
@@ -42,6 +60,8 @@ func FixMetadata(metadata *library.Metadata) error {
 	if len(album.Artists) == 0 {
 		album.Artists = []string{UNKNOWN_ARTIST_NAME}
 	}
+
+	album.Artists = fixArr(album.Artists)
 
 	for i := range metadata.Tracks {
 		t := &metadata.Tracks[i]
@@ -58,6 +78,8 @@ func FixMetadata(metadata *library.Metadata) error {
 		if len(t.Artists) == 0 {
 			t.Artists = []string{UNKNOWN_ARTIST_NAME}
 		}
+
+		t.Artists = fixArr(t.Artists)
 
 		for i, tag := range t.Tags {
 			t.Tags[i] = utils.Slug(strings.TrimSpace(tag))
