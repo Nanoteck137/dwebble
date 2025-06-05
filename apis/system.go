@@ -131,7 +131,7 @@ func (helper *SyncHelper) setAlbumFeaturingArtists(ctx context.Context, db *data
 		}
 
 		err = db.AddFeaturingArtistToAlbum(ctx, albumId, artistId)
-		if err != nil {
+		if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 			return err
 		}
 	}
@@ -175,7 +175,7 @@ func (helper *SyncHelper) setTrackFeaturingArtists(ctx context.Context, db *data
 		}
 
 		err = db.AddFeaturingArtistToTrack(ctx, trackId, artistId)
-		if err != nil {
+		if err != nil && !errors.Is(err, database.ErrItemAlreadyExists) {
 			return err
 		}
 	}
@@ -730,7 +730,6 @@ var syncHandler = SyncHandler{
 	broker:      NewServer(),
 }
 
-
 const (
 	EventSyncing string = "syncing"
 	EventReport  string = "report"
@@ -842,9 +841,9 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 
 		// TODO(patrik): Better name?
 		pyrin.ApiHandler{
-			Name:         "CleanupLibrary",
-			Method:       http.MethodPost,
-			Path:         "/system/library/cleanup",
+			Name:   "CleanupLibrary",
+			Method: http.MethodPost,
+			Path:   "/system/library/cleanup",
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				if syncHandler.isSyncing.Load() {
 					return nil, errors.New("library is syncing")
