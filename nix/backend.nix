@@ -5,7 +5,7 @@ with lib; let
 
   dwebbleConfig = pkgs.writeText "config.toml" ''
     listen_addr = "${cfg.host}:${toString cfg.port}"
-    data_dir = "/var/lib/dwebble"
+    data_dir = "${cfg.dataDir}"
     library_dir = "${cfg.libraryDir}"
     username = "${cfg.username}"
     initial_password = "${cfg.initialPassword}"
@@ -26,6 +26,12 @@ in
       type = types.str;
       default = "";
       description = "hostname or address to listen on";
+    };
+
+    dataDir = mkOption {
+      type = types.path;
+      default = "/var/lib/dwebble";
+      description = "path to the data directory";
     };
 
     username = mkOption {
@@ -79,30 +85,39 @@ in
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
 
-      serviceConfig = {
-        User = cfg.user;
-        Group = cfg.group;
+      serviceConfig = mkMerge [
+        {
+          User = cfg.user;
+          Group = cfg.group;
 
-        StateDirectory = "dwebble";
+          ExecStart = "${cfg.package}/bin/dwebble serve -c '${dwebbleConfig}'";
 
-        ExecStart = "${cfg.package}/bin/dwebble serve -c '${dwebbleConfig}'";
+          Restart = "on-failure";
+          RestartSec = "5s";
 
-        Restart = "on-failure";
-        RestartSec = "5s";
+          PrivateTmp = true;
+          ProtectHome = true;
+          ProtectHostname = true;
+          ProtectKernelLogs = true;
+          ProtectKernelModules = true;
+          ProtectKernelTunables = true;
+          ProtectProc = "invisible";
+          ProtectSystem = "strict";
+          RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+          RestrictNamespaces = true;
+          RestrictRealtime = true;
+          RestrictSUIDSGID = true;
+        }
 
-        PrivateTmp = true;
-        ProtectHome = true;
-        ProtectHostname = true;
-        ProtectKernelLogs = true;
-        ProtectKernelModules = true;
-        ProtectKernelTunables = true;
-        ProtectProc = "invisible";
-        ProtectSystem = "strict";
-        RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
-        RestrictNamespaces = true;
-        RestrictRealtime = true;
-        RestrictSUIDSGID = true;
-      };
+        (mkIf (cfg.dataDir != "/var/lib/dwebble") {
+          ReadWritePaths = [ cfg.dataDir ];
+        })
+
+        (mkIf (cfg.dataDir == "/var/lib/dwebble") {
+          StateDirectory = "dwebble";
+        })
+
+      ];
     };
 
     networking.firewall = lib.mkIf cfg.openFirewall {
@@ -113,6 +128,7 @@ in
       dwebble = {
         group = cfg.group;
         isSystemUser = true;
+        home = "${cfg.dataDir}";
       };
     };
 
