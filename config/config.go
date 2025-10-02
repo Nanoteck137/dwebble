@@ -98,7 +98,7 @@ func InitConfig() {
 	configCopy.JwtSecret = hide(configCopy.JwtSecret)
 	configCopy.InitialPassword = hide(configCopy.InitialPassword)
 
-	slog.Debug("Current Config", "config", configCopy)
+	slog.Info("Current Config", "config", configCopy)
 
 	validateConfig(&LoadedConfig)
 }
