@@ -13,11 +13,19 @@ export function handleApiError(err: {
   console.error("API Error", err);
 }
 
+export function setApiClientAuth(apiClient: ApiClient, token?: string) {
+  if (token) {
+    apiClient.headers.set("Authorization", "Bearer " + token);
+  } else {
+    apiClient.headers.delete("Authorization");
+  }
+}
+
 const API_CLIENT_KEY = Symbol("API_CLIENT");
 
 export function setApiClient(baseUrl: string, token?: string) {
   const apiClient = new ApiClient(baseUrl);
-  apiClient.setToken(token);
+  setApiClientAuth(apiClient, token);
   return setContext(API_CLIENT_KEY, apiClient);
 }
 

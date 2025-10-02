@@ -1,3 +1,4 @@
+import { setApiClientAuth } from "$lib";
 import { redirect } from "@sveltejs/kit";
 
 export const POST = async ({ cookies, locals }) => {
@@ -6,7 +7,7 @@ export const POST = async ({ cookies, locals }) => {
     sameSite: "strict",
   });
   locals.user = undefined;
-  locals.apiClient.setToken(undefined);
+  setApiClientAuth(locals.apiClient, undefined);
 
   throw redirect(303, "/login");
 };

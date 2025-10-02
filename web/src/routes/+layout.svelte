@@ -21,7 +21,7 @@
   import { fade, fly } from "svelte/transition";
   import { Button, buttonVariants } from "@nanoteck137/nano-ui";
   import toast, { Toaster } from "svelte-5-french-toast";
-  import { handleApiError, setApiClient } from "$lib";
+  import { handleApiError, setApiClient, setApiClientAuth } from "$lib";
   import {
     DummyQueue,
     LocalQueue,
@@ -34,17 +34,18 @@
   let { children, data } = $props();
 
   let apiClient = setApiClient(data.apiAddress, data.userToken);
+
+  $effect(() => {
+    if (!browser) return;
+    setApiClientAuth(apiClient, data.userToken);
+  });
+
   let musicManager = setMusicManager(apiClient, new DummyQueue());
   let quickPlaylist = setQuickPlaylist(
     apiClient,
     data.user?.quickPlaylist ?? "",
     data.quickPlaylistIds,
   );
-
-  $effect(() => {
-    if (!browser) return;
-    apiClient.setToken(data.userToken);
-  });
 
   $effect(() => {
     if (!browser) return;

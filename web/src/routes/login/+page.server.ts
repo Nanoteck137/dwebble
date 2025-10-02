@@ -1,3 +1,4 @@
+import { setApiClientAuth } from "$lib";
 import { SigninBody } from "$lib/api/types";
 import { capitilize } from "$lib/utils";
 import { error, redirect } from "@sveltejs/kit";
@@ -59,7 +60,7 @@ export const actions: Actions = {
       }
     }
 
-    locals.apiClient.setToken(res.data.token);
+    setApiClientAuth(locals.apiClient, res.data.token);
     const user = await locals.apiClient.getMe();
     if (!user.success) {
       throw error(user.error.code, { message: user.error.message });
