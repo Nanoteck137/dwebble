@@ -1,6 +1,11 @@
 package dwebble
 
-import "fmt"
+import (
+	"fmt"
+	"log/slog"
+
+	"github.com/nanoteck137/pyrin/trail"
+)
 
 var AppName = "dwebble"
 var CliAppName = AppName + "-cli"
@@ -12,4 +17,15 @@ func VersionTemplate(appName string) string {
 	return fmt.Sprintf(
 		"%s: %s (%s)\n",
 		appName, Version, Commit)
+}
+
+func DefaultLogger() *trail.Logger {
+	return trail.NewLogger(&trail.Options{
+		Debug: Commit == "no-commit",
+	})
+}
+
+func init() {
+	logger := DefaultLogger()
+	slog.SetDefault(logger.Logger)
 }
