@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export function createApiResponse<
   Data extends z.ZodTypeAny,
-  ErrorExtra extends z.ZodTypeAny,
+  ErrorExtra extends z.ZodTypeAny
 >(data: Data, errorExtra: ErrorExtra) {
   return z.discriminatedUnion("success", [
     z.object({ success: z.literal(true), data }),
@@ -18,6 +18,10 @@ export function createApiResponse<
   ]);
 }
 
+export function createUrl(base: string, endpoint: string) {
+  return new URL(base + endpoint);
+}
+
 export type ExtraOptions = {
   headers?: Record<string, string>;
   query?: Record<string, string>;
@@ -25,41 +29,40 @@ export type ExtraOptions = {
 
 export class BaseApiClient {
   baseUrl: string;
-  token?: string;
+  headers: Map<string, string>;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+    this.headers = new Map<string, string>();
   }
 
-  setToken(token?: string) {
-    this.token = token;
-  }
+  private getInitialHeaders() {
+    const headers: Record<string, string> = {};
 
-  createEndpointUrl(endpoint: string) {
-    return new URL(this.baseUrl + endpoint);
+    this.headers.forEach((v, k) => {
+      headers[k] = v;
+    });
+
+    return headers;
   }
 
   async request<
     DataSchema extends z.ZodTypeAny,
-    ErrorExtraSchema extends z.ZodTypeAny,
+    ErrorExtraSchema extends z.ZodTypeAny
   >(
     endpoint: string,
     method: string,
     dataSchema: DataSchema,
     errorExtraSchema: ErrorExtraSchema,
     body?: unknown,
-    extra?: ExtraOptions,
+    extra?: ExtraOptions
   ) {
-    const headers: Record<string, string> = {};
-    if (this.token) {
-      headers["Authorization"] = `Bearer ${this.token}`;
-    }
+    const url = createUrl(this.baseUrl, endpoint);
+    const headers = this.getInitialHeaders();
 
     if (body) {
       headers["Content-Type"] = "application/json";
     }
-
-    const url = new URL(this.baseUrl + endpoint);
 
     if (extra) {
       if (extra.headers) {
@@ -89,23 +92,23 @@ export class BaseApiClient {
     return parsedData;
   }
 
-  async requestWithFormData<
+  async requestForm<
     DataSchema extends z.ZodTypeAny,
-    ErrorExtraSchema extends z.ZodTypeAny,
+    ErrorExtraSchema extends z.ZodTypeAny
   >(
     endpoint: string,
     method: string,
     dataSchema: DataSchema,
     errorExtraSchema: ErrorExtraSchema,
     body: FormData,
-    extra?: ExtraOptions,
+    extra?: ExtraOptions
   ) {
-    const headers: Record<string, string> = {};
-    if (this.token) {
-      headers["Authorization"] = `Bearer ${this.token}`;
-    }
+    const url = createUrl(this.baseUrl, endpoint);
+    const headers = this.getInitialHeaders();
 
-    const url = new URL(this.baseUrl + endpoint);
+    if (body) {
+      headers["Content-Type"] = "multipart/form-data";
+    }
 
     if (extra) {
       if (extra.headers) {

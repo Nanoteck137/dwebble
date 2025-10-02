@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"strings"
@@ -14,13 +15,12 @@ import (
 
 	"github.com/nanoteck137/dwebble"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/nanoteck137/pyrin/anvil"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -33,7 +33,7 @@ func fixArr(arr []string) []string {
 	res := make([]string, 0, len(arr))
 
 	for _, value := range arr {
-		value = transform.String(value)
+		value = anvil.String(value)
 		if value == "" {
 			continue
 		}
@@ -51,7 +51,7 @@ func fixArr(arr []string) []string {
 func FixMetadata(metadata *library.Metadata) error {
 	album := &metadata.Album
 
-	album.Name = transform.String(album.Name)
+	album.Name = anvil.String(album.Name)
 
 	if album.Year == 0 {
 		album.Year = metadata.General.Year
@@ -70,7 +70,7 @@ func FixMetadata(metadata *library.Metadata) error {
 			t.Year = metadata.General.Year
 		}
 
-		t.Name = transform.String(t.Name)
+		t.Name = anvil.String(t.Name)
 
 		t.Tags = append(t.Tags, metadata.General.Tags...)
 		t.Tags = append(t.Tags, metadata.General.TrackTags...)
@@ -543,7 +543,7 @@ func (s *SyncHandler) Cleanup(app core.App) error {
 			return err
 		}
 
-		log.Info("Deleted track", "track", track)
+		slog.Info("Deleted track", "track", track)
 	}
 
 	for _, album := range s.missingAlbums {
@@ -552,7 +552,7 @@ func (s *SyncHandler) Cleanup(app core.App) error {
 			return err
 		}
 
-		log.Info("Deleted album", "album", album)
+		slog.Info("Deleted album", "album", album)
 	}
 
 	s.mutex.Lock()
@@ -573,7 +573,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	s.isSyncing.Store(true)
 	defer s.isSyncing.Store(false)
 
-	log.Debug("Searching for albums", "libraryDir", app.Config().LibraryDir)
+	slog.Debug("Searching for albums", "libraryDir", app.Config().LibraryDir)
 
 	// TODO(patrik): Check for duplicated ids
 	search, err := library.FindAlbums(app.Config().LibraryDir)
@@ -581,7 +581,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 		return err
 	}
 
-	log.Debug("Done searching for albums")
+	slog.Debug("Done searching for albums")
 
 	ctx := context.TODO()
 
@@ -599,7 +599,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	var syncErrors []error
 
 	for _, album := range search.Albums {
-		log.Debug("Syncing album", "path", album.Path)
+		slog.Debug("Syncing album", "path", album.Path)
 
 		err := helper.syncAlbum(ctx, &album.Metadata, app.DB())
 		if err != nil {
@@ -732,10 +732,10 @@ func (broker *Broker) listen() {
 		select {
 		case s := <-broker.newClients:
 			broker.clients[s] = true
-			log.Debug("Client added", "numClients", len(broker.clients))
+			slog.Debug("Client added", "numClients", len(broker.clients))
 		case s := <-broker.closingClients:
 			delete(broker.clients, s)
-			log.Debug("Removed client", "numClients", len(broker.clients))
+			slog.Debug("Removed client", "numClients", len(broker.clients))
 		case event := <-broker.Notifier:
 			for clientMessageChan := range broker.clients {
 				clientMessageChan <- event
@@ -832,11 +832,11 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 
 				go func() {
 					if syncHandler.isSyncing.Load() {
-						log.Info("Syncing already")
+						slog.Info("Syncing already")
 						return
 					}
 
-					log.Info("Started library sync")
+					slog.Info("Started library sync")
 
 					syncHandler.broker.EmitEvent(SyncEvent{
 						Syncing: true,
@@ -844,7 +844,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 
 					err := syncHandler.RunSync(app)
 					if err != nil {
-						log.Error("Failed to run sync", "err", err)
+						slog.Error("Failed to run sync", "err", err)
 					}
 
 					syncHandler.broker.EmitEvent(SyncEvent{
@@ -855,7 +855,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 						Report: syncHandler.GetReport(),
 					})
 
-					log.Info("Library sync done")
+					slog.Info("Library sync done")
 				}()
 
 				return nil, nil

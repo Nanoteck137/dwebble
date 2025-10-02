@@ -1,10 +1,10 @@
 package config
 
 import (
+	"log/slog"
 	"os"
 
 	"github.com/nanoteck137/dwebble"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/spf13/viper"
 )
@@ -38,7 +38,7 @@ func validateConfig(config *Config) {
 
 	validate := func(expr bool, msg string) {
 		if expr {
-			log.Error("Config Validation", "err", msg)
+			slog.Error("Config Validation", "err", msg)
 			hasError = true
 		}
 	}
@@ -53,7 +53,8 @@ func validateConfig(config *Config) {
 	validate(config.JwtSecret == "", "jwt_secret needs to be set")
 
 	if hasError {
-		log.Fatal("Config not valid")
+		slog.Error("Config not valid")
+		os.Exit(-1)
 	}
 }
 
@@ -75,12 +76,12 @@ func InitConfig() {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Warn("Failed to load config", "err", err)
+		slog.Warn("Failed to load config", "err", err)
 	}
 
 	err = viper.Unmarshal(&LoadedConfig)
 	if err != nil {
-		log.Error("Failed to unmarshal config: ", err)
+		slog.Error("Failed to unmarshal config: ", err)
 		os.Exit(-1)
 	}
 
@@ -97,7 +98,7 @@ func InitConfig() {
 	configCopy.JwtSecret = hide(configCopy.JwtSecret)
 	configCopy.InitialPassword = hide(configCopy.InitialPassword)
 
-	log.Debug("Current Config", "config", configCopy)
+	slog.Debug("Current Config", "config", configCopy)
 
 	validateConfig(&LoadedConfig)
 }

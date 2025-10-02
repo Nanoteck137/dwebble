@@ -1,1304 +1,1522 @@
 {
-  "errorTypes": [
-    "ALBUM_NOT_FOUND",
-    "API_TOKEN_NOT_FOUND",
-    "ARTIST_NOT_FOUND",
-    "BAD_CONTENT_TYPE_ERROR",
-    "EMPTY_BODY_ERROR",
-    "FORM_VALIDATION_ERROR",
-    "INVALID_CREDENTIALS",
-    "INVALID_FILTER",
-    "INVALID_SORT",
-    "PLAYLIST_ALREADY_HAS_TRACK",
-    "PLAYLIST_NOT_FOUND",
-    "ROUTE_NOT_FOUND",
-    "TAGLIST_NOT_FOUND",
-    "TRACK_NOT_FOUND",
-    "UNKNOWN_ERROR",
-    "USER_ALREADY_EXISTS",
-    "USER_NOT_FOUND",
-    "VALIDATION_ERROR"
-  ],
-  "types": [
+  "version": 1,
+  "structures": [
     {
-      "name": "Page",
-      "extend": "",
+      "name": "AddItemToPlaylistBody",
       "fields": [
         {
-          "name": "page",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "perPage",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "totalItems",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "totalPages",
-          "type": "int",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "Images",
-      "extend": "",
-      "fields": [
-        {
-          "name": "original",
+          "name": "trackId",
           "type": "string",
-          "omit": false
-        },
-        {
-          "name": "small",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "medium",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "large",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "Artist",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "picture",
-          "type": "Images",
-          "omit": false
-        },
-        {
-          "name": "tags",
-          "type": "[]string",
-          "omit": false
-        },
-        {
-          "name": "created",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "updated",
-          "type": "int",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetArtists",
-      "extend": "",
-      "fields": [
-        {
-          "name": "page",
-          "type": "Page",
-          "omit": false
-        },
-        {
-          "name": "artists",
-          "type": "[]Artist",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetArtistById",
-      "extend": "Artist",
-      "fields": null
-    },
-    {
-      "name": "ArtistInfo",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
+          "omitEmpty": false
         }
       ]
     },
     {
       "name": "Album",
-      "extend": "",
       "fields": [
         {
           "name": "id",
           "type": "string",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "name",
           "type": "string",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "year",
           "type": "*int",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "coverArt",
           "type": "Images",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "artists",
           "type": "[]ArtistInfo",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "tags",
           "type": "[]string",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "created",
           "type": "int",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "updated",
           "type": "int",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetArtistAlbumsById",
-      "extend": "",
-      "fields": [
-        {
-          "name": "albums",
-          "type": "[]Album",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetAlbums",
-      "extend": "",
-      "fields": [
-        {
-          "name": "page",
-          "type": "Page",
-          "omit": false
-        },
-        {
-          "name": "albums",
-          "type": "[]Album",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetAlbumById",
-      "extend": "Album",
-      "fields": null
-    },
-    {
-      "name": "Track",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "duration",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "number",
-          "type": "*int",
-          "omit": false
-        },
-        {
-          "name": "year",
-          "type": "*int",
-          "omit": false
-        },
-        {
-          "name": "coverArt",
-          "type": "Images",
-          "omit": false
-        },
-        {
-          "name": "albumId",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "albumName",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "artists",
-          "type": "[]ArtistInfo",
-          "omit": false
-        },
-        {
-          "name": "tags",
-          "type": "[]string",
-          "omit": false
-        },
-        {
-          "name": "created",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "updated",
-          "type": "int",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetAlbumTracks",
-      "extend": "",
-      "fields": [
-        {
-          "name": "tracks",
-          "type": "[]Track",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetTracks",
-      "extend": "",
-      "fields": [
-        {
-          "name": "page",
-          "type": "Page",
-          "omit": false
-        },
-        {
-          "name": "tracks",
-          "type": "[]Track",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetTrackById",
-      "extend": "Track",
-      "fields": null
-    },
-    {
-      "name": "Signup",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "username",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "SignupBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "username",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "password",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "passwordConfirm",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "Signin",
-      "extend": "",
-      "fields": [
-        {
-          "name": "token",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "SigninBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "username",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "password",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "ChangePasswordBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "currentPassword",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "newPassword",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "newPasswordConfirm",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetMe",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "username",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "role",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "displayName",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "quickPlaylist",
-          "type": "*string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "Playlist",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetPlaylists",
-      "extend": "",
-      "fields": [
-        {
-          "name": "playlists",
-          "type": "[]Playlist",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "CreatePlaylist",
-      "extend": "Playlist",
-      "fields": null
-    },
-    {
-      "name": "CreatePlaylistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "PostPlaylistFilterBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "filter",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetPlaylistById",
-      "extend": "Playlist",
-      "fields": null
-    },
-    {
-      "name": "GetPlaylistItems",
-      "extend": "",
-      "fields": [
-        {
-          "name": "page",
-          "type": "Page",
-          "omit": false
-        },
-        {
-          "name": "items",
-          "type": "[]Track",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "AddItemToPlaylistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "trackId",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "RemovePlaylistItemBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "trackId",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetSystemInfo",
-      "extend": "",
-      "fields": [
-        {
-          "name": "version",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "Taglist",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "filter",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "created",
-          "type": "int",
-          "omit": false
-        },
-        {
-          "name": "updated",
-          "type": "int",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetTaglists",
-      "extend": "",
-      "fields": [
-        {
-          "name": "taglists",
-          "type": "[]Taglist",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetTaglistById",
-      "extend": "Taglist",
-      "fields": null
-    },
-    {
-      "name": "GetTaglistTracks",
-      "extend": "",
-      "fields": [
-        {
-          "name": "page",
-          "type": "Page",
-          "omit": false
-        },
-        {
-          "name": "tracks",
-          "type": "[]Track",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "CreateTaglist",
-      "extend": "",
-      "fields": [
-        {
-          "name": "id",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "CreateTaglistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
-        },
-        {
-          "name": "filter",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "UpdateTaglistBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "filter",
-          "type": "*string",
-          "omit": true
-        }
-      ]
-    },
-    {
-      "name": "UpdateUserSettingsBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "displayName",
-          "type": "*string",
-          "omit": true
-        },
-        {
-          "name": "quickPlaylist",
-          "type": "*string",
-          "omit": true
-        }
-      ]
-    },
-    {
-      "name": "TrackId",
-      "extend": "",
-      "fields": [
-        {
-          "name": "trackId",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "GetUserQuickPlaylistItemIds",
-      "extend": "",
-      "fields": [
-        {
-          "name": "trackIds",
-          "type": "[]string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "CreateApiToken",
-      "extend": "",
-      "fields": [
-        {
-          "name": "token",
-          "type": "string",
-          "omit": false
-        }
-      ]
-    },
-    {
-      "name": "CreateApiTokenBody",
-      "extend": "",
-      "fields": [
-        {
-          "name": "name",
-          "type": "string",
-          "omit": false
+          "omitEmpty": false
         }
       ]
     },
     {
       "name": "ApiToken",
-      "extend": "",
       "fields": [
         {
           "name": "id",
           "type": "string",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "name",
           "type": "string",
-          "omit": false
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "Artist",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "picture",
+          "type": "Images",
+          "omitEmpty": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omitEmpty": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "ArtistInfo",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "ChangePasswordBody",
+      "fields": [
+        {
+          "name": "currentPassword",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "newPassword",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "newPasswordConfirm",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "CreateApiToken",
+      "fields": [
+        {
+          "name": "token",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "CreateApiTokenBody",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "CreatePlaylist",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "CreatePlaylistBody",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "CreateTaglist",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "CreateTaglistBody",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetAlbumById",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "year",
+          "type": "*int",
+          "omitEmpty": false
+        },
+        {
+          "name": "coverArt",
+          "type": "Images",
+          "omitEmpty": false
+        },
+        {
+          "name": "artists",
+          "type": "[]ArtistInfo",
+          "omitEmpty": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omitEmpty": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetAlbumTracks",
+      "fields": [
+        {
+          "name": "tracks",
+          "type": "[]Track",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetAlbums",
+      "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omitEmpty": false
+        },
+        {
+          "name": "albums",
+          "type": "[]Album",
+          "omitEmpty": false
         }
       ]
     },
     {
       "name": "GetAllApiTokens",
-      "extend": "",
       "fields": [
         {
           "name": "tokens",
           "type": "[]ApiToken",
-          "omit": false
+          "omitEmpty": false
         }
       ]
     },
     {
-      "name": "MediaResource",
-      "extend": "",
+      "name": "GetArtistAlbumsById",
+      "fields": [
+        {
+          "name": "albums",
+          "type": "[]Album",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetArtistById",
       "fields": [
         {
           "name": "id",
           "type": "string",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "name",
           "type": "string",
-          "omit": false
+          "omitEmpty": false
+        },
+        {
+          "name": "picture",
+          "type": "Images",
+          "omitEmpty": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omitEmpty": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omitEmpty": false
         }
       ]
     },
     {
-      "name": "MediaItem",
-      "extend": "",
+      "name": "GetArtists",
       "fields": [
         {
-          "name": "track",
-          "type": "MediaResource",
-          "omit": false
+          "name": "page",
+          "type": "Page",
+          "omitEmpty": false
         },
         {
           "name": "artists",
-          "type": "[]MediaResource",
-          "omit": false
-        },
+          "type": "[]Artist",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetMe",
+      "fields": [
         {
-          "name": "album",
-          "type": "MediaResource",
-          "omit": false
-        },
-        {
-          "name": "coverArt",
-          "type": "Images",
-          "omit": false
-        },
-        {
-          "name": "mediaType",
+          "name": "id",
           "type": "string",
-          "omit": false
+          "omitEmpty": false
         },
         {
-          "name": "mediaUrl",
+          "name": "username",
           "type": "string",
-          "omit": false
+          "omitEmpty": false
+        },
+        {
+          "name": "role",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "displayName",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "quickPlaylist",
+          "type": "*string",
+          "omitEmpty": false
         }
       ]
     },
     {
       "name": "GetMedia",
-      "extend": "",
       "fields": [
         {
           "name": "items",
           "type": "[]MediaItem",
-          "omit": false
+          "omitEmpty": false
         }
       ]
     },
     {
       "name": "GetMediaCommonBody",
-      "extend": "",
       "fields": [
         {
           "name": "mediaType",
           "type": "string",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "shuffle",
           "type": "bool",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "sort",
           "type": "string",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "limit",
           "type": "int",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "offset",
           "type": "int",
-          "omit": true
+          "omitEmpty": true
         }
       ]
     },
     {
-      "name": "GetMediaFromPlaylistBody",
-      "extend": "GetMediaCommonBody",
-      "fields": null
-    },
-    {
-      "name": "GetMediaFromTaglistBody",
-      "extend": "GetMediaCommonBody",
-      "fields": null
-    },
-    {
-      "name": "GetMediaFromFilterBody",
-      "extend": "",
+      "name": "GetMediaFromAlbumBody",
       "fields": [
         {
           "name": "mediaType",
           "type": "string",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "shuffle",
           "type": "bool",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "sort",
           "type": "string",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "limit",
           "type": "int",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "offset",
           "type": "int",
-          "omit": true
-        },
-        {
-          "name": "filter",
-          "type": "string",
-          "omit": false
+          "omitEmpty": true
         }
       ]
     },
     {
       "name": "GetMediaFromArtistBody",
-      "extend": "GetMediaCommonBody",
-      "fields": null
-    },
-    {
-      "name": "GetMediaFromAlbumBody",
-      "extend": "GetMediaCommonBody",
-      "fields": null
-    },
-    {
-      "name": "GetMediaFromIdsBody",
-      "extend": "",
       "fields": [
         {
           "name": "mediaType",
           "type": "string",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "shuffle",
           "type": "bool",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "sort",
           "type": "string",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "limit",
           "type": "int",
-          "omit": true
+          "omitEmpty": true
         },
         {
           "name": "offset",
           "type": "int",
-          "omit": true
+          "omitEmpty": true
+        }
+      ]
+    },
+    {
+      "name": "GetMediaFromFilterBody",
+      "fields": [
+        {
+          "name": "mediaType",
+          "type": "string",
+          "omitEmpty": true
+        },
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omitEmpty": true
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "omitEmpty": true
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "omitEmpty": true
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "omitEmpty": true
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetMediaFromIdsBody",
+      "fields": [
+        {
+          "name": "mediaType",
+          "type": "string",
+          "omitEmpty": true
+        },
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omitEmpty": true
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "omitEmpty": true
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "omitEmpty": true
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "omitEmpty": true
         },
         {
           "name": "trackIds",
           "type": "[]string",
-          "omit": false
+          "omitEmpty": false
         },
         {
           "name": "keepOrder",
           "type": "bool",
-          "omit": true
+          "omitEmpty": true
+        }
+      ]
+    },
+    {
+      "name": "GetMediaFromPlaylistBody",
+      "fields": [
+        {
+          "name": "mediaType",
+          "type": "string",
+          "omitEmpty": true
+        },
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omitEmpty": true
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "omitEmpty": true
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "omitEmpty": true
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "omitEmpty": true
+        }
+      ]
+    },
+    {
+      "name": "GetMediaFromTaglistBody",
+      "fields": [
+        {
+          "name": "mediaType",
+          "type": "string",
+          "omitEmpty": true
+        },
+        {
+          "name": "shuffle",
+          "type": "bool",
+          "omitEmpty": true
+        },
+        {
+          "name": "sort",
+          "type": "string",
+          "omitEmpty": true
+        },
+        {
+          "name": "limit",
+          "type": "int",
+          "omitEmpty": true
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "omitEmpty": true
+        }
+      ]
+    },
+    {
+      "name": "GetPlaylistById",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetPlaylistItems",
+      "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omitEmpty": false
+        },
+        {
+          "name": "items",
+          "type": "[]Track",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetPlaylists",
+      "fields": [
+        {
+          "name": "playlists",
+          "type": "[]Playlist",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetSystemInfo",
+      "fields": [
+        {
+          "name": "version",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetTaglistById",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetTaglistTracks",
+      "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omitEmpty": false
+        },
+        {
+          "name": "tracks",
+          "type": "[]Track",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetTaglists",
+      "fields": [
+        {
+          "name": "taglists",
+          "type": "[]Taglist",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetTrackById",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "duration",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "number",
+          "type": "*int",
+          "omitEmpty": false
+        },
+        {
+          "name": "year",
+          "type": "*int",
+          "omitEmpty": false
+        },
+        {
+          "name": "coverArt",
+          "type": "Images",
+          "omitEmpty": false
+        },
+        {
+          "name": "albumId",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "albumName",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "artists",
+          "type": "[]ArtistInfo",
+          "omitEmpty": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omitEmpty": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetTracks",
+      "fields": [
+        {
+          "name": "page",
+          "type": "Page",
+          "omitEmpty": false
+        },
+        {
+          "name": "tracks",
+          "type": "[]Track",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "GetUserQuickPlaylistItemIds",
+      "fields": [
+        {
+          "name": "trackIds",
+          "type": "[]string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "Images",
+      "fields": [
+        {
+          "name": "original",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "small",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "medium",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "large",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "MediaItem",
+      "fields": [
+        {
+          "name": "track",
+          "type": "MediaResource",
+          "omitEmpty": false
+        },
+        {
+          "name": "artists",
+          "type": "[]MediaResource",
+          "omitEmpty": false
+        },
+        {
+          "name": "album",
+          "type": "MediaResource",
+          "omitEmpty": false
+        },
+        {
+          "name": "coverArt",
+          "type": "Images",
+          "omitEmpty": false
+        },
+        {
+          "name": "mediaType",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "mediaUrl",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "MediaResource",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "Page",
+      "fields": [
+        {
+          "name": "page",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "perPage",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "totalItems",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "totalPages",
+          "type": "int",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "Playlist",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "PostPlaylistFilterBody",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "RemovePlaylistItemBody",
+      "fields": [
+        {
+          "name": "trackId",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "Signin",
+      "fields": [
+        {
+          "name": "token",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "SigninBody",
+      "fields": [
+        {
+          "name": "username",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "Signup",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "SignupBody",
+      "fields": [
+        {
+          "name": "username",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "passwordConfirm",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "Taglist",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "Track",
+      "fields": [
+        {
+          "name": "id",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "duration",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "number",
+          "type": "*int",
+          "omitEmpty": false
+        },
+        {
+          "name": "year",
+          "type": "*int",
+          "omitEmpty": false
+        },
+        {
+          "name": "coverArt",
+          "type": "Images",
+          "omitEmpty": false
+        },
+        {
+          "name": "albumId",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "albumName",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "artists",
+          "type": "[]ArtistInfo",
+          "omitEmpty": false
+        },
+        {
+          "name": "tags",
+          "type": "[]string",
+          "omitEmpty": false
+        },
+        {
+          "name": "created",
+          "type": "int",
+          "omitEmpty": false
+        },
+        {
+          "name": "updated",
+          "type": "int",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "TrackId",
+      "fields": [
+        {
+          "name": "trackId",
+          "type": "string",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "UpdateTaglistBody",
+      "fields": [
+        {
+          "name": "name",
+          "type": "*string",
+          "omitEmpty": true
+        },
+        {
+          "name": "filter",
+          "type": "*string",
+          "omitEmpty": true
+        }
+      ]
+    },
+    {
+      "name": "UpdateUserSettingsBody",
+      "fields": [
+        {
+          "name": "displayName",
+          "type": "*string",
+          "omitEmpty": true
+        },
+        {
+          "name": "quickPlaylist",
+          "type": "*string",
+          "omitEmpty": true
         }
       ]
     }
   ],
-  "apiEndpoints": [
+  "endpoints": [
     {
-      "name": "GetArtists",
-      "method": "GET",
-      "path": "/api/v1/artists",
-      "responseType": "GetArtists",
-      "bodyType": ""
-    },
-    {
-      "name": "SearchArtists",
-      "method": "GET",
-      "path": "/api/v1/artists/search",
-      "responseType": "GetArtists",
-      "bodyType": ""
-    },
-    {
-      "name": "GetArtistById",
-      "method": "GET",
-      "path": "/api/v1/artists/:id",
-      "responseType": "GetArtistById",
-      "bodyType": ""
-    },
-    {
-      "name": "GetArtistAlbums",
-      "method": "GET",
-      "path": "/api/v1/artists/:id/albums",
-      "responseType": "GetArtistAlbumsById",
-      "bodyType": ""
-    },
-    {
-      "name": "GetAlbums",
-      "method": "GET",
-      "path": "/api/v1/albums",
-      "responseType": "GetAlbums",
-      "bodyType": ""
-    },
-    {
-      "name": "SearchAlbums",
-      "method": "GET",
-      "path": "/api/v1/albums/search",
-      "responseType": "GetAlbums",
-      "bodyType": ""
-    },
-    {
-      "name": "GetAlbumById",
-      "method": "GET",
-      "path": "/api/v1/albums/:id",
-      "responseType": "GetAlbumById",
-      "bodyType": ""
-    },
-    {
-      "name": "GetAlbumTracks",
-      "method": "GET",
-      "path": "/api/v1/albums/:id/tracks",
-      "responseType": "GetAlbumTracks",
-      "bodyType": ""
-    },
-    {
-      "name": "GetTracks",
-      "method": "GET",
-      "path": "/api/v1/tracks",
-      "responseType": "GetTracks",
-      "bodyType": ""
-    },
-    {
-      "name": "SearchTracks",
-      "method": "GET",
-      "path": "/api/v1/tracks/search",
-      "responseType": "GetTracks",
-      "bodyType": ""
-    },
-    {
-      "name": "GetTrackById",
-      "method": "GET",
-      "path": "/api/v1/tracks/:id",
-      "responseType": "GetTrackById",
-      "bodyType": ""
-    },
-    {
-      "name": "Signup",
-      "method": "POST",
-      "path": "/api/v1/auth/signup",
-      "responseType": "Signup",
-      "bodyType": "SignupBody"
-    },
-    {
-      "name": "Signin",
-      "method": "POST",
-      "path": "/api/v1/auth/signin",
-      "responseType": "Signin",
-      "bodyType": "SigninBody"
-    },
-    {
-      "name": "ChangePassword",
-      "method": "PATCH",
-      "path": "/api/v1/auth/password",
-      "responseType": "",
-      "bodyType": "ChangePasswordBody"
-    },
-    {
-      "name": "GetMe",
-      "method": "GET",
-      "path": "/api/v1/auth/me",
-      "responseType": "GetMe",
-      "bodyType": ""
-    },
-    {
-      "name": "GetPlaylists",
-      "method": "GET",
-      "path": "/api/v1/playlists",
-      "responseType": "GetPlaylists",
-      "bodyType": ""
-    },
-    {
-      "name": "CreatePlaylist",
-      "method": "POST",
-      "path": "/api/v1/playlists",
-      "responseType": "CreatePlaylist",
-      "bodyType": "CreatePlaylistBody"
-    },
-    {
-      "name": "CreatePlaylistFromFilter",
-      "method": "POST",
-      "path": "/api/v1/playlists/filter",
-      "responseType": "CreatePlaylist",
-      "bodyType": "PostPlaylistFilterBody"
-    },
-    {
-      "name": "DeletePlaylist",
-      "method": "DELETE",
-      "path": "/api/v1/playlists/:id",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "GetPlaylistById",
-      "method": "GET",
-      "path": "/api/v1/playlists/:id",
-      "responseType": "GetPlaylistById",
-      "bodyType": ""
-    },
-    {
-      "name": "GetPlaylistItems",
-      "method": "GET",
-      "path": "/api/v1/playlists/:id/items",
-      "responseType": "GetPlaylistItems",
-      "bodyType": ""
-    },
-    {
+      "type": "api",
       "name": "AddItemToPlaylist",
       "method": "POST",
       "path": "/api/v1/playlists/:id/items",
-      "responseType": "",
-      "bodyType": "AddItemToPlaylistBody"
+      "body": "AddItemToPlaylistBody"
     },
     {
-      "name": "RemovePlaylistItem",
-      "method": "DELETE",
-      "path": "/api/v1/playlists/:id/items",
-      "responseType": "",
-      "bodyType": "RemovePlaylistItemBody"
-    },
-    {
-      "name": "ClearPlaylist",
-      "method": "DELETE",
-      "path": "/api/v1/playlists/:id/items/all",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "GetSystemInfo",
-      "method": "GET",
-      "path": "/api/v1/system/info",
-      "responseType": "GetSystemInfo",
-      "bodyType": ""
-    },
-    {
-      "name": "RefillSearch",
-      "method": "POST",
-      "path": "/api/v1/system/search",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "GetSyncStatus",
-      "method": "GET",
-      "path": "/api/v1/system/library",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "SyncLibrary",
-      "method": "POST",
-      "path": "/api/v1/system/library",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "CleanupLibrary",
-      "method": "POST",
-      "path": "/api/v1/system/library/cleanup",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "GetTaglists",
-      "method": "GET",
-      "path": "/api/v1/taglists",
-      "responseType": "GetTaglists",
-      "bodyType": ""
-    },
-    {
-      "name": "GetTaglistById",
-      "method": "GET",
-      "path": "/api/v1/taglists/:id",
-      "responseType": "GetTaglistById",
-      "bodyType": ""
-    },
-    {
-      "name": "GetTaglistTracks",
-      "method": "GET",
-      "path": "/api/v1/taglists/:id/tracks",
-      "responseType": "GetTaglistTracks",
-      "bodyType": ""
-    },
-    {
-      "name": "CreateTaglist",
-      "method": "POST",
-      "path": "/api/v1/taglists",
-      "responseType": "CreateTaglist",
-      "bodyType": "CreateTaglistBody"
-    },
-    {
-      "name": "DeleteTaglist",
-      "method": "DELETE",
-      "path": "/api/v1/taglists/:id",
-      "responseType": "",
-      "bodyType": ""
-    },
-    {
-      "name": "UpdateTaglist",
-      "method": "PATCH",
-      "path": "/api/v1/taglists/:id",
-      "responseType": "",
-      "bodyType": "UpdateTaglistBody"
-    },
-    {
-      "name": "UpdateUserSettings",
-      "method": "PATCH",
-      "path": "/api/v1/user/settings",
-      "responseType": "",
-      "bodyType": "UpdateUserSettingsBody"
-    },
-    {
+      "type": "api",
       "name": "AddToUserQuickPlaylist",
       "method": "POST",
       "path": "/api/v1/user/quickplaylist",
-      "responseType": "",
-      "bodyType": "TrackId"
+      "body": "TrackId"
     },
     {
-      "name": "RemoveItemFromUserQuickPlaylist",
+      "type": "api",
+      "name": "ChangePassword",
+      "method": "PATCH",
+      "path": "/api/v1/auth/password",
+      "body": "ChangePasswordBody"
+    },
+    {
+      "type": "api",
+      "name": "CleanupLibrary",
+      "method": "POST",
+      "path": "/api/v1/system/library/cleanup"
+    },
+    {
+      "type": "api",
+      "name": "ClearPlaylist",
       "method": "DELETE",
-      "path": "/api/v1/user/quickplaylist",
-      "responseType": "",
-      "bodyType": "TrackId"
+      "path": "/api/v1/playlists/:id/items/all"
     },
     {
-      "name": "GetUserQuickPlaylistItemIds",
-      "method": "GET",
-      "path": "/api/v1/user/quickplaylist",
-      "responseType": "GetUserQuickPlaylistItemIds",
-      "bodyType": ""
-    },
-    {
+      "type": "api",
       "name": "CreateApiToken",
       "method": "POST",
       "path": "/api/v1/user/apitoken",
-      "responseType": "CreateApiToken",
-      "bodyType": "CreateApiTokenBody"
+      "response": "CreateApiToken",
+      "body": "CreateApiTokenBody"
     },
     {
+      "type": "api",
+      "name": "CreatePlaylist",
+      "method": "POST",
+      "path": "/api/v1/playlists",
+      "response": "CreatePlaylist",
+      "body": "CreatePlaylistBody"
+    },
+    {
+      "type": "api",
+      "name": "CreatePlaylistFromFilter",
+      "method": "POST",
+      "path": "/api/v1/playlists/filter",
+      "response": "CreatePlaylist",
+      "body": "PostPlaylistFilterBody"
+    },
+    {
+      "type": "api",
+      "name": "CreateTaglist",
+      "method": "POST",
+      "path": "/api/v1/taglists",
+      "response": "CreateTaglist",
+      "body": "CreateTaglistBody"
+    },
+    {
+      "type": "api",
+      "name": "DeleteApiToken",
+      "method": "DELETE",
+      "path": "/api/v1/user/apitoken/:id"
+    },
+    {
+      "type": "api",
+      "name": "DeletePlaylist",
+      "method": "DELETE",
+      "path": "/api/v1/playlists/:id"
+    },
+    {
+      "type": "api",
+      "name": "DeleteTaglist",
+      "method": "DELETE",
+      "path": "/api/v1/taglists/:id"
+    },
+    {
+      "type": "api",
+      "name": "GetAlbumById",
+      "method": "GET",
+      "path": "/api/v1/albums/:id",
+      "response": "GetAlbumById"
+    },
+    {
+      "type": "normal",
+      "name": "GetAlbumImage",
+      "method": "GET",
+      "path": "/files/albums/images/:albumId/:image"
+    },
+    {
+      "type": "api",
+      "name": "GetAlbumTracks",
+      "method": "GET",
+      "path": "/api/v1/albums/:id/tracks",
+      "response": "GetAlbumTracks"
+    },
+    {
+      "type": "api",
+      "name": "GetAlbums",
+      "method": "GET",
+      "path": "/api/v1/albums",
+      "response": "GetAlbums"
+    },
+    {
+      "type": "api",
       "name": "GetAllApiTokens",
       "method": "GET",
       "path": "/api/v1/user/apitoken",
-      "responseType": "GetAllApiTokens",
-      "bodyType": ""
+      "response": "GetAllApiTokens"
     },
     {
-      "name": "DeleteApiToken",
-      "method": "DELETE",
-      "path": "/api/v1/user/apitoken/:id",
-      "responseType": "",
-      "bodyType": ""
+      "type": "api",
+      "name": "GetArtistAlbums",
+      "method": "GET",
+      "path": "/api/v1/artists/:id/albums",
+      "response": "GetArtistAlbumsById"
     },
     {
-      "name": "GetMediaFromPlaylist",
-      "method": "POST",
-      "path": "/api/v1/media/playlist/:playlistId",
-      "responseType": "GetMedia",
-      "bodyType": "GetMediaFromPlaylistBody"
+      "type": "api",
+      "name": "GetArtistById",
+      "method": "GET",
+      "path": "/api/v1/artists/:id",
+      "response": "GetArtistById"
     },
     {
-      "name": "GetMediaFromTaglist",
-      "method": "POST",
-      "path": "/api/v1/media/taglist/:taglistId",
-      "responseType": "GetMedia",
-      "bodyType": "GetMediaFromTaglistBody"
+      "type": "normal",
+      "name": "GetArtistFile",
+      "method": "GET",
+      "path": "/files/artists/:artistId/:file"
     },
     {
-      "name": "GetMediaFromFilter",
-      "method": "POST",
-      "path": "/api/v1/media/filter",
-      "responseType": "GetMedia",
-      "bodyType": "GetMediaFromFilterBody"
+      "type": "api",
+      "name": "GetArtists",
+      "method": "GET",
+      "path": "/api/v1/artists",
+      "response": "GetArtists"
     },
     {
-      "name": "GetMediaFromArtist",
-      "method": "POST",
-      "path": "/api/v1/media/artist/:artistId",
-      "responseType": "GetMedia",
-      "bodyType": "GetMediaFromArtistBody"
+      "type": "normal",
+      "name": "GetDefaultImage",
+      "method": "GET",
+      "path": "/files/images/default/:image"
     },
     {
+      "type": "api",
+      "name": "GetMe",
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "response": "GetMe"
+    },
+    {
+      "type": "api",
       "name": "GetMediaFromAlbum",
       "method": "POST",
       "path": "/api/v1/media/album/:albumId",
-      "responseType": "GetMedia",
-      "bodyType": "GetMediaFromAlbumBody"
+      "response": "GetMedia",
+      "body": "GetMediaFromAlbumBody"
     },
     {
+      "type": "api",
+      "name": "GetMediaFromArtist",
+      "method": "POST",
+      "path": "/api/v1/media/artist/:artistId",
+      "response": "GetMedia",
+      "body": "GetMediaFromArtistBody"
+    },
+    {
+      "type": "api",
+      "name": "GetMediaFromFilter",
+      "method": "POST",
+      "path": "/api/v1/media/filter",
+      "response": "GetMedia",
+      "body": "GetMediaFromFilterBody"
+    },
+    {
+      "type": "api",
       "name": "GetMediaFromIds",
       "method": "POST",
       "path": "/api/v1/media/ids",
-      "responseType": "GetMedia",
-      "bodyType": "GetMediaFromIdsBody"
-    }
-  ],
-  "formApiEndpoints": null,
-  "normalEndpoints": [
+      "response": "GetMedia",
+      "body": "GetMediaFromIdsBody"
+    },
     {
+      "type": "api",
+      "name": "GetMediaFromPlaylist",
+      "method": "POST",
+      "path": "/api/v1/media/playlist/:playlistId",
+      "response": "GetMedia",
+      "body": "GetMediaFromPlaylistBody"
+    },
+    {
+      "type": "api",
+      "name": "GetMediaFromTaglist",
+      "method": "POST",
+      "path": "/api/v1/media/taglist/:taglistId",
+      "response": "GetMedia",
+      "body": "GetMediaFromTaglistBody"
+    },
+    {
+      "type": "api",
+      "name": "GetPlaylistById",
+      "method": "GET",
+      "path": "/api/v1/playlists/:id",
+      "response": "GetPlaylistById"
+    },
+    {
+      "type": "api",
+      "name": "GetPlaylistItems",
+      "method": "GET",
+      "path": "/api/v1/playlists/:id/items",
+      "response": "GetPlaylistItems"
+    },
+    {
+      "type": "api",
+      "name": "GetPlaylists",
+      "method": "GET",
+      "path": "/api/v1/playlists",
+      "response": "GetPlaylists"
+    },
+    {
+      "type": "api",
+      "name": "GetSyncStatus",
+      "method": "GET",
+      "path": "/api/v1/system/library"
+    },
+    {
+      "type": "api",
+      "name": "GetSystemInfo",
+      "method": "GET",
+      "path": "/api/v1/system/info",
+      "response": "GetSystemInfo"
+    },
+    {
+      "type": "api",
+      "name": "GetTaglistById",
+      "method": "GET",
+      "path": "/api/v1/taglists/:id",
+      "response": "GetTaglistById"
+    },
+    {
+      "type": "api",
+      "name": "GetTaglistTracks",
+      "method": "GET",
+      "path": "/api/v1/taglists/:id/tracks",
+      "response": "GetTaglistTracks"
+    },
+    {
+      "type": "api",
+      "name": "GetTaglists",
+      "method": "GET",
+      "path": "/api/v1/taglists",
+      "response": "GetTaglists"
+    },
+    {
+      "type": "api",
+      "name": "GetTrackById",
+      "method": "GET",
+      "path": "/api/v1/tracks/:id",
+      "response": "GetTrackById"
+    },
+    {
+      "type": "normal",
+      "name": "GetTrackFile",
+      "method": "GET",
+      "path": "/files/tracks/:trackId/:file"
+    },
+    {
+      "type": "api",
+      "name": "GetTracks",
+      "method": "GET",
+      "path": "/api/v1/tracks",
+      "response": "GetTracks"
+    },
+    {
+      "type": "api",
+      "name": "GetUserQuickPlaylistItemIds",
+      "method": "GET",
+      "path": "/api/v1/user/quickplaylist",
+      "response": "GetUserQuickPlaylistItemIds"
+    },
+    {
+      "type": "api",
+      "name": "RefillSearch",
+      "method": "POST",
+      "path": "/api/v1/system/search"
+    },
+    {
+      "type": "api",
+      "name": "RemoveItemFromUserQuickPlaylist",
+      "method": "DELETE",
+      "path": "/api/v1/user/quickplaylist",
+      "body": "TrackId"
+    },
+    {
+      "type": "api",
+      "name": "RemovePlaylistItem",
+      "method": "DELETE",
+      "path": "/api/v1/playlists/:id/items",
+      "body": "RemovePlaylistItemBody"
+    },
+    {
+      "type": "api",
+      "name": "SearchAlbums",
+      "method": "GET",
+      "path": "/api/v1/albums/search",
+      "response": "GetAlbums"
+    },
+    {
+      "type": "api",
+      "name": "SearchArtists",
+      "method": "GET",
+      "path": "/api/v1/artists/search",
+      "response": "GetArtists"
+    },
+    {
+      "type": "api",
+      "name": "SearchTracks",
+      "method": "GET",
+      "path": "/api/v1/tracks/search",
+      "response": "GetTracks"
+    },
+    {
+      "type": "api",
+      "name": "Signin",
+      "method": "POST",
+      "path": "/api/v1/auth/signin",
+      "response": "Signin",
+      "body": "SigninBody"
+    },
+    {
+      "type": "api",
+      "name": "Signup",
+      "method": "POST",
+      "path": "/api/v1/auth/signup",
+      "response": "Signup",
+      "body": "SignupBody"
+    },
+    {
+      "type": "normal",
       "name": "SseHandler",
       "method": "GET",
       "path": "/api/v1/system/library/sse"
     },
     {
-      "name": "",
-      "method": "GET",
-      "path": "/files/images/default/:image"
+      "type": "api",
+      "name": "SyncLibrary",
+      "method": "POST",
+      "path": "/api/v1/system/library"
     },
     {
-      "name": "",
-      "method": "GET",
-      "path": "/files/albums/images/:albumId/:image"
+      "type": "api",
+      "name": "UpdateTaglist",
+      "method": "PATCH",
+      "path": "/api/v1/taglists/:id",
+      "body": "UpdateTaglistBody"
     },
     {
-      "name": "",
-      "method": "GET",
-      "path": "/files/artists/:artistId/:file"
-    },
-    {
-      "name": "",
-      "method": "GET",
-      "path": "/files/tracks/:trackId/:file"
+      "type": "api",
+      "name": "UpdateUserSettings",
+      "method": "PATCH",
+      "path": "/api/v1/user/settings",
+      "body": "UpdateUserSettingsBody"
     }
   ]
 }

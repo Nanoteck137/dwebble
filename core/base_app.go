@@ -3,10 +3,10 @@ package core
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"os"
 
 	"github.com/nanoteck137/dwebble/config"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 )
@@ -70,7 +70,7 @@ func (app *BaseApp) Bootstrap() error {
 
 	_, err = os.Stat(workDir.SetupFile())
 	if errors.Is(err, os.ErrNotExist) && app.config.Username != "" {
-		log.Info("Server not setup, creating the initial user")
+		slog.Info("Server not setup, creating the initial user")
 
 		ctx := context.Background()
 

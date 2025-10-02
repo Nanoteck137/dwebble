@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"log/slog"
+	"os"
+
 	"github.com/nanoteck137/dwebble/apis"
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/spf13/cobra"
 )
 
@@ -15,17 +17,20 @@ var serveCmd = &cobra.Command{
 
 		err := app.Bootstrap()
 		if err != nil {
-			log.Fatal("Failed to bootstrap app", "err", err)
+			slog.Error("Failed to bootstrap app", "err", err)
+			os.Exit(-1)
 		}
 
 		e, err := apis.Server(app)
 		if err != nil {
-			log.Fatal("Failed to create server", "err", err)
+			slog.Error("Failed to create server", "err", err)
+			os.Exit(-1)
 		}
 
 		err = e.Start(app.Config().ListenAddr)
 		if err != nil {
-			log.Fatal("Failed to start server", "err", err)
+			slog.Error("Failed to start server", "err", err)
+			os.Exit(-1)
 		}
 	},
 }

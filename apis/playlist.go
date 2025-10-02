@@ -9,7 +9,7 @@ import (
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/nanoteck137/pyrin/anvil"
 	"github.com/nanoteck137/validate"
 )
 
@@ -32,7 +32,7 @@ type CreatePlaylistBody struct {
 }
 
 func (b *CreatePlaylistBody) Transform() {
-	b.Name = transform.String(b.Name)
+	b.Name = anvil.String(b.Name)
 }
 
 func (b CreatePlaylistBody) Validate() error {
@@ -47,8 +47,8 @@ type PostPlaylistFilterBody struct {
 }
 
 func (b *PostPlaylistFilterBody) Transform() {
-	b.Name = transform.String(b.Name)
-	b.Filter = transform.String(b.Filter)
+	b.Name = anvil.String(b.Name)
+	b.Filter = anvil.String(b.Filter)
 }
 
 func (b PostPlaylistFilterBody) Validate() error {

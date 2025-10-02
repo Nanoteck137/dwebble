@@ -25,6 +25,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 	g = router.Group("/files")
 	g.Register(
 		pyrin.NormalHandler{
+			Name: "GetDefaultImage",
 			Method: http.MethodGet,
 			Path:   "/images/default/:image",
 			HandlerFunc: func(c pyrin.Context) error {
@@ -33,6 +34,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 			},
 		},
 		pyrin.NormalHandler{
+			Name: "GetAlbumImage",
 			Method: http.MethodGet,
 			Path:   "/albums/images/:albumId/:image",
 			HandlerFunc: func(c pyrin.Context) error {
@@ -138,6 +140,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 			},
 		},
 		pyrin.NormalHandler{
+			Name: "GetArtistFile",
 			Method: http.MethodGet,
 			Path:   "/artists/:artistId/:file",
 			HandlerFunc: func(c pyrin.Context) error {
@@ -151,6 +154,7 @@ func RegisterHandlers(app core.App, router pyrin.Router) {
 			},
 		},
 		pyrin.NormalHandler{
+			Name: "GetTrackFile",
 			Method: http.MethodGet,
 			Path:   "/tracks/:trackId/:file",
 			HandlerFunc: func(c pyrin.Context) error {

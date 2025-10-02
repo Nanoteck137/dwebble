@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"log/slog"
+	"os"
+
 	"github.com/nanoteck137/dwebble/config"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/pressly/goose/v3"
 	"github.com/spf13/cobra"
 )
@@ -21,12 +23,14 @@ var upCmd = &cobra.Command{
 
 		err := app.Bootstrap()
 		if err != nil {
-			log.Fatal("Failed to bootstrap app", "err", err)
+			slog.Error("Failed to bootstrap app", "err", err)
+			os.Exit(-1)
 		}
 
 		err = app.DB().RunMigrateUp()
 		if err != nil {
-			log.Fatal("Failed to run migrate up", "err", err)
+			slog.Error("Failed to run migrate up", "err", err)
+			os.Exit(-1)
 		}
 	},
 }
@@ -40,12 +44,14 @@ var downCmd = &cobra.Command{
 
 		err := app.Bootstrap()
 		if err != nil {
-			log.Fatal("Failed to bootstrap app", "err", err)
+			slog.Error("Failed to bootstrap app", "err", err)
+			os.Exit(-1)
 		}
 
 		err = app.DB().RunMigrateDown()
 		if err != nil {
-			log.Fatal("Failed to run migrate down", "err", err)
+			slog.Error("Failed to run migrate down", "err", err)
+			os.Exit(-1)
 		}
 	},
 }
@@ -59,7 +65,8 @@ var createCmd = &cobra.Command{
 
 		err := goose.Create(nil, "./migrations", name, "sql")
 		if err != nil {
-			log.Fatal("Failed to create migration", "err", err)
+			slog.Error("Failed to create migration", "err", err)
+			os.Exit(-1)
 		}
 	},
 }
@@ -70,7 +77,8 @@ var fixCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		err := goose.Fix("./migrations")
 		if err != nil {
-			log.Fatal("Failed to fix migrations", "err", err)
+			slog.Error("Failed to fix migrations", "err", err)
+			os.Exit(-1)
 		}
 	},
 }

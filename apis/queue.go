@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math/rand"
 	"net/http"
 
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/nanoteck137/pyrin/anvil"
 	"github.com/nanoteck137/validate"
 )
 
@@ -70,7 +70,7 @@ type UpdateQueueBody struct {
 }
 
 func (b *UpdateQueueBody) Transform() {
-	b.Name = transform.StringPtr(b.Name)
+	b.Name = anvil.StringPtr(b.Name)
 }
 
 func (b UpdateQueueBody) Validate() error {
@@ -175,7 +175,7 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 				defaultQueue, err := app.DB().GetDefaultQueue(ctx, playerId, user.Id)
 				if err != nil {
 					if errors.Is(err, database.ErrItemNotFound) {
-						log.Info("Default queue not found")
+						slog.Info("Default queue not found")
 						queue, err = app.DB().CreateQueue(ctx, database.CreateQueueParams{
 							PlayerId: playerId,
 							UserId:   user.Id,
@@ -197,7 +197,7 @@ func InstallQueueHandlers(app core.App, group pyrin.Group) {
 						return nil, err
 					}
 				} else {
-					log.Info("Default queue found")
+					slog.Info("Default queue found")
 					queue, err = app.DB().GetQueueById(ctx, defaultQueue.QueueId)
 					if err != nil {
 						return nil, err

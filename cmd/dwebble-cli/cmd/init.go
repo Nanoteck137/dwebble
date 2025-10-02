@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 	"regexp"
@@ -14,7 +15,6 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/kr/pretty"
 	"github.com/nanoteck137/dwebble/cmd/dwebble-cli/api"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/library"
 	"github.com/nanoteck137/dwebble/tools/utils"
@@ -90,7 +90,8 @@ var initCmd = &cobra.Command{
 		// TODO(patrik): Discard hidden files (starts with .)
 		entries, err := os.ReadDir(dir)
 		if err != nil {
-			log.Fatal("Failed to read dir", "err", err)
+			slog.Error("Failed to read dir", "err", err)
+			os.Exit(-1)
 		}
 
 		var tracks []string
@@ -115,7 +116,7 @@ var initCmd = &cobra.Command{
 		}
 
 		if len(tracks) <= 0 {
-			log.Warn("No tracks found... Quitting")
+			slog.Warn("No tracks found... Quitting")
 			return
 		}
 
@@ -123,7 +124,8 @@ var initCmd = &cobra.Command{
 
 		probe, err := utils.ProbeTrack(p)
 		if err != nil {
-			log.Fatal("Failed to probe track", "err", err)
+			slog.Error("Failed to probe track", "err", err)
+			os.Exit(-1)
 		}
 
 		isSingle := len(tracks) == 1
@@ -170,7 +172,8 @@ var initCmd = &cobra.Command{
 
 			trackInfo, err := getTrackInfo(p)
 			if err != nil {
-				log.Fatal("Failed to get track info", "err", err)
+				slog.Error("Failed to get track info", "err", err)
+				os.Exit(-1)
 			}
 
 			if trackInfo.Name == "" {
@@ -197,12 +200,14 @@ var initCmd = &cobra.Command{
 
 		data, err := toml.Marshal(&metadata)
 		if err != nil {
-			log.Fatal("Failed to marshal metadata", "err", err)
+			slog.Error("Failed to marshal metadata", "err", err)
+			os.Exit(-1)
 		}
 
 		err = os.WriteFile(output, data, 0644)
 		if err != nil {
-			log.Fatal("Failed to write output", "err", err)
+			slog.Error("Failed to write output", "err", err)
+			os.Exit(-1)
 		}
 	},
 }
@@ -393,7 +398,8 @@ var oldInitCmd = &cobra.Command{
 
 		db, err := database.OpenRaw(dbPath)
 		if err != nil {
-			log.Fatal("Failed to open db", "err", err)
+			slog.Error("Failed to open db", "err", err)
+			os.Exit(-1)
 		}
 
 		query := AlbumQuery()
@@ -401,7 +407,8 @@ var oldInitCmd = &cobra.Command{
 		var albums []Album
 		err = db.Select(&albums, query)
 		if err != nil {
-			log.Fatal("Failed to get albums", "err", err)
+			slog.Error("Failed to get albums", "err", err)
+			os.Exit(-1)
 		}
 
 		// pretty.Println(albums)
@@ -421,7 +428,8 @@ var oldInitCmd = &cobra.Command{
 			WithHeight(10).
 			Run()
 		if err != nil {
-			log.Fatal("Failed", "err", err)
+			slog.Error("Failed", "err", err)
+			os.Exit(-1)
 		}
 
 		{
@@ -429,7 +437,8 @@ var oldInitCmd = &cobra.Command{
 			var album Album
 			err = db.Get(&album, query)
 			if err != nil {
-				log.Fatal("Failed to get album", "err", err)
+				slog.Error("Failed to get album", "err", err)
+				os.Exit(-1)
 			}
 
 			pretty.Println(album)
@@ -438,7 +447,8 @@ var oldInitCmd = &cobra.Command{
 			var dbTracks []Track
 			err = db.Select(&dbTracks, query)
 			if err != nil {
-				log.Fatal("Failed to get album tracks", "err", err)
+				slog.Error("Failed to get album tracks", "err", err)
+				os.Exit(-1)
 			}
 
 			pretty.Println(dbTracks)
@@ -458,7 +468,8 @@ var oldInitCmd = &cobra.Command{
 			// TODO(patrik): Discard hidden files (starts with .)
 			entries, err := os.ReadDir(dir)
 			if err != nil {
-				log.Fatal("Failed to read dir", "err", err)
+				slog.Error("Failed to read dir", "err", err)
+				os.Exit(-1)
 			}
 
 			var tracks []string
@@ -483,7 +494,7 @@ var oldInitCmd = &cobra.Command{
 			}
 
 			if len(tracks) <= 0 {
-				log.Warn("No tracks found... Quitting")
+				slog.Warn("No tracks found... Quitting")
 				return
 			}
 
@@ -506,7 +517,7 @@ var oldInitCmd = &cobra.Command{
 				}
 
 				if track == nil {
-					log.Warn("Failed to find match for track", "track", p)
+					slog.Warn("Failed to find match for track", "track", p)
 					continue
 				}
 
@@ -531,12 +542,14 @@ var oldInitCmd = &cobra.Command{
 
 			data, err := toml.Marshal(&metadata)
 			if err != nil {
-				log.Fatal("Failed to marshal metadata", "err", err)
+				slog.Error("Failed to marshal metadata", "err", err)
+				os.Exit(-1)
 			}
 
 			err = os.WriteFile(output, data, 0644)
 			if err != nil {
-				log.Fatal("Failed to write output", "err", err)
+				slog.Error("Failed to write output", "err", err)
+				os.Exit(-1)
 			}
 		}
 	},
@@ -597,7 +610,8 @@ var exportPlaylistsCmd = &cobra.Command{
 
 		db, err := database.OpenRaw(dbPath)
 		if err != nil {
-			log.Fatal("Failed to open db", "err", err)
+			slog.Error("Failed to open db", "err", err)
+			os.Exit(-1)
 		}
 
 		query := PlaylistQuery()
@@ -605,7 +619,8 @@ var exportPlaylistsCmd = &cobra.Command{
 		var playlists []Playlist
 		err = db.Select(&playlists, query)
 		if err != nil {
-			log.Fatal("Failed to get playlists", "err", err)
+			slog.Error("Failed to get playlists", "err", err)
+			os.Exit(-1)
 		}
 
 		pretty.Println(playlists)
@@ -620,7 +635,8 @@ var exportPlaylistsCmd = &cobra.Command{
 			var items []string
 			err := db.Select(&items, query)
 			if err != nil {
-				log.Fatal("Failed to get playlist items", "err", err, "playlistId", playlist.Id)
+				slog.Error("Failed to get playlist items", "err", err, "playlistId", playlist.Id)
+				os.Exit(-1)
 			}
 
 			res := ExportedPlaylist{
@@ -634,7 +650,8 @@ var exportPlaylistsCmd = &cobra.Command{
 				var track Track
 				err = db.Get(&track, query)
 				if err != nil {
-					log.Fatal("Failed to get track for playlist", "err", err, "playlistId", playlist.Id, "trackId", trackId)
+					slog.Error("Failed to get track for playlist", "err", err, "playlistId", playlist.Id, "trackId", trackId)
+					os.Exit(-1)
 				}
 
 				res.Items[i] = ExportedPlaylistItem{
@@ -649,13 +666,15 @@ var exportPlaylistsCmd = &cobra.Command{
 
 			d, err := json.MarshalIndent(res, "", "  ")
 			if err != nil {
-				log.Fatal("Failed to marshal json", "err", err, "playlistId", playlist.Id)
+				slog.Error("Failed to marshal json", "err", err, "playlistId", playlist.Id)
+				os.Exit(-1)
 			}
 
 			name := utils.Slug(playlist.Name) + ".json"
 			err = os.WriteFile(path.Join(output, name), d, 0644)
 			if err != nil {
-				log.Fatal("Failed to write json", "err", err, "playlistId", playlist.Id)
+				slog.Error("Failed to write json", "err", err, "playlistId", playlist.Id)
+				os.Exit(-1)
 			}
 		}
 	},
@@ -677,20 +696,23 @@ var importPlaylistCmd = &cobra.Command{
 
 		d, err := os.ReadFile(file)
 		if err != nil {
-			log.Fatal("Failed", "err", err)
+			slog.Error("Failed", "err", err)
+			os.Exit(-1)
 		}
 
 		var p ExportedPlaylist
 		err = json.Unmarshal(d, &p)
 		if err != nil {
-			log.Fatal("Failed", "err", err)
+			slog.Error("Failed", "err", err)
+			os.Exit(-1)
 		}
 
 		pretty.Println(p)
 
 		playlists, err := client.GetPlaylists(api.Options{})
 		if err != nil {
-			log.Fatal("Failed", "err", err)
+			slog.Error("Failed", "err", err)
+			os.Exit(-1)
 		}
 
 		pretty.Println(playlists)
@@ -705,20 +727,22 @@ var importPlaylistCmd = &cobra.Command{
 		}
 
 		if playlistId == nil {
-			log.Info("Failed to find playlist creating new playlist", "name", p.Name)
+			slog.Info("Failed to find playlist creating new playlist", "name", p.Name)
 
 			res, err := client.CreatePlaylist(api.CreatePlaylistBody{
 				Name: p.Name,
 			}, api.Options{})
 			if err != nil {
-				log.Fatal("Failed", "err", err)
+				slog.Error("Failed", "err", err)
+				os.Exit(-1)
 			}
 
 			playlistId = &res.Id
 		} else {
 			_, err = client.ClearPlaylist(*playlistId, api.Options{})
 			if err != nil {
-				log.Fatal("Failed", "err", err)
+				slog.Error("Failed", "err", err)
+				os.Exit(-1)
 			}
 		}
 
@@ -727,7 +751,8 @@ var importPlaylistCmd = &cobra.Command{
 				TrackId: item.TrackId,
 			}, api.Options{})
 			if err != nil {
-				log.Error("Failed to add track to playlist", "err", err, "track", item)
+				slog.Error("Failed to add track to playlist", "err", err, "track", item)
+				os.Exit(-1)
 			}
 		}
 	},

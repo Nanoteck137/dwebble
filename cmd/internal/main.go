@@ -1,17 +1,13 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/nanoteck137/dwebble/apis"
-	"github.com/nanoteck137/dwebble/config"
-	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/core/log"
-	"github.com/nanoteck137/pyrin/spec"
-	"github.com/nanoteck137/pyrin/tools/gen"
+	"github.com/nanoteck137/pyrin/spark"
+	"github.com/nanoteck137/pyrin/spark/golang"
+	"github.com/nanoteck137/pyrin/spark/typescript"
 	"github.com/spf13/cobra"
 )
 
@@ -22,71 +18,61 @@ var rootCmd = &cobra.Command{
 var genCmd = &cobra.Command{
 	Use: "gen",
 	Run: func(cmd *cobra.Command, args []string) {
-		router := spec.Router{}
-
+		router := spark.Router{}
 		apis.RegisterHandlers(nil, &router)
 
-		s, err := spec.GenerateSpec(router.Routes)
+		nameFilter := spark.NameFilter{}
+
+		serverDef, err := spark.CreateServerDef(&router, nameFilter)
 		if err != nil {
-			log.Fatal("Failed to generate spec", "err", err)
+			slog.Error("failed to create server def", "err", err)
+			os.Exit(-1)
 		}
 
-		d, err := json.MarshalIndent(s, "", "  ")
+		err = serverDef.SaveToFile("misc/pyrin.json")
 		if err != nil {
-			log.Fatal("Failed to marshal server", "err", err)
+			slog.Error("failed save server def", "err", err)
+			os.Exit(-1)
 		}
 
-		err = os.WriteFile("misc/pyrin.json", d, 0644)
+		slog.Info("Wrote 'misc/pyrin.json'")
+
+		resolver, err := spark.CreateResolverFromServerDef(&serverDef)
 		if err != nil {
-			log.Fatal("Failed to write pyrin.json", "err", err)
+			slog.Error("failed to create resolver", "err", err)
+			os.Exit(-1)
 		}
 
-		fmt.Println("Wrote 'misc/pyrin.json'")
+		{
+			gen := typescript.TypescriptGenerator{}
 
-		err = gen.GenerateGolang(s, "cmd/dwebble-cli/api")
-		if err != nil {
-			log.Fatal("Failed to generate golang code", "err", err)
+			err = gen.Generate(&serverDef, resolver, "web/src/lib/api")
+			if err != nil {
+				slog.Error("failed to generate typescript client", "err", err)
+				os.Exit(-1)
+			}
 		}
 
-		err = gen.GenerateTypescript(s, "web/src/lib/api")
-		if err != nil {
-			log.Fatal("Failed to generate golang code", "err", err)
+		{
+			gen := golang.GolangGenerator{}
+
+			err = gen.Generate(&serverDef, resolver, "cmd/dwebble-cli/api")
+			if err != nil {
+				slog.Error("failed to generate golang client", "err", err)
+				os.Exit(-1)
+			}
 		}
-	},
-}
-
-var testCmd = &cobra.Command{
-	Use: "test",
-	Run: func(cmd *cobra.Command, args []string) {
-		conf := config.Config{
-			DataDir: "./work",
-			// TODO(patrik): Used for testing
-			Username:        "admin",
-			InitialPassword: "admin",
-		}
-
-		app := core.NewBaseApp(&conf)
-
-		err := app.Bootstrap()
-		if err != nil {
-			log.Fatal("Failed to bootstrap app", "err", err)
-		}
-
-		ctx := context.TODO()
-		db := app.DB()
-		_ = db
-		_ = ctx
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(genCmd)
-	rootCmd.AddCommand(testCmd)
 }
 
 func main() {
 	err := rootCmd.Execute()
 	if err != nil {
-		log.Fatal("Failed to execute", "err", err)
+		slog.Error("Failed to execute", "err", err)
+		os.Exit(-1)
 	}
 }

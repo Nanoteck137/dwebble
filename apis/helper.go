@@ -5,11 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
 	"path"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/nanoteck137/dwebble/core"
-	"github.com/nanoteck137/dwebble/core/log"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
@@ -126,7 +126,7 @@ func EnsureUnknownArtistExists(ctx context.Context, db *database.Database, workD
 	_, err := db.GetArtistById(ctx, UNKNOWN_ARTIST_ID)
 	if err != nil {
 		if errors.Is(err, database.ErrItemNotFound) {
-			log.Info("Creating 'unknown' artist")
+			slog.Info("Creating 'unknown' artist")
 			_, err := db.CreateArtist(ctx, database.CreateArtistParams{
 				Id:   UNKNOWN_ARTIST_ID,
 				Name: UNKNOWN_ARTIST_NAME,

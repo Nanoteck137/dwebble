@@ -3,10 +3,10 @@ package database
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/nanoteck137/dwebble/core/log"
 )
 
 type SearchOptions struct {
@@ -404,7 +404,7 @@ func (db *Database) DeleteTrackFromSearch(ctx context.Context, data Track) error
 }
 
 func (db *Database) UpdateSearchTrack(ctx context.Context, data Track) error {
-	log.Debug("Updating track search", "track", data)
+	slog.Debug("Updating track search", "track", data)
 
 	query := dialect.Update("tracks_search").
 		Set(goqu.Record{

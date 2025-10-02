@@ -12,7 +12,7 @@ import (
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/types"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/nanoteck137/pyrin/anvil"
 	"github.com/nanoteck137/validate"
 )
 
@@ -48,8 +48,8 @@ type CreateTaglistBody struct {
 }
 
 func (b *CreateTaglistBody) Transform() {
-	b.Name = transform.String(b.Name)
-	b.Filter = transform.String(b.Filter)
+	b.Name = anvil.String(b.Name)
+	b.Filter = anvil.String(b.Filter)
 }
 
 func (b CreateTaglistBody) Validate() error {
@@ -65,8 +65,8 @@ type UpdateTaglistBody struct {
 }
 
 func (b *UpdateTaglistBody) Transform() {
-	b.Name = transform.StringPtr(b.Name)
-	b.Filter = transform.StringPtr(b.Filter)
+	b.Name = anvil.StringPtr(b.Name)
+	b.Filter = anvil.StringPtr(b.Filter)
 }
 
 func (b UpdateTaglistBody) Validate() error {

@@ -10,7 +10,7 @@ import (
 	"github.com/nanoteck137/dwebble/core"
 	"github.com/nanoteck137/dwebble/database"
 	"github.com/nanoteck137/pyrin"
-	"github.com/nanoteck137/pyrin/tools/transform"
+	"github.com/nanoteck137/pyrin/anvil"
 	"github.com/nanoteck137/validate"
 )
 
@@ -20,8 +20,8 @@ type UpdateUserSettingsBody struct {
 }
 
 func (b *UpdateUserSettingsBody) Transform() {
-	b.DisplayName = transform.StringPtr(b.DisplayName)
-	b.QuickPlaylist = transform.StringPtr(b.QuickPlaylist)
+	b.DisplayName = anvil.StringPtr(b.DisplayName)
+	b.QuickPlaylist = anvil.StringPtr(b.QuickPlaylist)
 }
 
 func (b UpdateUserSettingsBody) Validate() error {
@@ -55,7 +55,7 @@ type CreateApiTokenBody struct {
 }
 
 func (b *CreateApiTokenBody) Transform() {
-	b.Name = transform.String(b.Name)
+	b.Name = anvil.String(b.Name)
 }
 
 func (b CreateApiTokenBody) Validate() error {
