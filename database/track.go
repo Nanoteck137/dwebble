@@ -3,15 +3,14 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/database/adapter"
 	"github.com/nanoteck137/dwebble/tools/filter"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/ember"
 )
 
 type Track struct {
@@ -125,7 +124,6 @@ func TrackQuery() *goqu.SelectDataset {
 
 			goqu.I("featuring_artists.artists").As("featuring_artists"),
 		).
-		Prepared(true).
 		Join(
 			goqu.I("albums"),
 			goqu.On(goqu.I("tracks.album_id").Eq(goqu.I("albums.id"))),
@@ -146,57 +144,33 @@ func TrackQuery() *goqu.SelectDataset {
 	return query
 }
 
-func (db *Database) GetAllTracksByArtistId(ctx context.Context, artistId string) ([]Track, error) {
+func (db DB) GetAllTracksByArtistId(ctx context.Context, artistId string) ([]Track, error) {
 	query := TrackQuery().
 		Where(goqu.I("tracks.artist_id").Eq(artistId))
 
-	var items []Track
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Track](db.db, ctx, query)
 }
 
-func (db *Database) GetTracksByIds(ctx context.Context, ids []string) ([]Track, error) {
+func (db DB) GetTracksByIds(ctx context.Context, ids []string) ([]Track, error) {
 	query := TrackQuery().Where(goqu.I("tracks.id").In(ids))
 
-	var items []Track
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Track](db.db, ctx, query)
 }
 
-func (db *Database) GetTracksByAlbumForPlay(ctx context.Context, albumId string) ([]NewTrackQueryItem, error) {
+func (db DB) GetTracksByAlbumForPlay(ctx context.Context, albumId string) ([]NewTrackQueryItem, error) {
 	query := NewTrackQuery().
 		Where(goqu.I("tracks.album_id").Eq(albumId)).
 		Order(goqu.I("tracks.number").Asc().NullsLast(), goqu.I("tracks.name").Asc()).
 		As("tracks")
 
-	var items []NewTrackQueryItem
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[NewTrackQueryItem](db.db, ctx, query)
 }
 
-func (db *Database) GetAllTrackIds(ctx context.Context) ([]string, error) {
+func (db DB) GetAllTrackIds(ctx context.Context) ([]string, error) {
 	query := dialect.From("tracks").
 		Select("tracks.id")
 
-	var items []string
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[string](db.db, ctx, query)
 }
 
 // TODO(patrik): Move
@@ -207,7 +181,7 @@ type FetchOptions struct {
 	Page    int
 }
 
-func (db *Database) GetAllTracks(ctx context.Context, filterStr, sortStr string) ([]Track, error) {
+func (db DB) GetAllTracks(ctx context.Context, filterStr, sortStr string) ([]Track, error) {
 	query := TrackQuery()
 
 	var err error
@@ -225,16 +199,10 @@ func (db *Database) GetAllTracks(ctx context.Context, filterStr, sortStr string)
 		return nil, err
 	}
 
-	var items []Track
-	err = db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Track](db.db, ctx, query)
 }
 
-func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOptions) ([]Track, types.Page, error) {
+func (db DB) GetPagedTracks(ctx context.Context, opts FetchOptions) ([]Track, types.Page, error) {
 	query := TrackQuery()
 
 	var err error
@@ -261,8 +229,7 @@ func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOptions) ([]Tr
 			Offset(uint(opts.Page * opts.PerPage))
 	}
 
-	var totalItems int
-	err = db.Get(&totalItems, countQuery)
+	totalItems, err := ember.Single[int](db.db, ctx, countQuery)
 	if err != nil {
 		return nil, types.Page{}, err
 	}
@@ -275,8 +242,7 @@ func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOptions) ([]Tr
 		TotalPages: totalPages,
 	}
 
-	var items []Track
-	err = db.Select(&items, query)
+	items, err := ember.Multiple[Track](db.db, ctx, query)
 	if err != nil {
 		return nil, types.Page{}, err
 	}
@@ -284,7 +250,7 @@ func (db *Database) GetPagedTracks(ctx context.Context, opts FetchOptions) ([]Tr
 	return items, page, nil
 }
 
-func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
+func (db DB) GetTracksByAlbum(ctx context.Context, albumId string) ([]Track, error) {
 	query := TrackQuery().
 		Where(
 			goqu.I("tracks.id").In(
@@ -298,13 +264,7 @@ func (db *Database) GetTracksByAlbum(ctx context.Context, albumId string) ([]Tra
 			goqu.I("tracks.name").Asc(),
 		)
 
-	var items []Track
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Track](db.db, ctx, query)
 }
 
 func AlbumTrackSubquery(albumId string) *goqu.SelectDataset {
@@ -339,7 +299,7 @@ func PlaylistTrackSubquery(playlistId string) *goqu.SelectDataset {
 		)
 }
 
-func (db *Database) GetTracksIn(ctx context.Context, in any, sort string) ([]Track, error) {
+func (db DB) GetTracksIn(ctx context.Context, in any, sort string) ([]Track, error) {
 	query := TrackQuery().
 		Where(
 			goqu.I("tracks.id").In(in),
@@ -353,33 +313,17 @@ func (db *Database) GetTracksIn(ctx context.Context, in any, sort string) ([]Tra
 		return nil, err
 	}
 
-	var items []Track
-	err = db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Track](db.db, ctx, query)
 }
 
-func (db *Database) GetTrackById(ctx context.Context, id string) (Track, error) {
+func (db DB) GetTrackById(ctx context.Context, id string) (Track, error) {
 	query := TrackQuery().
 		Where(goqu.I("tracks.id").Eq(id))
 
-	var item Track
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Track{}, ErrItemNotFound
-		}
-
-		return Track{}, err
-	}
-
-	return item, nil
+	return ember.Single[Track](db.db, ctx, query)
 }
 
-func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, albumId string) (Track, error) {
+func (db DB) GetTrackByNameAndAlbum(ctx context.Context, name string, albumId string) (Track, error) {
 	query := TrackQuery().
 		Where(
 			goqu.And(
@@ -388,17 +332,7 @@ func (db *Database) GetTrackByNameAndAlbum(ctx context.Context, name string, alb
 			),
 		)
 
-	var item Track
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Track{}, ErrItemNotFound
-		}
-
-		return Track{}, err
-	}
-
-	return item, nil
+	return ember.Single[Track](db.db, ctx, query)
 }
 
 type CreateTrackParams struct {
@@ -425,7 +359,7 @@ type CreateTrackParams struct {
 	Updated int64
 }
 
-func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (string, error) {
+func (db DB) CreateTrack(ctx context.Context, params CreateTrackParams) (string, error) {
 	t := time.Now().UnixMilli()
 	created := params.Created
 	updated := params.Updated
@@ -440,7 +374,7 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		id = utils.CreateId()
 	}
 
-	ds := dialect.Insert("tracks").Rows(goqu.Record{
+	query := dialect.Insert("tracks").Rows(goqu.Record{
 		"id":   id,
 
 		"filename":   params.Filename,
@@ -460,22 +394,9 @@ func (db *Database) CreateTrack(ctx context.Context, params CreateTrackParams) (
 		"created": created,
 		"updated": updated,
 	}).
-		Prepared(true).
 		Returning("id")
 
-	var item string
-
-	row, err := db.QueryRow(ctx, ds)
-	if err != nil {
-		return "", err
-	}
-
-	err = row.Scan(&item)
-	if err != nil {
-		return "", err
-	}
-
-	return item, nil
+	return ember.Single[string](db.db, ctx, query)
 }
 
 type TrackChanges struct {
@@ -496,7 +417,7 @@ type TrackChanges struct {
 	Created types.Change[int64]
 }
 
-func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
+func (db DB) UpdateTrack(ctx context.Context, id string, changes TrackChanges) error {
 	record := goqu.Record{}
 
 	addToRecord(record, "filename", changes.Filename)
@@ -522,11 +443,10 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	record["updated"] = time.Now().UnixMilli()
 
 	ds := dialect.Update("tracks").
-		Prepared(true).
 		Set(record).
 		Where(goqu.I("tracks.id").Eq(id))
 
-	_, err := db.Exec(ctx, ds)
+	_, err := db.db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
@@ -534,18 +454,17 @@ func (db *Database) UpdateTrack(ctx context.Context, id string, changes TrackCha
 	return nil
 }
 
-func (db *Database) ChangeAllTrackArtist(ctx context.Context, artistId, newArtistId string) error {
+func (db DB) ChangeAllTrackArtist(ctx context.Context, artistId, newArtistId string) error {
 	record := goqu.Record{
 		"artist_id": newArtistId,
 		"updated":   time.Now().UnixMilli(),
 	}
 
 	query := goqu.Update("tracks").
-		Prepared(true).
 		Set(record).
 		Where(goqu.I("tracks.artist_id").Eq(artistId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -553,12 +472,11 @@ func (db *Database) ChangeAllTrackArtist(ctx context.Context, artistId, newArtis
 	return err
 }
 
-func (db *Database) DeleteTrackMedia(ctx context.Context, trackId string) error {
+func (db DB) DeleteTrackMedia(ctx context.Context, trackId string) error {
 	query := dialect.Delete("tracks_media").
-		Prepared(true).
 		Where(goqu.I("tracks_media.track_id").Eq(trackId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -566,12 +484,11 @@ func (db *Database) DeleteTrackMedia(ctx context.Context, trackId string) error 
 	return nil
 }
 
-func (db *Database) DeleteTrack(ctx context.Context, id string) error {
+func (db DB) DeleteTrack(ctx context.Context, id string) error {
 	query := dialect.Delete("tracks").
-		Prepared(true).
 		Where(goqu.I("tracks.id").Eq(id))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -588,35 +505,26 @@ func TrackMapNameToId(typ string, name string) string {
 	return ""
 }
 
-func (db *Database) AddTagToTrack(ctx context.Context, tagSlug, trackId string) error {
+func (db DB) AddTagToTrack(ctx context.Context, tagSlug, trackId string) error {
 	ds := dialect.Insert("tracks_tags").
-		Prepared(true).
 		Rows(goqu.Record{
 			"track_id": trackId,
 			"tag_slug": tagSlug,
 		})
 
-	_, err := db.Exec(ctx, ds)
+	_, err := db.db.Exec(ctx, ds)
 	if err != nil {
-		var e sqlite3.Error
-		if errors.As(err, &e) {
-			if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-				return ErrItemAlreadyExists
-			}
-		}
-
 		return err
 	}
 
 	return nil
 }
 
-func (db *Database) RemoveAllTagsFromTrack(ctx context.Context, trackId string) error {
+func (db DB) RemoveAllTagsFromTrack(ctx context.Context, trackId string) error {
 	query := dialect.Delete("tracks_tags").
-		Prepared(true).
 		Where(goqu.I("track_id").Eq(trackId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -625,12 +533,11 @@ func (db *Database) RemoveAllTagsFromTrack(ctx context.Context, trackId string) 
 }
 
 // TODO(patrik): Generalize
-func (db *Database) RemoveAllTrackFeaturingArtists(ctx context.Context, trackId string) error {
+func (db DB) RemoveAllTrackFeaturingArtists(ctx context.Context, trackId string) error {
 	query := dialect.Delete("tracks_featuring_artists").
-		Prepared(true).
 		Where(goqu.I("tracks_featuring_artists.track_id").Eq(trackId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -639,32 +546,23 @@ func (db *Database) RemoveAllTrackFeaturingArtists(ctx context.Context, trackId 
 }
 
 // TODO(patrik): Generalize
-func (db *Database) AddFeaturingArtistToTrack(ctx context.Context, trackId, artistId string) error {
+func (db DB) AddFeaturingArtistToTrack(ctx context.Context, trackId, artistId string) error {
 	query := dialect.Insert("tracks_featuring_artists").
-		Prepared(true).
 		Rows(goqu.Record{
 			"track_id":  trackId,
 			"artist_id": artistId,
 		})
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
-		var sqlErr sqlite3.Error
-		if errors.As(err, &sqlErr) {
-			if sqlErr.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-				return ErrItemAlreadyExists
-			}
-		}
-
 		return err
 	}
 
 	return nil
 }
 
-func (db *Database) RemoveFeaturingArtistFromTrack(ctx context.Context, trackId, artistId string) error {
+func (db DB) RemoveFeaturingArtistFromTrack(ctx context.Context, trackId, artistId string) error {
 	query := goqu.Delete("tracks_featuring_artists").
-		Prepared(true).
 		Where(
 			goqu.And(
 				goqu.I("tracks_featuring_artists.track_id").Eq(trackId),
@@ -672,7 +570,7 @@ func (db *Database) RemoveFeaturingArtistFromTrack(ctx context.Context, trackId,
 			),
 		)
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -690,7 +588,7 @@ type CreateTrackMediaParams struct {
 	IsOriginal bool
 }
 
-func (db *Database) CreateTrackMedia(ctx context.Context, params CreateTrackMediaParams) error {
+func (db DB) CreateTrackMedia(ctx context.Context, params CreateTrackMediaParams) error {
 	query := dialect.Insert("tracks_media").
 		Rows(goqu.Record{
 			"id":       params.Id,
@@ -700,10 +598,9 @@ func (db *Database) CreateTrackMedia(ctx context.Context, params CreateTrackMedi
 			"media_type":  params.MediaType,
 			"rank":        params.Rank,
 			"is_original": params.IsOriginal,
-		}).
-		Prepared(true)
+		})
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}

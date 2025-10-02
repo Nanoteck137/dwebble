@@ -2,13 +2,12 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/ember"
 )
 
 type Taglist struct {
@@ -31,7 +30,7 @@ type CreateTaglistParams struct {
 	Updated int64
 }
 
-func (db *Database) CreateTaglist(ctx context.Context, params CreateTaglistParams) (Taglist, error) {
+func (db DB) CreateTaglist(ctx context.Context, params CreateTaglistParams) (Taglist, error) {
 	t := time.Now().UnixMilli()
 	created := params.Created
 	updated := params.Updated
@@ -58,19 +57,12 @@ func (db *Database) CreateTaglist(ctx context.Context, params CreateTaglistParam
 			"taglists.owner_id",
 			"taglists.created",
 			"taglists.updated",
-		).
-		Prepared(true)
+		)
 
-	var item Taglist
-	err := db.Get(&item, query)
-	if err != nil {
-		return Taglist{}, nil
-	}
-
-	return item, nil
+	return ember.Single[Taglist](db.db, ctx, query)
 }
 
-func (db *Database) GetTaglistByUser(ctx context.Context, userId string) ([]Taglist, error) {
+func (db DB) GetTaglistByUser(ctx context.Context, userId string) ([]Taglist, error) {
 	query := dialect.From("taglists").
 		Select(
 			"taglists.id",
@@ -78,19 +70,12 @@ func (db *Database) GetTaglistByUser(ctx context.Context, userId string) ([]Tagl
 			"taglists.filter",
 			"taglists.owner_id",
 		).
-		Prepared(true).
 		Where(goqu.I("owner_id").Eq(userId))
 
-	var items []Taglist
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Taglist](db.db, ctx, query)
 }
 
-func (db *Database) GetTaglistById(ctx context.Context, id string) (Taglist, error) {
+func (db DB) GetTaglistById(ctx context.Context, id string) (Taglist, error) {
 	query := dialect.From("taglists").
 		Select(
 			"taglists.id",
@@ -100,20 +85,9 @@ func (db *Database) GetTaglistById(ctx context.Context, id string) (Taglist, err
 			"taglists.created",
 			"taglists.updated",
 		).
-		Prepared(true).
 		Where(goqu.I("taglists.id").Eq(id))
 
-	var item Taglist
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Taglist{}, ErrItemNotFound
-		}
-
-		return Taglist{}, err
-	}
-
-	return item, nil
+	return ember.Single[Taglist](db.db, ctx, query)
 }
 
 type TaglistChanges struct {
@@ -123,7 +97,7 @@ type TaglistChanges struct {
 	Created types.Change[int64]
 }
 
-func (db *Database) UpdateTaglist(ctx context.Context, id string, changes TaglistChanges) error {
+func (db DB) UpdateTaglist(ctx context.Context, id string, changes TaglistChanges) error {
 	record := goqu.Record{}
 
 	addToRecord(record, "name", changes.Name)
@@ -139,10 +113,9 @@ func (db *Database) UpdateTaglist(ctx context.Context, id string, changes Taglis
 
 	ds := dialect.Update("taglists").
 		Set(record).
-		Where(goqu.I("taglists.id").Eq(id)).
-		Prepared(true)
+		Where(goqu.I("taglists.id").Eq(id))
 
-	_, err := db.Exec(ctx, ds)
+	_, err := db.db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
@@ -150,12 +123,11 @@ func (db *Database) UpdateTaglist(ctx context.Context, id string, changes Taglis
 	return nil
 }
 
-func (db *Database) DeleteTaglist(ctx context.Context, id string) error {
+func (db DB) DeleteTaglist(ctx context.Context, id string) error {
 	query := dialect.Delete("taglists").
-		Prepared(true).
 		Where(goqu.I("taglists.id").Eq(id))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}

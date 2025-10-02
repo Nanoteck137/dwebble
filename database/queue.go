@@ -12,6 +12,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/ember"
 )
 
 type ConvertibleBoolean bool
@@ -185,21 +186,11 @@ func QueueItemQuery() *goqu.SelectDataset {
 	return query
 }
 
-func (db *Database) GetPlayerById(ctx context.Context, id string) (Player, error) {
+func (db DB) GetPlayerById(ctx context.Context, id string) (Player, error) {
 	query := PlayerQuery().
 		Where(goqu.I("players.id").Eq(id))
 
-	var item Player
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Player{}, ErrItemNotFound
-		}
-
-		return Player{}, err
-	}
-
-	return item, nil
+	return ember.Single[Player](db.db, ctx, query)
 }
 
 type CreatePlayerParams struct {
@@ -209,7 +200,7 @@ type CreatePlayerParams struct {
 	Updated int64
 }
 
-func (db *Database) CreatePlayer(ctx context.Context, params CreatePlayerParams) error {
+func (db DB) CreatePlayer(ctx context.Context, params CreatePlayerParams) error {
 	t := time.Now().UnixMilli()
 	created := params.Created
 	updated := params.Updated
@@ -231,7 +222,7 @@ func (db *Database) CreatePlayer(ctx context.Context, params CreatePlayerParams)
 			"updated": updated,
 		})
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -239,21 +230,11 @@ func (db *Database) CreatePlayer(ctx context.Context, params CreatePlayerParams)
 	return nil
 }
 
-func (db *Database) GetQueueById(ctx context.Context, id string) (Queue, error) {
+func (db DB) GetQueueById(ctx context.Context, id string) (Queue, error) {
 	query := QueueQuery().
 		Where(goqu.I("queues.id").Eq(id))
 
-	var item Queue
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Queue{}, ErrItemNotFound
-		}
-
-		return Queue{}, err
-	}
-
-	return item, nil
+	return ember.Single[Queue](db.db, ctx, query)
 }
 
 type CreateQueueParams struct {
@@ -268,7 +249,7 @@ type CreateQueueParams struct {
 	Updated int64
 }
 
-func (db *Database) CreateQueue(ctx context.Context, params CreateQueueParams) (Queue, error) {
+func (db DB) CreateQueue(ctx context.Context, params CreateQueueParams) (Queue, error) {
 	t := time.Now().UnixMilli()
 	created := params.Created
 	updated := params.Updated
@@ -308,13 +289,7 @@ func (db *Database) CreateQueue(ctx context.Context, params CreateQueueParams) (
 			"queues.updated",
 		)
 
-	var res Queue
-	err := db.Get(&res, query)
-	if err != nil {
-		return Queue{}, err
-	}
-
-	return res, nil
+	return ember.Single[Queue](db.db, ctx, query)
 }
 
 type QueueChanges struct {
@@ -324,7 +299,7 @@ type QueueChanges struct {
 	Created types.Change[int64]
 }
 
-func (db *Database) UpdateQueue(ctx context.Context, id string, changes QueueChanges) error {
+func (db DB) UpdateQueue(ctx context.Context, id string, changes QueueChanges) error {
 	record := goqu.Record{}
 
 	addToRecord(record, "name", changes.Name)
@@ -343,7 +318,7 @@ func (db *Database) UpdateQueue(ctx context.Context, id string, changes QueueCha
 		Where(goqu.I("queues.id").Eq(id)).
 		Prepared(true)
 
-	_, err := db.Exec(ctx, ds)
+	_, err := db.db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
@@ -351,24 +326,14 @@ func (db *Database) UpdateQueue(ctx context.Context, id string, changes QueueCha
 	return nil
 }
 
-func (db *Database) GetDefaultQueue(ctx context.Context, playerId, userId string) (DefaultQueue, error) {
+func (db DB) GetDefaultQueue(ctx context.Context, playerId, userId string) (DefaultQueue, error) {
 	query := DefaultQueueQuery().
 		Where(
 			goqu.I("default_queues.player_id").Eq(playerId),
 			goqu.I("default_queues.user_id").Eq(userId),
 		)
 
-	var item DefaultQueue
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return DefaultQueue{}, ErrItemNotFound
-		}
-
-		return DefaultQueue{}, err
-	}
-
-	return item, nil
+	return ember.Single[DefaultQueue](db.db, ctx, query)
 }
 
 type CreateDefaultQueueParams struct {
@@ -377,7 +342,7 @@ type CreateDefaultQueueParams struct {
 	QueueId  string
 }
 
-func (db *Database) CreateDefaultQueue(ctx context.Context, params CreateDefaultQueueParams) error {
+func (db DB) CreateDefaultQueue(ctx context.Context, params CreateDefaultQueueParams) error {
 	query := dialect.Insert("default_queues").
 		Rows(goqu.Record{
 			"player_id": params.PlayerId,
@@ -385,7 +350,7 @@ func (db *Database) CreateDefaultQueue(ctx context.Context, params CreateDefault
 			"queue_id":  params.QueueId,
 		})
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -477,7 +442,7 @@ func NewTrackQuery() *goqu.SelectDataset {
 
 }
 
-func (db *Database) GetQueueItemsForPlay(ctx context.Context, queueId string) ([]QueueTrackItem, error) {
+func (db DB) GetQueueItemsForPlay(ctx context.Context, queueId string) ([]QueueTrackItem, error) {
 	trackQuery := NewTrackQuery().As("tracks")
 
 	query := dialect.From("queue_items").
@@ -505,13 +470,7 @@ func (db *Database) GetQueueItemsForPlay(ctx context.Context, queueId string) ([
 		Join(trackQuery, goqu.On(goqu.I("queue_items.track_id").Eq(goqu.I("tracks.id")))).
 		Where(goqu.I("queue_items.queue_id").Eq(queueId))
 
-	var items []QueueTrackItem
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[QueueTrackItem](db.db, ctx, query)
 }
 
 type CreateQueueItemParams struct {
@@ -525,7 +484,7 @@ type CreateQueueItemParams struct {
 	Updated int64
 }
 
-func (db *Database) CreateQueueItem(ctx context.Context, params CreateQueueItemParams) (QueueItem, error) {
+func (db DB) CreateQueueItem(ctx context.Context, params CreateQueueItemParams) (QueueItem, error) {
 	t := time.Now().UnixMilli()
 	created := params.Created
 	updated := params.Updated
@@ -564,20 +523,14 @@ func (db *Database) CreateQueueItem(ctx context.Context, params CreateQueueItemP
 		).
 		Prepared(true)
 
-	var item QueueItem
-	err := db.Get(&item, query)
-	if err != nil {
-		return QueueItem{}, err
-	}
-
-	return item, nil
+	return ember.Single[QueueItem](db.db, ctx, query)
 }
 
-func (db *Database) DeleteAllQueueItems(ctx context.Context, queueId string) error {
+func (db DB) DeleteAllQueueItems(ctx context.Context, queueId string) error {
 	query := dialect.Delete("queue_items").
 		Where(goqu.I("queue_items.queue_id").Eq(queueId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -585,21 +538,15 @@ func (db *Database) DeleteAllQueueItems(ctx context.Context, queueId string) err
 	return nil
 }
 
-func (db *Database) GetAllQueueItemIds(ctx context.Context, queueId string) ([]string, error) {
+func (db DB) GetAllQueueItemIds(ctx context.Context, queueId string) ([]string, error) {
 	query := dialect.From("queue_items").
 		Select("queue_items.track_id").
 		Order(goqu.I("queue_items.order_number").Asc())
 
-	var items []string
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[string](db.db, ctx, query)
 }
 
-func (db *Database) GetLastQueueItemIndex(ctx context.Context, queueId string) (int, bool, error) {
+func (db DB) GetLastQueueItemIndex(ctx context.Context, queueId string) (int, bool, error) {
 	query := dialect.From("queue_items").
 		Select(
 			"queue_items.order_number",
@@ -608,10 +555,9 @@ func (db *Database) GetLastQueueItemIndex(ctx context.Context, queueId string) (
 		Order(goqu.I("queue_items.order_number").Desc()).
 		Limit(1)
 
-	var index int
-	err := db.Get(&index, query)
+	index, err := ember.Single[int](db.db, ctx, query)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, ErrItemNotFound) {
 			return 0, false, nil
 		}
 

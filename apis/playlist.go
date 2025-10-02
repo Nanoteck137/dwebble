@@ -160,13 +160,13 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 
 				ctx := context.TODO()
 
-				db, tx, err := app.DB().Begin()
+				tx, err := app.DB().Begin()
 				if err != nil {
 					return nil, err
 				}
 				defer tx.Rollback()
 
-				playlist, err := db.CreatePlaylist(ctx, database.CreatePlaylistParams{
+				playlist, err := tx.CreatePlaylist(ctx, database.CreatePlaylistParams{
 					Name:    body.Name,
 					OwnerId: user.Id,
 				})
@@ -174,7 +174,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 					return nil, err
 				}
 
-				tracks, err := db.GetAllTracks(ctx, body.Filter, "")
+				tracks, err := tx.GetAllTracks(ctx, body.Filter, "")
 				if err != nil {
 					if errors.Is(err, database.ErrInvalidFilter) {
 						return nil, InvalidFilter(err)
@@ -184,7 +184,7 @@ func InstallPlaylistHandlers(app core.App, group pyrin.Group) {
 				}
 
 				for _, track := range tracks {
-					err = db.AddItemToPlaylist(ctx, playlist.Id, track.Id)
+					err = tx.AddItemToPlaylist(ctx, playlist.Id, track.Id)
 					if err != nil {
 						return nil, err
 					}

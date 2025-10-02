@@ -2,11 +2,9 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/mattn/go-sqlite3"
+	"github.com/nanoteck137/pyrin/ember"
 )
 
 type Tag struct {
@@ -23,51 +21,28 @@ func TagQuery() *goqu.SelectDataset {
 	return query
 }
 
-func (db *Database) GetAllTags(ctx context.Context) ([]Tag, error) {
+func (db DB) GetAllTags(ctx context.Context) ([]Tag, error) {
 	query := TagQuery()
 
-	var items []Tag
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Tag](db.db, ctx, query)
 }
 
-func (db *Database) GetTagBySlug(ctx context.Context, slug string) (Tag, error) {
+func (db DB) GetTagBySlug(ctx context.Context, slug string) (Tag, error) {
 	query := TagQuery().
 		Where(goqu.I("tags.slug").Eq(slug))
 
-	var item Tag
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Tag{}, ErrItemNotFound
-		}
-
-		return Tag{}, err
-	}
-
-	return item, nil
+	return ember.Single[Tag](db.db, ctx, query)
 }
 
-func (db *Database) CreateTag(ctx context.Context, slug string) error {
+func (db DB) CreateTag(ctx context.Context, slug string) error {
 	query := dialect.Insert("tags").
 		Rows(goqu.Record{
 			"slug": slug,
 		}).
 		Prepared(true)
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
-		var e sqlite3.Error
-		if errors.As(err, &e) {
-			if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-				return ErrItemAlreadyExists
-			}
-		}
-
 		return err
 	}
 

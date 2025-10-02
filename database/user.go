@@ -3,12 +3,12 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/ember"
 )
 
 type UserSettings struct {
@@ -54,7 +54,6 @@ func UserQuery() *goqu.SelectDataset {
 			"users_settings.display_name",
 			"users_settings.quick_playlist",
 		).
-		Prepared(true).
 		LeftJoin(
 			goqu.I("users_settings"),
 			goqu.On(goqu.I("users.id").Eq(goqu.I("users_settings.id"))),
@@ -70,22 +69,15 @@ func UserSettingsQuery() *goqu.SelectDataset {
 			"users_settings.display_name",
 
 			"users_settings.quick_playlist",
-		).
-		Prepared(true)
+		)
 
 	return query
 }
 
-func (db *Database) GetAllUsers(ctx context.Context) ([]User, error) {
+func (db DB) GetAllUsers(ctx context.Context) ([]User, error) {
 	query := UserQuery()
 
-	var items []User
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[User](db.db, ctx, query)
 }
 
 type CreateUserParams struct {
@@ -98,7 +90,7 @@ type CreateUserParams struct {
 	Updated int64
 }
 
-func (db *Database) CreateUser(ctx context.Context, params CreateUserParams) (User, error) {
+func (db DB) CreateUser(ctx context.Context, params CreateUserParams) (User, error) {
 	t := time.Now().UnixMilli()
 	created := params.Created
 	updated := params.Updated
@@ -134,64 +126,28 @@ func (db *Database) CreateUser(ctx context.Context, params CreateUserParams) (Us
 			"users.updated",
 		)
 
-	var item User
-	err := db.Get(&item, query)
-	if err != nil {
-		return User{}, err
-	}
-
-	return item, nil
+	return ember.Single[User](db.db, ctx, query)
 }
 
-func (db *Database) GetUserById(ctx context.Context, id string) (User, error) {
+func (db DB) GetUserById(ctx context.Context, id string) (User, error) {
 	query := UserQuery().
 		Where(goqu.I("users.id").Eq(id))
 
-	var item User
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return User{}, ErrItemNotFound
-		}
-
-		return User{}, err
-	}
-
-	return item, nil
+	return ember.Single[User](db.db, ctx, query)
 }
 
-func (db *Database) GetUserSettingsById(ctx context.Context, id string) (UserSettings, error) {
+func (db DB) GetUserSettingsById(ctx context.Context, id string) (UserSettings, error) {
 	query := UserSettingsQuery().
 		Where(goqu.I("users_settings.id").Eq(id))
 
-	var item UserSettings
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return UserSettings{}, ErrItemNotFound
-		}
-
-		return UserSettings{}, err
-	}
-
-	return item, nil
+	return ember.Single[UserSettings](db.db, ctx, query)
 }
 
-func (db *Database) GetUserByUsername(ctx context.Context, username string) (User, error) {
+func (db DB) GetUserByUsername(ctx context.Context, username string) (User, error) {
 	query := UserQuery().
 		Where(goqu.I("users.username").Eq(username))
 
-	var item User
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return User{}, ErrItemNotFound
-		}
-
-		return User{}, err
-	}
-
-	return item, nil
+	return ember.Single[User](db.db, ctx, query)
 }
 
 type UserChanges struct {
@@ -201,7 +157,7 @@ type UserChanges struct {
 	Created types.Change[int64]
 }
 
-func (db *Database) UpdateUser(ctx context.Context, id string, changes UserChanges) error {
+func (db DB) UpdateUser(ctx context.Context, id string, changes UserChanges) error {
 	record := goqu.Record{}
 
 	addToRecord(record, "username", changes.Username)
@@ -217,10 +173,9 @@ func (db *Database) UpdateUser(ctx context.Context, id string, changes UserChang
 
 	ds := dialect.Update("users").
 		Set(record).
-		Prepared(true).
 		Where(goqu.I("users.id").Eq(id))
 
-	_, err := db.Exec(ctx, ds)
+	_, err := db.db.Exec(ctx, ds)
 	if err != nil {
 		return err
 	}
@@ -228,20 +183,19 @@ func (db *Database) UpdateUser(ctx context.Context, id string, changes UserChang
 	return nil
 }
 
-func (db *Database) UpdateUserSettings(ctx context.Context, settings UserSettings) error {
+func (db DB) UpdateUserSettings(ctx context.Context, settings UserSettings) error {
 	query := dialect.Insert("users_settings").
 		Rows(goqu.Record{
 			"id":             settings.Id,
 			"display_name":   settings.DisplayName,
 			"quick_playlist": settings.QuickPlaylist,
 		}).
-		Prepared(true).
 		OnConflict(goqu.DoUpdate("id", goqu.Record{
 			"display_name":   settings.DisplayName,
 			"quick_playlist": settings.QuickPlaylist,
 		}))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}

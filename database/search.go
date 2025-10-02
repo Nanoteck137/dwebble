@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/nanoteck137/pyrin/ember"
 )
 
 type SearchOptions struct {
@@ -29,7 +30,7 @@ func encodeSearchQuery(searchQuery string) (string, bool) {
 	return searchQuery, true
 }
 
-type SearchFunc[T any] func(db *Database, searchQuery string, options SearchOptions) ([]T, error)
+type SearchFunc[T any] func(db DB, searchQuery string, options SearchOptions) ([]T, error)
 
 type SearchFuncParams struct {
 	Table     string
@@ -39,7 +40,7 @@ type SearchFuncParams struct {
 }
 
 func createSearchFunc[T any](params SearchFuncParams) SearchFunc[T] {
-	return func(db *Database, searchQuery string, options SearchOptions) ([]T, error) {
+	return func(db DB, searchQuery string, options SearchOptions) ([]T, error) {
 		searchQuery, ok := encodeSearchQuery(searchQuery)
 		if !ok {
 			return nil, nil
@@ -71,13 +72,7 @@ func createSearchFunc[T any](params SearchFuncParams) SearchFunc[T] {
 		fmt.Printf("sql: %v\n", sql)
 		fmt.Printf("params: %v\n", params)
 
-		var res []T
-		err := db.Select(&res, query)
-		if err != nil {
-			return nil, err
-		}
-
-		return res, nil
+		return ember.Multiple[T](db.db, context.Background(), query)
 	}
 }
 
@@ -99,7 +94,7 @@ var TestSearchTracks = createSearchFunc[Track](SearchFuncParams{
 	ItemQuery: TrackQuery(),
 })
 
-func (db *Database) SearchArtists(searchQuery string, options SearchOptions) ([]Artist, error) {
+func (db DB) SearchArtists(searchQuery string, options SearchOptions) ([]Artist, error) {
 	// searchQuery, ok := encodeSearchQuery(searchQuery)
 	// if !ok {
 	// 	return nil, nil
@@ -140,7 +135,7 @@ func (db *Database) SearchArtists(searchQuery string, options SearchOptions) ([]
 	return TestSearchArtist(db, searchQuery, options)
 }
 
-func (db *Database) SearchAlbums(searchQuery string) ([]Album, error) {
+func (db DB) SearchAlbums(searchQuery string) ([]Album, error) {
 	// searchQuery, ok := encodeSearchQuery(searchQuery)
 	// if !ok {
 	// 	return nil, nil
@@ -172,7 +167,7 @@ func (db *Database) SearchAlbums(searchQuery string) ([]Album, error) {
 	})
 }
 
-func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
+func (db DB) SearchTracks(searchQuery string) ([]Track, error) {
 	// searchQuery, ok := encodeSearchQuery(searchQuery)
 	// if !ok {
 	// 	return nil, nil
@@ -204,47 +199,50 @@ func (db *Database) SearchTracks(searchQuery string) ([]Track, error) {
 	})
 }
 
-func (db *Database) InitializeSearch() error {
-	_, err := db.Conn.Exec(`
-		CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(
-			id UNINDEXED, 
-			name, 
-			other_name,
-			tags,
-			tokenize=trigram
-		);
+func (db DB) InitializeSearch() error {
+	_, err := db.db.Exec(context.Background(), ember.RawQuery{
+		Sql: `
+			CREATE VIRTUAL TABLE IF NOT EXISTS artists_search USING fts5(
+				id UNINDEXED, 
+				name, 
+				other_name,
+				tags,
+				tokenize=trigram
+			);
 
-		CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(
-			id UNINDEXED, 
+			CREATE VIRTUAL TABLE IF NOT EXISTS albums_search USING fts5(
+				id UNINDEXED, 
 
-			name, 
-			other_name,
+				name, 
+				other_name,
 
-			artist, 
-			artist_other_name,
+				artist, 
+				artist_other_name,
 
-			tags,
+				tags,
 
-			tokenize=trigram
-		);
+				tokenize=trigram
+			);
 
-		CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(
-			id UNINDEXED, 
+			CREATE VIRTUAL TABLE IF NOT EXISTS tracks_search USING fts5(
+				id UNINDEXED, 
 
-			name, 
-			other_name,
+				name, 
+				other_name,
 
-			artist, 
-			artist_other_name,
+				artist, 
+				artist_other_name,
 
-			album, 
-			album_other_name,
+				album, 
+				album_other_name,
 
-			tags, 
+				tags, 
 
-			tokenize=trigram
-		);
-	`)
+				tokenize=trigram
+			);
+		`,
+		Params: []any{},
+	})
 	if err != nil {
 		return err
 	}
@@ -252,7 +250,7 @@ func (db *Database) InitializeSearch() error {
 	return nil
 }
 
-func (db *Database) InsertArtistToSearch(ctx context.Context, data Artist) error {
+func (db DB) InsertArtistToSearch(ctx context.Context, data Artist) error {
 	query := dialect.Insert("artists_search").Rows(goqu.Record{
 		"rowid": data.RowId,
 
@@ -264,7 +262,7 @@ func (db *Database) InsertArtistToSearch(ctx context.Context, data Artist) error
 		"tags": data.Tags.String,
 	})
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -272,12 +270,12 @@ func (db *Database) InsertArtistToSearch(ctx context.Context, data Artist) error
 	return nil
 }
 
-func (db *Database) DeleteArtistFromSearch(ctx context.Context, data Artist) error {
+func (db DB) DeleteArtistFromSearch(ctx context.Context, data Artist) error {
 	query := dialect.Delete("artists_search").Where(
 		goqu.I("artists_search.rowid").Eq(data.RowId),
 	)
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -285,7 +283,7 @@ func (db *Database) DeleteArtistFromSearch(ctx context.Context, data Artist) err
 	return nil
 }
 
-func (db *Database) UpdateSearchArtist(ctx context.Context, data Artist) error {
+func (db DB) UpdateSearchArtist(ctx context.Context, data Artist) error {
 	query := dialect.Update("artists_search").
 		Set(goqu.Record{
 			"id": data.Id,
@@ -297,7 +295,7 @@ func (db *Database) UpdateSearchArtist(ctx context.Context, data Artist) error {
 		}).
 		Where(goqu.I("artists_search.rowid").Eq(data.RowId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -305,7 +303,7 @@ func (db *Database) UpdateSearchArtist(ctx context.Context, data Artist) error {
 	return nil
 }
 
-func (db *Database) InsertAlbumToSearch(ctx context.Context, data Album) error {
+func (db DB) InsertAlbumToSearch(ctx context.Context, data Album) error {
 	query := dialect.Insert("albums_search").Rows(goqu.Record{
 		"rowid": data.RowId,
 
@@ -320,7 +318,7 @@ func (db *Database) InsertAlbumToSearch(ctx context.Context, data Album) error {
 		"tags": data.Tags.String,
 	})
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -328,12 +326,12 @@ func (db *Database) InsertAlbumToSearch(ctx context.Context, data Album) error {
 	return nil
 }
 
-func (db *Database) DeleteAlbumFromSearch(ctx context.Context, data Album) error {
+func (db DB) DeleteAlbumFromSearch(ctx context.Context, data Album) error {
 	query := dialect.Delete("albums_search").Where(
 		goqu.I("albums_search.rowid").Eq(data.RowId),
 	)
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -341,7 +339,7 @@ func (db *Database) DeleteAlbumFromSearch(ctx context.Context, data Album) error
 	return nil
 }
 
-func (db *Database) UpdateSearchAlbum(ctx context.Context, data Album) error {
+func (db DB) UpdateSearchAlbum(ctx context.Context, data Album) error {
 	query := dialect.Update("albums_search").
 		Set(goqu.Record{
 			"id": data.Id,
@@ -356,7 +354,7 @@ func (db *Database) UpdateSearchAlbum(ctx context.Context, data Album) error {
 		}).
 		Where(goqu.I("albums_search.rowid").Eq(data.RowId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -364,7 +362,7 @@ func (db *Database) UpdateSearchAlbum(ctx context.Context, data Album) error {
 	return nil
 }
 
-func (db *Database) InsertTrackToSearch(ctx context.Context, data Track) error {
+func (db DB) InsertTrackToSearch(ctx context.Context, data Track) error {
 	query := dialect.Insert("tracks_search").Rows(goqu.Record{
 		"rowid": data.RowId,
 
@@ -382,7 +380,7 @@ func (db *Database) InsertTrackToSearch(ctx context.Context, data Track) error {
 		"tags": data.Tags.String,
 	})
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -390,12 +388,12 @@ func (db *Database) InsertTrackToSearch(ctx context.Context, data Track) error {
 	return nil
 }
 
-func (db *Database) DeleteTrackFromSearch(ctx context.Context, data Track) error {
+func (db DB) DeleteTrackFromSearch(ctx context.Context, data Track) error {
 	query := dialect.Delete("tracks_search").Where(
 		goqu.I("tracks_search.rowid").Eq(data.RowId),
 	)
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -403,7 +401,7 @@ func (db *Database) DeleteTrackFromSearch(ctx context.Context, data Track) error
 	return nil
 }
 
-func (db *Database) UpdateSearchTrack(ctx context.Context, data Track) error {
+func (db DB) UpdateSearchTrack(ctx context.Context, data Track) error {
 	slog.Debug("Updating track search", "track", data)
 
 	query := dialect.Update("tracks_search").
@@ -423,7 +421,7 @@ func (db *Database) UpdateSearchTrack(ctx context.Context, data Track) error {
 		}).
 		Where(goqu.I("tracks_search.rowid").Eq(data.RowId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -431,12 +429,15 @@ func (db *Database) UpdateSearchTrack(ctx context.Context, data Track) error {
 	return nil
 }
 
-func (db *Database) RefillSearchTables(ctx context.Context) error {
-	_, err := db.Conn.Exec(`
-		DROP TABLE IF EXISTS artists_search;
-		DROP TABLE IF EXISTS albums_search;
-		DROP TABLE IF EXISTS tracks_search;
-	`)
+func (db DB) RefillSearchTables(ctx context.Context) error {
+	_, err := db.db.Exec(ctx, ember.RawQuery{
+		Sql: `
+			DROP TABLE IF EXISTS artists_search;
+			DROP TABLE IF EXISTS albums_search;
+			DROP TABLE IF EXISTS tracks_search;
+		`,
+		Params: []any{},
+	})
 	if err != nil {
 		return err
 	}

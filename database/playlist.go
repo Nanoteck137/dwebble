@@ -3,13 +3,12 @@ package database
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/mattn/go-sqlite3"
 	"github.com/nanoteck137/dwebble/tools/utils"
 	"github.com/nanoteck137/dwebble/types"
+	"github.com/nanoteck137/pyrin/ember"
 )
 
 type Playlist struct {
@@ -39,43 +38,26 @@ func PlaylistQuery() *goqu.SelectDataset {
 
 			"playlists.created",
 			"playlists.updated",
-		).
-		Prepared(true)
+		)
 
 	return query
 }
 
-func (db *Database) GetPlaylistsByUser(ctx context.Context, userId string) ([]Playlist, error) {
+func (db DB) GetPlaylistsByUser(ctx context.Context, userId string) ([]Playlist, error) {
 	query := PlaylistQuery().
 		Where(goqu.I("playlists.owner_id").Eq(userId))
 
-	var items []Playlist
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Playlist](db.db, ctx, query)
 }
 
-func (db *Database) GetPlaylistById(ctx context.Context, id string) (Playlist, error) {
+func (db DB) GetPlaylistById(ctx context.Context, id string) (Playlist, error) {
 	query := PlaylistQuery().
 		Where(goqu.I("playlists.id").Eq(id))
 
-	var item Playlist
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return Playlist{}, ErrItemNotFound
-		}
-
-		return Playlist{}, err
-	}
-
-	return item, nil
+	return ember.Single[Playlist](db.db, ctx, query)
 }
 
-func (db *Database) GetPlaylistItems(ctx context.Context, playlistId string) ([]PlaylistItem, error) {
+func (db DB) GetPlaylistItems(ctx context.Context, playlistId string) ([]PlaylistItem, error) {
 	query := dialect.From("playlist_items").
 		Select(
 			"playlist_items.playlist_id",
@@ -83,16 +65,10 @@ func (db *Database) GetPlaylistItems(ctx context.Context, playlistId string) ([]
 		).
 		Where(goqu.I("playlist_id").Eq(playlistId))
 
-	var items []PlaylistItem
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[PlaylistItem](db.db, ctx, query)
 }
 
-func (db *Database) GetPlaylistTracks(ctx context.Context, playlistId string) ([]Track, error) {
+func (db DB) GetPlaylistTracks(ctx context.Context, playlistId string) ([]Track, error) {
 	tracks := TrackQuery()
 
 	query := dialect.From("playlist_items").
@@ -104,16 +80,10 @@ func (db *Database) GetPlaylistTracks(ctx context.Context, playlistId string) ([
 		Where(goqu.I("playlist_items.playlist_id").Eq(playlistId)).
 		Order(goqu.I("tracks.name").Asc())
 
-	var items []Track
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[Track](db.db, ctx, query)
 }
 
-func (db *Database) GetPlaylistTracksPaged(ctx context.Context, playlistId string, opts FetchOptions) ([]Track, types.Page, error) {
+func (db DB) GetPlaylistTracksPaged(ctx context.Context, playlistId string, opts FetchOptions) ([]Track, types.Page, error) {
 	tracks := TrackQuery()
 
 	query := dialect.From("playlist_items").
@@ -136,8 +106,7 @@ func (db *Database) GetPlaylistTracksPaged(ctx context.Context, playlistId strin
 			Offset(uint(opts.Page * opts.PerPage))
 	}
 
-	var totalItems int
-	err = db.Get(&totalItems, countQuery)
+	totalItems, err := ember.Single[int](db.db, ctx, countQuery)
 	if err != nil {
 		return nil, types.Page{}, err
 	}
@@ -150,8 +119,7 @@ func (db *Database) GetPlaylistTracksPaged(ctx context.Context, playlistId strin
 		TotalPages: totalPages,
 	}
 
-	var items []Track
-	err = db.Select(&items, query)
+	items, err := ember.Multiple[Track](db.db, ctx, query)
 	if err != nil {
 		return nil, types.Page{}, err
 	}
@@ -170,7 +138,7 @@ type CreatePlaylistParams struct {
 	Updated int64
 }
 
-func (db *Database) CreatePlaylist(ctx context.Context, params CreatePlaylistParams) (Playlist, error) {
+func (db DB) CreatePlaylist(ctx context.Context, params CreatePlaylistParams) (Playlist, error) {
 	t := time.Now().UnixMilli()
 	created := params.Created
 	updated := params.Updated
@@ -205,48 +173,34 @@ func (db *Database) CreatePlaylist(ctx context.Context, params CreatePlaylistPar
 
 			"playlists.created",
 			"playlists.updated",
-		).
-		Prepared(true)
+		)
 
-	var item Playlist
-	err := db.Get(&item, query)
-	if err != nil {
-		return Playlist{}, err
-	}
-
-	return item, nil
+	return ember.Single[Playlist](db.db, ctx, query)
 }
 
-func (db *Database) AddItemToPlaylist(ctx context.Context, playlistId, trackId string) error {
+func (db DB) AddItemToPlaylist(ctx context.Context, playlistId, trackId string) error {
 	query := goqu.Insert("playlist_items").
 		Rows(goqu.Record{
 			"playlist_id": playlistId,
 			"track_id":    trackId,
 		})
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
-		var e sqlite3.Error
-		if errors.As(err, &e) {
-			if e.ExtendedCode == sqlite3.ErrConstraintPrimaryKey {
-				return ErrItemAlreadyExists
-			}
-		}
-
 		return err
 	}
 
 	return nil
 }
 
-func (db *Database) RemovePlaylistItem(ctx context.Context, playlistId, trackId string) error {
+func (db DB) RemovePlaylistItem(ctx context.Context, playlistId, trackId string) error {
 	query := goqu.Delete("playlist_items").
 		Where(goqu.And(
 			goqu.I("playlist_items.playlist_id").Eq(playlistId),
 			goqu.I("playlist_items.track_id").Eq(trackId),
 		))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -254,11 +208,11 @@ func (db *Database) RemovePlaylistItem(ctx context.Context, playlistId, trackId 
 	return nil
 }
 
-func (db *Database) RemoveAllPlaylistItem(ctx context.Context, playlistId string) error {
+func (db DB) RemoveAllPlaylistItem(ctx context.Context, playlistId string) error {
 	query := goqu.Delete("playlist_items").
 		Where(goqu.I("playlist_items.playlist_id").Eq(playlistId))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
@@ -266,12 +220,11 @@ func (db *Database) RemoveAllPlaylistItem(ctx context.Context, playlistId string
 	return nil
 }
 
-func (db *Database) DeletePlaylist(ctx context.Context, id string) error {
+func (db DB) DeletePlaylist(ctx context.Context, id string) error {
 	query := dialect.Delete("playlists").
-		Prepared(true).
 		Where(goqu.I("playlists.id").Eq(id))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}

@@ -529,7 +529,7 @@ func (s *SyncHandler) GetReport() Report {
 }
 
 func (s *SyncHandler) Cleanup(app core.App) error {
-	db, tx, err := app.DB().Begin()
+	tx, err := app.DB().Begin()
 	if err != nil {
 		return err
 	}
@@ -538,7 +538,7 @@ func (s *SyncHandler) Cleanup(app core.App) error {
 	ctx := context.TODO()
 
 	for _, track := range s.missingTracks {
-		err := db.DeleteTrack(ctx, track.Id)
+		err := tx.DeleteTrack(ctx, track.Id)
 		if err != nil {
 			return err
 		}
@@ -547,7 +547,7 @@ func (s *SyncHandler) Cleanup(app core.App) error {
 	}
 
 	for _, album := range s.missingAlbums {
-		err := db.DeleteAlbum(ctx, album.Id)
+		err := tx.DeleteAlbum(ctx, album.Id)
 		if err != nil {
 			return err
 		}

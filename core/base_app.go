@@ -51,13 +51,13 @@ func (app *BaseApp) Bootstrap() error {
 		}
 	}
 
-	app.db, err = database.Open(workDir)
+	app.db, err = database.Open(workDir.DatabaseFile())
 	if err != nil {
 		return err
 	}
 
 	if app.config.RunMigrations {
-		err = database.RunMigrateUp(app.db)
+		err = app.db.RunMigrateUp()
 		if err != nil {
 			return err
 		}

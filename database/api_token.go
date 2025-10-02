@@ -2,12 +2,11 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/nanoteck137/dwebble/tools/utils"
+	"github.com/nanoteck137/pyrin/ember"
 )
 
 type ApiToken struct {
@@ -36,34 +35,18 @@ func ApiTokenQuery() *goqu.SelectDataset {
 	return query
 }
 
-func (db *Database) GetApiTokenById(ctx context.Context, id string) (ApiToken, error) {
+func (db DB) GetApiTokenById(ctx context.Context, id string) (ApiToken, error) {
 	query := ApiTokenQuery().
 		Where(goqu.I("api_tokens.id").Eq(id))
 
-	var item ApiToken
-	err := db.Get(&item, query)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return ApiToken{}, ErrItemNotFound
-		}
-
-		return ApiToken{}, err
-	}
-
-	return item, nil
+	return ember.Single[ApiToken](db.db, ctx, query)
 }
 
-func (db *Database) GetAllApiTokensForUser(ctx context.Context, userId string) ([]ApiToken, error) {
+func (db DB) GetAllApiTokensForUser(ctx context.Context, userId string) ([]ApiToken, error) {
 	query := ApiTokenQuery().
 		Where(goqu.I("api_tokens.user_id").Eq(userId))
 
-	var items []ApiToken
-	err := db.Select(&items, query)
-	if err != nil {
-		return nil, err
-	}
-
-	return items, nil
+	return ember.Multiple[ApiToken](db.db, ctx, query)
 }
 
 type CreateApiTokenParams struct {
@@ -75,7 +58,7 @@ type CreateApiTokenParams struct {
 	Updated int64
 }
 
-func (db *Database) CreateApiToken(ctx context.Context, params CreateApiTokenParams) (ApiToken, error) {
+func (db DB) CreateApiToken(ctx context.Context, params CreateApiTokenParams) (ApiToken, error) {
 	t := time.Now().UnixMilli()
 	created := params.Created
 	updated := params.Updated
@@ -107,23 +90,16 @@ func (db *Database) CreateApiToken(ctx context.Context, params CreateApiTokenPar
 
 			"api_tokens.updated",
 			"api_tokens.created",
-		).
-		Prepared(true)
+		)
 
-	var item ApiToken
-	err := db.Get(&item, query)
-	if err != nil {
-		return ApiToken{}, err
-	}
-
-	return item, nil
+	return ember.Single[ApiToken](db.db, ctx, query)
 }
 
-func (db *Database) DeleteApiToken(ctx context.Context, id string) error {
+func (db DB) DeleteApiToken(ctx context.Context, id string) error {
 	query := dialect.Delete("api_tokens").
 		Where(goqu.I("api_tokens.id").Eq(id))
 
-	_, err := db.Exec(ctx, query)
+	_, err := db.db.Exec(ctx, query)
 	if err != nil {
 		return err
 	}
