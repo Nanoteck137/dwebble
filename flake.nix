@@ -30,7 +30,7 @@
           pname = "dwebble";
           version = fullVersion;
           src = ./.;
-          subPackages = ["cmd/dwebble" "cmd/dwebble-cli" "cmd/dwebble-migrate"];
+          subPackages = ["cmd/dwebble" "cmd/dwebble-cli"];
 
           ldflags = [
             "-X github.com/nanoteck137/dwebble.Version=${version}"
@@ -39,13 +39,12 @@
 
           tags = ["fts5"];
 
-          vendorHash = "sha256-PyNA11UoHL/7bGleNSZDk6d7r0ktvh+bOcUS6aLRw54=";
+          vendorHash = "sha256-49mw05UkkM/xq7OHnaXZP+/d9+QlcDPi4lxaww/o/VM=";
 
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
           postFixup = ''
             wrapProgram $out/bin/dwebble --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg pkgs.imagemagick ]}
-            wrapProgram $out/bin/dwebble-migrate --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg pkgs.imagemagick ]}
             wrapProgram $out/bin/dwebble-cli --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.ffmpeg pkgs.imagemagick tagopus.packages.${system}.default ]}
           '';
         };
@@ -55,7 +54,7 @@
           version = fullVersion;
 
           src = gitignore.lib.gitignoreSource ./web;
-          npmDepsHash = "sha256-EmEG72TQiP9NxQysfxyHYDq+MMNUyG8l1hMRjzG1SJw=";
+          npmDepsHash = "sha256-fWymnJnrDS39AHzT90h8+ItxPJ+q8CxENWUfkk79MG4=";
 
           PUBLIC_VERSION=version;
           PUBLIC_COMMIT=self.dirtyRev or self.rev or "no-commit";
