@@ -253,6 +253,26 @@ export const GetArtists = z.object({
 });
 export type GetArtists = z.infer<typeof GetArtists>;
 
+// Name: Path
+export const Path = z.object({
+  // Name: Path.name
+  "name": z.string(),
+  // Name: Path.path
+  "path": z.string(),
+  // Name: Path.isDir
+  "isDir": z.boolean(),
+  // Name: Path.depth
+  "depth": z.number(),
+});
+export type Path = z.infer<typeof Path>;
+
+// Name: GetLibraryPaths
+export const GetLibraryPaths = z.object({
+  // Name: GetLibraryPaths.paths
+  "paths": z.array(Path),
+});
+export type GetLibraryPaths = z.infer<typeof GetLibraryPaths>;
+
 // Name: GetMe
 export const GetMe = z.object({
   // Name: GetMe.id
@@ -595,6 +615,13 @@ export const SignupBody = z.object({
   "passwordConfirm": z.string(),
 });
 export type SignupBody = z.infer<typeof SignupBody>;
+
+// Name: SyncLibraryBody
+export const SyncLibraryBody = z.object({
+  // Name: SyncLibraryBody.path
+  "path": z.string().optional(),
+});
+export type SyncLibraryBody = z.infer<typeof SyncLibraryBody>;
 
 // Name: TrackId
 export const TrackId = z.object({

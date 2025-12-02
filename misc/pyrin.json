@@ -352,6 +352,16 @@
       ]
     },
     {
+      "name": "GetLibraryPaths",
+      "fields": [
+        {
+          "name": "paths",
+          "type": "[]Path",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
       "name": "GetMe",
       "fields": [
         {
@@ -912,6 +922,31 @@
       ]
     },
     {
+      "name": "Path",
+      "fields": [
+        {
+          "name": "name",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "path",
+          "type": "string",
+          "omitEmpty": false
+        },
+        {
+          "name": "isDir",
+          "type": "bool",
+          "omitEmpty": false
+        },
+        {
+          "name": "depth",
+          "type": "int",
+          "omitEmpty": false
+        }
+      ]
+    },
+    {
       "name": "Playlist",
       "fields": [
         {
@@ -1008,6 +1043,16 @@
           "name": "passwordConfirm",
           "type": "string",
           "omitEmpty": false
+        }
+      ]
+    },
+    {
+      "name": "SyncLibraryBody",
+      "fields": [
+        {
+          "name": "path",
+          "type": "string",
+          "omitEmpty": true
         }
       ]
     },
@@ -1300,6 +1345,13 @@
     },
     {
       "type": "api",
+      "name": "GetLibraryPaths",
+      "method": "GET",
+      "path": "/api/v1/system/library/paths",
+      "response": "GetLibraryPaths"
+    },
+    {
+      "type": "api",
       "name": "GetMe",
       "method": "GET",
       "path": "/api/v1/auth/me",
@@ -1373,12 +1425,6 @@
       "method": "GET",
       "path": "/api/v1/playlists",
       "response": "GetPlaylists"
-    },
-    {
-      "type": "api",
-      "name": "GetSyncStatus",
-      "method": "GET",
-      "path": "/api/v1/system/library"
     },
     {
       "type": "api",
@@ -1457,6 +1503,12 @@
     },
     {
       "type": "api",
+      "name": "RetrivePaths",
+      "method": "POST",
+      "path": "/api/v1/system/library/paths"
+    },
+    {
+      "type": "api",
       "name": "SearchAlbums",
       "method": "GET",
       "path": "/api/v1/albums/search",
@@ -1502,7 +1554,8 @@
       "type": "api",
       "name": "SyncLibrary",
       "method": "POST",
-      "path": "/api/v1/system/library"
+      "path": "/api/v1/system/library",
+      "body": "SyncLibraryBody"
     },
     {
       "type": "api",

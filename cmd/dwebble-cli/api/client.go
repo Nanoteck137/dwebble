@@ -309,6 +309,22 @@ func (c *Client) GetArtists(options Options) (*GetArtists, error) {
 }
 
 
+func (c *Client) GetLibraryPaths(options Options) (*GetLibraryPaths, error) {
+	path := "/api/v1/system/library/paths"
+	url, err := createUrl(c.addr, path, options.Query)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "GET",
+		ClientHeaders: c.Headers,
+		Headers: options.Header,
+	}
+	return Request[GetLibraryPaths](data, nil)
+}
+
 func (c *Client) GetMe(options Options) (*GetMe, error) {
 	path := "/api/v1/auth/me"
 	url, err := createUrl(c.addr, path, options.Query)
@@ -467,22 +483,6 @@ func (c *Client) GetPlaylists(options Options) (*GetPlaylists, error) {
 		Headers: options.Header,
 	}
 	return Request[GetPlaylists](data, nil)
-}
-
-func (c *Client) GetSyncStatus(options Options) (*any, error) {
-	path := "/api/v1/system/library"
-	url, err := createUrl(c.addr, path, options.Query)
-	if err != nil {
-		return nil, err
-	}
-
-	data := RequestData{
-		Url: url,
-		Method: "GET",
-		ClientHeaders: c.Headers,
-		Headers: options.Header,
-	}
-	return Request[any](data, nil)
 }
 
 func (c *Client) GetSystemInfo(options Options) (*GetSystemInfo, error) {
@@ -646,6 +646,22 @@ func (c *Client) RemovePlaylistItem(id string, body RemovePlaylistItemBody, opti
 	return Request[any](data, body)
 }
 
+func (c *Client) RetrivePaths(options Options) (*any, error) {
+	path := "/api/v1/system/library/paths"
+	url, err := createUrl(c.addr, path, options.Query)
+	if err != nil {
+		return nil, err
+	}
+
+	data := RequestData{
+		Url: url,
+		Method: "POST",
+		ClientHeaders: c.Headers,
+		Headers: options.Header,
+	}
+	return Request[any](data, nil)
+}
+
 func (c *Client) SearchAlbums(options Options) (*GetAlbums, error) {
 	path := "/api/v1/albums/search"
 	url, err := createUrl(c.addr, path, options.Query)
@@ -727,7 +743,7 @@ func (c *Client) Signup(body SignupBody, options Options) (*Signup, error) {
 }
 
 
-func (c *Client) SyncLibrary(options Options) (*any, error) {
+func (c *Client) SyncLibrary(body SyncLibraryBody, options Options) (*any, error) {
 	path := "/api/v1/system/library"
 	url, err := createUrl(c.addr, path, options.Query)
 	if err != nil {
@@ -740,7 +756,7 @@ func (c *Client) SyncLibrary(options Options) (*any, error) {
 		ClientHeaders: c.Headers,
 		Headers: options.Header,
 	}
-	return Request[any](data, nil)
+	return Request[any](data, body)
 }
 
 func (c *Client) UpdateTaglist(id string, body UpdateTaglistBody, options Options) (*any, error) {
@@ -885,6 +901,11 @@ func (c *ClientUrls) GetDefaultImage(image string) (*URL, error) {
 	return c.getUrl(path)
 }
 
+func (c *ClientUrls) GetLibraryPaths() (*URL, error) {
+	path := "/api/v1/system/library/paths"
+	return c.getUrl(path)
+}
+
 func (c *ClientUrls) GetMe() (*URL, error) {
 	path := "/api/v1/auth/me"
 	return c.getUrl(path)
@@ -932,11 +953,6 @@ func (c *ClientUrls) GetPlaylistItems(id string) (*URL, error) {
 
 func (c *ClientUrls) GetPlaylists() (*URL, error) {
 	path := "/api/v1/playlists"
-	return c.getUrl(path)
-}
-
-func (c *ClientUrls) GetSyncStatus() (*URL, error) {
-	path := "/api/v1/system/library"
 	return c.getUrl(path)
 }
 
@@ -992,6 +1008,11 @@ func (c *ClientUrls) RemoveItemFromUserQuickPlaylist() (*URL, error) {
 
 func (c *ClientUrls) RemovePlaylistItem(id string) (*URL, error) {
 	path := Sprintf("/api/v1/playlists/%v/items", id)
+	return c.getUrl(path)
+}
+
+func (c *ClientUrls) RetrivePaths() (*URL, error) {
+	path := "/api/v1/system/library/paths"
 	return c.getUrl(path)
 }
 

@@ -90,6 +90,10 @@ export class ApiClient extends BaseApiClient {
   }
   
   
+  getLibraryPaths(options?: ExtraOptions) {
+    return this.request("/api/v1/system/library/paths", "GET", api.GetLibraryPaths, z.any(), undefined, options)
+  }
+  
   getMe(options?: ExtraOptions) {
     return this.request("/api/v1/auth/me", "GET", api.GetMe, z.any(), undefined, options)
   }
@@ -128,10 +132,6 @@ export class ApiClient extends BaseApiClient {
   
   getPlaylists(options?: ExtraOptions) {
     return this.request("/api/v1/playlists", "GET", api.GetPlaylists, z.any(), undefined, options)
-  }
-  
-  getSyncStatus(options?: ExtraOptions) {
-    return this.request("/api/v1/system/library", "GET", z.undefined(), z.any(), undefined, options)
   }
   
   getSystemInfo(options?: ExtraOptions) {
@@ -175,6 +175,10 @@ export class ApiClient extends BaseApiClient {
     return this.request(`/api/v1/playlists/${id}/items`, "DELETE", z.undefined(), z.any(), body, options)
   }
   
+  retrivePaths(options?: ExtraOptions) {
+    return this.request("/api/v1/system/library/paths", "POST", z.undefined(), z.any(), undefined, options)
+  }
+  
   searchAlbums(options?: ExtraOptions) {
     return this.request("/api/v1/albums/search", "GET", api.GetAlbums, z.any(), undefined, options)
   }
@@ -196,8 +200,8 @@ export class ApiClient extends BaseApiClient {
   }
   
   
-  syncLibrary(options?: ExtraOptions) {
-    return this.request("/api/v1/system/library", "POST", z.undefined(), z.any(), undefined, options)
+  syncLibrary(body: api.SyncLibraryBody, options?: ExtraOptions) {
+    return this.request("/api/v1/system/library", "POST", z.undefined(), z.any(), body, options)
   }
   
   updateTaglist(id: string, body: api.UpdateTaglistBody, options?: ExtraOptions) {
@@ -304,6 +308,10 @@ export class ClientUrls {
     return createUrl(this.baseUrl, `/files/images/default/${image}`)
   }
   
+  getLibraryPaths() {
+    return createUrl(this.baseUrl, "/api/v1/system/library/paths")
+  }
+  
   getMe() {
     return createUrl(this.baseUrl, "/api/v1/auth/me")
   }
@@ -342,10 +350,6 @@ export class ClientUrls {
   
   getPlaylists() {
     return createUrl(this.baseUrl, "/api/v1/playlists")
-  }
-  
-  getSyncStatus() {
-    return createUrl(this.baseUrl, "/api/v1/system/library")
   }
   
   getSystemInfo() {
@@ -390,6 +394,10 @@ export class ClientUrls {
   
   removePlaylistItem(id: string) {
     return createUrl(this.baseUrl, `/api/v1/playlists/${id}/items`)
+  }
+  
+  retrivePaths() {
+    return createUrl(this.baseUrl, "/api/v1/system/library/paths")
   }
   
   searchAlbums() {

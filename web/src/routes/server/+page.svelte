@@ -9,8 +9,8 @@
   const apiClient = getApiClient();
 
   let refillSearch = $state(false);
-  let test = $state<string[]>([]);
-  let syncing = $state(false);
+
+  let syncState = $state<SyncStateTy>();
 
   const SyncError = z.object({
     type: z.string(),
@@ -31,7 +31,32 @@
     artistName: z.string(),
   });
 
+  const SyncState = z.object({
+    isSyncing: z.boolean(),
+    isRetrivingPaths: z.boolean(),
+
+    paths: z.array(
+      z.object({
+        name: z.string(),
+        path: z.string(),
+        isDir: z.boolean(),
+        depth: z.number(),
+      }),
+    ),
+
+    report: z.object({
+      syncErrors: z.array(SyncError).nullable(),
+      missingAlbums: z.array(MissingAlbum).nullable(),
+      missingTracks: z.array(MissingTrack).nullable(),
+    }),
+  });
+  type SyncStateTy = z.infer<typeof SyncState>;
+
   const Event = z.discriminatedUnion("type", [
+    z.object({
+      type: z.literal("sync-state"),
+      data: SyncState,
+    }),
     z.object({
       type: z.literal("syncing"),
       data: z.object({
@@ -59,9 +84,12 @@
       console.log(event);
 
       switch (event.type) {
-        case "syncing":
-          syncing = event.data.syncing;
+        case "sync-state":
+          syncState = event.data;
           break;
+        // case "syncing":
+        //   syncing = event.data.syncing;
+        //   break;
         case "report":
           console.log("Report", event.data);
           // const mapped =
@@ -100,11 +128,12 @@
   Refill Search
 </Button>
 
-<p>Library Syncing: {syncing}</p>
+<p>Library Syncing: {syncState?.isSyncing}</p>
+<p>Library Retriving Paths: {syncState?.isRetrivingPaths}</p>
 
 <Button
   onclick={async () => {
-    const res = await apiClient.syncLibrary();
+    const res = await apiClient.syncLibrary({});
     if (!res.success) {
       handleApiError(res.error);
       return;
@@ -112,6 +141,18 @@
   }}
 >
   Sync Library
+</Button>
+
+<Button
+  onclick={async () => {
+    const res = await apiClient.retrivePaths({});
+    if (!res.success) {
+      handleApiError(res.error);
+      return;
+    }
+  }}
+>
+  Retrive Paths
 </Button>
 
 <Button
@@ -126,7 +167,29 @@
   Cleanup Library
 </Button>
 
-{#each test as message}
-  <p class="whitespace-pre font-mono">{message}</p>
-  <br />
-{/each}
+{#if syncState?.report.syncErrors}
+  {#each syncState?.report.syncErrors as err}
+    <p class="whitespace-pre font-mono">{err.fullMessage}</p>
+    <br />
+  {/each}
+{/if}
+
+{#if syncState?.paths}
+  <div class="flex flex-col items-start">
+    {#each syncState?.paths as path}
+      <button
+        class="hover:underline"
+        style={`padding-left: ${path.depth * 20}px`}
+        onclick={async () => {
+          const res = await apiClient.syncLibrary({ path: path.path });
+          if (!res.success) {
+            handleApiError(res.error);
+            return;
+          }
+        }}
+      >
+        {path.path}
+      </button>
+    {/each}
+  </div>
+{/if}

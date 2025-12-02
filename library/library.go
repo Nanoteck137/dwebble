@@ -133,3 +133,66 @@ func FindAlbums(p string) (*Search, error) {
 		Errors: errors,
 	}, nil
 }
+
+type FileNode struct {
+	Name     string     `json:"name"`
+	Path     string     `json:"path"`
+	IsDir    bool       `json:"isDir"`
+	Children []FileNode `json:"children,omitempty"`
+}
+
+func includeFile(name string) bool {
+	return false
+	// return name == "album.toml"
+}
+
+// BuildDirTree builds a directory tree starting from `root`
+func BuildDirTree(root string) (FileNode, error) {
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return FileNode{}, err
+	}
+
+	return buildTreeRecursive(absRoot, absRoot)
+}
+
+func buildTreeRecursive(root, current string) (FileNode, error) {
+	info, err := os.Stat(current)
+	if err != nil {
+		return FileNode{}, err
+	}
+
+	relPath, _ := filepath.Rel(root, current)
+	if relPath == "." {
+		relPath = "/" // root
+	} else {
+		relPath = "/" + filepath.ToSlash(relPath) // always start with /
+	}
+
+	node := FileNode{
+		Name:  info.Name(),
+		Path:  relPath,
+		IsDir: info.IsDir(),
+	}
+
+	if info.IsDir() {
+		entries, err := os.ReadDir(current)
+		if err != nil {
+			return node, err
+		}
+
+		for _, entry := range entries {
+			childPath := filepath.Join(current, entry.Name())
+
+			if entry.IsDir() || includeFile(entry.Name()) {
+				childNode, err := buildTreeRecursive(root, childPath)
+				if err != nil {
+					return node, err
+				}
+				node.Children = append(node.Children, childNode)
+			}
+		}
+	}
+
+	return node, nil
+}

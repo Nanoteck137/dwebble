@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -502,13 +503,14 @@ type SyncHandler struct {
 
 	mutex sync.RWMutex
 
-	isSyncing atomic.Bool
+	isSyncing        atomic.Bool
+	isRetrivingPaths atomic.Bool
+
+	libraryRoot atomic.Pointer[[]Path]
 
 	syncErrors    []SyncError
 	missingAlbums []MissingAlbum
 	missingTracks []MissingTrack
-
-	SyncChannel chan bool
 }
 
 type Report struct {
@@ -526,6 +528,37 @@ func (s *SyncHandler) GetReport() Report {
 		MissingAlbums: s.missingAlbums,
 		MissingTracks: s.missingTracks,
 	}
+}
+
+func (s *SyncHandler) RetrivePaths(app core.App) {
+	go func() {
+		if s.isRetrivingPaths.Load() {
+			slog.Warn("Already retriving paths")
+			return
+		}
+		
+		s.isRetrivingPaths.Store(true)
+		defer s.isRetrivingPaths.Store(false)
+
+		s.EmitState()
+
+		slog.Info("Getting paths")
+
+		root, err := library.BuildDirTree(app.Config().LibraryDir)
+		if err != nil {
+			// TODO(patrik): Handle error
+			return
+		}
+
+		slog.Info("Done getting paths")
+
+		paths := flattenTree(root, 0)
+
+		s.libraryRoot.Store(&paths)
+
+		s.isRetrivingPaths.Store(false)
+		s.EmitState()
+	}()
 }
 
 func (s *SyncHandler) Cleanup(app core.App) error {
@@ -555,28 +588,64 @@ func (s *SyncHandler) Cleanup(app core.App) error {
 		slog.Info("Deleted album", "album", album)
 	}
 
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	s.missingAlbums = []MissingAlbum{}
 	s.missingTracks = []MissingTrack{}
 
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
+	s.EmitState()
 
 	return nil
 }
 
-func (s *SyncHandler) RunSync(app core.App) error {
+func (s *SyncHandler) GetStateEvent() SyncStateEvent {
+	p := s.libraryRoot.Load()
+
+	paths := []Path{}
+	if p != nil {
+		paths = *p
+	}
+
+	return SyncStateEvent{
+		IsSyncing:        s.isSyncing.Load(),
+		IsRetrivingPaths: s.isRetrivingPaths.Load(),
+		Paths:            paths,
+		Report: Report{
+			SyncErrors:    s.syncErrors,
+			MissingAlbums: s.missingAlbums,
+			MissingTracks: s.missingTracks,
+		},
+	}
+}
+
+func (s *SyncHandler) EmitState() {
+	s.broker.EmitEvent(s.GetStateEvent())
+}
+
+func (s *SyncHandler) RunSync(app core.App, p string) error {
 	s.isSyncing.Store(true)
 	defer s.isSyncing.Store(false)
 
-	slog.Debug("Searching for albums", "libraryDir", app.Config().LibraryDir)
+	s.EmitState()
+
+	slog.Debug("Searching for albums", "libraryDir", app.Config().LibraryDir, "path", p)
+
+	var isRoot bool
+	if p == "" || p == "/" {
+		isRoot = true
+		p = ""
+	}
+
+	fullPath := path.Join(app.Config().LibraryDir, p)
 
 	// TODO(patrik): Check for duplicated ids
-	search, err := library.FindAlbums(app.Config().LibraryDir)
+	search, err := library.FindAlbums(fullPath)
 	if err != nil {
 		return err
 	}
@@ -610,7 +679,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	var missingAlbums []MissingAlbum
 	var missingTracks []MissingTrack
 
-	{
+	if isRoot {
 		ids, err := app.DB().GetAllAlbumIds(ctx)
 		if err != nil {
 			return err
@@ -634,7 +703,7 @@ func (s *SyncHandler) RunSync(app core.App) error {
 		}
 	}
 
-	{
+	if isRoot {
 		ids, err := app.DB().GetAllTrackIds(ctx)
 		if err != nil {
 			return err
@@ -690,6 +759,9 @@ func (s *SyncHandler) RunSync(app core.App) error {
 	s.syncErrors = errs
 	s.missingAlbums = missingAlbums
 	s.missingTracks = missingTracks
+
+	s.isSyncing.Store(false)
+	s.EmitState()
 
 	return nil
 }
@@ -749,21 +821,27 @@ func (broker *Broker) EmitEvent(event EventData) {
 }
 
 var syncHandler = SyncHandler{
-	SyncChannel: make(chan bool),
-	broker:      NewServer(),
+	broker: NewServer(),
 }
 
-const (
-	EventSyncing string = "syncing"
-	EventReport  string = "report"
-)
+type SyncStateEvent struct {
+	IsSyncing        bool `json:"isSyncing"`
+	IsRetrivingPaths bool `json:"isRetrivingPaths"`
+
+	Paths  []Path `json:"paths"`
+	Report Report `json:"report"`
+}
+
+func (s SyncStateEvent) GetEventType() string {
+	return "sync-state"
+}
 
 type SyncEvent struct {
 	Syncing bool `json:"syncing"`
 }
 
 func (s SyncEvent) GetEventType() string {
-	return EventSyncing
+	return "syncing"
 }
 
 type ReportEvent struct {
@@ -771,7 +849,39 @@ type ReportEvent struct {
 }
 
 func (s ReportEvent) GetEventType() string {
-	return EventReport
+	return "report"
+}
+
+type Path struct {
+	Name  string `json:"name"`
+	Path  string `json:"path"`
+	IsDir bool   `json:"isDir"`
+	Depth int    `json:"depth"`
+}
+
+type GetLibraryPaths struct {
+	Paths []Path `json:"paths"`
+}
+
+func flattenTree(node library.FileNode, depth int) []Path {
+	list := []Path{{
+		Name:  node.Name,
+		Path:  node.Path,
+		IsDir: node.IsDir,
+		Depth: depth,
+	}}
+	for _, child := range node.Children {
+		list = append(list, flattenTree(child, depth+1)...)
+	}
+	return list
+}
+
+type SyncLibraryBody struct {
+	Path string `json:"path,omitempty"`
+}
+
+func (b *SyncLibraryBody) Transform() {
+	b.Path = anvil.String(b.Path)
 }
 
 func InstallSystemHandlers(app core.App, group pyrin.Group) {
@@ -809,13 +919,29 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 		},
 
 		pyrin.ApiHandler{
-			Name:   "GetSyncStatus",
-			Method: http.MethodGet,
-			Path:   "/system/library",
-			// ResponseType: SyncStatus{},
+			Name:         "GetLibraryPaths",
+			Method:       http.MethodGet,
+			Path:         "/system/library/paths",
+			ResponseType: GetLibraryPaths{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
-				// res := syncHandler.GetSyncStatus()
-				return nil, nil
+				root := syncHandler.libraryRoot.Load()
+				if root == nil {
+					syncHandler.RetrivePaths(app)
+
+					return GetLibraryPaths{
+						Paths: []Path{},
+					}, nil
+				}
+
+				p := syncHandler.libraryRoot.Load()
+				paths := []Path{}
+				if p != nil {
+					paths = *p
+				}
+
+				return GetLibraryPaths{
+					Paths: paths,
+				}, nil
 			},
 		},
 
@@ -824,11 +950,17 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 			Method:       http.MethodPost,
 			Path:         "/system/library",
 			ResponseType: nil,
+			BodyType:     SyncLibraryBody{},
 			HandlerFunc: func(c pyrin.Context) (any, error) {
 				// TODO(patrik):
 				//  - Handle Errors
 				//  - Handle Single Album Syncing
 				//  - Handle album modified syncing
+
+				body, err := pyrin.Body[SyncLibraryBody](c)
+				if err != nil {
+					return nil, err
+				}
 
 				go func() {
 					if syncHandler.isSyncing.Load() {
@@ -838,26 +970,25 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 
 					slog.Info("Started library sync")
 
-					syncHandler.broker.EmitEvent(SyncEvent{
-						Syncing: true,
-					})
-
-					err := syncHandler.RunSync(app)
+					err := syncHandler.RunSync(app, body.Path)
 					if err != nil {
 						slog.Error("Failed to run sync", "err", err)
 					}
 
-					syncHandler.broker.EmitEvent(SyncEvent{
-						Syncing: false,
-					})
-
-					syncHandler.broker.EmitEvent(ReportEvent{
-						Report: syncHandler.GetReport(),
-					})
-
 					slog.Info("Library sync done")
 				}()
 
+				return nil, nil
+			},
+		},
+
+		pyrin.ApiHandler{
+			Name:         "RetrivePaths",
+			Method:       http.MethodPost,
+			Path:         "/system/library/paths",
+			ResponseType: nil,
+			HandlerFunc: func(c pyrin.Context) (any, error) {
+				syncHandler.RetrivePaths(app)
 				return nil, nil
 			},
 		},
@@ -876,10 +1007,6 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 				if err != nil {
 					return nil, err
 				}
-
-				syncHandler.broker.EmitEvent(ReportEvent{
-					Report: syncHandler.GetReport(),
-				})
 
 				return nil, nil
 			},
@@ -923,13 +1050,7 @@ func InstallSystemHandlers(app core.App, group pyrin.Group) {
 					rc.Flush()
 				}
 
-				sendEvent(SyncEvent{
-					Syncing: syncHandler.isSyncing.Load(),
-				})
-
-				sendEvent(ReportEvent{
-					Report: syncHandler.GetReport(),
-				})
+				sendEvent(syncHandler.GetStateEvent())
 
 				for {
 					select {
