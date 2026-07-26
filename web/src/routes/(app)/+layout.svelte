@@ -2,6 +2,7 @@
   import {
     DiscAlbum,
     FileMusic,
+    Heart,
     ListMusic,
     ListVideo,
     LogOut,
@@ -115,6 +116,16 @@
             : 'text-muted-foreground'}"
         >
           Playlists
+        </a>
+        <a
+          href="/favorites"
+          class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground {page.url.pathname.startsWith(
+            '/favorites',
+          )
+            ? 'bg-accent text-accent-foreground'
+            : 'text-muted-foreground'}"
+        >
+          Favorites
         </a>
       </div>
 
@@ -267,6 +278,17 @@
       >
         <ListMusic size={18} />
         Playlists
+      </a>
+      <a
+        href="/favorites"
+        class="flex flex-col items-center gap-0.5 px-3 py-1 text-xs font-medium transition-colors {page.url.pathname.startsWith(
+          '/favorites',
+        )
+          ? 'text-primary'
+          : 'text-muted-foreground'}"
+      >
+        <Heart size={18} />
+        Favorites
       </a>
     </nav>
   {/if}
