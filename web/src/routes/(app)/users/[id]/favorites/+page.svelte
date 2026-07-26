@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Separator } from "@nanoteck137/nano-ui";
-  import { Play } from "lucide-svelte";
+  import { Play, Shuffle } from "lucide-svelte";
   import { getMusicManager } from "$lib/music-manager.svelte";
   import Pagination from "$lib/components/Pagination.svelte";
   import TrackList from "$lib/components/track-list/TrackList.svelte";
@@ -34,6 +34,19 @@
       <Button size="sm" onclick={() => playAll()}>
         <Play size={14} />
         Play All
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onclick={async () => {
+          await musicManager.queueRequest(
+            { type: "addFavorites", userId: data.userData.id },
+            { shuffle: true },
+          );
+        }}
+      >
+        <Shuffle size={14} />
+        Shuffle
       </Button>
     </div>
   </div>
